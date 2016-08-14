@@ -1,0 +1,11 @@
+{
+  "presets": [ "es2015"],
+  "env": {
+    "test": {
+      "plugins": [
+        ["__coverage__", {"ignore": "*.+(test|stub).*"}],
+        "transform-flow-strip-types"
+      ]
+    }
+  }
+}
