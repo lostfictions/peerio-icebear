@@ -15,7 +15,7 @@ module.exports = function setKarmaConfig(config) {
         },
         webpack: webpackConfig,
         webpackMiddleware: { noInfo: true },
-        reporters: ['progress', 'coverage'],
+        reporters: ['progress', 'coverage', 'nyan'],
         coverageReporter: {
             reporters: [
                 { type: 'lcov', dir: 'coverage/', subdir: '.' },
