@@ -17,6 +17,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         pathinfo: true
     },
+    devtool: "#inline-source-map",
     context: path.resolve(__dirname, 'src'),
     bail: false,
     module: {
@@ -26,20 +27,6 @@ module.exports = {
         ]
     },
     plugins: [
-        new webpack.DefinePlugin({
-            'process.env': {
-                'NODE_ENV': "'test'"
-            },
-            ENV: "'test'"
-        }),
-        new webpack.SourceMapDevToolPlugin({
-            test: /\.js$/,
-            exclude: 'bundle.vendor',
-            filename: "bundle.[name].js.map",
-            append: "//# sourceMappingURL=[url]",
-            moduleFilenameTemplate: '[resource-path]',
-            fallbackModuleFilenameTemplate: '[resource-path]',
-        }),
         new FlowStatusWebpackPlugin()
     ].filter(p => !!p)
 };

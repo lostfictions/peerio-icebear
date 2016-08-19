@@ -1,5 +1,4 @@
 const webpackConfig = require('./webpack.config');
-process.env.BABEL_ENV = 'test'; // so we load the correct babel plugins
 const testGlob = 'test/**/*.js';
 const srcGlob = 'src/**/*.js';
 
@@ -10,12 +9,12 @@ module.exports = function setKarmaConfig(config) {
         files: [testGlob, srcGlob],
         exclude: [],
         preprocessors: {
-            [testGlob]: ['webpack'],
+            [testGlob]: ['webpack', 'sourcemap'],
             [srcGlob]: ['webpack']
         },
         webpack: webpackConfig,
         webpackMiddleware: { noInfo: true },
-        reporters: ['progress', 'coverage', 'nyan'],
+        reporters: ['nyan', 'progress', process.env.BABEL_ENV === 'coverage'? 'coverage':null].filter(i=>i!=null),
         coverageReporter: {
             reporters: [
                 { type: 'lcov', dir: 'coverage/', subdir: '.' },
@@ -26,8 +25,14 @@ module.exports = function setKarmaConfig(config) {
         port: 9876,
         colors: true,
         logLevel: config.LOG_INFO,
-        autoWatch: false,
-        browsers: ['Chrome'],
+        autoWatch: true,
+        browsers: ['Chrome_Debug'],
+        customLaunchers: {
+            Chrome_Debug: {
+                base: 'Chrome',
+                flags: ['--user-data-dir=./tests/config/.chrome_dev_user']
+            }
+        },
         singleRun: true,
         concurrency: Infinity
     })
