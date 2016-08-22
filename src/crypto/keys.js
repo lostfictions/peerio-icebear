@@ -11,6 +11,7 @@ const passHashPersonalization = {
     personalization: util.strToBytes('PeerioPH')
 };
 
+// deterministically derives boot key and auth key pair
 function deriveKeys(username, passphrase, salt) {
     return new Promise((resolve, reject) => {
         const prehashed = new BLAKE2s(32, passHashPersonalization);
@@ -32,6 +33,12 @@ function deriveKeys(username, passphrase, salt) {
     });
 }
 
+// Generates new random ed25519 key pair
+function generateSigningKeys() {
+    return nacl.sign.keyPair();
+}
+
 module.exports = {
-    deriveKeys
+    deriveKeys,
+    generateSigningKeys
 };

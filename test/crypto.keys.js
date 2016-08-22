@@ -19,10 +19,15 @@ describe('Crypto Keys module', () => {
 
         };
 
-
         return crypto.deriveKeys(username, passphrase, salt)
             .then(actual => {
                 expect(actual).to.deep.equal(expected);
             });
+    });
+
+    it('should generate signing keys', () => {
+        const keys = crypto.generateSigningKeys();
+        keys.publicKey.length.should.equal(32);
+        keys.secretKey.length.should.equal(64);
     });
 });
