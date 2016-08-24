@@ -5,5 +5,7 @@
 [include]
 
 [libs]
+node_modules/iflow-bluebird/index.js.flow
 
 [options]
+all=false
