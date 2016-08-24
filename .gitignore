@@ -3,3 +3,4 @@ coverage
 dist
 npm-debug.log
 tests/config/.chrome_dev_user
+.idea

@@ -24,7 +24,7 @@ type MainKeySetType = {
 /**
  * Deterministically derives boot key and auth key pair.
  */
-exports.deriveKeys = function (username: string, passphrase: string, salt: Uint8Array): Promise<MainKeySetType> {
+exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8Array): Promise<MainKeySetType> {
     return new Promise((resolve: Function, reject: Function): void => {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
@@ -48,6 +48,10 @@ exports.deriveKeys = function (username: string, passphrase: string, salt: Uint8
 /**
  * Generates new random signing (ed25519) key pair.
  */
-exports.generateSigningKeys = function (): KeyPairType {
+exports.generateSigningKeys = function(): KeyPairType {
     return nacl.sign.keyPair();
+};
+
+exports.generateAsymmetricEncryptionKeys = function(): KeyPairType {
+    return nacl.box.keyPair();
 };

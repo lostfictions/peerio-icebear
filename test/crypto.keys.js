@@ -30,4 +30,10 @@ describe('Crypto Keys module', () => {
         keys.publicKey.length.should.equal(32);
         keys.secretKey.length.should.equal(64);
     });
+
+    it('should generate public key encryption keys', () => {
+        const keys = crypto.generateAsymmetricEncryptionKeys();
+        keys.publicKey.length.should.equal(32);
+        keys.secretKey.length.should.equal(32);
+    });
 });

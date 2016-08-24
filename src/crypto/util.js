@@ -10,7 +10,7 @@ const naclUtil = require('tweetnacl-util');
  * Concatenates two Uint8Arrays.
  * Returns new concatenated array.
  */
-exports.concatBuffers = function (buffer1: Uint8Array, buffer2: Uint8Array): Uint8Array {
+exports.concatBuffers = function(buffer1: Uint8Array, buffer2: Uint8Array): Uint8Array {
     const joined = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
     joined.set(new Uint8Array(buffer1), 0);
     joined.set(new Uint8Array(buffer2), buffer1.byteLength);
