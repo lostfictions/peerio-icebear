@@ -35,6 +35,7 @@ exports.deriveKeys = function (username: string, passphrase: string, salt: Uint8
             } catch (ex) {
                 reject(ex);
             }
+            resolve(keys);
         });
     });
 };
