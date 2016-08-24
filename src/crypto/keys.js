@@ -9,8 +9,13 @@ const BLAKE2s = require('blake2s-js');
 const nacl = require('tweetnacl');
 const util = require('./util');
 
+/** Standard key pair in binary format. */
 type KeyPairType = { publicKey: Uint8Array, secretKey: Uint8Array };
 
+/**
+ * Main and minimal Peerio user's key set.
+ * This is required to authenticate and start working, get other keys, etc.
+ */
 type MainKeySetType = {
     bootKey: Uint8Array,
     authKeyPair: KeyPairType

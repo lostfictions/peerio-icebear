@@ -12,13 +12,32 @@ Deterministically derives boot key and auth key pair.
 -   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 -   `salt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;MainKeySetType>** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[MainKeySetType](#mainkeysettype)>** 
 
 ## generateSigningKeys
 
 Generates new random signing (ed25519) key pair.
 
-Returns **KeyPairType** 
+Returns **[KeyPairType](#keypairtype)** 
+
+# KeyPairType
+
+Standard key pair in binary format.
+
+**Properties**
+
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+# MainKeySetType
+
+Main and minimal Peerio user's key set.
+This is required to authenticate and start working, get other keys, etc.
+
+**Properties**
+
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `authKeyPair` **[KeyPairType](#keypairtype)** 
 
 # crypto/util
 
