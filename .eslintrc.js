@@ -3,5 +3,7 @@ module.exports = {
     parser: 'babel-eslint',
     extends: [
         "peerio"
-    ]
+    ],
+    rules:{
+    }
 };
