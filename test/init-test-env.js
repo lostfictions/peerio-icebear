@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars, global-require, no-undef */
-
+//
+// Test environment and helpers initialization code
+//
 const api = {
-    conversations: require('../src/lib/store/conversations'),
+    chats: require('../src/stores/chats'),
     cryptoKeys: require('../src/crypto/keys')
 };
 

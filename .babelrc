@@ -1,12 +1,21 @@
 {
-    "presets": ["es2015", "stage-0", "react"],
-    "plugins": ["transform-decorators-legacy", "transform-flow-strip-types"],
+    "presets": [
+        "es2015",
+        "stage-0",
+        "react"
+    ],
+    "plugins": [
+        "transform-decorators-legacy"
+    ],
     "env": {
         "coverage": {
             "plugins": [
-                ["__coverage__", {
-                    "ignore": "*.+(test|stub).*"
-                }]
+                [
+                    "__coverage__",
+                    {
+                        "ignore": "*.+(test|stub).*"
+                    }
+                ]
             ]
         }
     }

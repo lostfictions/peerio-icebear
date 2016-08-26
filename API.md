@@ -14,11 +14,24 @@ Deterministically derives boot key and auth key pair.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[MainKeySetType](#mainkeysettype)>** 
 
-## generateSigningKeys
+## generateSigningKeyPair
 
 Generates new random signing (ed25519) key pair.
+32 byte public key and 64 byte secret key.
 
 Returns **[KeyPairType](#keypairtype)** 
+
+## generateEncryptionKeyPair
+
+Generates new random asymmetric (curve25519) key pair.
+
+Returns **[KeyPairType](#keypairtype)** 
+
+## generateEncryptionKey
+
+Generates new random symmetric (xsalsa20) 32 byte secret key.
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 # KeyPairType
 
@@ -39,11 +52,19 @@ This is required to authenticate and start working, get other keys, etc.
 -   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 -   `authKeyPair` **[KeyPairType](#keypairtype)** 
 
+# crypto/public
+
+Public key encryption module
+
+# crypto/secret
+
+Secret key encryption module
+
 # crypto/util
 
 Peerio Crypto Utilities module.
 
-## concatBuffers
+## concatTypedArrays
 
 Concatenates two Uint8Arrays.
 Returns new concatenated array.
@@ -57,7 +78,7 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 ## strToBytes
 
-Converts UTF8 string to byte array
+Converts UTF8 string to byte array.
 
 **Parameters**
 
@@ -67,7 +88,7 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 ## bytesToStr
 
-Converts byte array to UTF8 string
+Converts byte array to UTF8 string.
 
 **Parameters**
 
@@ -77,7 +98,7 @@ Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 
 ## b64ToBytes
 
-Converts Base64 string to byte array
+Converts Base64 string to byte array.
 
 **Parameters**
 
@@ -87,10 +108,16 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 ## bytesToB64
 
-Converts byte array to Base64 string
+Converts byte array to Base64 string.
 
 **Parameters**
 
 -   `bytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+## getRandomNonce
+
+Generates 24-byte unique(almost) random nonce.
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 

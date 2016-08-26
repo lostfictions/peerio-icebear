@@ -1,8 +1,8 @@
 //
 //  Crypto keys module testing
 //
-const crypto = require('../src/crypto/keys');
-const util = require('../src/crypto/util');
+const crypto = require('../../src/crypto/keys');
+const util = require('../../src/crypto/util');
 
 describe('Crypto Keys module', () => {
     it('should derive keys', () => {
@@ -26,14 +26,19 @@ describe('Crypto Keys module', () => {
     });
 
     it('should generate signing keys', () => {
-        const keys = crypto.generateSigningKeys();
+        const keys = crypto.generateSigningKeyPair();
         keys.publicKey.length.should.equal(32);
         keys.secretKey.length.should.equal(64);
     });
 
     it('should generate public key encryption keys', () => {
-        const keys = crypto.generateAsymmetricEncryptionKeys();
+        const keys = crypto.generateEncryptionKeyPair();
         keys.publicKey.length.should.equal(32);
         keys.secretKey.length.should.equal(32);
+    });
+
+    it('should generate symmetric encryption key', () => {
+        const key = crypto.generateEncryptionKey();
+        key.length.should.equal(32);
     });
 });

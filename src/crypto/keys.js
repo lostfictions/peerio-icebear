@@ -28,10 +28,11 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
     return new Promise((resolve: Function, reject: Function): void => {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
-        const fullSalt = util.concatBuffers(util.strToBytes(username), salt);
+        const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
 
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
-        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 1000, (derivedBytes: Array<number>): void => {
+        // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
+        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 300, (derivedBytes: Array<number>): void => {
             const keys = {};
             try {
                 keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
@@ -47,11 +48,22 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
 
 /**
  * Generates new random signing (ed25519) key pair.
+ * 32 byte public key and 64 byte secret key.
  */
-exports.generateSigningKeys = function(): KeyPairType {
+exports.generateSigningKeyPair = function(): KeyPairType {
     return nacl.sign.keyPair();
 };
 
-exports.generateAsymmetricEncryptionKeys = function(): KeyPairType {
+/**
+ * Generates new random asymmetric (curve25519) key pair.
+ */
+exports.generateEncryptionKeyPair = function(): KeyPairType {
     return nacl.box.keyPair();
+};
+
+/**
+ * Generates new random symmetric (xsalsa20) 32 byte secret key.
+ */
+exports.generateEncryptionKey = function(): Uint8Array {
+    return nacl.randomBytes(32);
 };

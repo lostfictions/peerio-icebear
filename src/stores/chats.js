@@ -1,6 +1,6 @@
 const observable = require('mobx').observable;
 
-class Conversations {
+class Chats {
     @observable currentPageItems = [];
     @observable totalCount = -1;
 
@@ -9,4 +9,4 @@ class Conversations {
     }
 }
 
-module.exports = new Conversations();
+module.exports = new Chats();

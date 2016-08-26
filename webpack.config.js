@@ -22,6 +22,7 @@ module.exports = {
     bail: false,
     module: {
         loaders: [
+            { test: /\.test\.js$/, loader: 'babel', exclude: [/node_modules/] },
             { test: /\.js$/, loader: 'babel!eslint', exclude: [/node_modules/] },
             { test: /\.json$/, loader: 'json' }
         ]
