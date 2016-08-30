@@ -3,11 +3,11 @@
  * Peerio Crypto module for key handling.
  * @module crypto/keys
  */
-
 const scrypt = require('scrypt-async');
 const BLAKE2s = require('blake2s-js');
 const nacl = require('tweetnacl');
 const util = require('./util');
+const err = require('../errors');
 
 /** Standard key pair in binary format. */
 type KeyPairType = { publicKey: Uint8Array, secretKey: Uint8Array };
@@ -39,7 +39,7 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
                 const secretKey = new Uint8Array(derivedBytes.slice(32, 64));
                 keys.authKeyPair = nacl.box.keyPair.fromSecretKey(secretKey);
             } catch (ex) {
-                reject(ex);
+                reject(err.normalize(ex, 'Scrypt callback exception.'));
             }
             resolve(keys);
         });
