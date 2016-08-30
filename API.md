@@ -58,7 +58,17 @@ Public key encryption module
 
 # crypto/secret
 
-Secret key encryption module
+Secret key encryption module.
+encrypt and decrypt functions replace nacl.secretbox and nacl.secretbox.open.
+This replacement reduces the amount of memory allocation and copy operations.
+
+The output cipher bytes have following differences with nacl.secretbox output:
+
+-   nonce is appended to the cipher bytes.
+-   16 BOXZEROBYTES in the beginning of cipher bytes are not stripped and another 16 are appended to them
+
+Cipherbytes structure:
+[ 32 zero bytes ][ actual cipher bytes ][ 24-byte nonce]
 
 ## encrypt
 

@@ -9,10 +9,10 @@ module.exports = function setKarmaConfig(config) {
         files: ['test/test-index.js'],
         exclude: [],
         preprocessors: {
-            'test/test-index.js': ['webpack']
+            'test/test-index.js': ['webpack','sourcemap']
         },
         webpack: {
-            devtool: "",
+            devtool: "inline-source-map",
             context: path.resolve(__dirname, 'src'),
             bail: false,
             module: {
