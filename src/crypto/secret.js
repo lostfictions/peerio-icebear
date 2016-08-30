@@ -24,22 +24,9 @@ const KEYBYTES:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 
 // TODO: optimisation: try reusing same large ArrayBuffer for output
 
-/* nacl.secretbox = function(msg, nonce, key) {
-  checkArrayTypes(msg, nonce, key);
-  checkLengths(key, nonce);
-  var m = new Uint8Array(crypto_secretbox_ZEROBYTES + msg.length);
-  var c = new Uint8Array(m.length);
-  for (var i = 0; i < msg.length; i++) m[i+crypto_secretbox_ZEROBYTES] = msg[i];
-  crypto_secretbox(c, m, m.length, nonce, key);
-  return c.subarray(crypto_secretbox_BOXZEROBYTES);
-}
-*/
 /**
  * Encrypts and authenticates data using symmetric encryption.
- * This is a refactored version of nacl.secretbox.
- * It automatically generates nonce and appends it to the resulting cipher bytes.
- * This has many performance benefits including more compact, efficient storage and transfer,
- * and less memory copy operations.
+ * This is a refactored version of nacl.secretbox().
  */
 exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array {
     let msg:Uint8Array;
@@ -73,18 +60,10 @@ exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array
     return c1;// contains 16 zero bytes in the beginning
 };
 
-/*
-nacl.secretbox.open = function(box, nonce, key) {
-  checkArrayTypes(box, nonce, key);
-  checkLengths(key, nonce);
-  var c = new Uint8Array(crypto_secretbox_BOXZEROBYTES + box.length);
-  var m = new Uint8Array(c.length);
-  for (var i = 0; i < box.length; i++) c[i+crypto_secretbox_BOXZEROBYTES] = box[i];
-  if (c.length < 32) return false;
-  if (crypto_secretbox_open(m, c, c.length, nonce, key) !== 0) return false;
-  return m.subarray(crypto_secretbox_ZEROBYTES);
-};
-*/
+/**
+ * Decrypts and authenticates data using symmetric encryption.
+ * This is a refactored version of nacl.secretbox.open().
+ */
 exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
     if (!(cipher instanceof Uint8Array
         && key instanceof Uint8Array

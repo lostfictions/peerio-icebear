@@ -6,7 +6,7 @@
   "scripts": {
     "test": "BABEL_ENV=coverage karma start",
     "check-coverage": "istanbul check-coverage --statements 23 --branches 5 --functions 9 --lines 24",
-    "validate": "npm-run-all --parallel lint flow doc:lint test --serial check-coverage",
+    "validate": "npm-run-all --parallel lint flow test --serial check-coverage",
     "start": "karma start --no-single-run",
     "build": "webpack --progress",
     "lint": "eslint . --fix --ext .js,.jsx",
