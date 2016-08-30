@@ -1,0 +1,16 @@
+/* eslint-disable */
+// Should be removed as soon as it's added to standard library
+
+declare class TextEncoder {
+   constructor(encoding: string): TextEncoder;
+   encode(buffer: string, options?: {stream: bool}): Uint8Array;
+   encoding: string;
+ }
+
+declare class TextDecoder {
+   constructor(encoding?: string, options?: { fatal: bool }): TextDecoder;
+   encoding: string;
+   fatal: bool;
+   ignoreBOM: bool;
+   decode(buffer?: ArrayBufferView, options?: { stream: bool }): string;
+ }

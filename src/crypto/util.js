@@ -5,7 +5,12 @@
  */
 
 const nacl = require('tweetnacl');
-const naclUtil = require('tweetnacl-util');
+const Buffer = require('buffer').Buffer;
+
+const HAS_TEXT_ENCODER = typeof TextEncoder !== 'undefined';
+const textEncoder:TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder() : null;
+const textDecoder:TextDecoder = HAS_TEXT_ENCODER ? new TextDecoder() : null;
+
 /**
  * Concatenates two Uint8Arrays.
  * Returns new concatenated array.
@@ -17,14 +22,37 @@ exports.concatTypedArrays = function(buffer1: Uint8Array, buffer2: Uint8Array): 
     return joined;
 };
 
-/** Converts UTF8 string to byte array. */
-exports.strToBytes = (str: string): Uint8Array => naclUtil.decodeUTF8(str);
-/** Converts byte array to UTF8 string. */
-exports.bytesToStr = (bytes: Uint8Array): string => naclUtil.encodeUTF8(bytes);
+/**
+ * Converts UTF8 string to byte array.
+ * Uses native TextEncoder with Buffer polyfill fallback.
+ */
+exports.strToBytes = function(str: string): Uint8Array {
+    if (HAS_TEXT_ENCODER) {
+        return textEncoder.encode(str);
+    }
+    // returning buffer will break deep equality tests since Buffer modifies prototype
+    return new Uint8Array(Buffer.from(str, 'utf8').buffer);
+};
+
+/**
+ * Converts byte array to UTF8 string .
+ * Uses native TextEncoder with Buffer polyfill fallback.
+ */
+exports.bytesToStr = function(bytes: Uint8Array): string {
+    if (HAS_TEXT_ENCODER) {
+        return textDecoder.decode(bytes);
+    }
+    return Buffer.fromTypedArray(bytes).toString('utf8');
+};
+
 /** Converts Base64 string to byte array. */
-exports.b64ToBytes = (str: string): Uint8Array => naclUtil.decodeBase64(str);
+exports.b64ToBytes = function(str: string): Uint8Array {
+    return new Uint8Array(Buffer.from(str, 'base64').buffer);
+};
 /** Converts byte array to Base64 string. */
-exports.bytesToB64 = (bytes: Uint8Array): string => naclUtil.encodeBase64(bytes);
+exports.bytesToB64 = function(bytes: Uint8Array): string {
+    return Buffer.fromTypedArray(bytes).toString('base64');
+};
 
 /** Generates 24-byte unique(almost) random nonce. */
 exports.getRandomNonce = function(): Uint8Array {

@@ -5,5 +5,8 @@ module.exports = {
         "peerio"
     ],
     rules:{
+    },
+    globals:{
+        TextEncoder: false
     }
 };
