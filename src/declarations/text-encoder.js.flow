@@ -12,5 +12,5 @@ declare class TextDecoder {
    encoding: string;
    fatal: bool;
    ignoreBOM: bool;
-   decode(buffer?: ArrayBufferView, options?: { stream: bool }): string;
+   decode(buffer: Uint8Array, options?: { stream: bool }): string;
  }

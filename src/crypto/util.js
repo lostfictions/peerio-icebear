@@ -5,11 +5,11 @@
  */
 
 const nacl = require('tweetnacl');
-const Buffer = require('buffer').Buffer;
+const Buffer = require('buffer/').Buffer;
 
 const HAS_TEXT_ENCODER = typeof TextEncoder !== 'undefined';
-const textEncoder:TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder() : null;
-const textDecoder:TextDecoder = HAS_TEXT_ENCODER ? new TextDecoder() : null;
+const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
+const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
 
 /**
  * Concatenates two Uint8Arrays.
@@ -28,10 +28,11 @@ exports.concatTypedArrays = function(buffer1: Uint8Array, buffer2: Uint8Array): 
  */
 exports.strToBytes = function(str: string): Uint8Array {
     if (HAS_TEXT_ENCODER) {
+        // $FlowBug: Flow can't detect that this can never be a nullref
         return textEncoder.encode(str);
     }
     // returning buffer will break deep equality tests since Buffer modifies prototype
-    return new Uint8Array(Buffer.from(str, 'utf8').buffer);
+    return new Uint8Array(Buffer.from(str, 'utf-8').buffer);
 };
 
 /**
@@ -40,9 +41,10 @@ exports.strToBytes = function(str: string): Uint8Array {
  */
 exports.bytesToStr = function(bytes: Uint8Array): string {
     if (HAS_TEXT_ENCODER) {
+        // $FlowBug: Flow can't detect that this can never be a nullref
         return textDecoder.decode(bytes);
     }
-    return Buffer.fromTypedArray(bytes).toString('utf8');
+    return Buffer.fromTypedArray(bytes).toString('utf-8');
 };
 
 /** Converts Base64 string to byte array. */
