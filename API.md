@@ -60,6 +60,21 @@ Public key encryption module
 
 Secret key encryption module
 
+## encrypt
+
+Encrypts and authenticates data using symmetric encryption.
+This is a refactored version of nacl.secretbox.
+It automatically generates nonce and appends it to the resulting cipher bytes.
+This has many performance benefits including more compact, efficient storage and transfer,
+and less memory copy operations.
+
+**Parameters**
+
+-   `msg1` **([Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) \| [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String))** 
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
 # crypto/util
 
 Peerio Crypto Utilities module.
@@ -79,6 +94,7 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 ## strToBytes
 
 Converts UTF8 string to byte array.
+Uses native TextEncoder with Buffer polyfill fallback.
 
 **Parameters**
 
@@ -88,7 +104,8 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 ## bytesToStr
 
-Converts byte array to UTF8 string.
+Converts byte array to UTF8 string .
+Uses native TextEncoder with Buffer polyfill fallback.
 
 **Parameters**
 
@@ -121,3 +138,42 @@ Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 Generates 24-byte unique(almost) random nonce.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `unknownErrorObject` **Any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
+# normalize
+
+Use this helper to resolve returning error value.
+
+If you:
+
+-   have a error result from catch() or reject()
+-   don't know what exactly that result is, Error, string, undefined or something else
+-   don't need custom errors just want to generate meaningful Error object
+    then call normalize and pass the result you've got together with fallback message
+    that will be wrapped in Error object and returned in case the result wasn't instance of Error
+
+**Parameters**
+
+-   `unknownErrorObject` **Any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
+# bufferExtensions
+
+Icebear client lib entry point
+
+# Buffer
+
+'buffer' module extensions.
+This is a side-effect module it modifies and exports the export of buffer module.

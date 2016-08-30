@@ -1,24 +1,37 @@
-const webpackConfig = require('./webpack.config');
-const testGlob = 'test/**/*.js';
-const srcGlob = 'src/**/*.js';
+const webpack = require('webpack');
+const path = require('path');
+const FlowStatusWebpackPlugin = require('flow-status-webpack-plugin');
 
 module.exports = function setKarmaConfig(config) {
     config.set({
         basePath: '',
         frameworks: ['mocha', 'chai'],
-        files: [testGlob, srcGlob],
+        files: ['test/test-index.js'],
         exclude: [],
         preprocessors: {
-            [testGlob]: ['webpack', 'sourcemap'],
-            [srcGlob]: ['webpack']
+            'test/test-index.js': ['webpack']
         },
-        webpack: webpackConfig,
+        webpack: {
+            devtool: "",
+            context: path.resolve(__dirname, 'src'),
+            bail: false,
+            module: {
+                loaders: [
+                    { test: /\.js$/, loader: 'babel', exclude: [/node_modules/] },
+                    { test: /\.json$/, loader: 'json' }
+                ]
+            },
+            plugins: [
+                new FlowStatusWebpackPlugin(),
+                new webpack.optimize.DedupePlugin()
+            ]
+        },
         webpackMiddleware: { noInfo: true },
         reporters: ['nyan', 'progress', process.env.BABEL_ENV === 'coverage'? 'coverage':null].filter(i=>i!=null),
         coverageReporter: {
             reporters: [
                 { type: 'lcov', dir: 'coverage/', subdir: '.' },
-                { type: 'json', dir: 'coverage/', subdir: '.' },
+            //    { type: 'json', dir: 'coverage/', subdir: '.' },
                 { type: 'text-summary' }
             ]
         },
@@ -30,7 +43,7 @@ module.exports = function setKarmaConfig(config) {
         customLaunchers: {
             Chrome_Debug: {
                 base: 'Chrome',
-                flags: ['--user-data-dir=./tests/config/.chrome_dev_user']
+                flags: ['--user-data-dir=./.chrome_dev_user']
             }
         },
         singleRun: true,
