@@ -164,7 +164,7 @@ Use this helper to resolve returning error value.
 
 If you:
 
--   have a error result from catch() or reject()
+-   have an error result from catch() or reject()
 -   don't know what exactly that result is, Error, string, undefined or something else
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
@@ -192,7 +192,7 @@ Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 
 Icebear client lib entry point
 
-# Buffer
+# side-effect/buffer-extensions
 
 'buffer' module extensions.
 This is a side-effect module it modifies and exports the export of buffer module.

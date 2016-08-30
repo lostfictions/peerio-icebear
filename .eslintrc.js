@@ -7,6 +7,7 @@ module.exports = {
     rules:{
     },
     globals:{
-        TextEncoder: false
+        TextEncoder: false,
+        TextDecoder: false
     }
 };

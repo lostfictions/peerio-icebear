@@ -7,7 +7,7 @@
 const nacl = require('tweetnacl');
 const Buffer = require('buffer/').Buffer;
 
-const HAS_TEXT_ENCODER = typeof TextEncoder !== 'undefined';
+const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
 const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
 

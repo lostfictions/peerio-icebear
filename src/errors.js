@@ -21,7 +21,7 @@ CustomError.prototype.constructor = CustomError;
 /**
  * Use this helper to resolve returning error value.
  * If you:
- * - have a error result from catch() or reject()
+ * - have an error result from catch() or reject()
  * - don't know what exactly that result is, Error, string, undefined or something else
  * - don't need custom errors just want to generate meaningful Error object
  * then call normalize and pass the result you've got together with fallback message

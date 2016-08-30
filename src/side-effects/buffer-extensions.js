@@ -1,7 +1,7 @@
 /**
  * 'buffer' module extensions.
  * This is a side-effect module it modifies and exports the export of buffer module.
- * @module 'side-effect/buffer-extensions'
+ * @module side-effect/buffer-extensions
  */
 const Buffer = require('buffer/').Buffer;
 
