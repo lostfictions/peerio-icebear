@@ -11,4 +11,5 @@ describe('Secret key encryption module', () => {
         const actual = crypto.decrypt(crypto.encrypt(message, key), key);
         actual.should.eql(message);
     });
+    // TODO compatibility with original nacl.secretbox() and nacl.secretbox.open()
 });

@@ -1,20 +1,104 @@
 // @flow
 /**
- * Secret key encryption module
+ * Secret key encryption module.
+ * encrypt and decrypt functions replace nacl.secretbox and nacl.secretbox.open.
+ * This replacement reduces the amount of memory allocation and copy operations.
+ * The output cipher bytes have following differences with nacl.secretbox output:
+ * - nonce is appended to the cipher bytes.
+ * - 16 BOXZEROBYTES in the beginning of cipher bytes are not stripped and another 16 are appended to them
+ *
+ * Cipherbytes structure:
+ * [ 32 zero bytes ][ actual cipher bytes ][ 24-byte nonce]
+ *
  * @module crypto/secret
  */
 
 const nacl = require('tweetnacl');
 const util = require('./util');
 
-const NONCE_LENGTH = 24;
+// this is for reference, in the code we use numbers for better comprehension
+// const BOXZEROBYTES:number = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
+// const ZEROBYTES:number = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
+// const NONCEBYTES:number = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
+const KEYBYTES:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 
-exports.encrypt = function(data: Uint8Array, key: Uint8Array): Uint8Array {
+// TODO: optimisation: try reusing same large ArrayBuffer for output
+
+/* nacl.secretbox = function(msg, nonce, key) {
+  checkArrayTypes(msg, nonce, key);
+  checkLengths(key, nonce);
+  var m = new Uint8Array(crypto_secretbox_ZEROBYTES + msg.length);
+  var c = new Uint8Array(m.length);
+  for (var i = 0; i < msg.length; i++) m[i+crypto_secretbox_ZEROBYTES] = msg[i];
+  crypto_secretbox(c, m, m.length, nonce, key);
+  return c.subarray(crypto_secretbox_BOXZEROBYTES);
+}
+*/
+/**
+ * Encrypts and authenticates data using symmetric encryption.
+ * This is a refactored version of nacl.secretbox.
+ * It automatically generates nonce and appends it to the resulting cipher bytes.
+ * This has many performance benefits including more compact, efficient storage and transfer,
+ * and less memory copy operations.
+ */
+exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array {
+    let msg:Uint8Array;
+    // decode string if it was passed instead of byte array
+    if (typeof (msg1) === 'string') {
+        msg = util.strToBytes(msg1);
+    } else if (msg1 instanceof Uint8Array) {
+        msg = msg1;
+    } else throw new Error('secret.encrypt: first argument (message) should be string or Uint8Array.');
+
+    // validating arguments
+    if (!(msg instanceof Uint8Array
+        && key instanceof Uint8Array
+        && key.length === KEYBYTES)) {
+        throw new Error('secret.encrypt: Invalid argument type or key length.');
+    }
+
+    // TODO: there must be a way to avoid this allocation and copy
+    const m = new Uint8Array(32 + msg.length); /* ZEROBYTES */
+    for (let i = 0; i < msg.length; i++) m[i + 32] = msg[i];
+
     const nonce = util.getRandomNonce();
-    const encrypted = nacl.secretbox(data, nonce, key);
-    return util.concatTypedArrays(nonce, encrypted);
+    // container for cipher bytes concatenated with nonce
+    const c1 = new Uint8Array(m.length + 24); /* NONCEBYTES */
+    // appending nonce to the end of cipher bytes
+    for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
+    // view of the same ArrayBuffer for encryption algorythm that does not know about our nonce concatenation
+    const c = c1.subarray(0, -24);// TODO: check if we can skip this step
+    nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
+
+    return c1;// contains 16 zero bytes in the beginning
 };
 
-exports.decrypt = function(encrypted: Uint8Array, key: Uint8Array): Uint8Array {
-    return nacl.secretbox.open(encrypted.subarray(NONCE_LENGTH), encrypted.subarray(0, NONCE_LENGTH), key);
+/*
+nacl.secretbox.open = function(box, nonce, key) {
+  checkArrayTypes(box, nonce, key);
+  checkLengths(key, nonce);
+  var c = new Uint8Array(crypto_secretbox_BOXZEROBYTES + box.length);
+  var m = new Uint8Array(c.length);
+  for (var i = 0; i < box.length; i++) c[i+crypto_secretbox_BOXZEROBYTES] = box[i];
+  if (c.length < 32) return false;
+  if (crypto_secretbox_open(m, c, c.length, nonce, key) !== 0) return false;
+  return m.subarray(crypto_secretbox_ZEROBYTES);
 };
+*/
+exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
+    if (!(cipher instanceof Uint8Array
+        && key instanceof Uint8Array
+        && key.length === KEYBYTES
+        && cipher.length >= 56)) { /* NONCEBYTES + ZEROBYTES */
+        throw new Error('secret.encrypt: Invalid argument type or length.');
+    }
+
+    const c = cipher.subarray(0, -24);
+    const m = new Uint8Array(c.length);
+    if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, cipher.subarray(-24), key) !== 0) {
+        throw Error('Decryption failed.');
+    }
+
+    return m.subarray(32); /* ZEROBYTES */
+};
+
