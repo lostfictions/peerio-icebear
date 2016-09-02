@@ -20,33 +20,25 @@ const util = require('./util');
 // const BOXZEROBYTES:number = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
 // const ZEROBYTES:number = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
 // const NONCEBYTES:number = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
-const KEYBYTES:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
+const KEY_LENGTH:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 
-// TODO: optimisation: try reusing same large ArrayBuffer for output
+// IDEA: try reusing same large ArrayBuffer for output
 
 /**
  * Encrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox().
  */
-exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array {
-    let msg:Uint8Array;
-    // decode string if it was passed instead of byte array
-    if (typeof (msg1) === 'string') {
-        msg = util.strToBytes(msg1);
-    } else if (msg1 instanceof Uint8Array) {
-        msg = msg1;
-    } else throw new Error('secret.encrypt: first argument (message) should be string or Uint8Array.');
-
+exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
     // validating arguments
-    if (!(msg instanceof Uint8Array
+    if (!(msgBytes instanceof Uint8Array
         && key instanceof Uint8Array
-        && key.length === KEYBYTES)) {
+        && key.length === KEY_LENGTH)) {
         throw new Error('secret.encrypt: Invalid argument type or key length.');
     }
 
-    // TODO: there must be a way to avoid this allocation and copy
-    const m = new Uint8Array(32 + msg.length); /* ZEROBYTES */
-    for (let i = 0; i < msg.length; i++) m[i + 32] = msg[i];
+    // IDEA: there must be a way to avoid this allocation and copy
+    const m = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
+    for (let i = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
 
     const nonce = util.getRandomNonce();
     // container for cipher bytes concatenated with nonce
@@ -54,10 +46,18 @@ exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array
     // appending nonce to the end of cipher bytes
     for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
     // view of the same ArrayBuffer for encryption algorythm that does not know about our nonce concatenation
-    const c = c1.subarray(0, -24);// TODO: check if we can skip this step
+    const c = c1.subarray(0, -24);// IDEA: check if we can skip this step
     nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
 
     return c1;// contains 16 zero bytes in the beginning
+};
+
+/**
+ * Helper method to decode string to bytes and encrypt it.
+ */
+exports.encryptString = function(msg: string, key: Uint8Array): Uint8Array {
+    const msgBytes = util.strToBytes(msg);
+    return exports.encrypt(msgBytes, key);
 };
 
 /**
@@ -67,7 +67,7 @@ exports.encrypt = function(msg1: Uint8Array|string, key: Uint8Array): Uint8Array
 exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
     if (!(cipher instanceof Uint8Array
         && key instanceof Uint8Array
-        && key.length === KEYBYTES
+        && key.length === KEY_LENGTH
         && cipher.length >= 56)) { /* NONCEBYTES + ZEROBYTES */
         throw new Error('secret.encrypt: Invalid argument type or length.');
     }
@@ -81,3 +81,10 @@ exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
     return m.subarray(32); /* ZEROBYTES */
 };
 
+
+/**
+ * Helper method to decode decrypted data to a string.
+ */
+exports.decryptString = function(cipher: Uint8Array, key: Uint8Array): string {
+    return util.bytesToStr(exports.decrypt(cipher, key));
+};
