@@ -8,6 +8,7 @@ module.exports = {
     },
     globals:{
         TextEncoder: false,
-        TextDecoder: false
+        TextDecoder: false,
+        crypto: false
     }
 };

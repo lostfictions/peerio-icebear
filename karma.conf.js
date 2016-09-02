@@ -23,7 +23,8 @@ module.exports = function setKarmaConfig(config) {
             },
             plugins: [
                 new FlowStatusWebpackPlugin(),
-                new webpack.optimize.DedupePlugin()
+                new webpack.optimize.DedupePlugin(),
+                new webpack.ProgressPlugin()
             ]
         },
         webpackMiddleware: { noInfo: true },

@@ -30,14 +30,15 @@
   "homepage": "https://github.com/PeerioTechnologies/peerio-icebear#readme",
   "dependencies": {
     "blake2s-js": "1.2.0",
-    "bluebird": "3.4.3",
+    "bluebird": "3.4.6",
+    "buffer": "4.9.1",
     "is_js": "0.8.0",
-    "mobx": "2.4.4",
+    "mobx": "2.5.1",
     "mobx-react": "3.5.5",
     "nacl-stream": "0.3.3",
     "scrypt-async": "1.2.0",
-    "tweetnacl": "0.14.3",
-    "buffer": "4.9.1"
+    "socket.io-client": "1.4.8",
+    "tweetnacl": "0.14.3"
   },
   "devDependencies": {
     "babel-core": "6.14.0",
@@ -51,7 +52,7 @@
     "babel-preset-stage-0": "6.5.0",
     "chai": "3.5.0",
     "cz-conventional-changelog": "1.2.0",
-    "documentation": "4.0.0-beta9",
+    "documentation": "4.0.0-beta10",
     "eslint-config-peerio": "*",
     "eslint-loader": "1.5.0",
     "file-loader": "0.9.0",
@@ -71,13 +72,11 @@
     "karma-sourcemap-loader": "0.3.7",
     "karma-webpack": "1.8.0",
     "mocha": "3.0.2",
-    "npm-run-all": "3.0.0",
+    "npm-run-all": "3.1.0",
     "rimraf": "2.5.4",
     "standard-version": "^2.4.0",
-    "style-loader": "0.13.1",
     "validate-commit-msg": "2.8.0",
-    "webpack": "2.1.0-beta.21",
-    "webpack-dev-server": "2.1.0-beta.0"
+    "webpack": "2.1.0-beta.21"
   },
   "config": {
     "ghooks": {
