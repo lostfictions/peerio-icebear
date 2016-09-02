@@ -65,5 +65,5 @@ exports.generateEncryptionKeyPair = function(): KeyPairType {
  * Generates new random symmetric (xsalsa20) 32 byte secret key.
  */
 exports.generateEncryptionKey = function(): Uint8Array {
-    return nacl.randomBytes(32);
+    return util.getRandomBytes(32);
 };

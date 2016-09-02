@@ -70,4 +70,12 @@ describe('Crypto Utilities module', () => {
         nonce.should.be.instanceOf(Uint8Array);
         nonce.length.should.equal(24);
     });
+
+    it('should generate random bytes', () => {
+        const set1 = util.getRandomBytes(10);
+        const set2 = util.getRandomBytes(10);
+        set1.should.be.an.instanceOf(Uint8Array);
+        set2.should.be.an.instanceOf(Uint8Array);
+        set1.should.not.be.deep.eql(set2);
+    });
 });

@@ -4,12 +4,24 @@
  * @module crypto/util
  */
 
-const nacl = require('tweetnacl');
 const Buffer = require('buffer/').Buffer;
 
 const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
 const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
+
+/**
+ * Universal access to secure PRNG
+ */
+exports.getRandomBytes = function(num: number): Uint8Array {
+    return crypto.getRandomValues(new Uint8Array(num));
+};
+
+if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
+    exports.getRandomBytes = function(): undefined {
+        throw new Error('Native crypto or crypto.getRandomValues is not defined.');
+    };
+}
 
 /**
  * Concatenates two Uint8Arrays.
@@ -62,7 +74,7 @@ exports.getRandomNonce = function(): Uint8Array {
     // we take last 4 bytes of current timestamp
     nonce.set(numberToByteArray(Date.now() >>> 32));
     // and 20 random bytes
-    nonce.set(nacl.randomBytes(20), 4);
+    nonce.set(exports.getRandomBytes(20), 4);
     return nonce;
 };
 
