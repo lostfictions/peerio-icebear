@@ -8,26 +8,22 @@ const io = require('socket.io-client');
 
 const states = { open: 'open', opening: 'opening', closed: 'closed', closing: 'closing', unknown: 'unknown' };
 
-/**
- * Create an instance of Socket per connnection.
- */
+/** Create an instance of Socket per connnection. */
 class Socket {
-    constructor(url: string): undefined {
+    url: string;
+    socket: Object;
+    constructor(url: string) {
         this.url = url;
-        this.socket = null;
     }
-/**
- * Returns connection state
- */
+
+    /** Returns connection state */
     getState(): string {
         if (!this.socket) return states.closed;
         return states[this.socket.readyState] || states.unknown;
     }
 
-/**
- * Starts a connecton with auto-reconnects
- */
-    open(): undefined {
+    /** Starts a connecton with auto-reconnects */
+    open() {
         if (this.socket) {
             this.socket.open();
             return;
@@ -46,10 +42,8 @@ class Socket {
         });
     }
 
-/**
- * Closes current connection and disables reconnects.
- */
-    close(): undefined {
+    /** Closes current connection and disables reconnects. */
+    close() {
         this.socket.close();
     }
 }

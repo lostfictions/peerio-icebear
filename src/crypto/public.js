@@ -4,6 +4,6 @@
  * @module crypto/public
  */
 
-const nacl = require('tweetnacl');
-const util = require('./util');
+// const nacl = require('tweetnacl');
+// const util = require('./util');
 

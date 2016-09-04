@@ -6,6 +6,8 @@
 
 const Buffer = require('buffer/').Buffer;
 
+declare var crypto;
+
 const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
 const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
@@ -18,7 +20,7 @@ exports.getRandomBytes = function(num: number): Uint8Array {
 };
 
 if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
-    exports.getRandomBytes = function(): undefined {
+    exports.getRandomBytes = function() {
         throw new Error('Native crypto or crypto.getRandomValues is not defined.');
     };
 }

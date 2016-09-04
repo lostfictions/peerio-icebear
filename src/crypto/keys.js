@@ -25,14 +25,14 @@ type MainKeySetType = {
  * Deterministically derives boot key and auth key pair.
  */
 exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8Array): Promise<MainKeySetType> {
-    return new Promise((resolve: Function, reject: Function): void => {
+    return new Promise((resolve: Function, reject: Function) => {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
         const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
 
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
         // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
-        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 300, (derivedBytes: Array<number>): void => {
+        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 300, (derivedBytes: Array<number>) => {
             const keys = {};
             try {
                 keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
