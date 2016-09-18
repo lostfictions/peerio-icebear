@@ -28,7 +28,7 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
     return new Promise((resolve: Function, reject: Function) => {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
-        const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
+        const fullSalt: Uint8Array = util.concatTypedArrays(util.strToBytes(username), salt);
 
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
         // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
@@ -36,7 +36,7 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
             const keys = {};
             try {
                 keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
-                const secretKey = new Uint8Array(derivedBytes.slice(32, 64));
+                const secretKey: Uint8Array = new Uint8Array(derivedBytes.slice(32, 64));
                 keys.authKeyPair = nacl.box.keyPair.fromSecretKey(secretKey);
             } catch (ex) {
                 reject(err.normalize(ex, 'Scrypt callback exception.'));

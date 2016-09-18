@@ -6,7 +6,13 @@
 
 const io = require('socket.io-client');
 
-const states = { open: 'open', opening: 'opening', closed: 'closed', closing: 'closing', unknown: 'unknown' };
+const states = {
+    open: 'open',
+    opening: 'opening',
+    closed: 'closed',
+    closing: 'closing',
+    unknown: 'unknown'
+};
 
 /** Create an instance of Socket per connnection. */
 class Socket {

@@ -37,16 +37,16 @@ exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
     }
 
     // IDEA: there must be a way to avoid this allocation and copy
-    const m = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
-    for (let i = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
+    const m: Uint8Array = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
+    for (let i: number = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
 
-    const nonce = util.getRandomNonce();
+    const nonce: Uint8Array = util.getRandomNonce();
     // container for cipher bytes concatenated with nonce
-    const c1 = new Uint8Array(m.length + 24); /* NONCEBYTES */
+    const c1: Uint8Array = new Uint8Array(m.length + 24); /* NONCEBYTES */
     // appending nonce to the end of cipher bytes
-    for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
+    for (let i: number = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
     // view of the same ArrayBuffer for encryption algorythm that does not know about our nonce concatenation
-    const c = c1.subarray(0, -24);// IDEA: check if we can skip this step
+    const c: Uint8Array = c1.subarray(0, -24);// IDEA: check if we can skip this step
     nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
 
     return c1;// contains 16 zero bytes in the beginning
@@ -56,7 +56,7 @@ exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
  * Helper method to decode string to bytes and encrypt it.
  */
 exports.encryptString = function(msg: string, key: Uint8Array): Uint8Array {
-    const msgBytes = util.strToBytes(msg);
+    const msgBytes: Uint8Array = util.strToBytes(msg);
     return exports.encrypt(msgBytes, key);
 };
 
@@ -72,8 +72,8 @@ exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
         throw new Error('secret.encrypt: Invalid argument type or length.');
     }
 
-    const c = cipher.subarray(0, -24);
-    const m = new Uint8Array(c.length);
+    const c: Uint8Array = cipher.subarray(0, -24);
+    const m: Uint8Array = new Uint8Array(c.length);
     if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, cipher.subarray(-24), key) !== 0) {
         throw Error('Decryption failed.');
     }

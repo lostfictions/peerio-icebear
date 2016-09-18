@@ -8,9 +8,9 @@ const Buffer = require('buffer/').Buffer;
 
 declare var crypto;
 
-const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
-const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
-const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
+const HAS_TEXT_ENCODER: boolean = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
+const textEncoder: null|TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
+const textDecoder: null|TextDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
 
 /**
  * Universal access to secure PRNG
@@ -30,7 +30,7 @@ if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
  * Returns new concatenated array.
  */
 exports.concatTypedArrays = function(buffer1: Uint8Array, buffer2: Uint8Array): Uint8Array {
-    const joined = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    const joined: Uint8Array = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
     joined.set(new Uint8Array(buffer1), 0);
     joined.set(new Uint8Array(buffer2), buffer1.byteLength);
     return joined;
@@ -72,7 +72,7 @@ exports.bytesToB64 = function(bytes: Uint8Array): string {
 
 /** Generates 24-byte unique(almost) random nonce. */
 exports.getRandomNonce = function(): Uint8Array {
-    const nonce = new Uint8Array(24);
+    const nonce: Uint8Array = new Uint8Array(24);
     // we take last 4 bytes of current timestamp
     nonce.set(numberToByteArray(Date.now() >>> 32));
     // and 20 random bytes
