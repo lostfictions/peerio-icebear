@@ -12,3 +12,4 @@ src/declarations/
 [options]
 all=false
 suppress_comment= \\(.\\|\n\\)*\\$FlowBug
+unsafe.enable_getters_and_setters=true

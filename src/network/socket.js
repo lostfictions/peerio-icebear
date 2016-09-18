@@ -12,12 +12,13 @@ const states = { open: 'open', opening: 'opening', closed: 'closed', closing: 'c
 class Socket {
     url: string;
     socket: Object;
+
     constructor(url: string) {
         this.url = url;
     }
 
     /** Returns connection state */
-    getState(): string {
+    get state(): string {
         if (!this.socket) return states.closed;
         return states[this.socket.readyState] || states.unknown;
     }
@@ -29,7 +30,7 @@ class Socket {
             return;
         }
 
-        this.socket = io.connect(this.url, {
+        const socket = this.socket = io.connect(this.url, {
             reconnection: true,
             reconnectionAttempts: Infinity,
             reconnectionDelay: 1000,
@@ -40,6 +41,16 @@ class Socket {
             transports: ['websocket'],
             forceNew: true
         });
+
+        // socket.io is weird, it caches data sometimes to send it to listeners after reconnect
+        // but this is not working with authenticate-first connections.
+        const clearBuffers = () => {
+            socket.sendBuffer = [];
+            socket.receiveBuffer = [];
+        };
+
+        socket.on('connect', clearBuffers);
+        socket.on('disconnect', clearBuffers);
     }
 
     /** Closes current connection and disables reconnects. */
