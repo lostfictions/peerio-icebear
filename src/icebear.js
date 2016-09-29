@@ -4,7 +4,11 @@
  * Icebear client lib entry point
  */
 
-// just for side-effects
-const bufferExtensions = require('./side-effects/buffer-extensions');
+// to extend Buffer module for future imports
+const bufferExtensions = require('./extensions/buffer');
+// to create socket client singleton instance
+const socket = require('./network/socket');
+
+socket.open();
 
 module.exports = { };

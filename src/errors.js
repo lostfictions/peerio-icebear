@@ -65,6 +65,7 @@ Object.keys(serverErrorCodes).forEach((key: string) => {
 function ServerError(code: number) {
     const type = serverErrorMap[code] || 'Unknown server error';
     this.message = type;
+    // $FlowBug: can't see 'call'
     const error = Error.call(this, this.message);
     this.name = `ServerError: ${code}: ${type}`;
     this.code = code;
