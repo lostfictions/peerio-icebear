@@ -9,7 +9,7 @@ module.exports = function setKarmaConfig(config) {
         files: ['test/test-index.js'],
         exclude: [],
         preprocessors: {
-            'test/test-index.js': ['webpack','sourcemap']
+            'test/test-index.js': ['webpack', 'sourcemap']
         },
         webpack: {
             devtool: "inline-source-map",
@@ -24,15 +24,19 @@ module.exports = function setKarmaConfig(config) {
             plugins: [
                 new FlowStatusWebpackPlugin(),
                 new webpack.optimize.DedupePlugin(),
-                new webpack.ProgressPlugin()
+                new webpack.ProgressPlugin(),
+                new webpack.DefinePlugin({
+                    ENV: "'dev'",
+                    STAGING_SOCKET_SERVER: JSON.stringify(process.env.PEERIO_STAGING_SOCKET_SERVER)
+                })
             ]
         },
         webpackMiddleware: { noInfo: true },
-        reporters: ['nyan', 'progress', process.env.BABEL_ENV === 'coverage'? 'coverage':null].filter(i=>i!=null),
+        reporters: ['nyan', 'progress', process.env.BABEL_ENV === 'coverage' ? 'coverage' : null].filter(i => i != null),
         coverageReporter: {
             reporters: [
                 { type: 'lcov', dir: 'coverage/', subdir: '.' },
-            //    { type: 'json', dir: 'coverage/', subdir: '.' },
+                //  { type: 'json', dir: 'coverage/', subdir: '.' },
                 { type: 'text-summary' }
             ]
         },

@@ -1,0 +1,2 @@
+declare var ENV: string;
+declare var STAGING_SOCKET_SERVER: string;
