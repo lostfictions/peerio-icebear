@@ -1,7 +1,8 @@
+// @flow
 /**
  * 'buffer' module extensions.
- * This is a side-effect module it modifies and exports the export of buffer module.
- * @module side-effect/buffer-extensions
+ * Modifies and exports Buffer module.
+ * @module extensions/buffer
  */
 const Buffer = require('buffer/').Buffer;
 
