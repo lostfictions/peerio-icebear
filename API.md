@@ -204,7 +204,7 @@ Peerio custom error types and error handling helpers
 
 **Parameters**
 
--   `unknownErrorObject` **any** 
+-   `error` **any** 
 -   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
@@ -223,7 +223,7 @@ If you:
 
 **Parameters**
 
--   `unknownErrorObject` **any** 
+-   `error` **any** 
 -   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 

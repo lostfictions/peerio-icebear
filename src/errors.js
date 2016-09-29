@@ -27,16 +27,17 @@ CustomError.prototype.constructor = CustomError;
  * then call normalize and pass the result you've got together with fallback message
  * that will be wrapped in Error object and returned in case the result wasn't instance of Error
  */
-module.exports.normalize = function(unknownErrorObject: any, failoverMessage: string): Error {
-    if (unknownErrorObject) {
-        if (unknownErrorObject instanceof Error) {
-            return unknownErrorObject;
-        }
-        // we don't want to loose this data, but caller will most likedy discard it,
-        // so we log it to console
-        console.error(unknownErrorObject);
+module.exports.normalize = function(error: any, failoverMessage?: string): Error {
+    if (error instanceof Error) return error;
+
+    if (failoverMessage) return new Error(failoverMessage);
+
+    try {
+        const message = typeof error === 'string' ? error : JSON.stringify(error);
+        return new Error(message);
+    } catch (e) {
+        return new Error('unknown error');
     }
-    return new Error(failoverMessage);
 };
 
 // -- Server Errors ----------------------------------------------------------------------------------------------------
