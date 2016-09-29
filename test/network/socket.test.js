@@ -1,29 +1,29 @@
 //
 // Socket tests
 //
-const Socket = require('../../src/network/socket').Socket;
+const SocketClient = require('../../src/network/socket-client');
 
-describe('Socket module', () => {
-    it('Should instantiate Socket', () => {
-        const s = new Socket('localhost:3000');
-        const expectedState = Socket.states.closed;
+describe('SocketClient module', () => {
+    it('Should instantiate SocketClient', () => {
+        const s = new SocketClient('localhost:3000');
+        const expectedState = SocketClient.states.closed;
         const actualState = s.state;
         actualState.should.equal(expectedState);
     });
 
     it('Should validate subscriptions', () => {
-        const s = new Socket('localhost:3000');
+        const s = new SocketClient('localhost:3000');
         const listener = () => {};
-        s.subscribe(Socket.socketEvents.connect, listener);
-        s.unsubscribe(Socket.socketEvents.connect, listener);
+        s.subscribe(SocketClient.events.connect, listener);
+        s.unsubscribe(SocketClient.events.connect, listener);
         // subscribe empty listener
-        (() => s.subscribe(Socket.socketEvents.connect)).should.throw(Error);
+        (() => s.subscribe(SocketClient.events.connect)).should.throw(Error);
         // unsubscribe empty listener
-        (() => s.unsubscribe(Socket.socketEvents.connect)).should.throw(Error);
+        (() => s.unsubscribe(SocketClient.events.connect)).should.throw(Error);
         // subscribe invalid listener
-        (() => s.subscribe(Socket.socketEvents.connect, 5)).should.throw(Error);
+        (() => s.subscribe(SocketClient.events.connect, 5)).should.throw(Error);
         // unsubscribe invalid listener
-        (() => s.unsubscribe(Socket.socketEvents.connect, 'wergwqer')).should.throw(Error);
+        (() => s.unsubscribe(SocketClient.events.connect, 'wergwqer')).should.throw(Error);
         // subscibe to invalid event
         (() => s.subscribe('fasdferg2', listener)).should.throw(Error);
         // unsubscibe from invalid event
