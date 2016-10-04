@@ -15,6 +15,7 @@
 
 const nacl = require('tweetnacl');
 const util = require('./util');
+const { EncryptionError, DecryptionError } = require('../errors');
 
 // this is for reference, in the code we use numbers for better comprehension
 // const BOXZEROBYTES:number = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
@@ -33,7 +34,7 @@ exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
     if (!(msgBytes instanceof Uint8Array
         && key instanceof Uint8Array
         && key.length === KEY_LENGTH)) {
-        throw new Error('secret.encrypt: Invalid argument type or key length.');
+        throw new EncryptionError('secret.encrypt: Invalid argument type or key length.');
     }
 
     // IDEA: there must be a way to avoid this allocation and copy
@@ -69,13 +70,13 @@ exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
         && key instanceof Uint8Array
         && key.length === KEY_LENGTH
         && cipher.length >= 56)) { /* NONCEBYTES + ZEROBYTES */
-        throw new Error('secret.encrypt: Invalid argument type or length.');
+        throw new DecryptionError('secret.decrypt: Invalid argument type or length.');
     }
 
     const c: Uint8Array = cipher.subarray(0, -24);
     const m: Uint8Array = new Uint8Array(c.length);
     if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, cipher.subarray(-24), key) !== 0) {
-        throw Error('Decryption failed.');
+        throw new DecryptionError('Decryption failed.');
     }
 
     return m.subarray(32); /* ZEROBYTES */

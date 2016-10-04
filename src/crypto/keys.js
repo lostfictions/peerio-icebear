@@ -9,22 +9,11 @@ const nacl = require('tweetnacl');
 const util = require('./util');
 const err = require('../errors');
 
-/** Standard key pair in binary format. */
-type KeyPairType = { publicKey: Uint8Array, secretKey: Uint8Array };
-
-/**
- * Main and minimal Peerio user's key set.
- * This is required to authenticate and start working, get other keys, etc.
- */
-type MainKeySetType = {
-    bootKey: Uint8Array,
-    authKeyPair: KeyPairType
-};
 
 /**
  * Deterministically derives boot key and auth key pair.
  */
-exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8Array): Promise<MainKeySetType> {
+exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8Array): Promise<MainKeySet> {
     return new Promise((resolve: Function, reject: Function) => {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
@@ -32,7 +21,7 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
 
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
         // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
-        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 300, (derivedBytes: Array<number>) => {
+        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 200, (derivedBytes: Array<number>) => {
             const keys = {};
             try {
                 keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
@@ -50,14 +39,14 @@ exports.deriveKeys = function(username: string, passphrase: string, salt: Uint8A
  * Generates new random signing (ed25519) key pair.
  * 32 byte public key and 64 byte secret key.
  */
-exports.generateSigningKeyPair = function(): KeyPairType {
+exports.generateSigningKeyPair = function(): KeyPair {
     return nacl.sign.keyPair();
 };
 
 /**
  * Generates new random asymmetric (curve25519) key pair.
  */
-exports.generateEncryptionKeyPair = function(): KeyPairType {
+exports.generateEncryptionKeyPair = function(): KeyPair {
     return nacl.box.keyPair();
 };
 
@@ -65,5 +54,12 @@ exports.generateEncryptionKeyPair = function(): KeyPairType {
  * Generates new random symmetric (xsalsa20) 32 byte secret key.
  */
 exports.generateEncryptionKey = function(): Uint8Array {
+    return util.getRandomBytes(32);
+};
+
+/**
+ * Generates new salt for auth process
+ */
+exports.generateAuthSalt = function(): Uint8Array {
     return util.getRandomBytes(32);
 };

@@ -20,7 +20,7 @@ describe('Crypto Keys module', () => {
         };
 
         return crypto.deriveKeys(username, passphrase, salt)
-            .then(actual => {
+            .then((actual) => {
                 expect(actual).to.deep.equal(expected);
             });
     });

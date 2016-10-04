@@ -8,6 +8,7 @@
 
 const io = require('socket.io-client');
 const Promise = require('bluebird');
+const { ServerError } = require('../errors');
 
 const states = {
     open: 'open',
@@ -61,7 +62,7 @@ class SocketClient {
             transports: ['websocket'],
             forceNew: true
         });
-
+        socket.binaryType = 'arraybuffer';
         // socket.io is weird, it caches data sometimes to send it to listeners after reconnect
         // but this is not working with authenticate-first connections.
         const clearBuffers = () => {
@@ -129,7 +130,7 @@ class SocketClient {
             // todo reject on error
             this.socket.emit(name, data, (resp: any) => {
                 if (resp && resp.error) {
-                    reject(resp);
+                    reject(new ServerError(resp.error));
                     return;
                 }
                 resolve(resp);

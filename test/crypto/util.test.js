@@ -35,7 +35,7 @@ describe('Crypto Utilities module', () => {
             expected: new Uint8Array([5, 4, 3]),
             negate: true
         }
-    ].forEach(test => {
+    ].forEach((test) => {
         it(`should concatenate buffers. case: ${test.name}`, () => {
             const actual = util.concatTypedArrays(test.arg1, test.arg2);
             actual.should.be.instanceOf(Uint8Array);

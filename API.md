@@ -20,20 +20,20 @@ Deterministically derives boot key and auth key pair.
 -   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 -   `salt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[MainKeySetType](#mainkeysettype)>** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;MainKeySet>** 
 
 ## generateSigningKeyPair
 
 Generates new random signing (ed25519) key pair.
 32 byte public key and 64 byte secret key.
 
-Returns **[KeyPairType](#keypairtype)** 
+Returns **KeyPair** 
 
 ## generateEncryptionKeyPair
 
 Generates new random asymmetric (curve25519) key pair.
 
-Returns **[KeyPairType](#keypairtype)** 
+Returns **KeyPair** 
 
 ## generateEncryptionKey
 
@@ -41,24 +41,11 @@ Generates new random symmetric (xsalsa20) 32 byte secret key.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-# KeyPairType
+## generateAuthSalt
 
-Standard key pair in binary format.
+Generates new salt for auth process
 
-**Properties**
-
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-# MainKeySetType
-
-Main and minimal Peerio user's key set.
-This is required to authenticate and start working, get other keys, etc.
-
-**Properties**
-
--   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `authKeyPair` **[KeyPairType](#keypairtype)** 
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 # crypto/public
 
@@ -123,6 +110,21 @@ Helper method to decode decrypted data to a string.
 -   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+# crypto/sign
+
+Digital signing module
+
+## sign
+
+Signs the message with secret key and returns detached signature
+
+**Parameters**
+
+-   `message` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 # crypto/util
 
@@ -198,17 +200,6 @@ Generates 24-byte unique(almost) random nonce.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
-
 # normalize
 
 Use this helper to resolve returning error value.
@@ -228,6 +219,17 @@ If you:
 
 Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
 
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error` **any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
 # extensions/buffer
 
 'buffer' module extensions.
@@ -237,9 +239,15 @@ Modifies and exports Buffer module.
 
 Icebear client lib entry point
 
-# models/RegistrationRequest
+# models/user
 
-Registration request model
+Base user class containing class properties mostly
+
+# models/user
+
+# models/user
+
+Registration module for User model.
 
 # socket-client
 
@@ -321,3 +329,19 @@ Main SocketClient singleton instance
 # stores/user-store
 
 User data store
+
+# convertBuffers
+
+Wraps all ArrayBuffer type properties in Uint8Array recursively
+
+**Parameters**
+
+-   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+# util
+
+Various utility functions
+
+**Parameters**
+
+-   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 

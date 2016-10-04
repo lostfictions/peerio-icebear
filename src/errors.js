@@ -40,6 +40,23 @@ module.exports.normalize = function(error: any, failoverMessage?: string): Error
     }
 };
 
+function getGenericCustomError(name: string) {
+    const err = function(message?: string, data?: Object) {
+        // $FlowBug: can't see 'call'
+        const error = Error.call(this, message);
+        this.name = name;
+        this.message = error.message || '';
+        this.stack = error.stack;
+        this.data = data;
+    };
+
+    err.prototype = Object.create(Error.prototype);
+    err.prototype.constructor = err;
+    return err;
+}
+// -- Custom Errors ----------------------------------------------------------------------------------------------------
+module.exports.DecryptionError = getGenericCustomError('DecryptionError');
+module.exports.EncryptionError = getGenericCustomError('EncryptionError');
 // -- Server Errors ----------------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,
