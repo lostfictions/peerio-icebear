@@ -72,7 +72,7 @@ module.exports = mixin(userClass => class extends userClass {
                 token: publicCrypto.decrypt(cng.encryptionKey.token,
                                             cng.encryptionKey.nonce,
                                             cng.ephemeralServerPK,
-                                            this.authKeys.secretKey).buffer
+                                            this.encryptionKeys.secretKey).buffer
             },
             signing: {
                 token: cng.signingKey.token.buffer,
