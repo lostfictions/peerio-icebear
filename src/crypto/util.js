@@ -3,10 +3,9 @@
  * Peerio Crypto Utilities module.
  * @module crypto/util
  */
-
 const Buffer = require('buffer/').Buffer;
-// $FlowBug
-const nativeCrypto = typeof (crypto) === 'undefined' ? require('crypto') : crypto;
+
+declare var crypto;
 
 const HAS_TEXT_ENCODER: boolean = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder: null|TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -17,15 +16,13 @@ const textDecoder: null|TextDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8'
  * browser version
  */
 exports.getRandomBytes = function(num: number): Uint8Array {
-    // $FlowBug
-    return nativeCrypto.getRandomValues(new Uint8Array(num));
+    return crypto.getRandomValues(new Uint8Array(num));
 };
 
 // node version
-if (!nativeCrypto.getRandomValues) {
+if (!crypto.getRandomValues) {
     exports.getRandomBytes = function(num: number): Uint8Array {
-        // $FlowBug
-        return nativeCrypto.randomBytes(num);
+        return crypto.randomBytes(num);
     };
 }
 
