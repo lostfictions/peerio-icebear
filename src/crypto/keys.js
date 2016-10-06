@@ -63,3 +63,12 @@ exports.generateEncryptionKey = function(): Uint8Array {
 exports.generateAuthSalt = function(): Uint8Array {
     return util.getRandomBytes(32);
 };
+
+/**
+ * Hashes auth public key
+ */
+exports.getAuthKeyHash = function(key: Uint8Array): Uint8Array {
+    const hash = new BLAKE2s(32, { personalization: util.strToBytes('AuthCPK1') });
+    hash.update(key);
+    return hash.digest();
+};

@@ -5,9 +5,10 @@
  */
 
 /** Wraps all ArrayBuffer type properties in Uint8Array recursively */
-function convertBuffers(obj: Object) {
-    if (typeof (obj) !== 'object') return;
-    for (const prop in obj) { // elsint-disable-line guard-for-in
+function convertBuffers(obj: Object): Object {
+    if (typeof (obj) !== 'object') return obj;
+/* eslint-disable guard-for-in */
+    for (const prop in obj) {
         const type = typeof (obj[prop]);
         if (type !== 'object') {
             continue;
@@ -18,6 +19,8 @@ function convertBuffers(obj: Object) {
             convertBuffers(obj[prop]);
         }
     }
+    return obj;
+/* eslint-enable */
 }
 
 module.exports.convertBuffers = convertBuffers;

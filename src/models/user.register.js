@@ -18,7 +18,7 @@ module.exports = mixin(userClass => class extends userClass {
     }
 
     createAccount() {
-        this.salt = keys.generateAuthSalt();
+        this.authSalt = keys.generateAuthSalt();
         this.signKeys = keys.generateSigningKeyPair();
         this.encryptionKeys = keys.generateEncryptionKeyPair();
         this.kegKey = keys.generateEncryptionKey();
@@ -29,7 +29,7 @@ module.exports = mixin(userClass => class extends userClass {
                     authPublicKey: this.authKeys.publicKey.buffer,
                     signingPublicKey: this.signKeys.publicKey.buffer,
                     encryptionPublicKey: this.encryptionKeys.publicKey.buffer,
-                    authSalt: this.salt.buffer,
+                    authSalt: this.authSalt.buffer,
                     username: this.username,
                     email: `${this.username}@mailinator.com`,
                     firstName: this.firstName || '',

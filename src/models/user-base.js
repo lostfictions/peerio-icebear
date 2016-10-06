@@ -12,7 +12,7 @@ class UserBase {
     lastName: string;
     locale: string = 'en';
     passphrase: string;
-    salt: Uint8Array;
+    authSalt: Uint8Array;
     bootKey: Uint8Array;
     authKeys: KeyPair;
     signKeys: KeyPair;

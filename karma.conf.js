@@ -14,7 +14,7 @@ module.exports = function setKarmaConfig(config) {
         webpack: {
             devtool: "inline-source-map",
             context: path.resolve(__dirname, 'src'),
-            bail: false,
+            bail: true,
             module: {
                 loaders: [
                     { test: /\.js$/, loader: 'babel', exclude: [/node_modules/] },
