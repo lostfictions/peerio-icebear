@@ -47,6 +47,16 @@ Generates new salt for auth process
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
+## getAuthKeyHash
+
+Hashes auth public key
+
+**Parameters**
+
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
 # crypto/public
 
 Public key encryption module
@@ -133,6 +143,7 @@ Peerio Crypto Utilities module.
 ## getRandomBytes
 
 Universal access to secure PRNG
+browser version
 
 **Parameters**
 
@@ -245,6 +256,10 @@ Base user class containing class properties mostly
 
 # models/user
 
+Authentication module for User model.
+
+# models/user
+
 # models/user
 
 Registration module for User model.
@@ -338,6 +353,8 @@ Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 -   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
 
+Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
 # util
 
 Various utility functions
@@ -345,3 +362,5 @@ Various utility functions
 **Parameters**
 
 -   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 

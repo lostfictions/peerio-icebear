@@ -5,8 +5,8 @@
  */
 
 const Buffer = require('buffer/').Buffer;
-
-declare var crypto;
+// $FlowBug
+const nativeCrypto = typeof (crypto) === 'undefined' ? require('crypto') : crypto;
 
 const HAS_TEXT_ENCODER: boolean = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder: null|TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -14,14 +14,18 @@ const textDecoder: null|TextDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8'
 
 /**
  * Universal access to secure PRNG
+ * browser version
  */
 exports.getRandomBytes = function(num: number): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(num));
+    // $FlowBug
+    return nativeCrypto.getRandomValues(new Uint8Array(num));
 };
 
-if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
-    exports.getRandomBytes = function() {
-        throw new Error('Native crypto or crypto.getRandomValues is not defined.');
+// node version
+if (!nativeCrypto.getRandomValues) {
+    exports.getRandomBytes = function(num: number): Uint8Array {
+        // $FlowBug
+        return nativeCrypto.randomBytes(num);
     };
 }
 
