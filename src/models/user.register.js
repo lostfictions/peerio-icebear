@@ -4,7 +4,7 @@
  * @module models/user
  */
 
-const mixin = require('mixwith').Mixin;
+const mixin = require('../mixwith').Mixin;
 const keys = require('../crypto/keys');
 const publicCrypto = require('../crypto/public');
 const signCrypto = require('../crypto/sign');
