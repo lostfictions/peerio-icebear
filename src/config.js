@@ -22,6 +22,9 @@ class Config {
     get socketServerUrl(): string {
         return socketServerUrl;
     }
+    set socketServerUrl(val: string) {
+        socketServerUrl = val;
+    }
 }
 
 module.exports = new Config();
