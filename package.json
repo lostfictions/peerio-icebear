@@ -83,7 +83,7 @@
   "config": {
     "ghooks": {
       "pre-commit": "npm run doc:build && git add API.md",
-      "pre-push": "npm run validate",
+      "pre-push": "if [ `git rev-parse --abbrev-ref HEAD` == 'master' ]; then npm run validate; fi",
       "post-checkout": "npm update",
       "post-merge": "npm update",
       "commit-msg": "validate-commit-msg"
