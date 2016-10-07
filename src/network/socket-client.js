@@ -42,6 +42,7 @@ const appEvents = {
 class SocketClient {
     socket: Object;
     authenticated: bool;
+    started: bool = false;
 
     /** Possible connection states */
     static states = states;
@@ -50,7 +51,10 @@ class SocketClient {
     /** Application events */
     static appEvents = appEvents;
 
-    constructor(url: string) {
+    start(url: string) {
+        if (this.started) return;
+        this.started = true;
+
         const socket = this.socket = io.connect(url, {
             reconnection: true,
             reconnectionAttempts: Infinity,
@@ -88,6 +92,8 @@ class SocketClient {
             clearBuffers();
             logout();
         });
+
+        socket.open();
     }
 
     /** Returns connection state */
@@ -99,12 +105,7 @@ class SocketClient {
         return states[this.socket.readyState] || states.closed;
     }
 
-    /** Starts a connecton with auto-reconnects */
-    open() {
-        this.socket.open();
-    }
-    /** @private */
-    validateSubscription(event: string, listener: Function) {
+    _validateSubscription(event: string, listener: Function) {
         if (!socketEvents[event] && !appEvents[event]) {
             throw new Error('Attempt to un/subscribe from/to unknown socket event.');
         }
@@ -114,13 +115,13 @@ class SocketClient {
     }
     /** Subscribes a listener to one of the socket or app events */
     subscribe(event: string, listener: Function) {
-        this.validateSubscription(event, listener);
+        this._validateSubscription(event, listener);
         this.socket.on(event, listener);
     }
 
     /** Unsubscribes a listener to socket or app events */
     unsubscribe(event: string, listener: Function) {
-        this.validateSubscription(event, listener);
+        this._validateSubscription(event, listener);
         this.socket.off(event, listener);
     }
 

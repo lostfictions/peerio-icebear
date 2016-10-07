@@ -9,7 +9,8 @@ const bufferExtensions = require('./extensions/buffer');
 // to create socket client singleton instance
 const socket = require('./network/socket');
 const User = require('./models/user');
+const config = require('./config');
 
 module.exports = {
-    socket, User
+    config, socket, User
 };

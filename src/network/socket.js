@@ -7,6 +7,13 @@
 const SocketClient = require('./socket-client');
 const config = require('../config');
 
-const socket = new SocketClient(config.socketServerUrl);
+const socket = new SocketClient();
+
+const wrappedStart = socket.start;
+
+// $FlowBug
+socket.start = function() {
+    wrappedStart.call(socket, config.socketServerUrl);
+};
 
 module.exports = socket;

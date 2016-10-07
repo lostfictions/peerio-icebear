@@ -5,14 +5,16 @@ const SocketClient = require('../../src/network/socket-client');
 
 describe('SocketClient module', () => {
     it('Should instantiate SocketClient', () => {
-        const s = new SocketClient('localhost:33452');
+        const s = new SocketClient();
+        s.start('localhost:33452');
         const expectedState = SocketClient.states.closed;
         const actualState = s.state;
         actualState.should.equal(expectedState);
     });
 
     it('Should validate subscriptions', () => {
-        const s = new SocketClient('localhost:33452');
+        const s = new SocketClient();
+        s.start('localhost:33452');
         const listener = () => {};
         s.subscribe(SocketClient.events.connect, listener);
         s.unsubscribe(SocketClient.events.connect, listener);
