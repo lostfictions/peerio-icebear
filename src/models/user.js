@@ -5,13 +5,37 @@
 const keys = require('../crypto/keys');
 const Promise = require('bluebird');
 const socket = require('../network/socket');
-const mix = require('../mixwith').mix;
-const UserBase = require('./user-base');
 const UserRegister = require('./user.register');
 const UserAuth = require('./user.auth');
 const errors = require('../errors');
 
-class User extends mix(UserBase).with(UserRegister, UserAuth) {
+class User {
+
+    _username: string;
+
+    firstName: string;
+    lastName: string;
+    locale: string = 'en';
+    passphrase: string;
+    authSalt: Uint8Array;
+    bootKey: Uint8Array;
+    authKeys: KeyPair;
+    signKeys: KeyPair;
+    encryptionKeys: KeyPair;
+    kegKey: Uint8Array;
+
+    get username(): string {
+        return this._username;
+    }
+
+    set username(v: string) {
+        this._username = typeof (v) === 'string' ? v.trim().toLowerCase() : '';
+    }
+
+    constructor() {
+        this.initAuthModule();
+        this.initRegisterModule();
+    }
 
     deriveKeys(): Promise {
         try {
@@ -29,7 +53,6 @@ class User extends mix(UserBase).with(UserRegister, UserAuth) {
                    });
     }
 
-
     static validateUsername(username): Promise<bool> {
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
@@ -39,5 +62,8 @@ class User extends mix(UserBase).with(UserRegister, UserAuth) {
             });
     }
 }
+
+Object.assign(User.prototype, UserRegister);
+Object.assign(User.prototype, UserAuth);
 
 module.exports = User;

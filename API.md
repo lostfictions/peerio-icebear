@@ -211,6 +211,17 @@ Generates 24-byte unique(almost) random nonce.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error` **any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
 # normalize
 
 Use this helper to resolve returning error value.
@@ -230,17 +241,6 @@ If you:
 
 Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
 
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
-
 # extensions/buffer
 
 'buffer' module extensions.
@@ -249,216 +249,6 @@ Modifies and exports Buffer module.
 # bufferExtensions
 
 Icebear client lib entry point
-
-# apply
-
-Applies `mixin` to `superclass`.
-
-`apply` stores a reference from the mixin application to the unwrapped mixin
-to make `isApplicationOf` and `hasMixin` work.
-
-This function is usefull for mixin wrappers that want to automatically enable
-[hasMixin](#hasmixin) support.
-
-**Parameters**
-
--   `superclass` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** A class or constructor function
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to apply
-
-**Examples**
-
-```javascript
-const Applier = (mixin) => wrap(mixin, (superclass) => apply(superclass, mixin));
-
-// M now works with `hasMixin` and `isApplicationOf`
-const M = Applier((superclass) => class extends superclass {});
-
-class C extends M(Object) {}
-let i = new C();
-hasMixin(i, M); // true
-```
-
-Returns **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** A subclass of `superclass` produced by `mixin`
-
-# MixinFunction
-
-A function that returns a subclass of its argument.
-
-**Parameters**
-
--   `superclass` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
--   `mixin`  
-
-**Examples**
-
-```javascript
-const M = (superclass) => class extends superclass {
-  getMessage() {
-    return "Hello";
-  }
-}
-```
-
-Returns **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** A subclass of `superclass`
-
-# isApplicationOf
-
-Returns `true` iff `proto` is a prototype created by the application of
-`mixin` to a superclass.
-
-`isApplicationOf` works by checking that `proto` has a reference to `mixin`
-as created by `apply`.
-
-**Parameters**
-
--   `proto` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** A prototype object created by [apply](#apply).
--   `mixin` **[MixinFunction](#mixinfunction)** A mixin function used with [apply](#apply).
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether `proto` is a prototype created by the application of
-`mixin` to a superclass
-
-# hasMixin
-
-Returns `true` iff `o` has an application of `mixin` on its prototype
-chain.
-
-**Parameters**
-
--   `o` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** An object
--   `mixin` **[MixinFunction](#mixinfunction)** A mixin applied with [apply](#apply)
-
-Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether `o` has an application of `mixin` on its prototype
-chain
-
-# wrap
-
-Sets up the function `mixin` to be wrapped by the function `wrapper`, while
-allowing properties on `mixin` to be available via `wrapper`, and allowing
-`wrapper` to be unwrapped to get to the original function.
-
-`wrap` does two things:
-
-1.  Sets the prototype of `mixin` to `wrapper` so that properties set on
-    `mixin` inherited by `wrapper`.
-2.  Sets a special property on `mixin` that points back to `mixin` so that
-    it can be retreived from `wrapper`
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** A mixin function
--   `wrapper` **[MixinFunction](#mixinfunction)** A function that wraps [mixin](mixin)
-
-Returns **[MixinFunction](#mixinfunction)** `wrapper`
-
-# unwrap
-
-Unwraps the function `wrapper` to return the original function wrapped by
-one or more calls to `wrap`. Returns `wrapper` if it's not a wrapped
-function.
-
-**Parameters**
-
--   `wrapper` **[MixinFunction](#mixinfunction)** A wrapped mixin produced by [wrap](#wrap)
-
-Returns **[MixinFunction](#mixinfunction)** The originally wrapped mixin
-
-# Cached
-
-Decorates `mixin` so that it caches its applications. When applied multiple
-times to the same superclass, `mixin` will only create one subclass, memoize
-it and return it for each application.
-
-Note: If `mixin` somehow stores properties its classes constructor (static
-properties), or on its classes prototype, it will be shared across all
-applications of `mixin` to a super class. It's reccomended that `mixin` only
-access instance state.
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to wrap with caching behavior
-
-Returns **[MixinFunction](#mixinfunction)** a new mixin function
-
-# DeDupe
-
-Decorates `mixin` so that it only applies if it's not already on the
-prototype chain.
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to wrap with deduplication behavior
-
-Returns **[MixinFunction](#mixinfunction)** a new mixin function
-
-# HasInstance
-
-Adds [Symbol.hasInstance] \(ES2015 custom instanceof support) to `mixin`.
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to add [Symbol.hasInstance] to
-
-Returns **[MixinFunction](#mixinfunction)** the given mixin function
-
-# BareMixin
-
-A basic mixin decorator that applies the mixin with [apply](#apply) so that it
-can be used with [isApplicationOf](#isapplicationof), [hasMixin](#hasmixin) and the other
-mixin decorator functions.
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to wrap
-
-Returns **[MixinFunction](#mixinfunction)** a new mixin function
-
-# Mixin
-
-Decorates a mixin function to add deduplication, application caching and
-instanceof support.
-
-**Parameters**
-
--   `mixin` **[MixinFunction](#mixinfunction)** The mixin to wrap
-
-Returns **[MixinFunction](#mixinfunction)** a new mixin function
-
-# mix
-
-A fluent interface to apply a list of mixins to a superclass.
-
-```javascript
-class X extends mix(Object).with(A, B, C) {}
-```
-
-The mixins are applied in order to the superclass, so the prototype chain
-will be: X->C'->B'->A'->Object.
-
-This is purely a convenience function. The above example is equivalent to:
-
-```javascript
-class X extends C(B(A(Object))) {}
-```
-
-**Parameters**
-
--   `superclass` **\[[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)]**  (optional, default `Object`)
-
-Returns **MixinBuilder** 
-
-# with
-
-Applies `mixins` in order to the superclass given to `mix()`.
-
-**Parameters**
-
--   `mixins` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Mixin](#mixin)>** 
-
-Returns **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** a subclass of `superclass` with `mixins` applied
-
-# models/user
-
-Base user class containing class properties mostly
 
 # models/user
 
@@ -551,9 +341,9 @@ Main SocketClient singleton instance
 
 User data store
 
-# convertBuffers
+# util
 
-Wraps all ArrayBuffer type properties in Uint8Array recursively
+Various utility functions
 
 **Parameters**
 
@@ -561,9 +351,9 @@ Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
 
-# util
+# convertBuffers
 
-Various utility functions
+Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 **Parameters**
 

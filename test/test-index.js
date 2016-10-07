@@ -4,3 +4,5 @@ const testsContext = require.context('.', true, /\.test$/);
 testsContext.keys().forEach(testsContext);
 
 require('./debug-modules');
+
+require('../src/network/socket').open();

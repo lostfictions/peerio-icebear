@@ -4,18 +4,16 @@
  * @module models/user
  */
 
-const mixin = require('../mixwith').Mixin;
 const keys = require('../crypto/keys');
 const publicCrypto = require('../crypto/public');
 const signCrypto = require('../crypto/sign');
 const socket = require('../network/socket');
 const util = require('../util');
 
-module.exports = mixin(userClass => class extends userClass {
-    constructor() {
-        super();
-        this.handleAccountCreationChallenge = this.handleAccountCreationChallenge.bind(this);
-    }
+module.exports = {
+    initRegisterModule() {
+        this._handleAccountCreationChallenge = this._handleAccountCreationChallenge.bind(this);
+    },
 
     createAccount() {
         this.authSalt = keys.generateAuthSalt();
@@ -38,10 +36,10 @@ module.exports = mixin(userClass => class extends userClass {
                 };
                 return socket.send('/noauth/register', request);
             })
-            .then(this.handleAccountCreationChallenge);
-    }
+            .then(this._handleAccountCreationChallenge);
+    },
 
-    handleAccountCreationChallenge(cng: Object) {
+    _handleAccountCreationChallenge(cng: Object) {
         // validating challenge, paranoid mode on
         if (typeof (cng.username) !== 'string'
             || !(cng.ephemeralServerPK instanceof ArrayBuffer)
@@ -82,4 +80,4 @@ module.exports = mixin(userClass => class extends userClass {
 
         return socket.send('/noauth/activate', activationRequest);
     }
-});
+};
