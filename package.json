@@ -33,11 +33,11 @@
     "bluebird": "3.4.6",
     "buffer": "5.0.0",
     "is_js": "0.9.0",
-    "mobx": "2.5.2",
-    "mobx-react": "3.5.7",
+    "mobx": "2.6.0",
+    "mobx-react": "3.5.8",
     "nacl-stream": "0.3.3",
     "scrypt-async": "1.3.0",
-    "socket.io-client": "1.4.8",
+    "socket.io-client": "1.5.0",
     "tweetnacl": "0.14.3"
   },
   "devDependencies": {
@@ -72,12 +72,12 @@
     "karma-nyan-reporter": "0.2.4",
     "karma-sourcemap-loader": "0.3.7",
     "karma-webpack": "1.8.0",
-    "mobx-logger": "0.3.0",
+    "mobx-logger": "0.3.1",
     "mocha": "3.1.0",
     "npm-run-all": "3.1.0",
     "rimraf": "2.5.4",
-    "standard-version": "^2.4.0",
-    "validate-commit-msg": "2.8.0",
+    "standard-version": "^3.0.0",
+    "validate-commit-msg": "2.8.2",
     "webpack": "2.1.0-beta.21"
   },
   "config": {
@@ -104,7 +104,7 @@
         "revert"
       ],
       "warnOnFail": false,
-      "maxSubjectLength": 100,
+      "maxSubjectLength": 120,
       "subjectPattern": ".+",
       "helpMessage": "Convention: https://goo.gl/3TgTsh"
     }

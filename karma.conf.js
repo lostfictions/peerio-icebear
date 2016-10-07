@@ -5,7 +5,9 @@ const FlowStatusWebpackPlugin = require('flow-status-webpack-plugin');
 module.exports = function setKarmaConfig(config) {
     config.set({
         basePath: '',
-        frameworks: ['mocha', 'chai'],
+        frameworks: [
+            'mocha', 'chai'
+        ],
         files: ['test/test-index.js'],
         exclude: [],
         preprocessors: {
@@ -17,8 +19,31 @@ module.exports = function setKarmaConfig(config) {
             bail: true,
             module: {
                 loaders: [
-                    { test: /\.js$/, loader: 'babel', exclude: [/node_modules/] },
-                    { test: /\.json$/, loader: 'json' }
+                    {
+                        test: /\.js$/,
+                        loader: 'babel',
+                        exclude: [/node_modules/],
+                        query: {
+                            "presets": [
+                                "es2015", "stage-0", "react"
+                            ],
+                            "plugins": ["transform-decorators-legacy"],
+                            "env": {
+                                "coverage": {
+                                    "plugins": [
+                                        [
+                                            "__coverage__", {
+                                                "ignore": "*.+(test|stub).*"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            }
+                        }
+                    }, {
+                        test: /\.json$/,
+                        loader: 'json'
+                    }
                 ]
             },
             plugins: [
@@ -31,13 +56,25 @@ module.exports = function setKarmaConfig(config) {
                 })
             ]
         },
-        webpackMiddleware: { noInfo: true },
-        reporters: ['nyan', 'progress', process.env.BABEL_ENV === 'coverage' ? 'coverage' : null].filter(i => i != null),
+        webpackMiddleware: {
+            noInfo: true
+        },
+        reporters: [
+            'nyan', 'progress', process.env.BABEL_ENV === 'coverage'
+                ? 'coverage'
+                : null
+        ].filter(i => i != null),
         coverageReporter: {
             reporters: [
-                { type: 'lcov', dir: 'coverage/', subdir: '.' },
+                {
+                    type: 'lcov',
+                    dir: 'coverage/',
+                    subdir: '.'
+                },
                 //  { type: 'json', dir: 'coverage/', subdir: '.' },
-                { type: 'text-summary' }
+                {
+                    type: 'text-summary'
+                }
             ]
         },
         port: 9876,
