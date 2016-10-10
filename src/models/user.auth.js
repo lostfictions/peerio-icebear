@@ -18,7 +18,7 @@ module.exports = {
         this._authenticate = this._authenticate.bind(this);
     },
     login(): Promise<void> {
-        return this._loadAuthSalt().then(this._getAuthToken).then(this._authenticate);
+        return this._loadAuthSalt().then(this.deriveKeys).then(this._getAuthToken).then(this._authenticate);
     },
 
     _loadAuthSalt(): Promise<void> {

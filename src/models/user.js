@@ -35,6 +35,7 @@ class User {
     constructor() {
         this.initAuthModule();
         this.initRegisterModule();
+        this.deriveKeys = this.deriveKeys.bind(this);
     }
 
     deriveKeys(): Promise {

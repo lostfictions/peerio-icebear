@@ -15,6 +15,7 @@ describe('SocketClient module', () => {
     it('Should validate subscriptions', () => {
         const s = new SocketClient();
         s.start('localhost:33452');
+        s.close();
         const listener = () => {};
         s.subscribe(SocketClient.events.connect, listener);
         s.unsubscribe(SocketClient.events.connect, listener);
