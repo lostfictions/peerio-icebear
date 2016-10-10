@@ -41,7 +41,7 @@
     "tweetnacl": "0.14.3"
   },
   "devDependencies": {
-    "babel-core": "6.17.0",
+    "babel-cli": "6.16.0",
     "babel-eslint": "7.0.0",
     "babel-loader": "6.2.5",
     "babel-plugin-__coverage__": "11.0.0",
@@ -110,7 +110,7 @@
     }
   },
   "devEngines": {
-    "node": "5.x",
+    "node": "6.x",
     "npm": "3.x"
   }
 }

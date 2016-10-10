@@ -24,6 +24,7 @@ describe('User model', () => {
 
     it('#03 should get correct authSalt', () => {
         const expected = user.authSalt;
+        user.authSalt = null;
         return user._loadAuthSalt().then(() => {
             user.authSalt.should.eql(expected);
         });
