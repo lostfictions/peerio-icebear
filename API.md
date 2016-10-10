@@ -211,17 +211,6 @@ Generates 24-byte unique(almost) random nonce.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
-
 # normalize
 
 Use this helper to resolve returning error value.
@@ -241,12 +230,27 @@ If you:
 
 Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
 
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error` **any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
 # extensions/buffer
 
 'buffer' module extensions.
 Modifies and exports Buffer module.
 
-# bufferExtensions
+# slice
+
+Uint8Array extensions and polyfills.
+
+# require
 
 Icebear client lib entry point
 

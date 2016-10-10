@@ -15,5 +15,3 @@ Buffer.fromTypedArray = function(arr: Uint8Array): Uint8Array {
     }
     return buf;
 };
-
-exports.Buffer = Buffer;
