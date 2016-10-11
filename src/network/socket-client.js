@@ -3,7 +3,7 @@
  * Peerio network socket client module.
  * This module exports SocketSlient class that can be instantiated as many times as needed.
  * Other modules contain singleton instances for general use.
- * @module socket-client
+ * @module network/socket-client
  */
 
 const io = require('socket.io-client');

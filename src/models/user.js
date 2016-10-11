@@ -1,3 +1,4 @@
+// @flow
 /**
  * @module models/user
  */

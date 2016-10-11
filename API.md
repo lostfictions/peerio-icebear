@@ -254,6 +254,32 @@ Uint8Array extensions and polyfills.
 
 Icebear client lib entry point
 
+# models/phrase-dictionary
+
+Passphrase dictionary module
+
+# constructor
+
+Creates new PhraseDictionary
+
+**Parameters**
+
+-   `dictString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** '\\n' separated word list
+
+# getPassphrase
+
+Returns a random passphrase of chosen word length
+
+**Parameters**
+
+-   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+# dispose
+
+Free RAM by deleting cached dictionary
+
 # models/user
 
 Authentication module for User model.
@@ -264,7 +290,7 @@ Authentication module for User model.
 
 Registration module for User model.
 
-# socket-client
+# network/socket-client
 
 Peerio network socket client module.
 This module exports SocketSlient class that can be instantiated as many times as needed.
