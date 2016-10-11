@@ -27,27 +27,30 @@ if (!crypto.getRandomValues) {
 }
 
 exports.getRandomNumber = function getRandomNumber(min: number, max: number): number {
-    let rval = 0;
     const range = max - min;
 
     const bitsNeeded = Math.ceil(Math.log2(range));
-    if (bitsNeeded > 53) {
+    if (bitsNeeded > 31) {
         throw new Error('Range too big for getRandomNumber().');
     }
     const bytesNeeded = Math.ceil(bitsNeeded / 8);
     const mask = Math.pow(2, bitsNeeded) - 1;
-    const byteArray = exports.getRandomBytes(bytesNeeded);
 
-    let p = (bytesNeeded - 1) * 8;
-    for (let i = 0; i < bytesNeeded; i++) {
-        rval += byteArray[i] * Math.pow(2, p);
-        p -= 8;
-    }
+    let rval = 0;
 
-    rval &= mask;
-    if (rval >= range) {
-        return getRandomNumber(min, max);
-    }
+    do {
+      const byteArray = exports.getRandomBytes(bytesNeeded);
+      rval = 0;
+
+      let p = (bytesNeeded - 1) * 8;
+      for (let i = 0; i < bytesNeeded; i++) {
+          rval += byteArray[i] * Math.pow(2, p);
+          p -= 8;
+      }
+      rval &= mask;
+
+    } while (rval >= range);
+
     return min + rval;
 };
 
