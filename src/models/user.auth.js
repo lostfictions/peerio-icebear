@@ -1,4 +1,3 @@
-// @flow
 /**
  * Authentication module for User model.
  * @module models/user

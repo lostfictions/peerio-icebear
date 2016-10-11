@@ -1,4 +1,3 @@
-// @flow
 /**
  * Registration module for User model.
  * @module models/user

@@ -1,4 +1,3 @@
-// @flow
 /**
  * @module models/user
  */
@@ -55,10 +54,10 @@ class User {
                    });
     }
 
-    static validateUsername(username): Promise<bool> {
+    static validateUsername(username: string): Promise<bool> {
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error(err);
                 return false;
             });
