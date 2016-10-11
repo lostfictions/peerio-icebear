@@ -6,3 +6,4 @@ tests/config/.chrome_dev_user
 .idea
 .chrome_dev_user
 .DS_Store
+env.sh

@@ -290,6 +290,10 @@ Authentication module for User model.
 
 Registration module for User model.
 
+# network/keg-client
+
+Peerio keg client
+
 # network/socket-client
 
 Peerio network socket client module.
