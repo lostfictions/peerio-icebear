@@ -66,7 +66,6 @@ Public key encryption module
 Secret key encryption module.
 encrypt and decrypt functions replace nacl.secretbox and nacl.secretbox.open.
 This replacement reduces the amount of memory allocation and copy operations.
-
 The output cipher bytes have following differences with nacl.secretbox output:
 
 -   nonce is appended to the cipher bytes.
@@ -225,7 +224,6 @@ Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refere
 # normalize
 
 Use this helper to resolve returning error value.
-
 If you:
 
 -   have an error result from catch() or reject()

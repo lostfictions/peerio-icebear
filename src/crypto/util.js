@@ -39,16 +39,15 @@ exports.getRandomNumber = function getRandomNumber(min: number, max: number): nu
     let rval = 0;
 
     do {
-      const byteArray = exports.getRandomBytes(bytesNeeded);
-      rval = 0;
+        const byteArray = exports.getRandomBytes(bytesNeeded);
+        rval = 0;
 
-      let p = (bytesNeeded - 1) * 8;
-      for (let i = 0; i < bytesNeeded; i++) {
-          rval += byteArray[i] * Math.pow(2, p);
-          p -= 8;
-      }
-      rval &= mask;
-
+        let p = (bytesNeeded - 1) * 8;
+        for (let i = 0; i < bytesNeeded; i++) {
+            rval += byteArray[i] * Math.pow(2, p);
+            p -= 8;
+        }
+        rval &= mask;
     } while (rval >= range);
 
     return min + rval;
