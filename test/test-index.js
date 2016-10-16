@@ -5,6 +5,6 @@ testsContext.keys().forEach(testsContext);
 
 require('./debug-modules');
 
-const api = require('../src/icebear');
+const api = require('../src');
 
 api.socket.start(api.config.socketServerUrl);

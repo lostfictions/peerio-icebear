@@ -1,4 +1,4 @@
-const icebear = require('../src/icebear');
+const icebear = require('../src');
 
 describe('icebear library', () => {
     it('should be defined', () => {

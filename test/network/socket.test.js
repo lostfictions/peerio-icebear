@@ -7,6 +7,7 @@ describe('SocketClient module', () => {
     it('Should instantiate SocketClient', () => {
         const s = new SocketClient();
         s.start('localhost:33452');
+        s.close();
         const expectedState = SocketClient.states.closed;
         const actualState = s.state;
         actualState.should.equal(expectedState);

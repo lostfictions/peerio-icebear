@@ -2,7 +2,7 @@
   "name": "peerio-icebear",
   "version": "1.0.0",
   "description": "Peerio Icebear client library",
-  "main": "src/icebear.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "BABEL_ENV=coverage karma start",
     "check-coverage": "istanbul check-coverage --statements 23 --branches 5 --functions 9 --lines 24",

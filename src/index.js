@@ -13,7 +13,8 @@ const socket = require('./network/socket');
 const User = require('./models/user');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
+const errors = require('./errors');
 
 module.exports = {
-    config, socket, crypto: { util: cryptoUtil }, User
+    errors, config, socket, crypto: { util: cryptoUtil }, User
 };
