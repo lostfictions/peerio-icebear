@@ -73,7 +73,7 @@ exports.strToBytes = function(str: string): Uint8Array {
         // $FlowBug: Flow can't detect that this can never be a nullref
         return textEncoder.encode(str);
     }
-    // returning buffer will break deep equality tests since Buffer modifies prototype
+    // returning Buffer instance will break deep equality tests since Buffer modifies prototype
     return new Uint8Array(Buffer.from(str, 'utf-8').buffer);
 };
 

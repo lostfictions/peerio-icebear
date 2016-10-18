@@ -3,11 +3,14 @@
  */
 
 const keys = require('../crypto/keys');
+const secret = require('../crypto/secret');
+const util = require('../crypto/util');
 const Promise = require('bluebird');
 const socket = require('../network/socket');
 const UserRegister = require('./user.register');
 const UserAuth = require('./user.auth');
 const errors = require('../errors');
+const KegClient = require('../network/keg-client');
 
 class User {
 
@@ -34,6 +37,7 @@ class User {
     }
 
     constructor() {
+        this.kegdb = new KegClient('SELF');
         this.initAuthModule();
         this.initRegisterModule();
         this.deriveKeys = this.deriveKeys.bind(this);
@@ -52,6 +56,29 @@ class User {
                    .then((keySet: MainKeySet) => {
                        this.bootKey = keySet.bootKey;
                        this.authKeys = keySet.authKeyPair;
+                   });
+    }
+
+    // full workflow
+    createAccountAndLogin(): Promise {
+        console.log('Starting account registration sequence.');
+        return this._createAccount()
+                   .then(() => this.login(true))
+                   .then(() => {
+                       console.log('Creating boot keg.');
+                       let payload = {
+                           signKeys: this.signKeys,
+                           encryptionKeys: this.encryptionKeys,
+                           kegKey: this.kegKey,
+                           kegKeyId: '0'
+                       };
+                       payload.signKeys.publicKey = util.bytesToStr(payload.signKeys.publicKey);
+                       payload.signKeys.secretKey = util.bytesToStr(payload.signKeys.secretKey);
+                       payload.encryptionKeys.publicKey = util.bytesToStr(payload.encryptionKeys.publicKey);
+                       payload.encryptionKeys.secretKey = util.bytesToStr(payload.encryptionKeys.secretKey);
+                       payload.kegKey = util.bytesToStr(payload.kegKey);
+                       payload = secret.encryptString(payload, this.bootKey);
+                       return this.kegdb.update('boot', 'boot', 2, payload);
                    });
     }
 

@@ -3,7 +3,7 @@
 //
 const SocketClient = require('../../src/network/socket-client');
 
-describe('SocketClient module', () => {
+xdescribe('SocketClient module', () => {
     it('Should instantiate SocketClient', () => {
         const s = new SocketClient();
         s.start('localhost:33452');

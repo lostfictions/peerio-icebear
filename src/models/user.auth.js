@@ -16,11 +16,16 @@ module.exports = {
         this._loadAuthSalt = this._loadAuthSalt.bind(this);
         this._authenticate = this._authenticate.bind(this);
     },
-    login(): Promise<void> {
+
+    // @param intial - on first login we don't want auth events,
+    //                 beacause we have keg initialization to do before app can start.
+    login(initial?: boolean): Promise<void> {
+        console.log('Starting login sequence.');
         return this._loadAuthSalt().then(this.deriveKeys).then(this._getAuthToken).then(this._authenticate);
     },
 
     _loadAuthSalt(): Promise<void> {
+        console.log('Loading auth salt');
         return socket.send('/noauth/getAuthSalt', { username: this.username })
                      .then((response: Object) => {
                          this.authSalt = new Uint8Array(response.authSalt);
@@ -29,6 +34,7 @@ module.exports = {
     },
 
     _getAuthToken(): Promise<Object> {
+        console.log('Requesting auth token.');
         return socket.send('/noauth/getAuthToken', {
             username: this.username,
             authSalt: this.authSalt.buffer,
@@ -38,6 +44,7 @@ module.exports = {
     },
 
     _authenticate(data: Object): Promise<void> {
+        console.log('Sending auth token back.');
         const decrypted = publicCrypto.decrypt(data.token, data.nonce, data.ephemeralServerPK, this.authKeys.secretKey);
         if (decrypted[0] !== 65 || decrypted[1] !== 84 || decrypted.length !== 32) {
             return Promise.reject(new Error('Auth token paintext is of invalid format.'));

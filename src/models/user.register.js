@@ -14,7 +14,8 @@ module.exports = {
         this._handleAccountCreationChallenge = this._handleAccountCreationChallenge.bind(this);
     },
 
-    createAccount() {
+    _createAccount() {
+        console.log('Generating keys.');
         this.authSalt = keys.generateAuthSalt();
         this.signKeys = keys.generateSigningKeyPair();
         this.encryptionKeys = keys.generateEncryptionKeyPair();
@@ -39,6 +40,7 @@ module.exports = {
     },
 
     _handleAccountCreationChallenge(cng: Object) {
+        console.log('Processing account creation challenge.');
         // validating challenge, paranoid mode on
         if (typeof (cng.username) !== 'string'
             || !(cng.ephemeralServerPK instanceof ArrayBuffer)

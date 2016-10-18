@@ -20,7 +20,14 @@ describe('User model', () => {
     it('#01 should server-validate username',
         () => User.validateUsername(user.username).then(available => available.should.be.true));
 
-    it('#02 should register new user', () => user.createAccount());
+    it('#02 should register new user', () => user.createAccountAndLogin());
 
-    it('#03 should login', () => userLogin.login());
+    it('#03 should login', (done) => {
+        socket.close();
+        socket.onceConnected(() => userLogin.login()
+                                            .then(done)
+                                            .catch(err => done(new Error(err)))
+                            );
+        socket.open();
+    });
 });

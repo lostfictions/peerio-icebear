@@ -154,6 +154,10 @@ class SocketClient {
     close() {
         this.socket.close();
     }
+
+    open() {
+        this.socket.open();
+    }
 }
 
 module.exports = SocketClient;
