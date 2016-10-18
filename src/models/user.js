@@ -15,6 +15,7 @@ class User {
 
     firstName: string;
     lastName: string;
+    email: string;
     locale: string = 'en';
     passphrase: string;
     authSalt: Uint8Array;
@@ -55,6 +56,7 @@ class User {
     }
 
     static validateUsername(username: string): Promise<bool> {
+        if (typeof (username) === 'string' && username.trim().length === 0) return Promise.resolve(false);
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
             .catch((err: Error) => {

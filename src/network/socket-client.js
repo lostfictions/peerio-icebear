@@ -128,14 +128,14 @@ class SocketClient {
     /** Send a message to server */
     send(name: string, data: any): Promise<any> {
         return new Promise((resolve: Function, reject: Function) => {
-            // todo reject on error
-            this.socket.emit(name, data, (resp: any) => {
+            function handler(resp: any) {
                 if (resp && resp.error) {
                     reject(new ServerError(resp.error));
                     return;
                 }
                 resolve(resp);
-            });
+            }
+            this.socket.emit(name, data, handler);
         });
     }
     /** Executes a callback only once when socket will connect, or immediatelly if socket is connected already */

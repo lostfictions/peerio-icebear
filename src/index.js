@@ -16,5 +16,5 @@ const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
 
 module.exports = {
-    errors, config, socket, crypto: { util: cryptoUtil }, User
+    errors, config, socket, pCrypto: { util: cryptoUtil }, User
 };

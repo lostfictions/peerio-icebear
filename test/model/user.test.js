@@ -13,6 +13,7 @@ describe('User model', () => {
     before((done) => {
         user.username = userLogin.username = helpers.getRandomUsername();
         user.passphrase = userLogin.passphrase = 'such a secret passphrase';
+        user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
     });
 

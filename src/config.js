@@ -25,6 +25,9 @@ class Config {
     set socketServerUrl(val: string) {
         socketServerUrl = val;
     }
+    get termsUrl(): string {
+        return 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md';
+    }
 }
 
 module.exports = new Config();
