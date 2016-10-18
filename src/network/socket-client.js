@@ -6,7 +6,7 @@
  * @module network/socket-client
  */
 
-const io = require('socket.io-client');
+const io = require('socket.io-client/socket.io');
 const Promise = require('bluebird');
 const { ServerError } = require('../errors');
 
@@ -66,7 +66,6 @@ class SocketClient {
             transports: ['websocket'],
             forceNew: true
         });
-        socket.binaryType = 'arraybuffer';
         // socket.io is weird, it caches data sometimes to send it to listeners after reconnect
         // but this is not working with authenticate-first connections.
         const clearBuffers = () => {

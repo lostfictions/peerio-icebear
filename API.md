@@ -369,9 +369,9 @@ Main SocketClient singleton instance
 
 User data store
 
-# util
+# convertBuffers
 
-Various utility functions
+Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 **Parameters**
 
@@ -379,9 +379,9 @@ Various utility functions
 
 Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
 
-# convertBuffers
+# util
 
-Wraps all ArrayBuffer type properties in Uint8Array recursively
+Various utility functions
 
 **Parameters**
 
