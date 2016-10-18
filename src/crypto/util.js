@@ -1,11 +1,12 @@
 // @flow
+/* eslint-disable global-require */
 /**
  * Peerio Crypto Utilities module.
  * @module crypto/util
  */
 const Buffer = require('buffer/').Buffer;
 
-declare var crypto;
+// declare var crypto;
 
 const HAS_TEXT_ENCODER: boolean = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder: null|TextEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -19,9 +20,11 @@ exports.getRandomBytes = function(num: number): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(num));
 };
 
-// node version
-if (!crypto.getRandomValues) {
-    exports.getRandomBytes = function(num: number): Uint8Array {
+// node version.
+// tobo: maybe this is not the best way to detect node runtime :-D
+if (global && !global.crypto) {
+    const crypto = require('crypto');
+    exports.getRandomBytes = function(num: number) {
         return crypto.randomBytes(num);
     };
 }

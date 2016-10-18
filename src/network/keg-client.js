@@ -30,7 +30,7 @@ class KegClient {
                 keyId: '0',
                 type,
                 // todo: unstringify when server is deployed
-                payload: payload instanceof Uint8Array ? util.bytesToStr(payload) : JSON.stringify(payload),
+                payload: payload instanceof Uint8Array ? util.bytesToB64(payload) : JSON.stringify(payload),
                 version,
                 collectionVersion: 0// todo: remove when server does
             }
