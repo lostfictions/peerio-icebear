@@ -20,12 +20,16 @@ describe('User model', () => {
     it('#01 should server-validate username',
         () => User.validateUsername(user.username).then(available => available.should.be.true));
 
-    it('#02 should register new user', () => user.createAccountAndLogin());
+    it('#02 should register new user', function() {
+        this.timeout(6000);
+        return user.createAccountAndLogin();
+    });
 
-    it('#03 should login', (done) => {
+    it('#03 should login', function(done) {
+        this.timeout(6000);
         socket.close();
         socket.onceConnected(() => userLogin.login()
-                                            .then(done)
+                                            .then(() => done())
                                             .catch(err => done(new Error(err)))
                             );
         socket.open();
