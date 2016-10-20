@@ -210,17 +210,6 @@ Generates 24-byte unique(almost) random nonce.
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
-
 # normalize
 
 Use this helper to resolve returning error value.
@@ -231,6 +220,17 @@ If you:
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
     that will be wrapped in Error object and returned in case the result wasn't instance of Error
+
+**Parameters**
+
+-   `error` **any** 
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
+# errors
+
+Peerio custom error types and error handling helpers
 
 **Parameters**
 

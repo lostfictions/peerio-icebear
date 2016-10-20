@@ -24,10 +24,19 @@ module.exports = function setKarmaConfig(config) {
                         loader: 'babel',
                         exclude: [/node_modules/],
                         query: {
-                            "presets": [
-                                "es2015", "stage-0", "react"
+                            "plugins": [
+                                "transform-decorators-legacy",
+                                "transform-flow-strip-types",
+                                "transform-class-properties",
+                                "transform-inline-environment-variables",
+                                "transform-es2015-modules-commonjs",
+                                [
+                                    "transform-object-rest-spread", {
+                                        "useBuiltIns": true
+                                    }
+                                ],
+                                "transform-react-jsx"
                             ],
-                            "plugins": ["transform-decorators-legacy"],
                             "env": {
                                 "coverage": {
                                     "plugins": [
