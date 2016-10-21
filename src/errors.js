@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Peerio custom error types and error handling helpers
  * @module errors
@@ -27,7 +27,7 @@ CustomError.prototype.constructor = CustomError;
  * then call normalize and pass the result you've got together with fallback message
  * that will be wrapped in Error object and returned in case the result wasn't instance of Error
  */
-module.exports.normalize = function(error: any, failoverMessage?: string): Error {
+module.exports.normalize = function(error, failoverMessage) {
     if (error instanceof Error) return error;
 
     if (failoverMessage) return new Error(failoverMessage);
@@ -40,9 +40,8 @@ module.exports.normalize = function(error: any, failoverMessage?: string): Error
     }
 };
 
-function getGenericCustomError(name: string) {
-    const err = function(message?: string, data?: Object) {
-        // $FlowBug: can't see 'call'
+function getGenericCustomError(name) {
+    const err = function(message, data) {
         const error = Error.call(this, message);
         this.name = name;
         this.message = error.message || '';
@@ -75,14 +74,13 @@ const serverErrorCodes = {
 };
 // reverse map
 const serverErrorMap = {};
-Object.keys(serverErrorCodes).forEach((key: string) => {
+Object.keys(serverErrorCodes).forEach((key) => {
     serverErrorMap[serverErrorCodes[key]] = key;
 });
 
-function ServerError(code: number) {
+function ServerError(code) {
     const type = serverErrorMap[code] || 'Unknown server error';
     this.message = type;
-    // $FlowBug: can't see 'call'
     const error = Error.call(this, this.message);
     this.name = `ServerError: ${code}: ${type}`;
     this.code = code;

@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * 'buffer' module extensions.
  * Modifies and exports Buffer module.
@@ -6,7 +6,7 @@
  */
 const Buffer = require('buffer/').Buffer;
 
-Buffer.fromTypedArray = function(arr: Uint8Array): Uint8Array {
+Buffer.fromTypedArray = function(arr) {
     // To avoid a copy, use the typed array's underlying ArrayBuffer to back new Buffer
     let buf = new Buffer(arr.buffer);
     if (arr.byteLength !== arr.buffer.byteLength) {

@@ -39,7 +39,7 @@ module.exports = {
             .then(this._handleAccountCreationChallenge);
     },
 
-    _handleAccountCreationChallenge(cng: Object) {
+    _handleAccountCreationChallenge(cng) {
         console.log('Processing account creation challenge.');
         // validating challenge, paranoid mode on
         if (typeof (cng.username) !== 'string'

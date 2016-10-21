@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Peerio network socket client module.
  * This module exports SocketSlient class that can be instantiated as many times as needed.
@@ -40,9 +40,9 @@ const appEvents = {
 
 /** Create an instance of Socket per connnection. */
 class SocketClient {
-    socket: Object;
-    authenticated: bool;
-    started: bool = false;
+    socket;
+    authenticated;
+    started = false;
 
     /** Possible connection states */
     static states = states;
@@ -51,7 +51,7 @@ class SocketClient {
     /** Application events */
     static appEvents = appEvents;
 
-    start(url: string) {
+    start(url) {
         if (this.started) return;
         this.started = true;
 
@@ -96,7 +96,7 @@ class SocketClient {
     }
 
     /** Returns connection state */
-    get state(): string {
+    get state() {
         if (this.socket.readyState === states.open && this.authenticated) {
             return states.authenticated;
         }
@@ -104,7 +104,7 @@ class SocketClient {
         return states[this.socket.readyState] || states.closed;
     }
 
-    _validateSubscription(event: string, listener: Function) {
+    _validateSubscription(event, listener) {
         if (!socketEvents[event] && !appEvents[event]) {
             throw new Error('Attempt to un/subscribe from/to unknown socket event.');
         }
@@ -113,21 +113,21 @@ class SocketClient {
         }
     }
     /** Subscribes a listener to one of the socket or app events */
-    subscribe(event: string, listener: Function) {
+    subscribe(event, listener) {
         this._validateSubscription(event, listener);
         this.socket.on(event, listener);
     }
 
     /** Unsubscribes a listener to socket or app events */
-    unsubscribe(event: string, listener: Function) {
+    unsubscribe(event, listener) {
         this._validateSubscription(event, listener);
         this.socket.off(event, listener);
     }
 
     /** Send a message to server */
-    send(name: string, data: any): Promise<any> {
-        return new Promise((resolve: Function, reject: Function) => {
-            function handler(resp: any) {
+    send(name, data) {
+        return new Promise((resolve, reject) => {
+            function handler(resp) {
                 if (resp && resp.error) {
                     reject(new ServerError(resp.error));
                     return;
@@ -138,7 +138,7 @@ class SocketClient {
         });
     }
     /** Executes a callback only once when socket will connect, or immediatelly if socket is connected already */
-    onceConnected(callback: Function) {
+    onceConnected(callback) {
         if (this.socket.connected) {
             setTimeout(callback, 0);
             return;

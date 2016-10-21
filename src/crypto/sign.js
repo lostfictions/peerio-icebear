@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Digital signing module
  * @module crypto/sign
@@ -9,6 +9,6 @@
  // const { DecryptionError } = require('../errors');
 
 /** Signs the message with secret key and returns detached signature*/
- exports.sign = function(message: Uint8Array, secretKey: Uint8Array): Uint8Array {
+ exports.sign = function(message, secretKey) {
      return nacl.sign.detached(message, secretKey);
  };

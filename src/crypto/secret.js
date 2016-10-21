@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Secret key encryption module.
  * encrypt and decrypt functions replace nacl.secretbox and nacl.secretbox.open.
@@ -18,10 +18,10 @@ const util = require('./util');
 const { EncryptionError, DecryptionError } = require('../errors');
 
 // this is for reference, in the code we use numbers for better comprehension
-// const BOXZEROBYTES:number = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
-// const ZEROBYTES:number = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
-// const NONCEBYTES:number = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
-const KEY_LENGTH:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
+// const BOXZEROBYTES = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
+// const ZEROBYTES = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
+// const NONCEBYTES = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
+const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 
 // IDEA: try reusing same large ArrayBuffer for output
 
@@ -29,7 +29,7 @@ const KEY_LENGTH:number = nacl.lowlevel.crypto_secretbox_KEYBYTES;
  * Encrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox().
  */
-exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
+exports.encrypt = function(msgBytes, key) {
     // validating arguments
     if (!(msgBytes instanceof Uint8Array
         && key instanceof Uint8Array
@@ -38,16 +38,16 @@ exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
     }
 
     // IDEA: there must be a way to avoid this allocation and copy
-    const m: Uint8Array = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
-    for (let i: number = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
+    const m = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
+    for (let i = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
 
-    const nonce: Uint8Array = util.getRandomNonce();
+    const nonce = util.getRandomNonce();
     // container for cipher bytes concatenated with nonce
-    const c1: Uint8Array = new Uint8Array(m.length + 24); /* NONCEBYTES */
+    const c1 = new Uint8Array(m.length + 24); /* NONCEBYTES */
     // appending nonce to the end of cipher bytes
-    for (let i: number = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
+    for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
     // view of the same ArrayBuffer for encryption algorythm that does not know about our nonce concatenation
-    const c: Uint8Array = c1.subarray(0, -24);// IDEA: check if we can skip this step
+    const c = c1.subarray(0, -24);// IDEA: check if we can skip this step
     nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
 
     return c1;// contains 16 zero bytes in the beginning
@@ -56,8 +56,8 @@ exports.encrypt = function(msgBytes: Uint8Array, key: Uint8Array): Uint8Array {
 /**
  * Helper method to decode string to bytes and encrypt it.
  */
-exports.encryptString = function(msg: string, key: Uint8Array): Uint8Array {
-    const msgBytes: Uint8Array = util.strToBytes(msg);
+exports.encryptString = function(msg, key) {
+    const msgBytes = util.strToBytes(msg);
     return exports.encrypt(msgBytes, key);
 };
 
@@ -65,7 +65,7 @@ exports.encryptString = function(msg: string, key: Uint8Array): Uint8Array {
  * Decrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox.open().
  */
-exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
+exports.decrypt = function(cipher, key) {
     if (!(cipher instanceof Uint8Array
         && key instanceof Uint8Array
         && key.length === KEY_LENGTH
@@ -73,8 +73,8 @@ exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
         throw new DecryptionError('secret.decrypt: Invalid argument type or length.');
     }
 
-    const c: Uint8Array = cipher.subarray(0, -24);
-    const m: Uint8Array = new Uint8Array(c.length);
+    const c = cipher.subarray(0, -24);
+    const m = new Uint8Array(c.length);
     if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, cipher.subarray(-24), key) !== 0) {
         throw new DecryptionError('Decryption failed.');
     }
@@ -86,6 +86,6 @@ exports.decrypt = function(cipher: Uint8Array, key: Uint8Array): Uint8Array {
 /**
  * Helper method to decode decrypted data to a string.
  */
-exports.decryptString = function(cipher: Uint8Array, key: Uint8Array): string {
+exports.decryptString = function(cipher, key) {
     return util.bytesToStr(exports.decrypt(cipher, key));
 };

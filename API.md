@@ -16,36 +16,26 @@ Deterministically derives boot key and auth key pair.
 
 **Parameters**
 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `salt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;MainKeySet>** 
+-   `username`  
+-   `passphrase`  
+-   `salt`  
 
 ## generateSigningKeyPair
 
 Generates new random signing (ed25519) key pair.
 32 byte public key and 64 byte secret key.
 
-Returns **KeyPair** 
-
 ## generateEncryptionKeyPair
 
 Generates new random asymmetric (curve25519) key pair.
-
-Returns **KeyPair** 
 
 ## generateEncryptionKey
 
 Generates new random symmetric (xsalsa20) 32 byte secret key.
 
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
 ## generateAuthSalt
 
 Generates new salt for auth process
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
 ## getAuthKeyHash
 
@@ -53,9 +43,7 @@ Hashes auth public key
 
 **Parameters**
 
--   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `key`  
 
 # crypto/public
 
@@ -81,10 +69,8 @@ This is a refactored version of nacl.secretbox().
 
 **Parameters**
 
--   `msgBytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `msgBytes`  
+-   `key`  
 
 ## encryptString
 
@@ -92,10 +78,8 @@ Helper method to decode string to bytes and encrypt it.
 
 **Parameters**
 
--   `msg` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `msg`  
+-   `key`  
 
 ## decrypt
 
@@ -104,10 +88,8 @@ This is a refactored version of nacl.secretbox.open().
 
 **Parameters**
 
--   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `cipher`  
+-   `key`  
 
 ## decryptString
 
@@ -115,10 +97,8 @@ Helper method to decode decrypted data to a string.
 
 **Parameters**
 
--   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `cipher`  
+-   `key`  
 
 # crypto/sign
 
@@ -130,10 +110,8 @@ Signs the message with secret key and returns detached signature
 
 **Parameters**
 
--   `message` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `message`  
+-   `secretKey`  
 
 # crypto/util
 
@@ -146,9 +124,7 @@ browser version
 
 **Parameters**
 
--   `num` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `num`  
 
 ## concatTypedArrays
 
@@ -157,10 +133,8 @@ Returns new concatenated array.
 
 **Parameters**
 
--   `buffer1` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
--   `buffer2` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `buffer1`  
+-   `buffer2`  
 
 ## strToBytes
 
@@ -169,9 +143,7 @@ Uses native TextEncoder with Buffer polyfill fallback.
 
 **Parameters**
 
--   `str` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `str`  
 
 ## bytesToStr
 
@@ -180,9 +152,7 @@ Uses native TextEncoder with Buffer polyfill fallback.
 
 **Parameters**
 
--   `bytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `bytes`  
 
 ## b64ToBytes
 
@@ -190,9 +160,7 @@ Converts Base64 string to byte array.
 
 **Parameters**
 
--   `str` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `str`  
 
 ## bytesToB64
 
@@ -200,26 +168,11 @@ Converts byte array to Base64 string.
 
 **Parameters**
 
--   `bytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `bytes`  
 
 ## getRandomNonce
 
 Generates 24-byte unique(almost) random nonce.
-
-Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
 
 # normalize
 
@@ -234,10 +187,17 @@ If you:
 
 **Parameters**
 
--   `error` **any** 
--   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `error`  
+-   `failoverMessage`  
 
-Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error`  
+-   `failoverMessage`  
 
 # extensions/buffer
 
@@ -262,7 +222,7 @@ Creates new PhraseDictionary
 
 **Parameters**
 
--   `dictString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** '\\n' separated word list
+-   `dictString`  '\\n' separated word list
 
 # getPassphrase
 
@@ -270,9 +230,7 @@ Returns a random passphrase of chosen word length
 
 **Parameters**
 
--   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `length`  
 
 # dispose
 
@@ -306,16 +264,14 @@ Create an instance of Socket per connnection.
 
 Returns connection state
 
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
 ## subscribe
 
 Subscribes a listener to one of the socket or app events
 
 **Parameters**
 
--   `event` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `listener` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+-   `event`  
+-   `listener`  
 
 ## unsubscribe
 
@@ -323,8 +279,8 @@ Unsubscribes a listener to socket or app events
 
 **Parameters**
 
--   `event` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `listener` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+-   `event`  
+-   `listener`  
 
 ## send
 
@@ -332,10 +288,8 @@ Send a message to server
 
 **Parameters**
 
--   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `data` **any** 
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;any>** 
+-   `name`  
+-   `data`  
 
 ## onceConnected
 
@@ -343,7 +297,7 @@ Executes a callback only once when socket will connect, or immediatelly if socke
 
 **Parameters**
 
--   `callback` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+-   `callback`  
 
 ## close
 
@@ -375,9 +329,7 @@ Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 **Parameters**
 
--   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
-
-Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+-   `obj`  
 
 # util
 
@@ -385,6 +337,4 @@ Various utility functions
 
 **Parameters**
 
--   `obj` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
-
-Returns **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+-   `obj`  

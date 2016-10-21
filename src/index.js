@@ -1,4 +1,4 @@
-// @flow
+
 /* eslint-disable no-unused-vars */
 /**
  * Icebear client lib entry point

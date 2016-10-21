@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Peerio keg client
  * @module network/keg-client
@@ -8,21 +8,21 @@ const socket = require('./socket');
 const util = require('../crypto/util');
 
 class KegClient {
-    kegDbId: string;
+    kegDbId;
 
-    constructor(kegDbId: string) {
+    constructor(kegDbId) {
         this.kegDbId = kegDbId;
     }
 
-    get(kegId: string) {
+    get(kegId) {
         return socket.send('/auth/kegs/get', { collectionId: this.kegDbId, kegId })
-                     .then((keg: Object) => { // todo: don't be lazy and describe keg flow type
+                     .then((keg) => {
                          keg.payload = JSON.parse(keg.payload);
                          return keg;
                      });
     }
 
-    update(kegId: string, type: string, version: number, payload: Object) {
+    update(kegId, type, version, payload) {
         return socket.send('/auth/kegs/update', {
             collectionId: this.kegDbId,
             update: {

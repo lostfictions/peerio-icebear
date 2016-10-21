@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Main SocketClient singleton instance
  * @module network/socket
@@ -11,7 +11,6 @@ const socket = new SocketClient();
 
 const wrappedStart = socket.start;
 
-// $FlowBug
 socket.start = function() {
     wrappedStart.call(socket, config.socketServerUrl);
 };

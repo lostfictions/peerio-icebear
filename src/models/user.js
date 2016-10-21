@@ -14,25 +14,25 @@ const KegClient = require('../network/keg-client');
 
 class User {
 
-    _username: string;
+    _username;
 
-    firstName: string;
-    lastName: string;
-    email: string;
-    locale: string = 'en';
-    passphrase: string;
-    authSalt: Uint8Array;
-    bootKey: Uint8Array;
-    authKeys: KeyPair;
-    signKeys: KeyPair;
-    encryptionKeys: KeyPair;
-    kegKey: Uint8Array;
+    firstName;
+    lastName;
+    email;
+    locale = 'en';
+    passphrase;
+    authSalt;
+    bootKey;
+    authKeys;
+    signKeys;
+    encryptionKeys;
+    kegKey;
 
-    get username(): string {
+    get username() {
         return this._username;
     }
 
-    set username(v: string) {
+    set username(v) {
         this._username = typeof (v) === 'string' ? v.trim().toLowerCase() : '';
     }
 
@@ -43,7 +43,7 @@ class User {
         this.deriveKeys = this.deriveKeys.bind(this);
     }
 
-    deriveKeys(): Promise {
+    deriveKeys() {
         try {
             if (!this.username) throw new Error('Username is required to derive keys');
             if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
@@ -53,14 +53,14 @@ class User {
         }
 
         return keys.deriveKeys(this.username, this.passphrase, this.authSalt)
-                   .then((keySet: MainKeySet) => {
+                   .then((keySet) => {
                        this.bootKey = keySet.bootKey;
                        this.authKeys = keySet.authKeyPair;
                    });
     }
 
     // full workflow
-    createAccountAndLogin(): Promise {
+    createAccountAndLogin() {
         console.log('Starting account registration sequence.');
         return this._createAccount()
                    .then(() => this.login(true))
@@ -82,11 +82,11 @@ class User {
                    });
     }
 
-    static validateUsername(username: string): Promise<bool> {
+    static validateUsername(username) {
         if (typeof (username) === 'string' && username.trim().length === 0) return Promise.resolve(false);
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
-            .catch((err: Error) => {
+            .catch((err) => {
                 console.error(err);
                 return false;
             });

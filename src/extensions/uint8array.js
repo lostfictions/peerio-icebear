@@ -1,12 +1,10 @@
-// @flow
 /* eslint-disable no-param-reassign */
 /**
  * Uint8Array extensions and polyfills.
  */
 
 if (typeof (Uint8Array.prototype.slice) === 'undefined') {
-    // $FlowBug
-    Uint8Array.prototype.slice = function(begin?: number, end?: number) {
+    Uint8Array.prototype.slice = function(begin, end) {
         begin = begin || 0;
         if (begin < 0) begin = Math.max(0, this.length + begin);
         end = typeof (end) === 'number' ? Math.min(this.length, end) : this.length;

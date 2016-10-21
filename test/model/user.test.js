@@ -10,7 +10,8 @@ describe('User model', () => {
     const user = new User();
     const userLogin = new User();
 
-    before((done) => {
+    before(function(done) {
+        this.timeout(6000);
         user.username = userLogin.username = helpers.getRandomUsername();
         user.passphrase = userLogin.passphrase = 'such a secret passphrase';
         user.email = `${user.username}@mailinator.com`;

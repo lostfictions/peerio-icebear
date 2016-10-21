@@ -11,6 +11,7 @@ module.exports = {
         TextDecoder: false,
         crypto: false,
         window: false,
+        xdescribe:false,
         ENV: false,
         STAGING_SOCKET_SERVER: false
     }

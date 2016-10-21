@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Configuration module.
  * Exists just to collect most of the app configuration aspects in one place.
@@ -19,13 +19,13 @@ if (typeof (ENV) !== 'undefined') {
 //---------------------------------------
 
 class Config {
-    get socketServerUrl(): string {
+    get socketServerUrl() {
         return socketServerUrl;
     }
-    set socketServerUrl(val: string) {
+    set socketServerUrl(val) {
         socketServerUrl = val;
     }
-    get termsUrl(): string {
+    get termsUrl() {
         return 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md';
     }
 }

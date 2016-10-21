@@ -1,11 +1,11 @@
-// @flow
+
 /**
  * Various utility functions
  * @module util
  */
 
 /** Wraps all ArrayBuffer type properties in Uint8Array recursively */
-function convertBuffers(obj: Object): Object {
+function convertBuffers(obj) {
     if (typeof (obj) !== 'object') return obj;
 /* eslint-disable guard-for-in */
     for (const prop in obj) {

@@ -19,21 +19,21 @@ module.exports = {
 
     // @param intial - on first login we don't want auth events,
     //                 beacause we have keg initialization to do before app can start.
-    login(initial?: boolean): Promise<void> {
+    login(initial) {
         console.log('Starting login sequence.');
         return this._loadAuthSalt().then(this.deriveKeys).then(this._getAuthToken).then(this._authenticate);
     },
 
-    _loadAuthSalt(): Promise<void> {
+    _loadAuthSalt() {
         console.log('Loading auth salt');
         return socket.send('/noauth/getAuthSalt', { username: this.username })
-                     .then((response: Object) => {
+                     .then((response) => {
                          this.authSalt = new Uint8Array(response.authSalt);
                          return;
                      });
     },
 
-    _getAuthToken(): Promise<Object> {
+    _getAuthToken() {
         console.log('Requesting auth token.');
         return socket.send('/noauth/getAuthToken', {
             username: this.username,
@@ -43,7 +43,7 @@ module.exports = {
         .then(resp => util.convertBuffers(resp));
     },
 
-    _authenticate(data: Object): Promise<void> {
+    _authenticate(data) {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decrypt(data.token, data.nonce, data.ephemeralServerPK, this.authKeys.secretKey);
         if (decrypted[0] !== 65 || decrypted[1] !== 84 || decrypted.length !== 32) {

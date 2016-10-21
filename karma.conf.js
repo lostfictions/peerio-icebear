@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const path = require('path');
-const FlowStatusWebpackPlugin = require('flow-status-webpack-plugin');
 
 module.exports = function setKarmaConfig(config) {
     config.set({
@@ -26,7 +25,6 @@ module.exports = function setKarmaConfig(config) {
                         query: {
                             "plugins": [
                                 "transform-decorators-legacy",
-                                "transform-flow-strip-types",
                                 "transform-class-properties",
                                 "transform-inline-environment-variables",
                                 "transform-es2015-modules-commonjs",
@@ -56,7 +54,6 @@ module.exports = function setKarmaConfig(config) {
                 ]
             },
             plugins: [
-                new FlowStatusWebpackPlugin(),
                 new webpack.optimize.DedupePlugin(),
                 new webpack.ProgressPlugin(),
                 new webpack.DefinePlugin({

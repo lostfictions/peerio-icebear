@@ -1,4 +1,4 @@
-// @flow
+
 /**
  * Passphrase dictionary module
  * @module models/phrase-dictionary
@@ -14,7 +14,7 @@ class PhraseDictionary {
      * Creates new PhraseDictionary
      * @param dictString - '\n' separated word list
      */
-    constructor(dictString: string) {
+    constructor(dictString) {
         this._buildDict(dictString);
     }
 
@@ -22,7 +22,7 @@ class PhraseDictionary {
      * Returns a random passphrase of chosen word length
      * @length - passphrase word count
      */
-    getPassphrase(length: number): string {
+    getPassphrase(length) {
         let ret:string = '';
         for (let i = 0; i < length; i++) {
             ret += this.dict[util.getRandomNumber(0, this.dict.length)];
@@ -35,7 +35,7 @@ class PhraseDictionary {
         delete this.dict;
     }
 
-    _buildDict(dictString: string) {
+    _buildDict(dictString) {
         // normalizing words
         this.dict = dictString.split('\n');
         for (let i = 0; i < this.dict.length; i++) {
