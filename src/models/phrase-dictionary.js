@@ -8,7 +8,7 @@ const util = require('../crypto/util');
 
 class PhraseDictionary {
 
-    dict: Array<string>;
+    dict;
 
     /**
      * Creates new PhraseDictionary
