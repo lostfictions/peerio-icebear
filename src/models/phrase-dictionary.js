@@ -23,7 +23,7 @@ class PhraseDictionary {
      * @length - passphrase word count
      */
     getPassphrase(length) {
-        let ret:string = '';
+        let ret = '';
         for (let i = 0; i < length; i++) {
             ret += this.dict[util.getRandomNumber(0, this.dict.length)];
         }
