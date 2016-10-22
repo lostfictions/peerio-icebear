@@ -77,7 +77,7 @@ class User {
                        payload.encryptionKeys.publicKey = util.bytesToStr(payload.encryptionKeys.publicKey);
                        payload.encryptionKeys.secretKey = util.bytesToStr(payload.encryptionKeys.secretKey);
                        payload.kegKey = util.bytesToStr(payload.kegKey);
-                       payload = secret.encryptString(payload, this.bootKey);
+                       payload = secret.encryptString(JSON.stringify(payload), this.bootKey);
                        return this.kegdb.update('boot', 'boot', 2, payload);
                    });
     }
