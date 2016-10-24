@@ -174,6 +174,15 @@ Converts byte array to Base64 string.
 
 Generates 24-byte unique(almost) random nonce.
 
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error`  
+-   `failoverMessage`  
+
 # normalize
 
 Use this helper to resolve returning error value.
@@ -184,15 +193,6 @@ If you:
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
     that will be wrapped in Error object and returned in case the result wasn't instance of Error
-
-**Parameters**
-
--   `error`  
--   `failoverMessage`  
-
-# errors
-
-Peerio custom error types and error handling helpers
 
 **Parameters**
 

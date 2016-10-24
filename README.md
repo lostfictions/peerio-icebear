@@ -2,8 +2,9 @@
 # peerio-icebear
 Peerio Icebear is a client library supporting Peerio apps
 
+## Development configuration
 
-
+To get started, set the `PEERIO_STAGING_SOCKET_SERVER` environment variable. Run `npm install` and `npm start` to run Karma. 
 
 ## Development policy
 ### Errors
