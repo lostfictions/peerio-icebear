@@ -9,8 +9,10 @@ const Promise = require('bluebird');
 const socket = require('../network/socket');
 const UserRegister = require('./user.register');
 const UserAuth = require('./user.auth');
+const UserPasscode = require('./user.passcode');
 const errors = require('../errors');
 const KegClient = require('../network/keg-client');
+const tweetnacl = require('tweetnacl');
 
 class User {
 
@@ -95,5 +97,6 @@ class User {
 
 Object.assign(User.prototype, UserRegister);
 Object.assign(User.prototype, UserAuth);
+Object.assign(User.prototype, UserPasscode);
 
 module.exports = User;

@@ -35,4 +35,11 @@ describe('User model', () => {
                             );
         socket.open();
     });
+
+    it('#04 should set and retrieve a passcode', () => {
+        return user.createPasscode('this is fine')
+            .then(() => {
+                return user.derivePassphraseFromPasscode()
+            })
+    });
 });
