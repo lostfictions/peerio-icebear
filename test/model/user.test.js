@@ -37,9 +37,17 @@ describe('User model', () => {
     });
 
     it('#04 should set and retrieve a passcode', () => {
-        return user.createPasscode('this is fine')
-            .then(() => {
-                return user.derivePassphraseFromPasscode()
+        const passcode = 'this is fine';
+
+        return user.getPasscodeSecret(passcode)
+            .then((passcodeSecret) => {
+                return user._getAuthDataFromPasscode(passcode, passcodeSecret);
             })
+            .then((authData) => {
+                return authData.passphrase.should.equal(user.passphrase);
+            })
+            .catch((err) => {
+                throw err;
+            });
     });
 });

@@ -1,23 +1,21 @@
 /**
- * Authentication module for User model.
+ * Passcode module for User model.
  * @module models/user
  */
 
 const keys = require('../crypto/keys');
 const secret = require('../crypto/secret');
-const util = require('../util');
-const BLAKE2s = require('blake2s-js');
-const scrypt = require('scrypt-async');
+const errors = require('../errors');
 const Promise = require('bluebird');
 
-var keySize = 32;
-// DO NOT CHANGE, it will change crypto output
-var scryptResourceCost = 14;
-var scryptBlockSize = 8;
-var scryptStepDuration = 1000;
-
 module.exports = {
-
+    /**
+     * Given a passcode and a populated User model, gets a passcode-encrypted
+     * secret containing the username and passphrase as a JSON string.
+     *
+     * @param passcode
+     * @returns {Promise}
+     */
     getPasscodeSecret(passcode) {
         try {
             if (!this.username) throw new Error('Username is required to derive keys');
@@ -27,27 +25,30 @@ module.exports = {
             return Promise.reject(errors.normalize(e));
         }
 
-        return this._deriveKeyFromPasscode(passcode)
+        return keys.deriveKeyFromPasscode(passcode)
             .then((passcodeKey) => {
-                return secret.encrypt({}, passcodeKey);
-            })
+                return secret.encryptString(JSON.stringify({
+                    username: this.username,
+                    passphrase: this.passphrase
+                }), passcodeKey);
+            });
     },
-
     /**
+     * Utility to get an object containing username, passphrase.
      *
+     * @todo implement a login method that uses passcode
      *
-     * @param passcode {String}
-     * @returns {Promise<Uint8Array>}
+     * @param passcode
+     * @param passcodeSecret
+     * @private
      */
-    _deriveKeyFromPasscode(passcode) {
-        return new Promise((resolve) => {
-            var hash = new BLAKE2s(keySize);
-            hash.update(decodeUTF8(passcode));
-            scrypt(hash.hexDigest(), decodeUTF8(this.username), scryptResourceCost, scryptBlockSize,
-                keySize, scryptStepDuration, resolve);
-        }).then((keyBytes) => {
-            return new Uint8Array(keyBytes);
-        });
-    },
-
+    _getAuthDataFromPasscode(passcode, passcodeSecret) {
+        return keys.deriveKeyFromPasscode(passcode)
+            .then((passcodeKey) => {
+                return secret.decryptString(passcodeSecret, passcodeKey);
+            })
+            .then((authDataJSON) => {
+                return JSON.parse(authDataJSON);
+            });
+    }
 };

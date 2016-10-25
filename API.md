@@ -45,6 +45,14 @@ Hashes auth public key
 
 -   `key`  
 
+## deriveKeyFromPasscode
+
+**Parameters**
+
+-   `passcode`  {String}
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 
+
 # crypto/public
 
 Public key encryption module
@@ -174,15 +182,6 @@ Converts byte array to Base64 string.
 
 Generates 24-byte unique(almost) random nonce.
 
-# errors
-
-Peerio custom error types and error handling helpers
-
-**Parameters**
-
--   `error`  
--   `failoverMessage`  
-
 # normalize
 
 Use this helper to resolve returning error value.
@@ -193,6 +192,15 @@ If you:
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
     that will be wrapped in Error object and returned in case the result wasn't instance of Error
+
+**Parameters**
+
+-   `error`  
+-   `failoverMessage`  
+
+# errors
+
+Peerio custom error types and error handling helpers
 
 **Parameters**
 
@@ -244,19 +252,22 @@ Authentication module for User model.
 
 # models/user
 
-Authentication module for User model.
+Passcode module for User model.
 
 # models/user
 
 Registration module for User model.
 
-# \_deriveKeyFromPasscode
+# getPasscodeSecret
+
+Given a passcode and a populated User model, gets a passcode-encrypted
+secret containing the username and passphrase as a JSON string.
 
 **Parameters**
 
--   `passcode`  {String}
+-   `passcode`  
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
 # network/keg-client
 

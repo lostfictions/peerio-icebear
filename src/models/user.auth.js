@@ -9,11 +9,11 @@ const socket = require('../network/socket');
 const util = require('../util');
 const Promise = require('bluebird');
 
-var keySize = 32;
+const keySize = 32;
 // DO NOT CHANGE, it will change crypto output
-var scryptResourceCost = 14;
-var scryptBlockSize = 8;
-var scryptStepDuration = 1000;
+const scryptResourceCost = 14;
+const scryptBlockSize = 8;
+const scryptStepDuration = 1000;
 
 module.exports = {
 
@@ -29,7 +29,7 @@ module.exports = {
         console.log('Starting login sequence.');
         return this._loadAuthSalt().then(this.deriveKeys).then(this._getAuthToken).then(this._authenticate);
     },
-    
+
 
     _loadAuthSalt() {
         console.log('Loading auth salt');
