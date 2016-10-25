@@ -35,4 +35,19 @@ describe('User model', () => {
                             );
         socket.open();
     });
+
+    it('#04 should set and retrieve a passcode', () => {
+        const passcode = 'this is fine';
+
+        return user.getPasscodeSecret(passcode)
+            .then((passcodeSecret) => {
+                return user._getAuthDataFromPasscode(passcode, passcodeSecret);
+            })
+            .then((authData) => {
+                return authData.passphrase.should.equal(user.passphrase);
+            })
+            .catch((err) => {
+                throw err;
+            });
+    });
 });

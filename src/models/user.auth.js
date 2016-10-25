@@ -9,6 +9,12 @@ const socket = require('../network/socket');
 const util = require('../util');
 const Promise = require('bluebird');
 
+const keySize = 32;
+// DO NOT CHANGE, it will change crypto output
+const scryptResourceCost = 14;
+const scryptBlockSize = 8;
+const scryptStepDuration = 1000;
+
 module.exports = {
 
     initAuthModule() {
@@ -23,6 +29,7 @@ module.exports = {
         console.log('Starting login sequence.');
         return this._loadAuthSalt().then(this.deriveKeys).then(this._getAuthToken).then(this._authenticate);
     },
+
 
     _loadAuthSalt() {
         console.log('Loading auth salt');
@@ -43,11 +50,18 @@ module.exports = {
         .then(resp => util.convertBuffers(resp));
     },
 
+    /**
+     * Decrypt authToken, verify its format and send it back to the server.
+     *
+     * @param data
+     * @returns {*}
+     * @private
+     */
     _authenticate(data) {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decrypt(data.token, data.nonce, data.ephemeralServerPK, this.authKeys.secretKey);
         if (decrypted[0] !== 65 || decrypted[1] !== 84 || decrypted.length !== 32) {
-            return Promise.reject(new Error('Auth token paintext is of invalid format.'));
+            return Promise.reject(new Error('Auth token plaintext is of invalid format.'));
         }
         return socket.send('/noauth/authenticate', {
             decryptedAuthToken: decrypted.buffer,
