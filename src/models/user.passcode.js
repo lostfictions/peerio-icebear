@@ -20,7 +20,6 @@ module.exports = {
         try {
             if (!this.username) throw new Error('Username is required to derive keys');
             if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
-            if (!this.authSalt) throw new Error('Salt is required to derive keys');
         } catch (e) {
             return Promise.reject(errors.normalize(e));
         }
@@ -36,13 +35,12 @@ module.exports = {
     /**
      * Utility to get an object containing username, passphrase.
      *
-     * @todo implement a login method that uses passcode
+     * @todo implement a login method that uses passcode and make this private
      *
      * @param passcode
      * @param passcodeSecret
-     * @private
      */
-    _getAuthDataFromPasscode(passcode, passcodeSecret) {
+    getAuthDataFromPasscode(passcode, passcodeSecret) {
         return keys.deriveKeyFromPasscode(passcode)
             .then((passcodeKey) => {
                 return secret.decryptString(passcodeSecret, passcodeKey);
