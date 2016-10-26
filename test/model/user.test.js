@@ -36,9 +36,10 @@ describe('User model', () => {
         socket.open();
     });
 
-    it('#04 should set and retrieve a passcode', () => {
+    it('#04 should set and retrieve a passcode', function() {
         const passcode = 'this is fine';
 
+        this.timeout(6000);
         return user.getPasscodeSecret(passcode)
             .then((passcodeSecret) => {
                 return user.getAuthDataFromPasscode(passcode, passcodeSecret);
@@ -51,7 +52,7 @@ describe('User model', () => {
             });
     });
 
-    it('#05 cannot use a passcode if account is uninitialized', () => {
+    it('#05 cannot use a passcode if account is uninitialized', function () {
         const user2 = new User();
 
         return user2.getPasscodeSecret('passcode')
