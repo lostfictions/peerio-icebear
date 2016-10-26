@@ -7,7 +7,7 @@
  */
 
 // Default values for production apps
-let socketServerUrl = 'wss://hocuspocus.peerio.com';
+let socketServerUrl = 'wss://app.peerio.com';
 //---------------------------------------------
 
 // Build time flags/vars to override default values
