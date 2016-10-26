@@ -1,7 +1,7 @@
 
 /**
  * Peerio network socket client module.
- * This module exports SocketSlient class that can be instantiated as many times as needed.
+ * This module exports SocketClient class that can be instantiated as many times as needed.
  * Other modules contain singleton instances for general use.
  * @module network/socket-client
  */
@@ -10,7 +10,7 @@ const io = require('socket.io-client/socket.io');
 const Promise = require('bluebird');
 const { ServerError } = require('../errors');
 
-const states = {
+const STATES = {
     open: 'open',
     opening: 'opening',
     closed: 'closed',
@@ -18,7 +18,7 @@ const states = {
     authenticated: 'authenticated'
 };
 
-const socketEvents = {
+const SOCKET_EVENTS = {
     connect: 'connect',
     connect_error: 'connect_error',
     connect_timeout: 'connect_timeout',
@@ -34,22 +34,22 @@ const socketEvents = {
     pong: 'pong'
 };
 
-const appEvents = {
+const APP_EVENTS = {
     twoFA: 'twoFA'
 };
 
-/** Create an instance of Socket per connnection. */
+/** Create an instance of Socket per connection. */
 class SocketClient {
     socket;
-    authenticated;
     started = false;
 
+    // following properties are not static for access convenience
     /** Possible connection states */
-    static states = states;
+    STATES = STATES;
     /** System events */
-    static events = socketEvents;
+    SOCKET_EVENTS = SOCKET_EVENTS;
     /** Application events */
-    static appEvents = appEvents;
+    APP_EVENTS = APP_EVENTS;
 
     start(url) {
         if (this.started) return;
@@ -73,23 +73,12 @@ class SocketClient {
             socket.receiveBuffer = [];
         };
 
-        const login = () => {
-            // TODO: implement auth
-            this.authenticated = true;
-        };
-
-        const logout = () => {
-            this.authenticated = false;
-        };
-
         socket.on('connect', () => {
             clearBuffers();
-            login();
         });
 
         socket.on('disconnect', () => {
             clearBuffers();
-            logout();
         });
 
         socket.open();
@@ -97,25 +86,28 @@ class SocketClient {
 
     /** Returns connection state */
     get state() {
-        if (this.socket.readyState === states.open && this.authenticated) {
-            return states.authenticated;
-        }
         // unknown states translated to 'closed' for safety
-        return states[this.socket.readyState] || states.closed;
+        return STATES[this.socket.readyState] || STATES.closed;
     }
 
     _validateSubscription(event, listener) {
-        if (!socketEvents[event] && !appEvents[event]) {
+        if (!SOCKET_EVENTS[event] && !APP_EVENTS[event]) {
             throw new Error('Attempt to un/subscribe from/to unknown socket event.');
         }
         if (!listener || typeof (listener) !== 'function') {
             throw new Error('Invalid listener type.');
         }
     }
-    /** Subscribes a listener to one of the socket or app events */
+    /**
+     * Subscribes a listener to one of the socket or app events.
+     * @param {string} event - event name, one of SOCKET_EVENTS or APP_EVENTS
+     * @param {function} listener - event handler
+     * @returns {function} - function you can call to unsubscribe
+     */
     subscribe(event, listener) {
         this._validateSubscription(event, listener);
         this.socket.on(event, listener);
+        return () => this.unsubscribe(event, listener);
     }
 
     /** Unsubscribes a listener to socket or app events */
@@ -129,7 +121,7 @@ class SocketClient {
         return new Promise((resolve, reject) => {
             function handler(resp) {
                 if (resp && resp.error) {
-                    reject(new ServerError(resp.error));
+                    reject(new ServerError(resp.error, resp.message));
                     return;
                 }
                 resolve(resp);
@@ -137,7 +129,7 @@ class SocketClient {
             this.socket.emit(name, data, handler);
         });
     }
-    /** Executes a callback only once when socket will connect, or immediatelly if socket is connected already */
+    /** Executes a callback only once when socket will connect, or immediately if socket is connected already */
     onceConnected(callback) {
         if (this.socket.connected) {
             setTimeout(callback, 0);
@@ -145,9 +137,9 @@ class SocketClient {
         }
         const handler = () => {
             setTimeout(callback, 0);
-            this.unsubscribe(socketEvents.connect, handler);
+            this.unsubscribe(SOCKET_EVENTS.connect, handler);
         };
-        this.subscribe(socketEvents.connect, handler);
+        this.subscribe(SOCKET_EVENTS.connect, handler);
     }
 
     /** Closes current connection and disables reconnects. */

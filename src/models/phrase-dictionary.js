@@ -32,7 +32,7 @@ class PhraseDictionary {
 
     /** Free RAM by deleting cached dictionary */
     dispose() {
-        delete this.dict;
+        this.dict = null;
     }
 
     _buildDict(dictString) {

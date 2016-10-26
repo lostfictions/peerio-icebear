@@ -199,6 +199,15 @@ Peerio custom error types and error handling helpers
 -   `error`  
 -   `failoverMessage`  
 
+# getGenericCustomError
+
+helper function to create custom errors with less code.
+It's useful when your custom error only expects to have an optional `message` and `data` object arguments.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** custom error name, should match the class name you will use for the error
+
 # extensions/buffer
 
 'buffer' module extensions.
@@ -246,19 +255,148 @@ Authentication module for User model.
 
 Registration module for User model.
 
-# network/keg-client
+# createAccountAndLogin
 
-Peerio keg client
+Full registration process.
+Initial login after registration differs a little.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+# login
+
+Authenticates connection and makes necessary initial requests.
+
+# BootKeg
+
+Keg database module
+
+## constructor
+
+**Parameters**
+
+-   `db` **KegDb** owner instance
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+# constructor
+
+Creates new database instance
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 'SELF' for own database, or specific id for shared databases
+
+# createBootKeg
+
+Create boot keg for this database
+todo: when we will have key change, we'll need update operation load()->update() because of keg version
+
+**Parameters**
+
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `data` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+# loadBootKeg
+
+Retrieves boot keg for the db and initializes this KegDb instance with required data.
+
+**Parameters**
+
+-   `bootKey`  
+
+# models/keg
+
+Base class for kegs
+
+# Keg
+
+Base class with common data and operations.
+For clarity:
+
+-   we refer to runtime unencrypted keg data as `data`
+-   we(and server) refer to encrypted(or plaintext string) keg data as `payload`
+
+## keyId
+
+## key
+
+## version
+
+## data
+
+## constructor
+
+**Parameters**
+
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** keg type
+-   `db` **KegDb** keg database owning this keg
+-   `id` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | null)** kegId, or null for new kegs
+-   `plaintext` **([boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) | null)** should keg be encrypted
+
+## create
+
+Creates keg (reserves id) and writes out payload with this.update()
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Keg](#keg)>** 
+
+## update
+
+Updates existing server keg with new/same data from this.payload
+todo: reconcile optimistic concurrency failures
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## load
+
+Populates this keg instance with data from server
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Keg](#keg)>** 
+
+## serializeData
+
+Generic version that provides this.data as it is.
+Override in child classes for fine-grained control over serialization.
+
+## deserializeData
+
+Generic version that parses decrypted keg payload string.
+Override in child classes for fine-grained control over deserialization.
+
+**Parameters**
+
+-   `payload`  
+
+## detectTampering
+
+Compares keg metadata with encrypted payload to make sure server didn't change metadata.
+
+**Parameters**
+
+-   `payload`  {Object} - decrypted keg payload
+
+
+-   Throws **any** AntiTamperError
 
 # network/socket-client
 
 Peerio network socket client module.
-This module exports SocketSlient class that can be instantiated as many times as needed.
+This module exports SocketClient class that can be instantiated as many times as needed.
 Other modules contain singleton instances for general use.
 
 # SocketClient
 
-Create an instance of Socket per connnection.
+Create an instance of Socket per connection.
+
+## STATES
+
+Possible connection states
+
+## SOCKET_EVENTS
+
+System events
+
+## APP_EVENTS
+
+Application events
 
 ## state
 
@@ -266,12 +404,14 @@ Returns connection state
 
 ## subscribe
 
-Subscribes a listener to one of the socket or app events
+Subscribes a listener to one of the socket or app events.
 
 **Parameters**
 
--   `event`  
--   `listener`  
+-   `event` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** event name, one of SOCKET_EVENTS or APP_EVENTS
+-   `listener` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** event handler
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function you can call to unsubscribe
 
 ## unsubscribe
 
@@ -293,7 +433,7 @@ Send a message to server
 
 ## onceConnected
 
-Executes a callback only once when socket will connect, or immediatelly if socket is connected already
+Executes a callback only once when socket will connect, or immediately if socket is connected already
 
 **Parameters**
 
@@ -302,18 +442,6 @@ Executes a callback only once when socket will connect, or immediatelly if socke
 ## close
 
 Closes current connection and disables reconnects.
-
-## states
-
-Possible connection states
-
-## events
-
-System events
-
-## appEvents
-
-Application events
 
 # network/socket
 

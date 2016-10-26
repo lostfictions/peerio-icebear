@@ -35,4 +35,8 @@ describe('User model', () => {
                             );
         socket.open();
     });
+
+    describe('basic keg operations', () => {
+
+    });
 });

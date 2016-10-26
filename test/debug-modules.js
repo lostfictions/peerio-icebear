@@ -3,4 +3,4 @@
 const m = window.modules = {};
 
 m.socket = require('../src/network/socket');
-m.kegClient = require('../src/network/keg-client');
+
