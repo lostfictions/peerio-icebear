@@ -182,6 +182,75 @@ Converts byte array to Base64 string.
 
 Generates 24-byte unique(almost) random nonce.
 
+# engine
+
+Pluggable local storage
+
+# name
+
+Format name from prefix for db key
+
+**Parameters**
+
+-   `n`  string key
+
+# get
+
+Get value for key
+
+**Parameters**
+
+-   `n`  string key
+
+Returns **any** value|null in promise
+
+# set
+
+Set value for key
+
+**Parameters**
+
+-   `n`  string key
+-   `v`  JSON-serializable value
+
+Returns **any** promise
+
+# setEngine
+
+Set engine to be used for small db storage
+
+**Parameters**
+
+-   `params`  
+
+# system
+
+Current system db
+
+# user
+
+Current user db
+
+# open
+
+Open/create db
+
+**Parameters**
+
+-   `name`  unique name of the db
+
+Returns **any** LocalDb instance
+
+# openUserDb
+
+Open/create user db and set it as current user db
+
+**Parameters**
+
+-   `name`  Username
+
+Returns **any** LocalDb instance
+
 # normalize
 
 Use this helper to resolve returning error value.
