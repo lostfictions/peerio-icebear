@@ -15,7 +15,16 @@ const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
+const { LocalDb, setEngine, db } = require('./db/local');
 
 module.exports = {
-    errors, config, socket, pCrypto: { util: cryptoUtil }, User, PhraseDictionary
+    errors,
+    config,
+    socket,
+    pCrypto: { util: cryptoUtil },
+    User,
+    PhraseDictionary,
+    LocalDb,
+    setEngine,
+    db
 };

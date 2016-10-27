@@ -34,7 +34,17 @@ function setEngine(params) {
 }
 
 const db = {
-    system: new LocalDb('system')
+    system: null,
+    user: null,
+    open(name) {
+        return new LocalDb(name);
+    },
+    openUserDb(name) {
+        db.user = db.open(name);
+        return db.user;
+    }
 };
+
+db.system = db.open('system');
 
 module.exports = { LocalDb, setEngine, db };

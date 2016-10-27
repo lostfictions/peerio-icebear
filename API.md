@@ -323,17 +323,17 @@ Main SocketClient singleton instance
 
 User data store
 
-# util
+# convertBuffers
 
-Various utility functions
+Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 **Parameters**
 
 -   `obj`  
 
-# convertBuffers
+# util
 
-Wraps all ArrayBuffer type properties in Uint8Array recursively
+Various utility functions
 
 **Parameters**
 
