@@ -36,7 +36,36 @@ describe('User model', () => {
         socket.open();
     });
 
-    describe('basic keg operations', () => {
+    it('#04 should set and retrieve a passcode', function() {
+        const passcode = 'this is fine';
 
+        this.timeout(6000);
+        return user.getPasscodeSecret(passcode)
+            .then((passcodeSecret) => {
+                return user.getAuthDataFromPasscode(passcode, passcodeSecret);
+            })
+            .then((authData) => {
+                return authData.passphrase.should.equal(user.passphrase);
+            })
+            .catch((err) => {
+                throw err;
+            });
+    });
+
+    it('#05 cannot use a passcode if account is uninitialized', () => {
+        const user2 = new User();
+
+        return user2.getPasscodeSecret('passcode')
+            .catch(err => {
+                err.message.should.deep.equal('Username is required to derive keys');
+            })
+            .then(() => {
+                user2.username = 'oiuy567890';
+                return user2.getPasscodeSecret('passcode');
+            })
+            .catch(err => {
+                err.message.should.deep.equal('Passphrase is required to derive keys');
+                return true;
+            });
     });
 });

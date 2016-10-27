@@ -45,6 +45,14 @@ Hashes auth public key
 
 -   `key`  
 
+## deriveKeyFromPasscode
+
+**Parameters**
+
+-   `passcode`  {String}
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 
+
 # crypto/public
 
 Public key encryption module
@@ -254,6 +262,26 @@ Authentication module for User model.
 # models/user
 
 Registration module for User model.
+
+# getPasscodeSecret
+
+Given a passcode and a populated User model, gets a passcode-encrypted
+secret containing the username and passphrase as a JSON string.
+
+**Parameters**
+
+-   `passcode`  
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+# getAuthDataFromPasscode
+
+Utility to get an object containing username, passphrase.
+
+**Parameters**
+
+-   `passcode`  
+-   `passcodeSecret`  
 
 # createAccountAndLogin
 

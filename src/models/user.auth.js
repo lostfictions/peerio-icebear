@@ -5,9 +5,11 @@
 
 const keys = require('../crypto/keys');
 const publicCrypto = require('../crypto/public');
+const secret = require('../crypto/secret');
 const socket = require('../network/socket');
 const util = require('../util');
 const Promise = require('bluebird');
+const errors = require('../errors');
 
 module.exports = function mixUserAuthModule() {
     this._deriveKeys = () => {
@@ -49,7 +51,13 @@ module.exports = function mixUserAuthModule() {
         .then(resp => util.convertBuffers(resp));
     };
 
-    this._authenticate = (data) => {
+    /**
+     * Decrypt authToken, verify its format and send it back to the server.
+     * @param data
+     * @returns {*}
+     * @private
+     */
+    this._authenticate = data => {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decrypt(data.token, data.nonce, data.ephemeralServerPK, this.authKeys.secretKey);
         // 65 84 = 'AT' (access token)
@@ -61,5 +69,42 @@ module.exports = function mixUserAuthModule() {
             platform: 'browser', // todo: set platform
             clientVersion: '1.0.0' // todo: set version
         });
+    };
+
+    /**
+     * Given a passcode and a populated User model, gets a passcode-encrypted
+     * secret containing the username and passphrase as a JSON string.
+     * @param passcode
+     * @returns {Promise}
+     */
+    this.getPasscodeSecret = passcode => {
+        try {
+            if (!this.username) throw new Error('Username is required to derive keys');
+            if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
+        } catch (e) {
+            return Promise.reject(errors.normalize(e));
+        }
+
+        return keys.deriveKeyFromPasscode(passcode)
+            .then((passcodeKey) => {
+                return secret.encryptString(JSON.stringify({
+                    username: this.username,
+                    passphrase: this.passphrase
+                }), passcodeKey);
+            });
+    };
+
+    /**
+     * Utility to get an object containing username, passphrase.
+     *
+     * @todo implement a login method that uses passcode and make this private
+     *
+     * @param passcode
+     * @param passcodeSecret
+     */
+    this.getAuthDataFromPasscode = (passcode, passcodeSecret) => {
+        return keys.deriveKeyFromPasscode(passcode)
+            .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
+            .then(authDataJSON => JSON.parse(authDataJSON));
     };
 };
