@@ -174,14 +174,74 @@ Converts byte array to Base64 string.
 
 Generates 24-byte unique(almost) random nonce.
 
-# errors
+# engine
 
-Peerio custom error types and error handling helpers
+Pluggable local storage
+
+# name
+
+Format name from prefix for db key
 
 **Parameters**
 
--   `error`  
--   `failoverMessage`  
+-   `n`  string key
+
+# get
+
+Get value for key
+
+**Parameters**
+
+-   `n`  string key
+
+Returns **any** value|null in promise
+
+# set
+
+Set value for key
+
+**Parameters**
+
+-   `n`  string key
+-   `v`  JSON-serializable value
+
+Returns **any** promise
+
+# setEngine
+
+Set engine to be used for small db storage
+
+**Parameters**
+
+-   `params`  
+
+# system
+
+Current system db
+
+# user
+
+Current user db
+
+# open
+
+Open/create db
+
+**Parameters**
+
+-   `name`  unique name of the db
+
+Returns **any** LocalDb instance
+
+# openUserDb
+
+Open/create user db and set it as current user db
+
+**Parameters**
+
+-   `name`  Username
+
+Returns **any** LocalDb instance
 
 # normalize
 
@@ -193,6 +253,15 @@ If you:
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
     that will be wrapped in Error object and returned in case the result wasn't instance of Error
+
+**Parameters**
+
+-   `error`  
+-   `failoverMessage`  
+
+# errors
+
+Peerio custom error types and error handling helpers
 
 **Parameters**
 
