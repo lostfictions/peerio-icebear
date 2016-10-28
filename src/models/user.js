@@ -34,6 +34,7 @@ class User {
     }
 
     constructor() {
+        this.login = this.login.bind(this);
         // this is not really extending prototype, but we don't care because User is almost a singleton
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);

@@ -182,6 +182,84 @@ Converts byte array to Base64 string.
 
 Generates 24-byte unique(almost) random nonce.
 
+# engine
+
+Pluggable local storage
+
+# name
+
+Format name from prefix for db key
+
+**Parameters**
+
+-   `n`  string key
+
+# get
+
+Get value for key
+
+**Parameters**
+
+-   `n`  string key
+
+Returns **any** value|null in promise
+
+# set
+
+Set value for key
+
+**Parameters**
+
+-   `n`  string key
+-   `v`  JSON-serializable value
+
+Returns **any** promise
+
+# setEngine
+
+Set engine to be used for small db storage
+
+**Parameters**
+
+-   `params`  
+
+# system
+
+Current system db
+
+# user
+
+Current user db
+
+# open
+
+Open/create db
+
+**Parameters**
+
+-   `name`  unique name of the db
+
+Returns **any** LocalDb instance
+
+# openUserDb
+
+Open/create user db and set it as current user db
+
+**Parameters**
+
+-   `name`  Username
+
+Returns **any** LocalDb instance
+
+# errors
+
+Peerio custom error types and error handling helpers
+
+**Parameters**
+
+-   `error`  
+-   `failoverMessage`  
+
 # normalize
 
 Use this helper to resolve returning error value.
@@ -192,15 +270,6 @@ If you:
 -   don't need custom errors just want to generate meaningful Error object
     then call normalize and pass the result you've got together with fallback message
     that will be wrapped in Error object and returned in case the result wasn't instance of Error
-
-**Parameters**
-
--   `error`  
--   `failoverMessage`  
-
-# errors
-
-Peerio custom error types and error handling helpers
 
 **Parameters**
 
@@ -305,17 +374,6 @@ Keg database module
 -   `db` **KegDb** owner instance
 -   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
-## deserializeData
-
-{
-  anri: Uint8Array,
-  seavan: Uint8Array
- }
-
-**Parameters**
-
--   `data`  
-
 # constructor
 
 Creates new database instance
@@ -341,14 +399,6 @@ Retrieves boot keg for the db and initializes this KegDb instance with required 
 **Parameters**
 
 -   `bootKey`  
-
-# getChatDb
-
-Creates(if doesn't exist yet) and returns shared keg db for usernames
-
-**Parameters**
-
--   `usernames` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** should include own username
 
 # models/keg
 
