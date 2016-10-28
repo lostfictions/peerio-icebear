@@ -305,6 +305,17 @@ Keg database module
 -   `db` **KegDb** owner instance
 -   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
 
+## deserializeData
+
+{
+  anri: Uint8Array,
+  seavan: Uint8Array
+ }
+
+**Parameters**
+
+-   `data`  
+
 # constructor
 
 Creates new database instance
@@ -330,6 +341,14 @@ Retrieves boot keg for the db and initializes this KegDb instance with required 
 **Parameters**
 
 -   `bootKey`  
+
+# getChatDb
+
+Creates(if doesn't exist yet) and returns shared keg db for usernames
+
+**Parameters**
+
+-   `usernames` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** should include own username
 
 # models/keg
 

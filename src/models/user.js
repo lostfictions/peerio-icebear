@@ -7,6 +7,8 @@ const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 
+let currentUser;
+
 class User {
 
     _username;
@@ -57,7 +59,8 @@ class User {
                        };
 
                        return this.kegdb.createBootKeg(this.bootKey, payload);
-                   });
+                   })
+                    .then(() => this.setReauthOnReconnect());
     }
 
     /**
@@ -67,11 +70,13 @@ class User {
         console.log('Starting login sequence');
         return this._authenticateConnection()
                     .then(() => this.kegdb.loadBootKeg(this.bootKey))
-                    .then(() => {
-                        if (!this.reconnector) {
-                            this.reconnector = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
-                        }
-                    });
+                    .then(() => this.setReauthOnReconnect());
+    }
+
+    setReauthOnReconnect() {
+        if (!this.reconnector) {
+            this.reconnector = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
+        }
     }
 
     static validateUsername(username) {
@@ -82,6 +87,14 @@ class User {
                 console.error(err);
                 return false;
             });
+    }
+
+    static get current() {
+        return currentUser;
+    }
+
+    static set current(val) {
+        currentUser = val;
     }
 }
 
