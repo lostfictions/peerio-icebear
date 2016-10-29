@@ -18,12 +18,19 @@ class KegDb {
      * Create boot keg for this database
      * todo: when we will have key change, we'll need update operation load()->update() because of keg version
      * @param {Uint8Array} bootKey
-     * @param {Object} data
+     * @param {{publicKey: Uint8Array, secretKey: Uint8Array}} signKeys
+     * @param {{publicKey: Uint8Array, secretKey: Uint8Array}} encryptionKeys
+     * @param {Uint8Array} kegKey
      */
-    createBootKeg(bootKey, data) {
+    createBootKeg(bootKey, signKeys, encryptionKeys, kegKey) {
+        console.log('Creating boot keg.');
         const boot = new BootKeg(this, bootKey);
-        boot.data = data;
-        this.key = data.kegKey;
+        boot.data = {
+            signKeys,
+            encryptionKeys,
+            kegKey
+        };
+        this.key = kegKey;
         return boot.update().then(() => {
             this.kegs.boot = boot;
         });
@@ -33,6 +40,7 @@ class KegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     loadBootKeg(bootKey) {
+        console.log('Loading boot keg.');
         const boot = new BootKeg(this, bootKey);
         return boot.load().then(() => {
             this.kegs.boot = boot;

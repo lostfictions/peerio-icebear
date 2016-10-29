@@ -35,6 +35,7 @@ class User {
 
     constructor() {
         this.login = this.login.bind(this);
+        this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
         // this is not really extending prototype, but we don't care because User is almost a singleton
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);
@@ -50,18 +51,9 @@ class User {
     createAccountAndLogin() {
         console.log('Starting account registration sequence.');
         return this._createAccount()
-                   .then(() => this._authenticateConnection())
-                   .then(() => {
-                       console.log('Creating boot keg.');
-                       const payload = {
-                           signKeys: this.signKeys,
-                           encryptionKeys: this.encryptionKeys,
-                           kegKey: this.kegKey
-                       };
-
-                       return this.kegdb.createBootKeg(this.bootKey, payload);
-                   })
-                    .then(() => this.setReauthOnReconnect());
+            .then(this._authenticateConnection)
+            .then(() => this.kegdb.createBootKeg(this.bootKey, this.signKeys, this.encryptionKeys, this.kegKey))
+            .then(this.setReauthOnReconnect);
     }
 
     /**
@@ -71,13 +63,13 @@ class User {
         console.log('Starting login sequence');
         return this._authenticateConnection()
                     .then(() => this.kegdb.loadBootKeg(this.bootKey))
-                    .then(() => this.setReauthOnReconnect());
+                    .then(this.setReauthOnReconnect);
     }
 
     setReauthOnReconnect() {
-        if (!this.reconnector) {
-            this.reconnector = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
-        }
+        // only need to set reauth listener once
+        if (this.reconnector) return;
+        this.reconnector = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
     }
 
     static validateUsername(username) {
