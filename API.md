@@ -328,6 +328,10 @@ Authentication module for User model.
 
 # models/user
 
+Chats module for User model.
+
+# models/user
+
 # models/user
 
 Registration module for User model.
@@ -352,18 +356,7 @@ Utility to get an object containing username, passphrase.
 -   `passcode`  
 -   `passcodeSecret`  
 
-# createAccountAndLogin
-
-Full registration process.
-Initial login after registration differs a little.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
-
-# login
-
-Authenticates connection and makes necessary initial requests.
-
-# BootKeg
+# SharedBootKeg
 
 Keg database module
 
@@ -381,6 +374,7 @@ Creates new database instance
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 'SELF' for own database, or specific id for shared databases
+-   `users`  
 
 # createBootKeg
 
@@ -473,6 +467,54 @@ Compares keg metadata with encrypted payload to make sure server didn't change m
 
 -   Throws **any** AntiTamperError
 
+# createAccountAndLogin
+
+Full registration process.
+Initial login after registration differs a little.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+# login
+
+Authenticates connection and makes necessary initial requests.
+
+# BootKeg
+
+Keg database module
+
+## constructor
+
+**Parameters**
+
+-   `db` **KegDb** owner instance
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+# constructor
+
+Creates new database instance
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 'SELF' for own database, or specific id for shared databases
+
+# createBootKeg
+
+Create boot keg for this database
+todo: when we will have key change, we'll need update operation load()->update() because of keg version
+
+**Parameters**
+
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `data` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+# loadBootKeg
+
+Retrieves boot keg for the db and initializes this KegDb instance with required data.
+
+**Parameters**
+
+-   `bootKey`  
+
 # network/socket-client
 
 Peerio network socket client module.
@@ -548,17 +590,17 @@ Main SocketClient singleton instance
 
 User data store
 
-# convertBuffers
+# util
 
-Wraps all ArrayBuffer type properties in Uint8Array recursively
+Various utility functions
 
 **Parameters**
 
 -   `obj`  
 
-# util
+# convertBuffers
 
-Various utility functions
+Wraps all ArrayBuffer type properties in Uint8Array recursively
 
 **Parameters**
 
