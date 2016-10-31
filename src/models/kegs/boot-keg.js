@@ -11,6 +11,8 @@ class BootKeg extends Keg {
         super(db, 'boot', 'system');
         this.key = bootKey;
         this.version = 1; // already created
+        this.deserializeData = this.deserializeData.bind(this);
+        this.serializeData = this.serializeData.bind(this);
     }
 
     deserializeData(data) {

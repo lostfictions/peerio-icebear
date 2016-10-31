@@ -42,6 +42,7 @@ const APP_EVENTS = {
 class SocketClient {
     socket;
     started = false;
+    url = null;
 
     // following properties are not static for access convenience
     /** Possible connection states */
@@ -53,6 +54,7 @@ class SocketClient {
 
     start(url) {
         if (this.started) return;
+        this.url = url;
         this.started = true;
 
         const socket = this.socket = io.connect(url, {
@@ -149,6 +151,12 @@ class SocketClient {
 
     open() {
         this.socket.open();
+    }
+
+    reset() {
+        this.socket.disconnect();
+        this.started = false;
+        this.start(this.url);
     }
 }
 

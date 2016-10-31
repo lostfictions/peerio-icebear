@@ -1,17 +1,19 @@
 /**
  * Keg database module
  */
-const BootKeg = require('./boot-keg');
+const SharedBootKeg = require('./shared-boot-keg');
 
-class KegDb {
+class SharedKegDb {
     /**
      * Creates new database instance
      * @param {string} id - 'SELF' for own database, or specific id for shared databases
      */
-    constructor(id) {
-        if (!id) throw new Error('KegDb id is required to create instance.');
+    constructor(id, users) {
+        if (!id) throw new Error('SharedKegDb id is required to create instance.');
+        if (!users) throw new Error('SharedKegDb user list is required to create instance.');
         this.id = id;
         this.kegs = {};
+        this.users = users;
         this.createBootKeg = this.createBootKeg.bind(this);
         this.loadBootKeg = this.loadBootKeg.bind(this);
     }
@@ -22,12 +24,13 @@ class KegDb {
      * @param {Uint8Array} bootKey
      * @param {Object} data
      */
-    createBootKeg(bootKey, data) {
-        const boot = new BootKeg(this, bootKey);
-        boot.data = data;
-        this.key = data.kegKey;
+    createBootKeg() {
+        const users = this.users;
+        const boot = new SharedBootKeg(this);
+        boot.data = { users };
         return boot.update().then(() => {
             this.kegs.boot = boot;
+            return boot;
         });
     }
 
@@ -35,13 +38,14 @@ class KegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     loadBootKeg(bootKey) {
-        const boot = new BootKeg(this, bootKey);
+        const boot = new SharedBootKeg(this, bootKey);
         return boot.load().then(() => {
             this.kegs.boot = boot;
-            this.key = boot.data.kegKey;
+            return boot;
         });
     }
 
 }
 
-module.exports = KegDb;
+module.exports = SharedKegDb;
+

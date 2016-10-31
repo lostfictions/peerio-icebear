@@ -11,9 +11,13 @@ describe('User model', () => {
     const user2 = new User();
     const userLogin = new User();
 
+    // this user will persist after test run (for debug)
+    window.userLogin = userLogin;
+
     before(function(done) {
         this.timeout(6000);
         user.username = userLogin.username =  helpers.getRandomUsername();
+        console.log(`Test username: ${user.username}`);
         user.passphrase = userLogin.passphrase = 'such a secret passphrase';
         user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
