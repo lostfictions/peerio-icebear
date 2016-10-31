@@ -18,15 +18,37 @@ window.SharedBootKeg = require('../src/models/kegs/shared-boot-keg');
 window.User = require('../src/models/user');
 window.keys = require('../src/crypto/keys');
 
+let counter = 0;
+const MAX_COUNT = 19;
+function getNextTestDmUser() {
+    if (counter > MAX_COUNT) {
+        throw "Exceeding pre-registered test users count";
+    }
+    const user = `testdm${counter}`;
+    console.log(user);
+    ++counter; 
+    return user;
+}
+
 window.loginTest = () => {
     const user = new window.User();
     const socket = window.socket;
     user.username = 'test9x9x9x';
     user.passphrase = 'such a secret passphrase';
-    socket.reset();
+    // socket.reset();
+    socket.close();
     socket.onceConnected(() => {
         user.login()
             .then(() => (window.userLogin = user))
             .catch(err => console.error(err));
     });
+    socket.open();
+};
+
+window.messageTest = (u) => {
+    const user = window.userLogin;
+    user.createChat(u || getNextTestDmUser())
+        .then(() => {
+            callserver('/auth/kegs/updates/digest');
+        });
 };

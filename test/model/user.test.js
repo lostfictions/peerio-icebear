@@ -16,7 +16,7 @@ describe('User model', () => {
 
     before(function(done) {
         this.timeout(6000);
-        user.username = userLogin.username =  helpers.getRandomUsername();
+        user.username = userLogin.username = helpers.getRandomUsername();
         console.log(`Test username: ${user.username}`);
         user.passphrase = userLogin.passphrase = 'such a secret passphrase';
         user.email = `${user.username}@mailinator.com`;

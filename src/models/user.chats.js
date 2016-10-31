@@ -11,9 +11,9 @@ const socket = require('../network/socket');
 // const util = require('../util');
 
 module.exports = function mixUserChatsModule() {
-    this.createChat = () => {
+    this.createChat = (userTo) => {
         console.log('Creating chat.');
-        const users = [this.username, 'test9x9x9x'];
+        const users = [this.username, userTo];
         const request = {
             participants: users
         };
@@ -21,7 +21,11 @@ module.exports = function mixUserChatsModule() {
             .then(chat => {
                 console.log('Initializing shared keg');
                 const sharedKegDb = new SharedKegDb(chat.id, users);
-                return sharedKegDb.createBootKeg();
+                return sharedKegDb.createBootKeg()
+                    .then(bootKeg => {
+                        console.log(bootKeg);
+                        return sharedKegDb;
+                    });
             });
     };
 };
