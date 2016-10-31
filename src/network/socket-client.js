@@ -152,12 +152,6 @@ class SocketClient {
     open() {
         this.socket.open();
     }
-
-    reset() {
-        this.socket.disconnect();
-        this.started = false;
-        this.start(this.url);
-    }
 }
 
 module.exports = SocketClient;
