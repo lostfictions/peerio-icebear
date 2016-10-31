@@ -6,6 +6,7 @@ const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
 const mixUserChatsModule = require('./user.chats');
+const mixUserUpdatesModule = require('./user.updates');
 const KegDb = require('./kegs/keg-db');
 
 let currentUser;
@@ -42,6 +43,7 @@ class User {
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
         mixUserChatsModule.call(this);
+        mixUserUpdatesModule.call(this);
         this.kegdb = new KegDb('SELF');
         this.login = this.login.bind(this);
         this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
@@ -66,7 +68,7 @@ class User {
 
                        return this.kegdb.createBootKeg(this.bootKey, payload);
                    })
-                    .then(() => this.setReauthOnReconnect());
+                    .then(() => this._postAuth());
     }
 
     /**
@@ -76,7 +78,15 @@ class User {
         console.log('Starting login sequence');
         return this._authenticateConnection()
                     .then(() => this.kegdb.loadBootKeg(this.bootKey))
-                    .then(() => this.setReauthOnReconnect());
+                    .then(() => this._postAuth());
+    }
+
+    /**
+     * Subscribe on events after auth
+     */
+    _postAuth() {
+        this.subscribeToKegUpdates();
+        this.setReauthOnReconnect();
     }
 
     setReauthOnReconnect() {

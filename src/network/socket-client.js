@@ -35,7 +35,8 @@ const SOCKET_EVENTS = {
 };
 
 const APP_EVENTS = {
-    twoFA: 'twoFA'
+    twoFA: 'twoFA',
+    kegsUpdate: 'kegsUpdate'
 };
 
 /** Create an instance of Socket per connection. */
