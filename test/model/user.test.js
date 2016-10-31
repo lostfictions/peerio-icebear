@@ -57,8 +57,7 @@ describe('User model', () => {
             });
     });
 
-    it('#05 cannot use a passcode if account is uninitialized', function() {
-
+    it('#05 cannot use a passcode if account is uninitialized', () => {
         return user2.getPasscodeSecret('passcode')
             .catch(err => {
                 err.message.should.deep.equal('Username is required to derive keys');
@@ -80,7 +79,6 @@ describe('User model', () => {
         this.timeout(6000);
         user.getPasscodeSecret(passcode)
             .then((passcodeSecret) => {
-
                 user.passphrase = passcode;
                 user.passcodeSecret = passcodeSecret;
                 socket.close();

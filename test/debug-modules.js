@@ -22,11 +22,11 @@ let counter = 0;
 const MAX_COUNT = 19;
 function getNextTestDmUser() {
     if (counter > MAX_COUNT) {
-        throw "Exceeding pre-registered test users count";
+        throw new Error('Exceeding pre-registered test users count');
     }
     const user = `testdm${counter}`;
     console.log(user);
-    ++counter; 
+    ++counter;
     return user;
 }
 
@@ -48,6 +48,6 @@ window.loginTest = () => {
 window.messageTest = (u) => {
     const user = window.userLogin;
     user.createChat(u || getNextTestDmUser())
-        .then(() => callserver('/auth/kegs/updates/digest'))
-        .then(() => callserver('/auth/kegs/user/collections'));
+        .then(() => window.callserver('/auth/kegs/updates/digest'))
+        .then(() => window.callserver('/auth/kegs/user/collections'));
 };
