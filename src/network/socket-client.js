@@ -14,8 +14,7 @@ const STATES = {
     open: 'open',
     opening: 'opening',
     closed: 'closed',
-    closing: 'closing',
-    authenticated: 'authenticated'
+    closing: 'closing'
 };
 
 const SOCKET_EVENTS = {
@@ -35,7 +34,8 @@ const SOCKET_EVENTS = {
 };
 
 const APP_EVENTS = {
-    twoFA: 'twoFA'
+    twoFA: 'twoFA',
+    kegsUpdate: 'kegsUpdate'
 };
 
 /** Create an instance of Socket per connection. */

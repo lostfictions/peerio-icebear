@@ -5,6 +5,8 @@ const Promise = require('bluebird');
 const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
+const mixUserChatsModule = require('./user.chats');
+const mixUserUpdatesModule = require('./user.updates');
 const KegDb = require('./kegs/keg-db');
 
 let currentUser;
@@ -35,15 +37,16 @@ class User {
     }
 
     constructor() {
-        this.login = this.login.bind(this);
+        this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
         this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
+        this.login = this.login.bind(this);
         // this is not really extending prototype, but we don't care because User is almost a singleton
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
+        mixUserChatsModule.call(this);
+        mixUserUpdatesModule.call(this);
         this.kegdb = new KegDb('SELF');
-        this.login = this.login.bind(this);
-        this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
     }
 
     /**
@@ -54,9 +57,13 @@ class User {
     createAccountAndLogin() {
         console.log('Starting account registration sequence.');
         return this._createAccount()
-            .then(this._authenticateConnection)
-            .then(() => this.kegdb.createBootKeg(this.bootKey, this.signKeys, this.encryptionKeys, this.kegKey))
-            .then(this.setReauthOnReconnect);
+                   .then(() => this._authenticateConnection())
+                   .then(() => {
+                       console.log('Creating boot keg.');
+                       return this.kegdb.createBootKeg(this.bootKey, this.signKeys,
+                           this.encryptionKeys, this.kegKey);
+                   })
+                    .then(() => this._postAuth());
     }
 
     /**
@@ -66,7 +73,19 @@ class User {
         console.log('Starting login sequence');
         return this._authenticateConnection()
                     .then(() => this.kegdb.loadBootKeg(this.bootKey))
-                    .then(this.setReauthOnReconnect);
+                    .then(() => this._postAuth());
+    }
+
+    _firstLogin = true;
+    /**
+     * Subscribe on events after auth
+     */
+    _postAuth() {
+        if (this._firstLogin) {
+            this._firstLogin = false;
+            this.subscribeToKegUpdates();
+            this.setReauthOnReconnect();
+        }
     }
 
     setReauthOnReconnect() {
