@@ -40,6 +40,11 @@ module.exports.normalize = function(error, failoverMessage) {
     }
 };
 
+/**
+ * helper function to create custom errors with less code.
+ * It's useful when your custom error only expects to have an optional `message` and `data` object arguments.
+ * @param {string} name - custom error name, should match the class name you will use for the error
+ */
 function getGenericCustomError(name) {
     const err = function(message, data) {
         const error = Error.call(this, message);
@@ -56,6 +61,7 @@ function getGenericCustomError(name) {
 // -- Custom Errors ----------------------------------------------------------------------------------------------------
 module.exports.DecryptionError = getGenericCustomError('DecryptionError');
 module.exports.EncryptionError = getGenericCustomError('EncryptionError');
+module.exports.AntiTamperError = getGenericCustomError('AntiTamperError');
 // -- Server Errors ----------------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,
@@ -78,9 +84,9 @@ Object.keys(serverErrorCodes).forEach((key) => {
     serverErrorMap[serverErrorCodes[key]] = key;
 });
 
-function ServerError(code) {
+function ServerError(code, msg) {
     const type = serverErrorMap[code] || 'Unknown server error';
-    this.message = type;
+    this.message = msg || type;
     const error = Error.call(this, this.message);
     this.name = `ServerError: ${code}: ${type}`;
     this.code = code;

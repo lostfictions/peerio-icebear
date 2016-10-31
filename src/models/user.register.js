@@ -9,19 +9,15 @@ const signCrypto = require('../crypto/sign');
 const socket = require('../network/socket');
 const util = require('../util');
 
-module.exports = {
-    initRegisterModule() {
-        this._handleAccountCreationChallenge = this._handleAccountCreationChallenge.bind(this);
-    },
-
-    _createAccount() {
+module.exports = function mixUserRegisterModule() {
+    this._createAccount = () => {
         console.log('Generating keys.');
         this.authSalt = keys.generateAuthSalt();
         this.signKeys = keys.generateSigningKeyPair();
         this.encryptionKeys = keys.generateEncryptionKeyPair();
         this.kegKey = keys.generateEncryptionKey();
 
-        return this.deriveKeys()
+        return this._deriveKeys()
             .then(() => {
                 const request = {
                     authPublicKey: this.authKeys.publicKey.buffer,
@@ -37,9 +33,9 @@ module.exports = {
                 return socket.send('/noauth/register', request);
             })
             .then(this._handleAccountCreationChallenge);
-    },
+    };
 
-    _handleAccountCreationChallenge(cng) {
+    this._handleAccountCreationChallenge = (cng) => {
         console.log('Processing account creation challenge.');
         // validating challenge, paranoid mode on
         if (typeof (cng.username) !== 'string'
@@ -80,5 +76,5 @@ module.exports = {
         };
 
         return socket.send('/noauth/activate', activationRequest);
-    }
+    };
 };

@@ -74,23 +74,16 @@ exports.getAuthKeyHash = function(key) {
 };
 
 /**
- *
- *
  * @param passcode {String}
  * @returns {Promise<Uint8Array>}
  */
 exports.deriveKeyFromPasscode = function(passcode) {
     const keySize = 32;
-    const scryptResourceCost = 14;
-    const scryptBlockSize = 8;
-    const scryptStepDuration = 1000;
-
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const hash = new BLAKE2s(keySize);
         hash.update(util.strToBytes(passcode));
-        scrypt(hash.hexDigest(), util.strToBytes(this.username), scryptResourceCost, scryptBlockSize,
-            keySize, scryptStepDuration, resolve);
-    }).then((keyBytes) => {
-        return new Uint8Array(keyBytes);
-    });
+        // warning: changing scrypt params will break compatibility with older scrypt-generated data
+        // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
+        scrypt(hash.hexDigest(), util.strToBytes(this.username), 14, 8, keySize, 200, resolve);
+    }).then(keyBytes => new Uint8Array(keyBytes));
 };
