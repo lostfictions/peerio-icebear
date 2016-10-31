@@ -8,10 +8,9 @@ class SharedBootKeg extends Keg {
      */
     constructor(db) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super(db, 'boot', 'system');
+        super(db, 'boot', 'chat');
         this.version = 1; // already created
         this.plaintext = true;
-        this.data = { test: 'some shared boot keg data' };
     }
 
 }

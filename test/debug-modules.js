@@ -48,7 +48,6 @@ window.loginTest = () => {
 window.messageTest = (u) => {
     const user = window.userLogin;
     user.createChat(u || getNextTestDmUser())
-        .then(() => {
-            callserver('/auth/kegs/updates/digest');
-        });
+        .then(() => callserver('/auth/kegs/updates/digest'))
+        .then(() => callserver('/auth/kegs/user/collections'));
 };
