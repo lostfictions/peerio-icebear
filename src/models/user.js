@@ -18,6 +18,7 @@ class User {
     email;
     locale = 'en';
     passphrase;
+    passcodeSecret;
     authSalt;
     bootKey;
     authKeys;

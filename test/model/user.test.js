@@ -8,11 +8,12 @@ const socket = require('../../src/network/socket');
 // this is a sequenced test suite
 describe('User model', () => {
     const user = new User();
+    const user2 = new User();
     const userLogin = new User();
 
     before(function(done) {
         this.timeout(6000);
-        user.username = userLogin.username = helpers.getRandomUsername();
+        user.username = userLogin.username =  helpers.getRandomUsername();
         user.passphrase = userLogin.passphrase = 'such a secret passphrase';
         user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
@@ -42,7 +43,7 @@ describe('User model', () => {
         this.timeout(6000);
         return user.getPasscodeSecret(passcode)
             .then((passcodeSecret) => {
-                return user.getAuthDataFromPasscode(passcode, passcodeSecret);
+                return user._getAuthDataFromPasscode(passcode, passcodeSecret);
             })
             .then((authData) => {
                 return authData.passphrase.should.equal(user.passphrase);
@@ -52,8 +53,7 @@ describe('User model', () => {
             });
     });
 
-    it('#05 cannot use a passcode if account is uninitialized', () => {
-        const user2 = new User();
+    it('#05 cannot use a passcode if account is uninitialized', function() {
 
         return user2.getPasscodeSecret('passcode')
             .catch(err => {
@@ -66,6 +66,28 @@ describe('User model', () => {
             .catch(err => {
                 err.message.should.deep.equal('Passphrase is required to derive keys');
                 return true;
+            });
+    });
+
+    it('#06 can log in with passcode', function(done) {
+        const passcode = 'passcode bla';
+
+
+        this.timeout(6000);
+        user.getPasscodeSecret(passcode)
+            .then((passcodeSecret) => {
+
+                user.passphrase = passcode;
+                user.passcodeSecret = passcodeSecret;
+                socket.close();
+                socket.onceConnected(() => user.login()
+                    .then(() => done())
+                    .catch(err => done(new Error(err)))
+                );
+                socket.open();
+            })
+            .catch(err => {
+                done(err);
             });
     });
 });

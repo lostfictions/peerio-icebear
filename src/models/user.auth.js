@@ -17,11 +17,27 @@ module.exports = function mixUserAuthModule() {
         if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
         if (!this.authSalt) return Promise.reject(new Error('Salt is required to derive keys'));
 
+        if (this.passcodeSecret) {
+            return this._derivePassphraseFromPasscode();
+        }
+        return this._deriveKeysFromPassphrase();
+    };
+
+    this._deriveKeysFromPassphrase = () => {
         return keys.deriveKeys(this.username, this.passphrase, this.authSalt)
-                   .then(keySet => {
-                       this.bootKey = keySet.bootKey;
-                       this.authKeys = keySet.authKeyPair;
-                   });
+            .then(keySet => {
+                this.bootKey = keySet.bootKey;
+                this.authKeys = keySet.authKeyPair;
+            });
+    };
+
+    this._derivePassphraseFromPasscode = () => {
+        return this._getAuthDataFromPasscode(this.passphrase, this.passcodeSecret)
+            .then((passcodeData) => {
+                console.log('Derived passphrase from passcode.');
+                this.passphrase = passcodeData.passphrase;
+                return this._deriveKeysFromPassphrase();
+            });
     };
 
     this._authenticateConnection = () => {
@@ -102,7 +118,7 @@ module.exports = function mixUserAuthModule() {
      * @param passcode
      * @param passcodeSecret
      */
-    this.getAuthDataFromPasscode = (passcode, passcodeSecret) => {
+    this._getAuthDataFromPasscode = (passcode, passcodeSecret) => {
         return keys.deriveKeyFromPasscode(passcode)
             .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
             .then(authDataJSON => JSON.parse(authDataJSON));
