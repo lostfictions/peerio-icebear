@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 /**
  * Icebear client lib entry point
@@ -15,7 +14,7 @@ const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
-const { LocalDb, setEngine, db } = require('./db/local');
+const db = require('./db/tiny-db');
 
 module.exports = {
     errors,
@@ -24,7 +23,5 @@ module.exports = {
     pCrypto: { util: cryptoUtil },
     User,
     PhraseDictionary,
-    LocalDb,
-    setEngine,
-    db
+    setTinyDbEngine: db.setEngine
 };

@@ -13,8 +13,8 @@ window.callserver = (action, params) => window.callpromise(window.socket.send(ac
 window.Keg = require('../src/models/kegs/keg');
 window.KegDb = require('../src/models/kegs/keg-db');
 window.BootKeg = require('../src/models/kegs/boot-keg');
-window.SharedKegDb = require('../src/models/kegs/shared-keg-db');
-window.SharedBootKeg = require('../src/models/kegs/shared-boot-keg');
+// window.SharedKegDb = require('../src/models/kegs/shared-keg-db');
+// window.SharedBootKeg = require('../src/models/kegs/shared-boot-keg');
 window.User = require('../src/models/user');
 window.keys = require('../src/crypto/keys');
 
@@ -23,10 +23,11 @@ window.loginTest = () => {
     const socket = window.socket;
     user.username = 'test9x9x9x';
     user.passphrase = 'such a secret passphrase';
-    socket.reset();
+    socket.close();
     socket.onceConnected(() => {
         user.login()
             .then(() => (window.userLogin = user))
             .catch(err => console.error(err));
     });
+    socket.open();
 };

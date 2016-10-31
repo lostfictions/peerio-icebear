@@ -2,6 +2,7 @@
  * Keg database module
  */
 const BootKeg = require('./boot-keg');
+// const socket = require('../../network/socket');
 
 class KegDb {
     /**
@@ -35,6 +36,7 @@ class KegDb {
         this.key = kegKey;
         return boot.update().then(() => {
             this.kegs.boot = boot;
+            this.key = boot.data.kegKey;
         });
     }
 
@@ -49,7 +51,6 @@ class KegDb {
             this.key = boot.data.kegKey;
         });
     }
-
 }
 
 module.exports = KegDb;

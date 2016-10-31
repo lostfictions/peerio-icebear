@@ -5,7 +5,6 @@ const Promise = require('bluebird');
 const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
-const mixUserChatsModule = require('./user.chats');
 const KegDb = require('./kegs/keg-db');
 
 let currentUser;
@@ -19,6 +18,7 @@ class User {
     email;
     locale = 'en';
     passphrase;
+    passcodeSecret;
     authSalt;
     bootKey;
     authKeys;
@@ -41,7 +41,6 @@ class User {
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
-        mixUserChatsModule.call(this);
         this.kegdb = new KegDb('SELF');
         this.login = this.login.bind(this);
         this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
@@ -72,8 +71,8 @@ class User {
 
     setReauthOnReconnect() {
         // only need to set reauth listener once
-        if (this.reconnector) return;
-        this.reconnector = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
+        if (this.stopReauthenticator) return;
+        this.stopReauthenticator = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
     }
 
     static validateUsername(username) {

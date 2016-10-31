@@ -31,12 +31,6 @@ class Keg {
         this.id = id;
         this.type = type;
         this.plaintext = !!plaintext;
-        this.create = this.create.bind(this);
-        this.update = this.update.bind(this);
-        this.load = this.load.bind(this);
-        this.deserializeData = this.deserializeData.bind(this);
-        this.serializeData = this.serializeData.bind(this);
-        this.detectTampering = this.detectTampering.bind(this);
     }
 
     /**
