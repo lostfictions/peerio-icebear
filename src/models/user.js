@@ -73,6 +73,11 @@ class User {
         console.log('Starting login sequence');
         return this._authenticateConnection()
                     .then(() => this.kegdb.loadBootKeg(this.bootKey))
+                    .then(() => {
+                        // todo: doesn't look very good
+                        this.encryptionKeys = this.kegdb.boot.data.encryptionKeys;
+                        this.signKeys = this.kegdb.boot.data.signKeys;
+                    })
                     .then(() => this._postAuth());
     }
 
