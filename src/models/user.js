@@ -8,6 +8,7 @@ const mixUserAuthModule = require('./user.auth');
 const mixUserChatsModule = require('./user.chats');
 const mixUserUpdatesModule = require('./user.updates');
 const KegDb = require('./kegs/keg-db');
+const storage = require('../db/tiny-db');
 
 let currentUser;
 
@@ -71,9 +72,17 @@ class User {
      */
     login() {
         console.log('Starting login sequence');
-        return this._authenticateConnection()
-                    .then(() => this.kegdb.loadBootKeg(this.bootKey))
-                    .then(() => this._postAuth());
+        // if passcode is set, populate it (& cast as Uint8Array)
+        return storage.get(`${this.username}:passcode`)
+            .then((passcodeSecretArray) => {
+                if (passcodeSecretArray) {
+                    console.log('a passcode exists', passcodeSecretArray);
+                    this.passcodeSecret = new Uint8Array(passcodeSecretArray);
+                }
+                return this._authenticateConnection();
+            })
+            .then(() => this.kegdb.loadBootKeg(this.bootKey))
+            .then(() => this._postAuth());
     }
 
     _firstLogin = true;

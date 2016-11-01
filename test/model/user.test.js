@@ -46,7 +46,7 @@ describe('User model', () => {
         const passcode = 'this is fine';
 
         this.timeout(6000);
-        return user.getPasscodeSecret(passcode)
+        return user._getPasscodeSecret(passcode)
             .then((passcodeSecret) => {
                 return user._getAuthDataFromPasscode(passcode, passcodeSecret);
             })
@@ -59,13 +59,13 @@ describe('User model', () => {
     });
 
     it('#05 cannot use a passcode if account is uninitialized', () => {
-        return user2.getPasscodeSecret('passcode')
+        return user2._getPasscodeSecret('passcode')
             .catch(err => {
                 err.message.should.deep.equal('Username is required to derive keys');
             })
             .then(() => {
                 user2.username = 'oiuy567890';
-                return user2.getPasscodeSecret('passcode');
+                return user2._getPasscodeSecret('passcode');
             })
             .catch(err => {
                 err.message.should.deep.equal('Passphrase is required to derive keys');
@@ -78,10 +78,10 @@ describe('User model', () => {
 
 
         this.timeout(6000);
-        user.getPasscodeSecret(passcode)
-            .then((passcodeSecret) => {
+        user.setPasscode(passcode)
+            .then(() => {
                 user.passphrase = passcode;
-                user.passcodeSecret = passcodeSecret;
+                console.log('------------ only now should there be a passcode');
                 socket.close();
                 socket.onceConnected(() => user.login()
                     .then(() => done())

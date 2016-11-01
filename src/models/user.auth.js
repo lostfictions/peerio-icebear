@@ -10,6 +10,7 @@ const socket = require('../network/socket');
 const util = require('../util');
 const Promise = require('bluebird');
 const errors = require('../errors');
+const storage = require('../db/tiny-db');
 
 module.exports = function mixUserAuthModule() {
     this._deriveKeys = () => {
@@ -32,6 +33,7 @@ module.exports = function mixUserAuthModule() {
     };
 
     this._derivePassphraseFromPasscode = () => {
+        console.log('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, this.passcodeSecret)
             .then((passcodeData) => {
                 console.log('Derived passphrase from passcode.');
@@ -94,7 +96,7 @@ module.exports = function mixUserAuthModule() {
      * @param passcode
      * @returns {Promise}
      */
-    this.getPasscodeSecret = passcode => {
+    this._getPasscodeSecret = passcode => {
         try {
             if (!this.username) throw new Error('Username is required to derive keys');
             if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
@@ -113,15 +115,31 @@ module.exports = function mixUserAuthModule() {
 
     /**
      * Utility to get an object containing username, passphrase.
-     *
-     * @todo implement a login method that uses passcode and make this private
-     *
-     * @param passcode
-     * @param passcodeSecret
+     **
+     * @param {String} passcode
+     * @param {Uint8Array} passcodeSecret
+     * @returns {Object}
      */
     this._getAuthDataFromPasscode = (passcode, passcodeSecret) => {
+        console.log(`passcode ${passcode} and secret`, passcodeSecret);
         return keys.deriveKeyFromPasscode(passcode)
             .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
             .then(authDataJSON => JSON.parse(authDataJSON));
+    };
+
+    /**
+     * Generates the passcode secret and stores it.
+     *
+     * @param {String} passcode
+     * @returns {Promise}
+     */
+    this.setPasscode = (passcode) => {
+        let passcodeSecretArray;
+        return this._getPasscodeSecret(passcode)
+            .then((passcodeSecretU8) => {
+                // convert Uint8Array to Array so that it can JSON
+                passcodeSecretArray = Array(...passcodeSecretU8);
+                return storage.set(`${this.username}:passcode`, passcodeSecretArray);
+            });
     };
 };
