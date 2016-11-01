@@ -84,18 +84,21 @@ class Keg {
         return socket.send('/auth/kegs/get', {
             collectionId: this.db.id,
             kegId: this.id
-        }).then(keg => {
-            let payload = keg.payload;
-            if (!this.plaintext) {
-                payload = new Uint8Array(keg.payload);
-                payload = secret.decryptString(payload, this.key || this.db.key);
-            }
-            payload = JSON.parse(payload);
-            payload = this.deserializeData(payload);
-            this.detectTampering(payload);
-            this.data = payload;
-            return this;
-        });
+        }).then(keg => this.loadFromExistingData(keg));
+    }
+
+    loadFromExistingData(keg) {
+        let payload = keg.payload;
+        this.id = keg.kegId;
+        if (!this.plaintext) {
+            payload = new Uint8Array(keg.payload);
+            payload = secret.decryptString(payload, this.key || this.db.key);
+        }
+        payload = JSON.parse(payload);
+        payload = this.deserializeData(payload);
+        this.detectTampering(payload);
+        this.data = payload;
+        return this;
     }
 
     /**

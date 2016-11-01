@@ -6,6 +6,7 @@ const socket = require('../../network/socket');
 const keys = require('../../crypto/keys');
 const User = require('../user');
 const Contact = require('../contact');
+const MessageKeg = require('./message-keg');
 
 class ChatKegDb {
     /**
@@ -40,6 +41,20 @@ class ChatKegDb {
 
         return socket.send('/auth/kegs/collection/create-chat', { participants: this.participants })
                        .then(this._fillFromMeta);
+    }
+
+    loadAllMessages() {
+        return socket.send('/auth/kegs/query', {
+            collectionId: this.id,
+            minCollectionVersion: 0,
+            query: { type: 'message' }
+        }).then(list => {
+            list.forEach(kegData => {
+                const keg = new MessageKeg(this);
+                keg.loadFromExistingData(kegData);
+                this.kegs[keg.id] = keg;
+            });
+        });
     }
 
     _fillFromMeta(meta) {
