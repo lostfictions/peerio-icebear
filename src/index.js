@@ -23,5 +23,6 @@ module.exports = {
     pCrypto: { util: cryptoUtil },
     User,
     PhraseDictionary,
+    db,
     setTinyDbEngine: db.setEngine
 };

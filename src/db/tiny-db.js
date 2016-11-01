@@ -2,7 +2,13 @@
  * Pluggable local storage for small amounts of data.
  * Icebear lib delegates to desktop and mobile apps storage implementation injection to this interface.
  *
- * call require('icebear').localDb.setEngine(..) before using icebear library.
+ * call require('icebear').setTinyDbEngine(YourDBImplementation) before using icebear library.
+ *
+ * Your implementation should expose the following API:
+ * - setValue (key, val)
+ * - getValue (key)
+ *
+ * All functions should return promises.
  */
 const mockDb = {};
 
