@@ -76,7 +76,6 @@ class User {
         return storage.get(`${this.username}:passcode`)
             .then((passcodeSecretArray) => {
                 if (passcodeSecretArray) {
-                    console.log('a passcode exists', passcodeSecretArray);
                     this.passcodeSecret = new Uint8Array(passcodeSecretArray);
                 }
                 return this._authenticateConnection();

@@ -10,6 +10,7 @@ describe('User model', () => {
     const user = new User();
     const user2 = new User();
     const userLogin = new User();
+    const passphrase = 'such a secret passphrase';
 
     // this user will persist after test run (for debug)
     window.userLogin = userLogin;
@@ -18,7 +19,7 @@ describe('User model', () => {
         this.timeout(6000);
         user.username = userLogin.username = helpers.getRandomUsername();
         console.log(`Test username: ${user.username}`);
-        user.passphrase = userLogin.passphrase = 'such a secret passphrase';
+        user.passphrase = userLogin.passphrase = passphrase;
         user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
     });
@@ -81,7 +82,16 @@ describe('User model', () => {
         user.setPasscode(passcode)
             .then(() => {
                 user.passphrase = passcode;
-                console.log('------------ only now should there be a passcode');
+                socket.close();
+                socket.onceConnected(() => user.login()
+                    .then(() => done())
+                    .catch(err => done(new Error(err)))
+                );
+                socket.open();
+            })
+            .then(() => {
+                // try again with the passphrase, even though a passcode has been saved
+                user.passphrase = passphrase;
                 socket.close();
                 socket.onceConnected(() => user.login()
                     .then(() => done())

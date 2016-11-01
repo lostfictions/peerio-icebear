@@ -36,8 +36,11 @@ module.exports = function mixUserAuthModule() {
         console.log('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, this.passcodeSecret)
             .then((passcodeData) => {
-                console.log('Derived passphrase from passcode.');
                 this.passphrase = passcodeData.passphrase;
+                return this._deriveKeysFromPassphrase();
+            })
+            .catch(err => {
+                console.log('Deriving passphrase from passcode failed, retry with passphrase');
                 return this._deriveKeysFromPassphrase();
             });
     };
@@ -121,7 +124,6 @@ module.exports = function mixUserAuthModule() {
      * @returns {Object}
      */
     this._getAuthDataFromPasscode = (passcode, passcodeSecret) => {
-        console.log(`passcode ${passcode} and secret`, passcodeSecret);
         return keys.deriveKeyFromPasscode(passcode)
             .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
             .then(authDataJSON => JSON.parse(authDataJSON));
