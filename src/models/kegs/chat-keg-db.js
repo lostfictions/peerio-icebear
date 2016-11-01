@@ -57,6 +57,14 @@ class ChatKegDb {
         });
     }
 
+    addMessage(text) {
+        const msg = new MessageKeg(this);
+        msg.data = { txt: text };
+        return msg.create().then(()=>{
+            this.kegs[msg.id] = msg;
+        });
+    }
+
     _fillFromMeta(meta) {
         this.id = meta.id;
         this.participants = Object.keys(meta.users.permissions);
