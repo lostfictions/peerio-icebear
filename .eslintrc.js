@@ -5,6 +5,7 @@ module.exports = {
         "peerio"
     ],
     rules:{
+        "no-labels":0
     },
     globals:{
         TextEncoder: false,

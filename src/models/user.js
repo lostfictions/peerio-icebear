@@ -5,7 +5,6 @@ const Promise = require('bluebird');
 const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
-const mixUserChatsModule = require('./user.chats');
 const mixUserUpdatesModule = require('./user.updates');
 const KegDb = require('./kegs/keg-db');
 const storage = require('../db/tiny-db');
@@ -45,7 +44,6 @@ class User {
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
-        mixUserChatsModule.call(this);
         mixUserUpdatesModule.call(this);
         this.kegdb = new KegDb('SELF');
     }
