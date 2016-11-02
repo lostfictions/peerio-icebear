@@ -12,6 +12,7 @@ window.callserver = (action, params) => window.callpromise(window.socket.send(ac
 
 window.Keg = require('../src/models/kegs/keg');
 window.KegDb = require('../src/models/kegs/keg-db');
+window.KegDbStore = require('../src/models/kegs/keg-db-store');
 window.BootKeg = require('../src/models/kegs/boot-keg');
 const ChatKegDb = window.ChatKegDb = require('../src/models/kegs/chat-keg-db');
 window.User = require('../src/models/user');
@@ -46,5 +47,7 @@ window.messageTest = () => {
     const user = window.userLogin;
     window.User.current = user;
     const chat = new ChatKegDb(null, [user.username, window.getNextDmUsername()]);
-    window.callpromise(chat.load());
+    window.callpromise(chat.load().then(() => {
+        return chat.addMessage('hello, how are you');
+    }));
 };

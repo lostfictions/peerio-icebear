@@ -7,6 +7,7 @@ const keys = require('../../crypto/keys');
 const User = require('../user');
 const Contact = require('../contact');
 const MessageKeg = require('./message-keg');
+const KegDbStore = require('./keg-db-store');
 
 class ChatKegDb {
     /**
@@ -22,6 +23,7 @@ class ChatKegDb {
         this._createBootKeg = this._createBootKeg.bind(this);
         this._loadBootKeg = this._loadBootKeg.bind(this);
         this._fillFromMeta = this._fillFromMeta.bind(this);
+        this.processKegDbUpdate = this.processKegDbUpdate.bind(this);
     }
 
     /**
@@ -49,11 +51,24 @@ class ChatKegDb {
             minCollectionVersion: 0,
             query: { type: 'message' }
         }).then(list => {
+            let p = Promise.resolve(true);
+            console.log(`LOADING ALL MESSAGES ${list}`);
+            console.log(JSON.stringify(list));
+
             list.forEach(kegData => {
-                const keg = new MessageKeg(this);
-                keg.loadFromExistingData(kegData);
-                this.kegs[keg.id] = keg;
+                if (!kegData.kegId) {
+                    console.log(`skipping ${kegData.kegId}`);
+                    return;
+                }
+                console.log(`loading kegdata ${kegData.kegId}`);
+                console.log(kegData);
+                const keg = new MessageKeg(this, kegData.kegId);
+                if (!this.kegs[keg.id]) {
+                    this.kegs[keg.id] = keg;
+                    p = p.then(keg.load);
+                }
             });
+            return p;
         });
     }
 
@@ -68,6 +83,7 @@ class ChatKegDb {
     _fillFromMeta(meta) {
         this.id = meta.id;
         this.participants = Object.keys(meta.permissions.users);
+        KegDbStore.register(this.id, this);
         return meta.collectionVersions.system ? this._loadBootKeg() : this._createBootKeg();
     }
 
@@ -114,6 +130,15 @@ class ChatKegDb {
             this.kegs.boot = boot;
             this.key = boot.data.kegKey;
         }).return(this);
+    }
+
+    /**
+     * Processes kegDbUpdate event
+     */
+    processKegDbUpdate(/* data */) {
+        console.log('Parsing chat keg db');
+        console.log('TODO: do not parse everything');
+        this.loadAllMessages();
     }
 }
 

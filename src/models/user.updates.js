@@ -3,7 +3,7 @@
  * @module models/user
  */
 
-// const SharedKegDb = require('./kegs/shared-keg-db');
+const KegDbStore = require('./kegs/keg-db-store');
 // const keys = require('../crypto/keys');
 // const publicCrypto = require('../crypto/public');
 // const signCrypto = require('../crypto/sign');
@@ -15,6 +15,11 @@ module.exports = function mixUserUpdatesModule() {
         this._kegsUpdater = this._kegsUpdater || socket.subscribe(socket.APP_EVENTS.kegsUpdate, data => {
             console.log('KEGS UPDATE!!!!!');
             console.log(data);
+            if (data.kegDbId) {
+                KegDbStore.update(data.kegDbId, data);
+            } else {
+                console.error('Unknown kegs update event type');
+            }
         });
     };
 };

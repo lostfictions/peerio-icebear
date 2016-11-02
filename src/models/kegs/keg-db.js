@@ -2,6 +2,7 @@
  * Keg database module
  */
 const BootKeg = require('./boot-keg');
+const KegDbStore = require('./keg-db-store');
 // const socket = require('../../network/socket');
 
 class KegDb {
@@ -15,6 +16,8 @@ class KegDb {
         this.kegs = {};
         this.createBootKeg = this.createBootKeg.bind(this);
         this.loadBootKeg = this.loadBootKeg.bind(this);
+        this.processKegDbUpdate = this.processKegDbUpdate.bind(this);
+        KegDbStore.register(this.id, this);
     }
 
     /**
@@ -50,6 +53,13 @@ class KegDb {
             this.kegs.boot = boot;
             this.key = boot.data.kegKey;
         });
+    }
+
+    /**
+     * Processes kegDbUpdate event
+     */
+    processKegDbUpdate(/* data */) {
+        console.log('TODO: parse SELF keg db');
     }
 }
 
