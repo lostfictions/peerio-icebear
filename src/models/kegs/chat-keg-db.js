@@ -86,7 +86,7 @@ class ChatKegDb {
             }));
         });
 
-        Promise.all(promises).then(() => {
+        return Promise.all(promises).then(() => {
             // keg key for this db
             const kegKey = keys.generateEncryptionKey();
             // ephemeral keypair to encrypt kegKey for participants
