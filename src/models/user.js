@@ -20,13 +20,13 @@ class User {
     email;
     locale = 'en';
     passphrase;
-    passcodeSecret;
     authSalt;
     bootKey;
     authKeys;
     signKeys;
     encryptionKeys;
     kegKey;
+    _firstLogin = true;
 
     get username() {
         return this._username;
@@ -66,18 +66,25 @@ class User {
     }
 
     /**
+     * Before login.
+     *
+     * @returns {*}
+     * @private
+     */
+    _preAuth() {
+        if (this._firstLogin) {
+            return this._checkForPasscode();
+        }
+        return Promise.resolve();
+    }
+
+    /**
      * Authenticates connection and makes necessary initial requests.
      */
     login() {
         console.log('Starting login sequence');
-        // if passcode is set, populate it (& cast as Uint8Array)
-        return storage.get(`${this.username}:passcode`)
-            .then((passcodeSecretArray) => {
-                if (passcodeSecretArray) {
-                    this.passcodeSecret = new Uint8Array(passcodeSecretArray);
-                }
-                return this._authenticateConnection();
-            })
+        return this._preAuth()
+            .then(() => this._authenticateConnection())
             .then(() => this.kegdb.loadBootKeg(this.bootKey))
             .then(() => {
                 // todo: doesn't look very good
@@ -87,7 +94,6 @@ class User {
             .then(() => this._postAuth());
     }
 
-    _firstLogin = true;
     /**
      * Subscribe on events after auth
      */

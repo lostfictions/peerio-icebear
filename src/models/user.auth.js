@@ -1,5 +1,8 @@
 /**
  * Authentication module for User model.
+ *
+ * @todo DeviceTokens
+ * @todo local storage of authSalt
  * @module models/user
  */
 
@@ -13,18 +16,29 @@ const errors = require('../errors');
 const storage = require('../db/tiny-db');
 
 module.exports = function mixUserAuthModule() {
+    /**
+     * Authentication sequence.
+     * @returns {Promise}
+     * @private
+     */
+    this._authenticateConnection = () => {
+        console.log('Starting connection auth sequence.');
+        return this._loadAuthSalt()
+                    .then(this._deriveKeys)
+                    .then(this._getAuthToken)
+                    .then(this._authenticateAuthToken);
+    };
+
+    /**
+     * Derive the boot key and auth keypair from the passphrase and set them.
+     *
+     * @returns {Promise}
+     * @private
+     */
     this._deriveKeys = () => {
         if (!this.username) return Promise.reject(new Error('Username is required to derive keys'));
         if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
         if (!this.authSalt) return Promise.reject(new Error('Salt is required to derive keys'));
-
-        if (this.passcodeSecret) {
-            return this._derivePassphraseFromPasscode();
-        }
-        return this._deriveKeysFromPassphrase();
-    };
-
-    this._deriveKeysFromPassphrase = () => {
         return keys.deriveKeys(this.username, this.passphrase, this.authSalt)
             .then(keySet => {
                 this.bootKey = keySet.bootKey;
@@ -32,27 +46,13 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    this._derivePassphraseFromPasscode = () => {
-        console.log('Deriving passphrase from passcode.');
-        return this._getAuthDataFromPasscode(this.passphrase, this.passcodeSecret)
-            .then((passcodeData) => {
-                this.passphrase = passcodeData.passphrase;
-                return this._deriveKeysFromPassphrase();
-            })
-            .catch(err => {
-                console.log('Deriving passphrase from passcode failed, retry with passphrase');
-                return this._deriveKeysFromPassphrase();
-            });
-    };
-
-    this._authenticateConnection = () => {
-        console.log('Starting connection auth sequence.');
-        return this._loadAuthSalt()
-                    .then(this._deriveKeys)
-                    .then(this._getAuthToken)
-                    .then(this._authenticate);
-    };
-
+    /**
+     * Get the authentication salt from the server if not stored locally.
+     *
+     * @todo store locally
+     * @returns {Promise}
+     * @private
+     */
     this._loadAuthSalt = () => {
         console.log('Loading auth salt');
         if (this.authSalt) return Promise.resolve();
@@ -62,6 +62,12 @@ module.exports = function mixUserAuthModule() {
                      });
     };
 
+    /**
+     * Get an authToken from the server.
+     *
+     * @returns {Promise}
+     * @private
+     */
     this._getAuthToken = () => {
         console.log('Requesting auth token.');
         return socket.send('/noauth/getAuthToken', {
@@ -78,7 +84,7 @@ module.exports = function mixUserAuthModule() {
      * @returns {*}
      * @private
      */
-    this._authenticate = data => {
+    this._authenticateAuthToken = data => {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decryptCompat(data.token, data.nonce,
                                                             data.ephemeralServerPK, this.authKeys.secretKey);
@@ -94,25 +100,43 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Given a passcode and a populated User model, gets a passcode-encrypted
-     * secret containing the username and passphrase as a JSON string.
-     * @param passcode
+     * Checks storage for passcode.
+     *
      * @returns {Promise}
+     * @private
      */
-    this._getPasscodeSecret = passcode => {
-        try {
-            if (!this.username) throw new Error('Username is required to derive keys');
-            if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
-        } catch (e) {
-            return Promise.reject(errors.normalize(e));
-        }
+    this._checkForPasscode = () => {
+        return storage.get(`${this.username}:passcode`)
+            .then((passcodeSecretArray) => {
+                if (passcodeSecretArray) {
+                    return new Uint8Array(passcodeSecretArray);
+                }
+                throw new Error('no passcode found');
+            })
+            .then((passcodeSecret) => {
+                if (passcodeSecret) { // will be wiped after first login
+                    return this._derivePassphraseFromPasscode(passcodeSecret);
+                }
+                return false;
+            })
+            .catch(() => {});
+    };
 
-        return keys.deriveKeyFromPasscode(passcode)
-            .then((passcodeKey) => {
-                return secret.encryptString(JSON.stringify({
-                    username: this.username,
-                    passphrase: this.passphrase
-                }), passcodeKey);
+    /**
+     * Derive a passphrase and set it for future authentications (only called if applicable on first login).
+     *
+     * @param {Uint8Array} passcodeSecret
+     * @returns {Promise}
+     * @private
+     */
+    this._derivePassphraseFromPasscode = (passcodeSecret) => {
+        console.log('Deriving passphrase from passcode.');
+        return this._getAuthDataFromPasscode(this.passphrase, passcodeSecret)
+            .then(passcodeData => {
+                this.passphrase = passcodeData.passphrase;
+            })
+            .catch(() => {
+                console.log('Deriving passphrase from passcode failed, retry with passphrase');
             });
     };
 
@@ -130,14 +154,29 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Generates the passcode secret and stores it.
+     * Given a passcode and a populated User model, gets a passcode-encrypted
+     * secret containing the username and passphrase as a JSON string and stores
+     * it to the local db.
      *
      * @param {String} passcode
      * @returns {Promise}
      */
     this.setPasscode = (passcode) => {
+        try {
+            if (!this.username) throw new Error('Username is required to derive keys');
+            if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
+        } catch (e) {
+            return Promise.reject(errors.normalize(e));
+        }
+        console.log('Setting passcode');
         let passcodeSecretArray;
-        return this._getPasscodeSecret(passcode)
+        return keys.deriveKeyFromPasscode(passcode)
+            .then((passcodeKey) => {
+                return secret.encryptString(JSON.stringify({
+                    username: this.username,
+                    passphrase: this.passphrase
+                }), passcodeKey);
+            })
             .then((passcodeSecretU8) => {
                 // convert Uint8Array to Array so that it can JSON
                 passcodeSecretArray = Array(...passcodeSecretU8);

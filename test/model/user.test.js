@@ -7,19 +7,21 @@ const helpers = require('../helpers');
 const socket = require('../../src/network/socket');
 // this is a sequenced test suite
 describe('User model', () => {
+    // instances of User *for the same account*
     const user = new User();
-    const user2 = new User();
-    const userLogin = new User();
+    const userInst2 = new User();
+    const userInst3 = new User();
+    const userInst4 = new User();
     const passphrase = 'such a secret passphrase';
 
     // this user will persist after test run (for debug)
-    window.userLogin = userLogin;
+    window.userLogin = userInst2;
 
     before(function(done) {
         this.timeout(6000);
-        user.username = userLogin.username = helpers.getRandomUsername();
+        user.username = userInst2.username = userInst3.username = userInst4.username = helpers.getRandomUsername();
         console.log(`Test username: ${user.username}`);
-        user.passphrase = userLogin.passphrase = passphrase;
+        user.passphrase = userInst2.passphrase = passphrase;
         user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
     });
@@ -36,63 +38,23 @@ describe('User model', () => {
         this.timeout(6000);
         user.stopReauthenticator();
         socket.close();
-        socket.onceConnected(() => userLogin.login()
+        socket.onceConnected(() => userInst2.login()
                                             .then(() => done())
                                             .catch(err => done(new Error(err)))
                             );
         socket.open();
     });
 
-    it('#04 should set and retrieve a passcode', function() {
-        const passcode = 'this is fine';
-
-        this.timeout(6000);
-        return user._getPasscodeSecret(passcode)
-            .then((passcodeSecret) => {
-                return user._getAuthDataFromPasscode(passcode, passcodeSecret);
-            })
-            .then((authData) => {
-                return authData.passphrase.should.equal(user.passphrase);
-            })
-            .catch((err) => {
-                throw err;
-            });
-    });
-
-    it('#05 cannot use a passcode if account is uninitialized', () => {
-        return user2._getPasscodeSecret('passcode')
-            .catch(err => {
-                err.message.should.deep.equal('Username is required to derive keys');
-            })
-            .then(() => {
-                user2.username = 'oiuy567890';
-                return user2._getPasscodeSecret('passcode');
-            })
-            .catch(err => {
-                err.message.should.deep.equal('Passphrase is required to derive keys');
-                return true;
-            });
-    });
-
-    it('#06 can log in with passcode', function(done) {
+    it('#04 can log in with passcode', function(done) {
         const passcode = 'passcode bla';
-        
+
         this.timeout(6000);
+        userInst2.stopReauthenticator();
         user.setPasscode(passcode)
             .then(() => {
-                user.passphrase = passcode;
                 socket.close();
-                socket.onceConnected(() => user.login()
-                    .then(() => done())
-                    .catch(err => done(new Error(err)))
-                );
-                socket.open();
-            })
-            .then(() => {
-                // try again with the passphrase, even though a passcode has been saved
-                user.passphrase = passphrase;
-                socket.close();
-                socket.onceConnected(() => user.login()
+                userInst3.passphrase = passcode;
+                socket.onceConnected(() => userInst3.login()
                     .then(() => done())
                     .catch(err => done(new Error(err)))
                 );
@@ -101,5 +63,17 @@ describe('User model', () => {
             .catch(err => {
                 done(err);
             });
+    });
+
+    it('#05 can log in with passphrase even when passcode is set', function(done) {
+        this.timeout(6000);
+        userInst3.stopReauthenticator();
+        socket.close();
+        userInst4.passphrase = passphrase;
+        socket.onceConnected(() => userInst4.login()
+            .then(() => done())
+            .catch(err => done(new Error(err)))
+        );
+        socket.open();
     });
 });
