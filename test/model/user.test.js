@@ -76,8 +76,7 @@ describe('User model', () => {
 
     it('#06 can log in with passcode', function(done) {
         const passcode = 'passcode bla';
-
-
+        
         this.timeout(6000);
         user.setPasscode(passcode)
             .then(() => {

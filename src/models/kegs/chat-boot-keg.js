@@ -51,7 +51,7 @@ class ChatBootKeg extends Keg {
     /**
      * Expected data format
      *  kegKey: buffer,
-     *  participants: [{username: publicKey},{username: publicKey}]
+     *  participants: {username: publicKey,username: publicKey}
      * @returns {{publicKey, participants: {}}}
      */
     serializeData() {
@@ -67,6 +67,6 @@ class ChatBootKeg extends Keg {
         });
         return ret;
     }
-     }
+}
 
 module.exports = ChatBootKeg;
