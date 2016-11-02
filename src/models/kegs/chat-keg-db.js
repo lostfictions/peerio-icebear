@@ -1,7 +1,7 @@
 /**
  * Keg database module
  */
-const ChatBootKeg = require('./boot-keg');
+const ChatBootKeg = require('./chat-boot-keg');
 const socket = require('../../network/socket');
 const keys = require('../../crypto/keys');
 const User = require('../user');
@@ -60,15 +60,15 @@ class ChatKegDb {
     addMessage(text) {
         const msg = new MessageKeg(this);
         msg.data = { txt: text };
-        return msg.create().then(()=>{
+        return msg.create().then(() => {
             this.kegs[msg.id] = msg;
         });
     }
 
     _fillFromMeta(meta) {
         this.id = meta.id;
-        this.participants = Object.keys(meta.users.permissions);
-        return meta.collectionVersions.system ? this.loadBootKeg() : this.createBootKeg();
+        this.participants = Object.keys(meta.permissions.users);
+        return meta.collectionVersions.system ? this._loadBootKeg() : this._createBootKeg();
     }
 
     /**

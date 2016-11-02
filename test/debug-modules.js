@@ -13,10 +13,20 @@ window.callserver = (action, params) => window.callpromise(window.socket.send(ac
 window.Keg = require('../src/models/kegs/keg');
 window.KegDb = require('../src/models/kegs/keg-db');
 window.BootKeg = require('../src/models/kegs/boot-keg');
-// window.SharedKegDb = require('../src/models/kegs/shared-keg-db');
-// window.SharedBootKeg = require('../src/models/kegs/shared-boot-keg');
+const ChatKegDb = window.ChatKegDb = require('../src/models/kegs/chat-keg-db');
 window.User = require('../src/models/user');
 window.keys = require('../src/crypto/keys');
+
+const MAX_UCOUNTER = 19;
+let uc = 0;
+
+window.getNextDmUsername = () => {
+    if (uc > MAX_UCOUNTER) {
+        throw new Error(`Max ${MAX_UCOUNTER} pre-registered users`);
+    }
+    uc++;
+    return `testdm${uc}`;
+};
 
 window.loginTest = () => {
     const user = new window.User();
@@ -30,4 +40,11 @@ window.loginTest = () => {
             .catch(err => console.error(err));
     });
     socket.open();
+};
+
+window.messageTest = () => {
+    const user = window.userLogin;
+    window.User.current = user;
+    const chat = new ChatKegDb(null, [user.username, window.getNextDmUsername()]);
+    window.callpromise(chat.load());
 };
