@@ -60,13 +60,15 @@ class ChatBootKeg extends Keg {
             participants: {}
         };
         const participants = this.data.participants;
-        for (const username of Object.keys(participants)) {
-            const pk = participants[username];
-            ret.participants[username] = util.bytesToB64(
-                publicCrypto.encrypt(this.data.kegKey, pk, this.ephemeralKeyPair.secretKey));
+        for (const username in Object.keys(participants)) {
+            if ({}.hasOwnProperty.call(participants, username)) {
+                const pk = participants[username];
+                ret.participants[username] = util.bytesToB64(
+                    publicCrypto.encrypt(this.data.kegKey, pk, this.ephemeralKeyPair.secretKey));
+            }
         }
         return ret;
     }
-}
+     }
 
 module.exports = ChatBootKeg;
