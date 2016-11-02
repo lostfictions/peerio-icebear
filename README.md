@@ -6,6 +6,8 @@ Peerio Icebear is a client library supporting Peerio apps
 
 To get started, set the `PEERIO_STAGING_SOCKET_SERVER` environment variable. Run `npm install` and `npm start` to run Karma. 
 
+In order to log in automatically, Good news, create 'autologin.json' in project root (gitignored) with your desired user: `{ "username":"", "passphrase":""}`
+
 ## Development policy
 ### Errors
 
