@@ -18,10 +18,16 @@ exports.deriveKeys = function(username, passphrase, salt) {
         const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
         prehashed.update(util.strToBytes(passphrase));
         const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
+        const options = {
+            N: 16384,
+            r: 8,
+            dkLen: 64,
+            interruptStep: 200
+        };
 
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
         // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
-        scrypt(prehashed.digest(), fullSalt, 14, 8, 64, 200, (derivedBytes) => {
+        scrypt(prehashed.digest(), fullSalt, options, (derivedBytes) => {
             const keys = {};
             try {
                 keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
@@ -79,11 +85,18 @@ exports.getAuthKeyHash = function(key) {
  */
 exports.deriveKeyFromPasscode = function(passcode) {
     const keySize = 32;
+    const options = {
+        N: 16384,
+        r: 8,
+        dkLen: 32,
+        interruptStep: 200
+    };
+
     return new Promise(resolve => {
         const hash = new BLAKE2s(keySize);
         hash.update(util.strToBytes(passcode));
         // warning: changing scrypt params will break compatibility with older scrypt-generated data
         // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
-        scrypt(hash.hexDigest(), util.strToBytes(this.username), 14, 8, keySize, 200, resolve);
+        scrypt(hash.hexDigest(), util.strToBytes(this.username), options, resolve);
     }).then(keyBytes => new Uint8Array(keyBytes));
 };
