@@ -124,6 +124,9 @@ module.exports = function mixUserAuthModule() {
 
     /**
      * Derive a passphrase and set it for future authentications (only called if applicable on first login).
+     * Won't throw if the passcode is incorrect -- login will proceed treating the same user input
+     * as a passphrase instead of a passcode, allowing users who have a passcode set to still
+     * use their passphrases.
      *
      * @param {Uint8Array} passcodeSecret
      * @returns {Promise}
@@ -136,7 +139,7 @@ module.exports = function mixUserAuthModule() {
                 this.passphrase = passcodeData.passphrase;
             })
             .catch(() => {
-                console.log('Deriving passphrase from passcode failed, retry with passphrase');
+                console.log('Deriving passphrase from passcode failed, will ignore and retry login with passphrase');
             });
     };
 
