@@ -15,14 +15,18 @@ const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
 const db = require('./db/tiny-db');
+const contactStore = require('./stores/contact-store');
+const chatStore = require('./stores/chat-store');
 
 module.exports = {
     errors,
     config,
     socket,
-    pCrypto: { util: cryptoUtil },
+    cryptoUtil,
     User,
     PhraseDictionary,
     db,
-    setTinyDbEngine: db.setEngine
+    setTinyDbEngine: db.setEngine,
+    contactStore,
+    chatStore
 };
