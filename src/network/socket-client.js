@@ -54,6 +54,7 @@ class SocketClient {
 
     start(url) {
         if (this.started) return;
+        console.log(`Starting socket: ${url}`);
         this.url = url;
         this.started = true;
 
@@ -76,10 +77,12 @@ class SocketClient {
         };
 
         socket.on('connect', () => {
+            console.log('\ud83d\udc9a Socket connected.');
             clearBuffers();
         });
 
         socket.on('disconnect', () => {
+            console.log('\ud83d\udc94 Socket disconnected.');
             clearBuffers();
         });
 
