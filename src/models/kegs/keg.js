@@ -91,16 +91,19 @@ class Keg {
 
     loadFromExistingData(keg) {
         let payload = keg.payload;
+        this.id = keg.kegId;
         if (!payload) {
             console.log(`No payload returned for ${this.id}`);
+            return this;
         }
-        this.id = keg.kegId;
+        console.log(`loading ${this.id}`);
         if (!this.plaintext) {
             payload = new Uint8Array(keg.payload);
             payload = secret.decryptString(payload, this.key || this.db.key);
         }
         payload = JSON.parse(payload);
         payload = this.deserializeData(payload);
+        console.log(payload);
         this.detectTampering(payload);
         this.data = payload;
         return this;

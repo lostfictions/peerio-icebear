@@ -46,26 +46,31 @@ class ChatKegDb {
     }
 
     loadAllMessages() {
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
-            minCollectionVersion: 0,
-            query: { type: 'message' }
-        }).then(list => {
+        const collectionId = this.id;
+        return socket.send('/auth/kegs/collection/list', { collectionId }).then(list => {
             let p = Promise.resolve(true);
             console.log(`LOADING ALL MESSAGES ${list}`);
             console.log(JSON.stringify(list));
 
-            list.forEach(kegData => {
-                if (!kegData.kegId) {
-                    console.log(`skipping ${kegData.kegId}`);
-                    return;
-                }
-                console.log(`loading kegdata ${kegData.kegId}`);
-                console.log(kegData);
-                const keg = new MessageKeg(this, kegData.kegId);
-                if (!this.kegs[keg.id]) {
-                    this.kegs[keg.id] = keg;
-                    p = p.then(keg.load);
+            list.forEach(kegId => {
+                if (kegId === 'boot') return;
+                console.log(`loading kegdata ${kegId}`);
+                if (!this.kegs[kegId] || this.kegs[kegId].loading) {
+                    p = socket.send('/auth/kegs/get', { collectionId, kegId })
+                        .then(kegData => {
+                            if (kegData.type !== 'message') {
+                                console.log('skipping non-message keg');
+                                return;
+                            }
+                            if (!kegData.payload) {
+                                console.log('skipping empty keg');
+                                return;
+                            }
+                            const keg = new MessageKeg(this, kegId);
+                            keg.loadFromExistingData(kegData);
+                            keg.loading = false;
+                            this.kegs[keg.id] = keg;
+                        });
                 }
             });
             return p;
@@ -74,6 +79,7 @@ class ChatKegDb {
 
     addMessage(text) {
         const msg = new MessageKeg(this);
+        msg.loading = true;
         msg.data = { txt: text };
         return msg.create().then(() => {
             this.kegs[msg.id] = msg;
