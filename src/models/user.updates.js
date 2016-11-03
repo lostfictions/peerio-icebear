@@ -16,7 +16,7 @@ module.exports = function mixUserUpdatesModule() {
             console.log('KEGS UPDATE!!!!!');
             // console.log(data);
             if (data.kegDbId) {
-                KegDbStore.update(data.kegDbId, data);
+                // KegDbStore.update(data.kegDbId, data);
             } else {
                 console.error('Unknown kegs update event type');
             }
