@@ -1,30 +1,46 @@
 const { observable, action } = require('mobx');
 const Chat = require('../models/chat');
+const socket = require('../network/socket');
 
 class ChatStore {
-    @observable chats =[];
+    @observable chats = [];
+    // when loadAllChats is in progress
     @observable loading = false;
+    // currently selected/focused chat
     @observable activeChat = null;
+    // loadAllChats() was called and finished once already
     loaded = false;
 
+    // initial fill chats list
     @action loadAllChats() {
         if (this.loaded || this.loading) return;
         this.loading = true;
-        setTimeout(() => {
-            while (Math.random() < 0.8) {
+        socket.send('/auth/kegs/user/collections')
+            .then(list => {
+                const promises = [];
+                list.forEach(id => {
+                    if (id === 'SELF') return;
+                    promises.push(this._loadChat(id));
+                });
+                return Promise.all(promises);
+            });
+
                 const chat = new Chat(Math.random());
                 chat.load();
                 this.chats.push(chat);
-            }
-            this.loaded = true;
+
+        this.loaded = true;
             this.loading = false;
-        }, 2000);
+
     }
 
+    //
     @action startChat(participants) {
+       // todo: look in exising
         const chat = new Chat(Math.random(), participants);
         chat.load();
         this.chats.push(chat);
+        return chat;
     }
 
     findById(id) {

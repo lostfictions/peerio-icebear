@@ -30,8 +30,8 @@ module.exports = function setKarmaConfig(config) {
                                 "transform-es2015-modules-commonjs",
                                 [
                                     "transform-object-rest-spread", {
-                                        "useBuiltIns": true
-                                    }
+                                    "useBuiltIns": true
+                                }
                                 ],
                                 "transform-react-jsx"
                             ],
@@ -40,8 +40,8 @@ module.exports = function setKarmaConfig(config) {
                                     "plugins": [
                                         [
                                             "__coverage__", {
-                                                "ignore": "*.+(test|stub).*"
-                                            }
+                                            "ignore": "*.+(test|stub).*"
+                                        }
                                         ]
                                     ]
                                 }
@@ -63,10 +63,20 @@ module.exports = function setKarmaConfig(config) {
             ]
         },
         webpackMiddleware: {
-            noInfo: true
+            noInfo: true,
+            stats: {
+                // Config for minimal console.log mess.
+                assets: false,
+                colors: true,
+                version: false,
+                hash: false,
+                timings: false,
+                chunks: false,
+                chunkModules: false
+            },
         },
         reporters: [
-            'nyan', 'progress', process.env.BABEL_ENV === 'coverage'
+            'mocha-clean', process.env.BABEL_ENV === 'coverage'
                 ? 'coverage'
                 : null
         ].filter(i => i != null),

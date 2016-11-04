@@ -31,7 +31,6 @@ class Keg {
         this.id = id;
         this.type = type;
         this.plaintext = !!plaintext;
-        this.load = this.load.bind(this);
     }
 
     /**
@@ -82,7 +81,6 @@ class Keg {
      * @returns {Promise.<Keg>}
      */
     load() {
-        console.log(`loading ${this.id}`);
         return socket.send('/auth/kegs/get', {
             collectionId: this.db.id,
             kegId: this.id
@@ -91,9 +89,6 @@ class Keg {
 
     loadFromExistingData(keg) {
         let payload = keg.payload;
-        if (!payload) {
-            console.log(`No payload returned for ${this.id}`);
-        }
         this.id = keg.kegId;
         if (!this.plaintext) {
             payload = new Uint8Array(keg.payload);

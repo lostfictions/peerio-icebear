@@ -6,7 +6,8 @@ class Message {
     @observable sending = false;
     @observable sendError = false;
 
-    constructor(sender, text, timestamp) {
+    constructor(chat, sender, text, timestamp) {
+        this.chat = chat;
         this.sender = contactStore.getContact(sender);
         this.text = `${text} ${Math.random()}`;
         this.timestamp = timestamp;

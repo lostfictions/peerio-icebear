@@ -1,8 +1,8 @@
 const Keg = require('./keg');
 
 class MessageKeg extends Keg {
-    constructor(db, id) {
-        super(db, id, 'message');
+    constructor(db) {
+        super(db, null, 'message');
     }
 }
 

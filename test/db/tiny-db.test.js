@@ -8,12 +8,10 @@ describe('local storage model', () => {
     const storeMock = {};
     const engineMock = {
         setValue(k, v) {
-            console.log(`set key ${k} to ${v}`);
             storeMock[k] = v;
             return Promise.resolve(v);
         },
         getValue(k) {
-            console.log(`get key ${k}`);
             return Promise.resolve(storeMock[k]);
         }
     };
