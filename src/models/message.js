@@ -1,5 +1,5 @@
 const { observable } = require('mobx');
-const contactStore = require('../stores/contact-store');
+const contactStore = require('./contact-store');
 const User = require('./user');
 
 class Message {
@@ -18,6 +18,10 @@ class Message {
     send() {
         this.sending = true;
         setTimeout(() => { this.sending = false; }, Math.random() * 1000);
+    }
+
+    static fromKeg(keg, chat) {
+        return new Message(chat, keg.data.sender, keg.data.text, keg.data.timestamp);
     }
 }
 

@@ -9,6 +9,11 @@ const nacl = require('tweetnacl');
 const util = require('./util');
 const err = require('../errors');
 
+/**
+ * @typedef {Object} KeyPair
+ * @property publicKey {Uint8Array}
+ * @property secretKey {Uint8Array}
+ */
 
 /**
  * Deterministically derives boot key and auth key pair.

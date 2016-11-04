@@ -2,6 +2,8 @@ const Keg = require('./keg');
 const util = require('../../crypto/util');
 const publicCrypto = require('../../crypto/public');
 
+// todo: we need more reliable - server controlled participant info
+// todo: or some kind of protection from peers corrupting data
 /**
  * payload format
  * {
@@ -60,12 +62,10 @@ class ChatBootKeg extends Keg {
             participants: {}
         };
         const participants = this.data.participants;
-        for (const username in Object.keys(participants)) {
-            if ({}.hasOwnProperty.call(participants, username)) {
-                const pk = participants[username];
-                ret.participants[username] = util.bytesToB64(
-                    publicCrypto.encrypt(this.data.kegKey, pk, this.ephemeralKeyPair.secretKey));
-            }
+        for (const username of Object.keys(participants)) {
+            const userPKey = participants[username];
+            const encKey = publicCrypto.encrypt(this.data.kegKey, userPKey, this.ephemeralKeyPair.secretKey);
+            ret.participants[username] = util.bytesToB64(encKey);
         }
         return ret;
     }

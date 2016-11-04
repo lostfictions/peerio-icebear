@@ -5,9 +5,7 @@ const Promise = require('bluebird');
 const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
-const mixUserUpdatesModule = require('./user.updates');
 const KegDb = require('./kegs/keg-db');
-const storage = require('../db/tiny-db');
 
 let currentUser;
 
@@ -44,7 +42,6 @@ class User {
         // (new instance created on every initial login attempt only)
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
-        mixUserUpdatesModule.call(this);
         this.kegdb = new KegDb('SELF');
     }
 
@@ -88,8 +85,8 @@ class User {
             .then(() => this.kegdb.loadBootKeg(this.bootKey))
             .then(() => {
                 // todo: doesn't look very good
-                this.encryptionKeys = this.kegdb.kegs.boot.data.encryptionKeys;
-                this.signKeys = this.kegdb.kegs.boot.data.signKeys;
+                this.encryptionKeys = this.kegdb.boot.data.encryptionKeys;
+                this.signKeys = this.kegdb.boot.data.signKeys;
             })
             .then(() => this._postAuth());
     }
@@ -100,7 +97,6 @@ class User {
     _postAuth() {
         if (this._firstLogin) {
             this._firstLogin = false;
-            this.subscribeToKegUpdates();
             this.setReauthOnReconnect();
         }
     }

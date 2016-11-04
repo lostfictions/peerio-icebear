@@ -25,7 +25,7 @@ class BootKeg extends Keg {
     }
 
     serializeData() {
-        const ret = {
+        return {
             signKeys: {
                 publicKey: util.bytesToB64(this.data.signKeys.publicKey),
                 secretKey: util.bytesToB64(this.data.signKeys.secretKey)
@@ -36,7 +36,6 @@ class BootKeg extends Keg {
             },
             kegKey: util.bytesToB64(this.data.kegKey)
         };
-        return ret;
     }
 }
 

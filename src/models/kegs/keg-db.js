@@ -12,7 +12,6 @@ class KegDb {
     constructor(id) {
         if (!id) throw new Error('KegDb id is required to create instance.');
         this.id = id;
-        this.kegs = {};
         this.createBootKeg = this.createBootKeg.bind(this);
         this.loadBootKeg = this.loadBootKeg.bind(this);
     }
@@ -35,7 +34,7 @@ class KegDb {
         };
         this.key = kegKey;
         return boot.update().then(() => {
-            this.kegs.boot = boot;
+            this.boot = boot;
             this.key = boot.data.kegKey;
         });
     }
@@ -47,7 +46,7 @@ class KegDb {
         console.log('Loading boot keg.');
         const boot = new BootKeg(this, bootKey);
         return boot.load().then(() => {
-            this.kegs.boot = boot;
+            this.boot = boot;
             this.key = boot.data.kegKey;
         });
     }

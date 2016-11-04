@@ -15,8 +15,8 @@ const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
 const db = require('./db/tiny-db');
-const contactStore = require('./stores/contact-store');
-const chatStore = require('./stores/chat-store');
+const contactStore = require('./models/contact-store');
+const chatStore = require('./models/chat-store');
 
 module.exports = {
     errors,
