@@ -1,5 +1,4 @@
 // Just a list of modules pre-required to access from console
-const helpers = require('./helpers');
 
 const m = window.modules = {};
 window.log = (res) => { window.lastResult = res; console.log(res); };
@@ -30,44 +29,25 @@ window.getNextDmUsername = () => {
     return `testdm${uc}`;
 };
 
-const passphrase = 'such a secret passphrase';
 window.loginTest = () => {
     const user = new window.User();
     const socket = window.socket;
-    user.username = 'testdm0';
-    user.passphrase = passphrase;
+    user.username = 'test9x9x9x';
+    user.passphrase = 'such a secret passphrase';
+    socket.close();
     socket.onceConnected(() => {
         user.login()
             .then(() => (window.userLogin = user))
             .catch(err => console.error(err));
     });
-};
-
-let chat = null;
-const userTo = 'testdm0' || window.getNextDmUsername();
-
-window.signupRandom = () => {
-    const user = new window.User();
-    const socket = window.socket;
-    user.username = helpers.getRandomUsername();
-    user.passphrase = passphrase;
-    user.email = `${user.username}@mailinator.com`;
-    socket.onceConnected(() => {
-        user.createAccountAndLogin()
-            .then(() => (window.userLogin = user))
-            .catch(err => console.error(err));
-    });
+    socket.open();
 };
 
 window.messageTest = () => {
     const user = window.userLogin;
     window.User.current = user;
-    let p = Promise.resolve(true);
-    if (!chat) {
-        chat = new ChatKegDb(null, [user.username, userTo]);
-        p = chat.load();
-    }
-    window.callpromise(p.then(() => {
+    const chat = new ChatKegDb(null, [user.username, window.getNextDmUsername()]);
+    window.callpromise(chat.load().then(() => {
         return chat.addMessage('hello, how are you');
     }));
 };

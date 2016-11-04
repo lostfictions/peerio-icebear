@@ -14,7 +14,7 @@ module.exports = function mixUserUpdatesModule() {
     this.subscribeToKegUpdates = () => {
         this._kegsUpdater = this._kegsUpdater || socket.subscribe(socket.APP_EVENTS.kegsUpdate, data => {
             console.log('KEGS UPDATE!!!!!');
-            // console.log(data);
+            console.log(data);
             if (data.kegDbId) {
                 // KegDbStore.update(data.kegDbId, data);
             } else {
