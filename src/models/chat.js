@@ -1,7 +1,8 @@
-const { observable } = require('mobx');
+const { observable, computed } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
+const User = require('./user');
 
 class Chat {
     @observable id=null;
@@ -19,6 +20,14 @@ class Chat {
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
     messagesLoaded = false;
+
+    @observable participants=null;
+
+    @computed get chatName() {
+        if(!this.participants) return '';
+        return this.participants.length === 0 ? User.current.username
+                                            : this.participants.map(p => p.username).join(', ');
+    }
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants

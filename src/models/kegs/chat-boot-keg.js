@@ -8,7 +8,7 @@ const publicCrypto = require('../../crypto/public');
  * payload format
  * {
  *   publicKey: buffer,
- *   participants: {
+ *   encryptedKeys: {
  *           username: buffer, // encrypted for user's PK
  *           username1: buffer1
  *         }
@@ -40,32 +40,32 @@ class ChatBootKeg extends Keg {
      */
     deserializeData(data) {
         data.publicKey = util.b64ToBytes(data.publicKey);
-        let myKey = data.participants[this.username];
+        let myKey = data.encryptedKeys[this.username];
         myKey = util.b64ToBytes(myKey);
         myKey = publicCrypto.decrypt(myKey, data.publicKey, this.encryptionKeys.secretKey);
         if (myKey === false) {
             console.error('Failed to decrypt chat key for user.');
             return data;
         }
-        return { kegKey: myKey, participants: Object.keys(data.participants) };
+        return { kegKey: myKey, encryptedKeys: data.encryptedKeys };
     }
 
     /**
      * Expected data format
      *  kegKey: buffer,
-     *  participants: {username: publicKey,username: publicKey}
-     * @returns {{publicKey, participants: {}}}
+     *  encryptedKeys: {username: publicKey, username: publicKey}
+     * @returns {{publicKey, encryptedKeys: {}}}
      */
     serializeData() {
         const ret = {
             publicKey: util.bytesToB64(this.ephemeralKeyPair.publicKey),
-            participants: {}
+            encryptedKeys: {}
         };
-        const participants = this.data.participants;
-        for (const username of Object.keys(participants)) {
-            const userPKey = participants[username];
+        const encryptedKeys = this.data.encryptedKeys;
+        for (const username of Object.keys(encryptedKeys)) {
+            const userPKey = encryptedKeys[username];
             const encKey = publicCrypto.encrypt(this.data.kegKey, userPKey, this.ephemeralKeyPair.secretKey);
-            ret.participants[username] = util.bytesToB64(encKey);
+            ret.encryptedKeys[username] = util.bytesToB64(encKey);
         }
         return ret;
     }

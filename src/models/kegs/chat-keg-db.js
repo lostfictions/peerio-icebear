@@ -13,7 +13,7 @@ class ChatKegDb {
      * Creates new database instance.
      * At least one of 2 parameters should be passed
      * @param {[string]} id - or specific id for shared databases
-     * @param {[Array<Contact>]} participants - participants list, including own username
+     * @param {[Array<Contact>]} participants - participants list, EXCLUDING own username
      */
     constructor(id, participants) {
         this.id = id;
@@ -34,12 +34,11 @@ class ChatKegDb {
                          .then(this._fillFromMeta);
         }
 
-        if (!this.participants || !this.participants.length) {
-            return Promise.reject(new Error('Id or participants are required to load char keg db.'));
-        }
+        this.participants = this.participants || [];
 
-        return socket.send('/auth/kegs/collection/create-chat',
-                           { participants: this.participants.map(p => p.username) })
+        const arg = { participants: this.participants.map(p => p.username) };
+        arg.participants.push(User.current.username);
+        return socket.send('/auth/kegs/collection/create-chat', arg)
                      .then(this._fillFromMeta);
     }
 
@@ -66,7 +65,14 @@ class ChatKegDb {
 
     _fillFromMeta(meta) {
         this.id = meta.id;
+        // A little explanation on contactStore.getContact here
+        // Yes, it is reactive and does not return promise.
+        // And might not be done by the time next lines of code execute.
+        // But there are 2 cases why are we here
+        // 1 - we are creating a new chat, so all this contacts are already in cache
+        // 2 - we are loading existing chat, so we don't really care about those contact details being loaded here
         this.participants = Object.keys(meta.permissions.users)
+                                  .filter(username => username !== User.current.username)
                                   .map(username => contactStore.getContact(username));
 
         return meta.collectionVersions.system ? this._loadBootKeg() : this._createBootKeg();
@@ -78,9 +84,12 @@ class ChatKegDb {
     _createBootKeg() {
         console.log('Creating chat boot keg.');
         const publicKeys = {};
+        // other users
         this.participants.forEach(p => {
             publicKeys[p.username] = p.encryptionPublicKey;
         });
+        // ourselves
+        publicKeys[User.current.username] = User.current.encryptionKeys.publicKey;
         // keg key for this db
         const kegKey = keys.generateEncryptionKey();
         // ephemeral keypair to encrypt kegKey for participants
@@ -88,7 +97,7 @@ class ChatKegDb {
         const boot = new ChatBootKeg(this, User.current.username, User.current.encryptionKeys, ephemeral);
         boot.data = {
             kegKey,
-            participants: publicKeys
+            encryptedKeys: publicKeys
         };
         // keg key for this db
         this.key = kegKey;

@@ -2,6 +2,7 @@ const { observable, action } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
+const User = require('./user');
 
 class ChatStore {
     @observable chats = [];
@@ -48,12 +49,14 @@ class ChatStore {
                 throw new Error(`Invalid participant: ${p.username}, loading:${p.loading}, found:${!p.notFound}`);
             }
         }
-        //TODO: ADD SELF IF NOT YET
+        // we don't want our own user in participants, it's handled on the lowest level only.
+        // generally ui should assume current user is participant to everything
+        const filteredParticipants = participants.filter(p => p.username !== User.current.username);
         // maybe we already have this chat cached
         for (const c of this.chats) {
-            if (c.hasSameParticipants(participants)) return c;
+            if (c.hasSameParticipants(filteredParticipants)) return c;
         }
-        const chat = new Chat(null, participants);
+        const chat = new Chat(null, filteredParticipants);
         chat.loadMetadata();
         this.chats.push(chat);
         return chat;
