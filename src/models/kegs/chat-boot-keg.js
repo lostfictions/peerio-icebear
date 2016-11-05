@@ -47,7 +47,7 @@ class ChatBootKeg extends Keg {
             console.error('Failed to decrypt chat key for user.');
             return data;
         }
-        return { kegKey: myKey, participants: Object.keys(data.keys) };
+        return { kegKey: myKey, participants: Object.keys(data.participants) };
     }
 
     /**

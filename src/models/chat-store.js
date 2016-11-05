@@ -48,8 +48,9 @@ class ChatStore {
                 throw new Error(`Invalid participant: ${p.username}, loading:${p.loading}, found:${!p.notFound}`);
             }
         }
+        //TODO: ADD SELF IF NOT YET
         // maybe we already have this chat cached
-        for (const c in this.chats) {
+        for (const c of this.chats) {
             if (c.hasSameParticipants(participants)) return c;
         }
         const chat = new Chat(null, participants);

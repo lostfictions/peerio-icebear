@@ -95,8 +95,8 @@ class Keg {
             payload = secret.decryptString(payload, this.key || this.db.key);
         }
         payload = JSON.parse(payload);
-        payload = this.deserializeData(payload);
         this.detectTampering(payload);
+        payload = this.deserializeData(payload);
         this.data = payload;
         return this;
     }

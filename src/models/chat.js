@@ -4,6 +4,7 @@ const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 
 class Chat {
+    @observable id=null;
     // Message objects
     @observable messages = [];
     // initial metadata loading
@@ -17,7 +18,7 @@ class Chat {
     @observable errorLoadingMeta = false;
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
-
+    messagesLoaded = false;
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
@@ -35,6 +36,7 @@ class Chat {
         this.loadingMeta = true;
         this.db.loadMeta()
             .then(() => {
+                this.participants = this.db.participants;
                 this.errorLoadingMeta = false;
                 this.loadingMeta = false;
             })
@@ -46,7 +48,7 @@ class Chat {
     }
 
     loadMessages() {
-        if (this.loadingMessages) return;
+        if (this.messagesLoaded || this.loadingMessages) return;
         if (this.errorLoadingMeta || this.loadingMeta) {
             throw new Error('Can not load messages before meta. ' +
                 `meta loading: ${this.loadingMeta}, meta err: ${this.errorLoadingMeta}`);
@@ -56,6 +58,7 @@ class Chat {
             for (const keg of kegs) {
                 this.messages.push(Message.fromKeg(keg, this));
             }
+            this.messagesLoaded = true;
             this.errorLoadingMessages = false;
             this.loadingMessages = false;
         }).catch(err => {
