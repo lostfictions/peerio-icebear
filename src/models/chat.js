@@ -3,6 +3,11 @@ const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 const User = require('./user');
+// to assign when sending a message and don't have an id yet
+let temporaryChatId = 0;
+function getTemporaryChatId() {
+    return `creating_chat:${temporaryChatId++}`;
+}
 
 class Chat {
     @observable id=null;
@@ -24,10 +29,11 @@ class Chat {
     @observable participants=null;
 
     @computed get chatName() {
-        if(!this.participants) return '';
+        if (!this.participants) return '';
         return this.participants.length === 0 ? User.current.username
                                             : this.participants.map(p => p.username).join(', ');
     }
+
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
@@ -35,6 +41,7 @@ class Chat {
      */
     constructor(id, participants) {
         this.id = id;
+        if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
         this.loadMetadata();
@@ -77,9 +84,16 @@ class Chat {
         });
     }
 
-    // sendMessage(){
+    /**
+     *
+     * @param text
+     */
+    sendMessage(text) {
+        const m = new Message(null, this, User.current.username, text, new Date());
+        m.send();
+        this.messages.push(m);
+    }
 
-    // }
 
     /**
      * Checks if this chat's participants are the same one that are passed

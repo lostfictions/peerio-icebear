@@ -5,6 +5,7 @@
 const socket = require('../../network/socket');
 const secret = require('../../crypto/secret');
 const { AntiTamperError } = require('../../errors');
+
 /**
  * Base class with common data and operations.
  * For clarity:

@@ -35,6 +35,8 @@ describe('User model', () => {
 
     it('#02 should register new user', function () {
         this.timeout(6000);
+        user.firstName = 'Severus';
+        user.lastName = 'Snape';
         return user.createAccountAndLogin();
     });
 
