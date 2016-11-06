@@ -5,6 +5,7 @@
  * @module crypto/util
  */
 const Buffer = require('buffer/').Buffer;
+const BLAKE2s = require('blake2s-js');
 
 const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -110,3 +111,15 @@ exports.getRandomNonce = function() {
 function numberToByteArray(num) {
     return [num & 0xff, (num >>> 8) & 0xff, (num >>> 16) & 0xff, num >>> 24];
 }
+
+/**
+ * Hashes a value.
+ * @param {number} length - hash length 1-32
+ * @param {Uint8Array} value - value to hash
+ * @returns {string} - hex encoded string hash
+ */
+exports.getHexHash = function(length, value) {
+    const h = new BLAKE2s(length);
+    h.update(value);
+    return h.hexDigest();
+};

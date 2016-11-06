@@ -1,5 +1,6 @@
 const socket = require('../network/socket');
-const { observable, action } = require('mobx');
+const { observable, action, reaction } = require('mobx');
+const util = require('../crypto/util');
 
 class Contact {
     // if loading false - contact is done loading
@@ -9,11 +10,15 @@ class Contact {
     @observable lastName = '';
     @observable encryptionPublicKey = '';
     @observable signingPublicKey = '';
+    @observable color = '';
 
     notFound = false;
 
     constructor(username) {
         this.username = username;
+        reaction(() => this.encryptionPublicKey, () => {
+            this.color = `#${this.signingPublicKey ? util.getHexHash(3, this.signingPublicKey) : '9e9e9e'}`;
+        });
         this.load();
     }
 
