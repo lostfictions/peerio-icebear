@@ -13,6 +13,10 @@ describe('local storage model', () => {
         },
         getValue(k) {
             return Promise.resolve(storeMock[k]);
+        },
+        removeValue(k) {
+            delete storeMock[k];
+            return Promise.resolve();
         }
     };
     db.setEngine(engineMock);
@@ -24,4 +28,9 @@ describe('local storage model', () => {
 
     it('#02 get value',
         () => db.get(k).then(ret => ret.should.be.true));
+
+    it('#03 removes a value',
+        () => db.remove(k).then(ret => {
+            should.not.exist(storeMock[k]);
+        }));
 });
