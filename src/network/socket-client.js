@@ -30,7 +30,8 @@ const SOCKET_EVENTS = {
     reconnect_error: 'reconnect_error',
     reconnecting: 'reconnecting',
     ping: 'ping',
-    pong: 'pong'
+    pong: 'pong',
+    authenticated: 'authenticated'
 };
 
 const APP_EVENTS = {
@@ -43,6 +44,8 @@ class SocketClient {
     socket;
     started = false;
     url = null;
+
+    authenticatedEventListeners = [];
 
     // following properties are not static for access convenience
     /** Possible connection states */
@@ -57,6 +60,7 @@ class SocketClient {
         console.log(`Starting socket: ${url}`);
         this.url = url;
         this.started = true;
+        this.authenticated = false;
 
         const socket = this.socket = io.connect(url, {
             reconnection: true,
@@ -83,6 +87,7 @@ class SocketClient {
 
         socket.on('disconnect', () => {
             console.log('\ud83d\udc94 Socket disconnected.');
+            this.authenticated = false;
             clearBuffers();
         });
 
@@ -93,6 +98,14 @@ class SocketClient {
     get state() {
         // unknown states translated to 'closed' for safety
         return STATES[this.socket.readyState] || STATES.closed;
+    }
+
+    setAuthenticatedState() {
+        if (this.state !== STATES.open) return;
+        this.authenticated = true;
+        this.authenticatedEventListeners.forEach(listener => {
+            setTimeout(listener);
+        });
     }
 
     _validateSubscription(event, listener) {
@@ -111,14 +124,27 @@ class SocketClient {
      */
     subscribe(event, listener) {
         this._validateSubscription(event, listener);
-        this.socket.on(event, listener);
+        if (event === SOCKET_EVENTS.authenticated) {
+            // maybe this listener was subscribed already
+            if (this.authenticatedEventListeners.indexOf(listener) < 0) {
+                this.authenticatedEventListeners.push(listener);
+            }
+        } else {
+            this.socket.on(event, listener);
+        }
         return () => this.unsubscribe(event, listener);
     }
 
     /** Unsubscribes a listener to socket or app events */
     unsubscribe(event, listener) {
         this._validateSubscription(event, listener);
-        this.socket.off(event, listener);
+        if (event === SOCKET_EVENTS.authenticated) {
+            const ind = this.authenticatedEventListeners.indexOf(listener);
+            if (ind < 0) return;
+            this.authenticatedEventListeners.splice(ind, 1);
+        } else {
+            this.socket.off(event, listener);
+        }
     }
 
     /** Send a message to server */

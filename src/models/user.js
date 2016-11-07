@@ -99,6 +99,7 @@ class User {
             this._firstLogin = false;
             this.setReauthOnReconnect();
         }
+        socket.setAuthenticatedState();
     }
 
     setReauthOnReconnect() {
