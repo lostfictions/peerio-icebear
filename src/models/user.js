@@ -6,8 +6,11 @@ const socket = require('../network/socket');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
+const storage = require('../db/tiny-db');
+
 
 let currentUser;
+let lastAuthenticatedUser;
 
 class User {
 
@@ -93,13 +96,17 @@ class User {
 
     /**
      * Subscribe on events after auth
+     *
+     * @returns {Promise}
      */
     _postAuth() {
         if (this._firstLogin) {
             this._firstLogin = false;
             this.setReauthOnReconnect();
+            return User.setLastAuthenticated(this.username);
         }
         socket.setAuthenticatedState();
+        return Promise.resolve();
     }
 
     setReauthOnReconnect() {
@@ -124,6 +131,37 @@ class User {
 
     static set current(val) {
         currentUser = val;
+    }
+
+    /**
+     * (Eventually) gets the username of the last authenticated user.
+     *
+     * @returns {Promise<String>}
+     */
+    static getLastAuthenticated() {
+        return storage.get(`last_user_authenticated`)
+            .then((obj) => {
+                return obj.username;
+            });
+    }
+
+    /**
+     * Sets the username of the last authenticated user.
+     *
+     * @param {String} username
+     * @returns {Promise}
+     */
+    static setLastAuthenticated(username) {
+        return storage.set(`last_user_authenticated`, { username });
+    }
+
+    /**
+     * (Eventually) removes the username of the last authenticated user.
+     *
+     * @returns {Promise<String>}
+     */
+    static removeLastAuthenticated() {
+        return storage.remove(`last_user_authenticated`);
     }
 }
 
