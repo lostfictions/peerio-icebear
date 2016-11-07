@@ -18,10 +18,10 @@ class ChatStore {
 
     // initial fill chats list
     @action loadAllChats() {
-        if (this.loaded || this.loading) return Promise.resolve(true);
+        if (this.loaded || this.loading) return;
         this.loading = true;
         // server api returns all keg databases this user has access to
-        return socket.send('/auth/kegs/user/collections')
+        socket.send('/auth/kegs/user/collections')
             .then(list => {
                 for (const id of list) {
                     if (id === 'SELF') continue;

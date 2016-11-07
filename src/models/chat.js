@@ -44,14 +44,13 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
-        // bad idea to call promises from constructors. breaks Bluebird
-        setTimeout(() => this.loadMetadata(), 0);
+        this.loadMetadata();
     }
 
     loadMetadata() {
-        if (this.loadingMeta) return null;
+        if (this.loadingMeta) return;
         this.loadingMeta = true;
-        return this.db.loadMeta()
+        this.db.loadMeta()
             .then(() => {
                 this.participants = this.db.participants;
                 this.errorLoadingMeta = false;
@@ -65,13 +64,13 @@ class Chat {
     }
 
     loadMessages() {
-        if (this.messagesLoaded || this.loadingMessages) return null;
+        if (this.messagesLoaded || this.loadingMessages) return;
         if (this.errorLoadingMeta || this.loadingMeta) {
             throw new Error('Can not load messages before meta. ' +
                 `meta loading: ${this.loadingMeta}, meta err: ${this.errorLoadingMeta}`);
         }
         this.loadingMessages = true;
-        return this.db.getAllMessages().then(kegs => {
+        this.db.getAllMessages().then(kegs => {
             for (const keg of kegs) {
                 this.messages.push(Message.fromKeg(keg, this));
             }
