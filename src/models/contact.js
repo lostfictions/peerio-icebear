@@ -43,7 +43,7 @@ class Contact {
                   return this;
               }))
               .catch(err => {
-                  console.error(err);
+                  console.warn(err);
                   this.firstName = '';
                   this.lastName = '';
                   this.encryptionPublicKey = '';
