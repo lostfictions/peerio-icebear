@@ -17,8 +17,8 @@ const ChatKegDb = window.ChatKegDb = require('../src/models/kegs/chat-keg-db');
 window.User = require('../src/models/user');
 window.keys = require('../src/crypto/keys');
 
-const MAX_UCOUNTER = 19;
-let uc = 0;
+const MAX_UCOUNTER = 40;
+let uc = 30;
 
 window.getNextDmUsername = () => {
     if (uc > MAX_UCOUNTER) {
@@ -26,6 +26,26 @@ window.getNextDmUsername = () => {
     }
     uc++;
     return `testdm${uc}`;
+};
+
+window.signupTest = () => {
+    const user = new window.User();
+    const socket = window.socket;
+    user.username = window.getNextDmUsername();
+    user.passphrase = 'icebear';
+    user.firstName = 'Vazgen';
+    user.lastName = 'Avanesov';
+    user.email = `${user.username}tmpkeg@mailinator.com`;
+    socket.close();
+    socket.onceConnected(() => {
+        user.createAccountAndLogin()
+            .then(() => {
+                window.userLogin = user;
+                user.stopReauthenticator();
+            })
+            .catch(err => console.error(err));
+    });
+    socket.open();
 };
 
 window.loginTest = () => {
