@@ -1,3 +1,4 @@
+/* eslint-disable */
 //
 // Local storage module tests
 //
@@ -30,7 +31,7 @@ describe('local storage model', () => {
         () => db.get(k).then(ret => ret.should.be.true));
 
     it('#03 removes a value',
-        () => db.remove(k).then(ret => {
+        () => db.remove(k).then(() => {
             should.not.exist(storeMock[k]);
         }));
 });
