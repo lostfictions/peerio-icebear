@@ -3,10 +3,9 @@
  */
 const ChatBootKeg = require('./chat-boot-keg');
 const socket = require('../../network/socket');
-const keys = require('../../crypto/keys');
 const User = require('../user');
-const MessageKeg = require('./message-keg');
 const contactStore = require('../contact-store');
+const _ = require('lodash');
 
 class ChatKegDb {
     /**
@@ -29,37 +28,32 @@ class ChatKegDb {
      * @returns {Promise}
      */
     loadMeta() {
+        // loading meta by id
         if (this.id) {
             return socket.send('/auth/kegs/collection/meta', { collectionId: this.id })
                          .then(this._fillFromMeta);
         }
-
+        // loading meta by participants list
         this.participants = this.participants || [];
-
-        const arg = { participants: this.participants.map(p => p.username) };
-        arg.participants.push(User.current.username);
+        // duplicate absence should be handled level higher but just to be safe.
+        const arg = { participants: _.uniq(this.participants.map(p => p.username)) };
+        // participants should not include current user, but just to be safe.
+        if (arg.participants.indexOf(User.current.username) < 0) {
+            arg.participants.push(User.current.username);
+        }
         return socket.send('/auth/kegs/collection/create-chat', arg)
                      .then(this._fillFromMeta);
     }
 
     /**
-     * Returns entire list of message kegs in this database
+     * Returns  list of message kegs in this database starting from collection version
      * @returns {Promise<Array<MessageKeg>>}
      */
-    getAllMessages() {
-        const ret = [];
+    getMessages(min) {
         return socket.send('/auth/kegs/query', {
             collectionId: this.id,
-            minCollectionVersion: 0,
+            minCollectionVersion: min || 0,
             query: { type: 'message' }
-        }).then(list => {
-            for (const kegData of list) {
-                // todo: handle invalid kegs, mark them and continue
-                const keg = new MessageKeg(this);
-                keg.loadFromExistingData(kegData);
-                ret.push(keg);
-            }
-            return ret;
         });
     }
 
@@ -74,7 +68,8 @@ class ChatKegDb {
         this.participants = Object.keys(meta.permissions.users)
                                   .filter(username => username !== User.current.username)
                                   .map(username => contactStore.getContact(username));
-
+        // todo: compare server version of participants with bootkeg?
+        // todo: can't really find a reason to except to catch bugs
         return meta.collectionVersions.system ? this._loadBootKeg() : this._createBootKeg();
     }
 
@@ -82,29 +77,24 @@ class ChatKegDb {
      * Create boot keg for this database
      */
     _createBootKeg() {
-        console.log('Creating chat boot keg.');
+        console.log(`Creating chat boot keg for ${this.id}`);
         const publicKeys = {};
         // other users
         this.participants.forEach(p => {
+            // yes, we assume user can't proceed to creating chat without loading contact keys first
+            // which is a fair assumption atm
             publicKeys[p.username] = p.encryptionPublicKey;
         });
         // ourselves
         publicKeys[User.current.username] = User.current.encryptionKeys.publicKey;
         // keg key for this db
-        const kegKey = keys.generateEncryptionKey();
-        // ephemeral keypair to encrypt kegKey for participants
-        const ephemeral = keys.generateEncryptionKeyPair();
-        const boot = new ChatBootKeg(this, User.current.username, User.current.encryptionKeys, ephemeral);
-        boot.data = {
-            kegKey,
-            encryptedKeys: publicKeys
-        };
-        // keg key for this db
-        this.key = kegKey;
+        const boot = new ChatBootKeg(this, User.current, publicKeys);
         // saving bootkeg
-        return boot.update()
+        return boot.saveToServer()
                    .then(() => {
                        this.boot = boot;
+                       // keg key for this db
+                       this.key = boot.kegKey;
                        return this;
                    });
     }
@@ -113,11 +103,11 @@ class ChatKegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     _loadBootKeg() {
-        console.log('Loading chat boot keg.');
-        const boot = new ChatBootKeg(this, User.current.username, User.current.encryptionKeys);
+        console.log(`Loading chat boot keg for ${this.id}`);
+        const boot = new ChatBootKeg(this, User.current);
         return boot.load().then(() => {
             this.boot = boot;
-            this.key = boot.data.kegKey;
+            this.key = boot.kegKey;
             return this;
         });
     }

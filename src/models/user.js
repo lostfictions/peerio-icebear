@@ -27,7 +27,7 @@ class User {
     signKeys;
     encryptionKeys;
     kegKey;
-    _firstLogin = true;
+    _firstLoginInSession = true;
 
     get username() {
         return this._username;
@@ -60,7 +60,7 @@ class User {
                    .then(() => {
                        console.log('Creating boot keg.');
                        return this.kegdb.createBootKeg(this.bootKey, this.signKeys,
-                           this.encryptionKeys, this.kegKey);
+                           this.encryptionKeys, this.overrideKey);
                    })
                     .then(() => this._postAuth());
     }
@@ -72,7 +72,7 @@ class User {
      * @private
      */
     _preAuth() {
-        if (this._firstLogin) {
+        if (this._firstLoginInSession) {
             return this._checkForPasscode();
         }
         return Promise.resolve();
@@ -88,8 +88,8 @@ class User {
             .then(() => this.kegdb.loadBootKeg(this.bootKey))
             .then(() => {
                 // todo: doesn't look very good
-                this.encryptionKeys = this.kegdb.boot.data.encryptionKeys;
-                this.signKeys = this.kegdb.boot.data.signKeys;
+                this.encryptionKeys = this.kegdb.boot.encryptionKeys;
+                this.signKeys = this.kegdb.boot.signKeys;
             })
             .then(() => this._postAuth());
     }
@@ -100,12 +100,12 @@ class User {
      * @returns {Promise}
      */
     _postAuth() {
-        if (this._firstLogin) {
-            this._firstLogin = false;
+        socket.setAuthenticatedState();
+        if (this._firstLoginInSession) {
+            this._firstLoginInSession = false;
             this.setReauthOnReconnect();
             return User.setLastAuthenticated(this.username);
         }
-        socket.setAuthenticatedState();
         return Promise.resolve();
     }
 

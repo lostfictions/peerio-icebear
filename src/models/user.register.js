@@ -15,7 +15,7 @@ module.exports = function mixUserRegisterModule() {
         this.authSalt = keys.generateAuthSalt();
         this.signKeys = keys.generateSigningKeyPair();
         this.encryptionKeys = keys.generateEncryptionKeyPair();
-        this.kegKey = keys.generateEncryptionKey();
+        this.overrideKey = keys.generateEncryptionKey();
 
         return this._deriveKeys()
             .then(() => {

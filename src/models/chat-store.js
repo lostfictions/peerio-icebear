@@ -1,4 +1,4 @@
-const { observable, action } = require('mobx');
+const { observable, action, computed } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
@@ -15,6 +15,9 @@ class ChatStore {
     // loadAllChats() was called and finished once already
     loaded = false;
 
+    @computed get unreadMessages() {
+        return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
+    }
 
     // initial fill chats list
     @action loadAllChats() {

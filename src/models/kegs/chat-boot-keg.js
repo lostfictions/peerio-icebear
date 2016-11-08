@@ -1,6 +1,7 @@
 const Keg = require('./keg');
 const util = require('../../crypto/util');
 const publicCrypto = require('../../crypto/public');
+const keys = require('../../crypto/keys');
 
 // todo: we need more reliable - server controlled participant info
 // todo: or some kind of protection from peers corrupting data
@@ -18,18 +19,15 @@ const publicCrypto = require('../../crypto/public');
 class ChatBootKeg extends Keg {
     /**
      * @param {KegDb} db - owner instance
-     * @param {string} username - currently authenticated username
-     * @param {KeyPair} encryptionKeys - user's encryption keys
-     * @param {[KeyPair]} ephemeralKeyPair - when creating new boot keg pass encryption keys
+     * @param {User} user - currently authenticated user
+     * @param {[object]} participantPublicKeys - username:publicKey map, pass when creating new keg
      */
-    constructor(db, username, encryptionKeys, ephemeralKeyPair) {
+    constructor(db, user, participantPublicKeys) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super(db, 'boot', 'system');
-        this.encryptionKeys = encryptionKeys; // todo: doesn't feel right caching them here
-        this.ephemeralKeyPair = ephemeralKeyPair;
-        this.username = username;
-        this.version = 1; // already created
-        this.plaintext = true; // not really but root object is plaintext
+        super('boot', 'system', db, true);
+        this.user = user;
+        this.version = 1; // pre-created named keg
+        this.participantPublicKeys = participantPublicKeys;
     }
 
     /**
@@ -38,16 +36,21 @@ class ChatBootKeg extends Keg {
      * @param data
      * @returns {Object}
      */
-    deserializeData(data) {
-        data.publicKey = util.b64ToBytes(data.publicKey);
-        let myKey = data.encryptedKeys[this.username];
-        myKey = util.b64ToBytes(myKey);
-        myKey = publicCrypto.decrypt(myKey, data.publicKey, this.encryptionKeys.secretKey);
-        if (myKey === false) {
-            console.error('Failed to decrypt chat key for user.');
-            return data;
+    deserializeKegPayload(data) {
+        // keys for every participant
+        this.encryptedKeys = data.encryptedKeys;
+        // public key from ephemeral key pair that encrypted keys
+        this.publicKey = util.b64ToBytes(data.publicKey);
+        // decrypting keg key that was encrypted for me
+        let kegKey = data.encryptedKeys[this.user.username];
+        kegKey = util.b64ToBytes(kegKey);
+        kegKey = publicCrypto.decrypt(kegKey, this.publicKey, this.user.encryptionKeys.secretKey);
+        if (kegKey === false) {
+            console.error('Failed to decrypt chat key for myself.');
+            // todo: mark as invalid to prevent message loading attempts?
+            return;
         }
-        return { kegKey: myKey, encryptedKeys: data.encryptedKeys };
+        this.kegKey = kegKey;
     }
 
     /**
@@ -56,15 +59,20 @@ class ChatBootKeg extends Keg {
      *  encryptedKeys: {username: publicKey, username: publicKey}
      * @returns {{publicKey, encryptedKeys: {}}}
      */
-    serializeData() {
+    serializeKegPayload() {
+        // if there's no keg key - we need to create it, it's a new bootkeg
+        if (!this.kegKey) this.kegKey = keys.generateEncryptionKey();
+        // ephemeral key pair will be encrypting keg key for all participants
+        const ephemeralKeyPair = keys.generateEncryptionKeyPair();
         const ret = {
-            publicKey: util.bytesToB64(this.ephemeralKeyPair.publicKey),
+            // users will need ephemeral public key to decrypt keg key
+            publicKey: util.bytesToB64(ephemeralKeyPair.publicKey),
             encryptedKeys: {}
         };
-        const encryptedKeys = this.data.encryptedKeys;
-        for (const username of Object.keys(encryptedKeys)) {
-            const userPKey = encryptedKeys[username];
-            const encKey = publicCrypto.encrypt(this.data.kegKey, userPKey, this.ephemeralKeyPair.secretKey);
+        // iterating user public keys and encrypting kegKey for them
+        for (const username of Object.keys(this.participantPublicKeys)) {
+            const userPKey = this.participantPublicKeys[username];
+            const encKey = publicCrypto.encrypt(this.kegKey, userPKey, ephemeralKeyPair.secretKey);
             ret.encryptedKeys[username] = util.bytesToB64(encKey);
         }
         return ret;

@@ -6,74 +6,99 @@ const socket = require('../../network/socket');
 const secret = require('../../crypto/secret');
 const { AntiTamperError } = require('../../errors');
 
+let temporaryKegId = 0;
+function getTemporaryKegId() {
+    return `tempKegId_${temporaryKegId++}`;
+}
 /**
- * Base class with common data and operations.
- * For clarity:
- * - we refer to runtime unencrypted keg data as `data`
- * - we(and server) refer to encrypted(or plaintext string) keg data as `payload`
+ * Base class with common metadata and operations.
  */
 class Keg {
-    /** @type {string} reserved for future keys change feature */
-    keyId = '0';
-    /** @type {Uint8Array} separate key for this keg, overrides regular keg key */
-    key;
-    /** @type {number} keg version */
-    version = 0; // todo: default value?
-    /** @type {object} unencrypted keg data to work with in runtime */
-    data = {};
     /**
+     * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
      * @param {KegDb} db - keg database owning this keg
-     * @param {string|null} id - kegId, or null for new kegs
-     * @param {boolean|null} plaintext - should keg be encrypted
+     * @param {[boolean]} plaintext - should keg be encrypted
      */
-    constructor(db, id, type, plaintext) {
-        this.db = db;
+    constructor(id, type, db, plaintext) {
         this.id = id;
         this.type = type;
+        this.db = db;
         this.plaintext = !!plaintext;
+        this.keyId = '0'; // @type {string} reserved for future keys change feature
+        this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
+        this.version = 0; // @type {number} keg version
+        this.collectionVersion = 0; // @type {number} kegType-wide last update id for this keg
     }
 
     /**
-     * Creates keg (reserves id) and writes out payload with this.update()
+     * Kegs with version==1 were just created and don't have any data
+     * @returns {boolean}
+     */
+    get isEmpty() {
+        return this.version === 1;
+    }
+
+    assignTemporaryId() {
+        this.tempId = getTemporaryKegId();
+    }
+
+    /**
+     * Saves keg to server, creates keg (reserves id) first if needed
      * @returns {Promise<Keg>}
      */
-    create() {
-        if (this.id) return Promise.reject(new Error(`Keg already exists (has id ${this.id})`));
+    saveToServer() {
+        if (this.id) return this._internalSave();
 
         return socket.send('/auth/kegs/create', {
             collectionId: this.db.id,
             type: this.type
         }).then(resp => {
             this.id = resp.kegId;
-            this.version = 1;
-            return this.update();
+            this.version = resp.version;
+            this.collectionVersion = resp.collectionVersion;
+            return this._internalSave();
         });
     }
 
     /**
-     * Updates existing server keg with new/same data from this.payload
+     * Updates existing server keg with new data.
+     * This function assumes keg id exists so always use 'saveToServer()' to be safe.
      * todo: reconcile optimistic concurrency failures
      * @returns {Promise}
+     * @private
      */
-    update() {
-        let payload = this.serializeData();
-        // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
-        payload._sys = {
-            kegId: this.id,
-            type: this.type
-        };
-        payload = JSON.stringify(payload);
+    _internalSave() {
+        let payload;
+        try {
+            payload = this.serializeKegPayload();
+            // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
+            payload._sys = {
+                kegId: this.id,
+                type: this.type
+            };
+            // server expects string or binary
+            payload = JSON.stringify(payload);
+            // should we encrypt the string?
+            if (!this.plaintext) {
+                payload = secret.encryptString(payload, this.overrideKey || this.db.key).buffer;
+            }
+        } catch (err) {
+            console.error('Fail preparing keg to save.', err);
+            return Promise.reject(err);
+        }
         return socket.send('/auth/kegs/update', {
             collectionId: this.db.id, // todo: rename to dbId on server and here
             update: {
                 kegId: this.id,
                 keyId: '0',
                 type: this.type,
-                payload: this.plaintext ? payload : secret.encryptString(payload, this.key || this.db.key).buffer,
-                version: ++this.version, // todo: rethink this, in case of failure it should not really change
-                collectionVersion: 0// todo: useless field, remove when server does
+                payload,
+                // todo: this should be done smarter when we have save retry, keg edit and reconcile
+                version: ++this.version
             }
+        }).then(resp => {
+            this.collectionVersion = resp.collectionVersion;
         });
     }
 
@@ -85,38 +110,45 @@ class Keg {
         return socket.send('/auth/kegs/get', {
             collectionId: this.db.id,
             kegId: this.id
-        }).then(keg => this.loadFromExistingData(keg));
+        }).then(keg => this.loadFromKeg(keg));
     }
 
-    loadFromExistingData(keg) {
-        let payload = keg.payload;
+    loadFromKeg(keg) {
+        if (this.id && this.id !== keg.kegId) {
+            throw new Error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+        }
         this.id = keg.kegId;
+        this.version = keg.version;
+        this.collectionVersion = keg.collectionVersion;
+        //  is this an empty keg? probably just created.
+        if (!keg.payload) return this;
+        let payload = keg.payload;
+        // should we decrypt?
         if (!this.plaintext) {
             payload = new Uint8Array(keg.payload);
-            payload = secret.decryptString(payload, this.key || this.db.key);
+            payload = secret.decryptString(payload, this.overrideKey || this.db.key);
         }
         payload = JSON.parse(payload);
         this.detectTampering(payload);
-        payload = this.deserializeData(payload);
-        this.data = payload;
+        this.deserializeKegPayload(payload);
+
         return this;
     }
 
     /**
-     * Generic version that provides this.data as it is.
-     * Override in child classes for fine-grained control over serialization.
+     * Generic version that provides empty keg payload.
+     * Override in child classes to.
      */
-    serializeData() {
-        return this.data;
+    serializeKegPayload() {
+        return {};
     }
 
     /**
-     * Generic version that parses decrypted keg payload string.
-     * Override in child classes for fine-grained control over deserialization.
+     * Generic version that does nothing..
+     * Override in child classes to convert raw keg data into object properties.
      */
-    deserializeData(payload) {
-        return payload;
-    }
+    deserializeKegPayload(payload) {}
+
 
     /**
      * Compares keg metadata with encrypted payload to make sure server didn't change metadata.

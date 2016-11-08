@@ -2,21 +2,13 @@
  * Keg update handling module
  */
 /*
-Server event format:
------
-kegDbId:"chat:anritest14_BEf3gzzLaNrwXmVnduqSkGtaiaSW4LrXAXveo4G1LCHp_slavasrobot8"
-knownUpdateId:0
-maxUpdateId:6
-newKegsCount:3
-type:"message"
-------
 
 Update actions:
-1. Get and store actual update info on auth    -  updates module
-2. Get and store actual update info on event   -  updates module
++ 1. Get and store actual update info on auth    -  updates module
++ 2. Get and store actual update info on event   -  updates module
 3. Pull updated data if needed                 -  corresponding stores (chat etc.)
 4. Inform server about read stuff              -  stores -> updates module -> server
-5. Display unread notifications                -  UI -> updates module
++ 5. Display unread notifications                -  UI -> updates module
 
  */
 const socket = require('../network/socket');
@@ -52,6 +44,7 @@ class UpdateTracker {
         this.started = true;
         socket.subscribe(socket.APP_EVENTS.kegsUpdate, this.processUpdateEvent.bind(this));
         socket.subscribe(socket.SOCKET_EVENTS.authenticated, this.loadFullUpdateData.bind(this));
+        if (socket.authenticated) this.loadFullUpdateData();
     }
 
     processUpdateEvent(d) {
@@ -63,7 +56,7 @@ class UpdateTracker {
             console.warn(`Unknown keg type: ${d.type}`);
             return;
         }
-        tracker.knownUpdateId = d.knownUpdateId;
+        tracker.knownUpdateId = d.downloadedUpdateId;
         tracker.maxUpdateId = d.maxUpdateId;
         tracker.newKegsCount = d.newKegsCount;
     }

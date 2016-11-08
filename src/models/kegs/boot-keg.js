@@ -8,33 +8,32 @@ class BootKeg extends Keg {
      */
     constructor(db, bootKey) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super(db, 'boot', 'system');
-        this.key = bootKey;
-        this.version = 1; // already created
-        this.deserializeData = this.deserializeData.bind(this);
-        this.serializeData = this.serializeData.bind(this);
+        super('boot', 'system', db);
+        this.overrideKey = bootKey;
+        this.version = 1; // pre-created named keg
     }
 
-    deserializeData(data) {
-        data.signKeys.publicKey = util.b64ToBytes(data.signKeys.publicKey);
-        data.signKeys.secretKey = util.b64ToBytes(data.signKeys.secretKey);
-        data.encryptionKeys.publicKey = util.b64ToBytes(data.encryptionKeys.publicKey);
-        data.encryptionKeys.secretKey = util.b64ToBytes(data.encryptionKeys.secretKey);
-        data.kegKey = util.b64ToBytes(data.kegKey);
-        return data;
+    deserializeKegPayload(data) {
+        this.signKeys = {};
+        this.signKeys.publicKey = util.b64ToBytes(data.signKeys.publicKey);
+        this.signKeys.secretKey = util.b64ToBytes(data.signKeys.secretKey);
+        this.encryptionKeys = {};
+        this.encryptionKeys.publicKey = util.b64ToBytes(data.encryptionKeys.publicKey);
+        this.encryptionKeys.secretKey = util.b64ToBytes(data.encryptionKeys.secretKey);
+        this.kegKey = util.b64ToBytes(data.kegKey);
     }
 
-    serializeData() {
+    serializeKegPayload() {
         return {
             signKeys: {
-                publicKey: util.bytesToB64(this.data.signKeys.publicKey),
-                secretKey: util.bytesToB64(this.data.signKeys.secretKey)
+                publicKey: util.bytesToB64(this.signKeys.publicKey),
+                secretKey: util.bytesToB64(this.signKeys.secretKey)
             },
             encryptionKeys: {
-                publicKey: util.bytesToB64(this.data.encryptionKeys.publicKey),
-                secretKey: util.bytesToB64(this.data.encryptionKeys.secretKey)
+                publicKey: util.bytesToB64(this.encryptionKeys.publicKey),
+                secretKey: util.bytesToB64(this.encryptionKeys.secretKey)
             },
-            kegKey: util.bytesToB64(this.data.kegKey)
+            kegKey: util.bytesToB64(this.kegKey)
         };
     }
 }
