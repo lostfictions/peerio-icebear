@@ -46,7 +46,7 @@ class SocketClient {
     url = null;
 
     authenticatedEventListeners = [];
-
+    startedEventListeners = [];
     // following properties are not static for access convenience
     /** Possible connection states */
     STATES = STATES;
@@ -92,12 +92,14 @@ class SocketClient {
         });
 
         socket.open();
+        this.startedEventListeners.forEach(l => setTimeout(l));
+        this.startedEventListeners = [];
     }
 
     /** Returns connection state */
     get state() {
         // unknown states translated to 'closed' for safety
-        return STATES[this.socket.readyState] || STATES.closed;
+        return STATES[this.socket.io.readyState] || STATES.closed;
     }
 
     setAuthenticatedState() {
@@ -171,6 +173,11 @@ class SocketClient {
             this.unsubscribe(SOCKET_EVENTS.connect, handler);
         };
         this.subscribe(SOCKET_EVENTS.connect, handler);
+    }
+
+    /** Executes a callback once socket is started */
+    onceStarted(callback) {
+        this.startedEventListeners.push(callback);
     }
 
     /** Closes current connection and disables reconnects. */

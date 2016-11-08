@@ -3,6 +3,8 @@ const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 const User = require('./user');
+const tracker = require('./update-tracker');
+
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
 function getTemporaryChatId() {
@@ -25,13 +27,19 @@ class Chat {
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
     messagesLoaded = false;
-
+    /** @type {Array<Contact>} */
     @observable participants=null;
 
     @computed get chatName() {
         if (!this.participants) return '';
         return this.participants.length === 0 ? User.current.username
                                             : this.participants.map(p => p.username).join(', ');
+    }
+
+    @computed get unreadCount() {
+        if (!this.id) return 0;
+        if (!tracker.data.has(this.id)) return 0;
+        return tracker.data.get(this.id).message.newKegsCount;
     }
 
     /**
@@ -52,6 +60,7 @@ class Chat {
         this.loadingMeta = true;
         this.db.loadMeta()
             .then(() => {
+                this.id = this.db.id;
                 this.participants = this.db.participants;
                 this.errorLoadingMeta = false;
                 this.loadingMeta = false;
