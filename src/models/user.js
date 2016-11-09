@@ -140,8 +140,8 @@ class User {
      */
     static getLastAuthenticated() {
         return storage.get(`last_user_authenticated`)
-            .then((obj) => {
-                return obj.username;
+            .then(obj => {
+                return obj ? obj.username : '';
             });
     }
 
