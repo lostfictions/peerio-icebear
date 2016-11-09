@@ -3,6 +3,7 @@ const Chat = require('./chat');
 const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
 const User = require('./user');
+const updateTracker = require('./update-tracker');
 
 class ChatStore {
     @observable chats = [];
@@ -17,6 +18,15 @@ class ChatStore {
 
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
+    }
+
+    constructor() {
+        updateTracker.data.observe(change => {
+            if (change.type !== 'add') return;
+            if (change.name === 'SELF' || this.findById(change.name) !== null) return;
+            console.log(`New incoming chat: ${change.name}`);
+            this.chats.push(new Chat(change.name));
+        });
     }
 
     // initial fill chats list
@@ -60,7 +70,6 @@ class ChatStore {
             if (c.hasSameParticipants(filteredParticipants)) return c;
         }
         const chat = new Chat(null, filteredParticipants);
-        chat.loadMetadata();
         this.chats.push(chat);
         return chat;
     }
