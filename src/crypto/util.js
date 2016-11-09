@@ -22,7 +22,8 @@ exports.getRandomBytes = function(num) {
 // node version.
 // tobo: maybe this is not the best way to detect node runtime :-D
 if (global && !global.crypto) {
-    const crypto = require('crypto');
+    const crypto = global.cryptoShim;
+    console.log(`cryptoShim: ${crypto}`);
     exports.getRandomBytes = function(num) {
         return crypto.randomBytes(num);
     };
