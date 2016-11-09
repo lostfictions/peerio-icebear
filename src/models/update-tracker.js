@@ -73,6 +73,14 @@ class UpdateTracker {
                 }
             }));
     }
+
+    seenThis(chatId, type, updateId) {
+        socket.send('/auth/kegs/updates/last-known-version', {
+            collectionId: chatId,
+            type,
+            lastKnownVersion: updateId
+        });
+    }
 }
 
 module.exports = new UpdateTracker();

@@ -1,4 +1,4 @@
-const { observable, computed, asMap, when, reaction } = require('mobx');
+const { observable, computed, asMap, when, reaction, autorunAsync } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
@@ -14,10 +14,8 @@ function getTemporaryChatId() {
 class Chat {
     @observable id=null;
     // Message objects
-    @computed get messages() {
-        return this.msgMap.values();
-    }
-    @observable msgMap= asMap();
+    @observable messages= [];
+    @observable msgMap= {};
     // initial metadata loading
     @observable loadingMeta = false;
     // initial messages loading
@@ -65,6 +63,10 @@ class Chat {
         this.db = new ChatKegDb(id, participants);
         this.loadMetadata();
         reaction(() => this.maxUpdateId, () => this.updateMessages(), false, 500);
+        autorunAsync(() => {
+            if (this.unreadCount === 0 || !this.active) return;
+            tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
+        }, 2000);
     }
 
     loadMetadata() {
@@ -94,7 +96,9 @@ class Chat {
         this.loadingMessages = true;
         this.db.getMessages().then(kegs => {
             for (const keg of kegs) {
-                if (keg.version !== 1) this.msgMap.set(keg.kegId, new Message(this).loadFromKeg(keg));
+                if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
+                    this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
+                }
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
             }
             this.messagesLoaded = true;
@@ -115,7 +119,9 @@ class Chat {
         this.db.getMessages(this.downloadedUpdateId + 1)
             .then(kegs => {
                 for (const keg of kegs) {
-                    if (keg.version !== 1) this.msgMap.set(keg.kegId, new Message(this).loadFromKeg(keg));
+                    if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
+                        this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
+                    }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
                 }
                 this.updating = false;
@@ -132,11 +138,11 @@ class Chat {
     sendMessage(text) {
         const m = new Message(this);
         m.send(text);
-        this.msgMap.set(m.tempId, m);
+        this.msgMap[m.tempId] = this.messages.push(m);
         when(() => !m.sending, () => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
-            this.msgMap.delete(m.tempId);
-            this.msgMap.set(m.id, m);
+            delete this.msgMap[m.tempId];
+            this.msgMap[m.id] = m;
         });
     }
 
