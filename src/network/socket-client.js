@@ -9,6 +9,7 @@
 const io = require('socket.io-client/socket.io');
 const Promise = require('bluebird');
 const { ServerError } = require('../errors');
+const { observable } = require('mobx');
 
 const STATES = {
     open: 'open',
@@ -44,6 +45,8 @@ class SocketClient {
     socket;
     started = false;
     url = null;
+    @observable connected = false;
+    @observable authenticated = false;
 
     authenticatedEventListeners = [];
     startedEventListeners = [];
@@ -83,12 +86,14 @@ class SocketClient {
         socket.on('connect', () => {
             console.log('\ud83d\udc9a Socket connected.');
             clearBuffers();
+            this.connected = true;
         });
 
         socket.on('disconnect', () => {
             console.log('\ud83d\udc94 Socket disconnected.');
             this.authenticated = false;
             clearBuffers();
+            this.connected = true;
         });
 
         socket.open();
