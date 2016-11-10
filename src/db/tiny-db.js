@@ -39,6 +39,7 @@ const db = {
     setEngine: implementation => {
         engine.setValue = implementation.setValue;
         engine.getValue = implementation.getValue;
+        engine.removeValue = implementation.removeValue;
     },
 
     prefix: 'icebearlib',
