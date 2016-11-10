@@ -83,6 +83,21 @@ describe('User model', () => {
         socket.open();
     });
 
+    it('#06 can get the last authenticated user', function() {
+        return User.getLastAuthenticated()
+            .then((last) => {
+                console.log('last user ', last)
+                last.username.should.equal(user.username);
+                return User.removeLastAuthenticated()
+            })
+            .then(() => {
+                return User.getLastAuthenticated()
+            })
+            .then((last) => {
+                should.not.exist(last)
+            })
+    })
+
     it('Should load existing contact', function (done) {
         this.timeout(4000);
         const c = new Contact('anritest7');

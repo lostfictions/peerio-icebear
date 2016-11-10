@@ -152,7 +152,6 @@ class User {
      * @returns {Promise}
      */
     static setLastAuthenticated(user) {
-        console.log('set last auth', user)
         return storage.set(`last_user_authenticated`, {
             username: user.username,
             firstName: user.firstName,
