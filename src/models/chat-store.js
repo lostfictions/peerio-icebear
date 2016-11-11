@@ -74,6 +74,28 @@ class ChatStore {
         return chat;
     }
 
+    @action findChatWithParticipants(participants) {
+        // COPY PASTE HATE
+        // validating participants
+        if (!participants || !participants.length) {
+            throw new Error('Can not start chat with no participants');
+        }
+        for (const p of participants) {
+            if (p.loading || p.notFound) {
+                throw new Error(`Invalid participant: ${p.username}, loading:${p.loading}, found:${!p.notFound}`);
+            }
+        }
+        // we don't want our own user in participants, it's handled on the lowest level only.
+        // generally ui should assume current user is participant to everything
+        const filteredParticipants = participants.filter(p => p.username !== User.current.username);
+        // maybe we already have this chat cached
+        for (const c of this.chats) {
+            if (c.hasSameParticipants(filteredParticipants)) return c;
+        }
+        return null;
+    }
+
+
     // todo: map
     findById(id) {
         for (const chat of this.chats) {
