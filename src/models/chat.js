@@ -40,7 +40,7 @@ class Chat {
     }
 
     @computed get unreadCount() {
-        if (!this.id) return 0;
+        if (this.active || !this.id) return 0;
         if (!tracker.data.has(this.id)) return 0;
         return tracker.data.get(this.id).message.newKegsCount;
     }

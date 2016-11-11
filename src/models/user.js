@@ -92,7 +92,6 @@ class User {
         return this._preAuth()
             .then(() => this._authenticateConnection())
             .then(() => this.kegdb.loadBootKeg(this.bootKey))
-            .then(() => this.loadProfile())
             .then(() => {
                 // todo: doesn't look very good
                 this.encryptionKeys = this.kegdb.boot.encryptionKeys;
@@ -111,7 +110,8 @@ class User {
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
             this.setReauthOnReconnect();
-            return User.setLastAuthenticated(this);
+            User.setLastAuthenticated(this);
+            return this.loadProfile();
         }
         return Promise.resolve();
     }

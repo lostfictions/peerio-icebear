@@ -36,10 +36,12 @@ module.exports = function mixUserRegisterModule() {
     const _profileKeg = new UserProfile(this.kegdb, this);
 
     this.loadProfile = function() {
+        console.log('Loading user profile.');
         return _profileKeg.load();
     };
 
     this.saveProfile = function() {
+        console.log('Saving user profile.');
         return _profileKeg.saveToServer();
     };
 };
