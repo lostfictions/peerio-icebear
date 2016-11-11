@@ -73,10 +73,12 @@ class Keg {
         try {
             payload = this.serializeKegPayload();
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
-            payload._sys = {
-                kegId: this.id,
-                type: this.type
-            };
+            if (!this.plaintext) {
+                payload._sys = {
+                    kegId: this.id,
+                    type: this.type
+                };
+            }
             // server expects string or binary
             payload = JSON.stringify(payload);
             // should we encrypt the string?
@@ -129,7 +131,7 @@ class Keg {
             payload = secret.decryptString(payload, this.overrideKey || this.db.key);
         }
         payload = JSON.parse(payload);
-        this.detectTampering(payload);
+        if (!this.plaintext) this.detectTampering(payload);
         this.deserializeKegPayload(payload);
 
         return this;

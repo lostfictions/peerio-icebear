@@ -3,32 +3,18 @@
  */
 const Promise = require('bluebird');
 const socket = require('../network/socket');
+const mixUserProfileModule = require('./user.profile');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 const storage = require('../db/tiny-db');
-
+const { observable } = require('mobx');
 
 let currentUser;
-let lastAuthenticatedUser;
 
 class User {
 
-    _username;
-
-    firstName;
-    lastName;
-    email;
-    locale = 'en';
-    passphrase;
-    authSalt;
-    bootKey;
-    authKeys;
-    signKeys;
-    encryptionKeys;
-    kegKey;
-    _firstLoginInSession = true;
-
+    _username='';
     get username() {
         return this._username;
     }
@@ -36,16 +22,36 @@ class User {
     set username(v) {
         this._username = typeof (v) === 'string' ? v.trim().toLowerCase() : '';
     }
+    // -- profile data
+    @observable firstName = '';
+    @observable lastName = '';
+    @observable email = '';
+    @observable locale = 'en';
+    createdAt = null;
+    deleted = false;
+    blacklisted = false;
+    // -- key data
+    passphrase;
+    authSalt;
+    bootKey;
+    authKeys;
+    signKeys;
+    encryptionKeys;
+    kegKey;
+    // -- flags
+    _firstLoginInSession = true;
+
 
     constructor() {
         this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
         this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
         this.login = this.login.bind(this);
+        this.kegdb = new KegDb('SELF');
         // this is not really extending prototype, but we don't care because User is almost a singleton
         // (new instance created on every initial login attempt only)
+        mixUserProfileModule.call(this);
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
-        this.kegdb = new KegDb('SELF');
     }
 
     /**
@@ -86,6 +92,7 @@ class User {
         return this._preAuth()
             .then(() => this._authenticateConnection())
             .then(() => this.kegdb.loadBootKeg(this.bootKey))
+            .then(() => this.loadProfile())
             .then(() => {
                 // todo: doesn't look very good
                 this.encryptionKeys = this.kegdb.boot.encryptionKeys;
