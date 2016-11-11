@@ -37,7 +37,7 @@ class ChatStore {
         socket.send('/auth/kegs/user/collections')
             .then(list => {
                 for (const id of list) {
-                    if (id === 'SELF') continue;
+                    if (id === 'SELF' || this.findById(id) !== null) continue;
                     this.chats.push(new Chat(id));
                 }
                 this.loadError = false;
@@ -51,31 +51,11 @@ class ChatStore {
             });
     }
 
-    //
-    @action startChat(participants) {
-        // validating participants
-        if (!participants || !participants.length) {
-            throw new Error('Can not start chat with no participants');
-        }
-        for (const p of participants) {
-            if (p.loading || p.notFound) {
-                throw new Error(`Invalid participant: ${p.username}, loading:${p.loading}, found:${!p.notFound}`);
-            }
-        }
-        // we don't want our own user in participants, it's handled on the lowest level only.
-        // generally ui should assume current user is participant to everything
-        const filteredParticipants = participants.filter(p => p.username !== User.current.username);
-        // maybe we already have this chat cached
-        for (const c of this.chats) {
-            if (c.hasSameParticipants(filteredParticipants)) return c;
-        }
-        const chat = new Chat(null, filteredParticipants);
-        this.chats.push(chat);
-        return chat;
+    getSelflessParticipants(participants) {
+        return participants.filter(p => p.username !== User.current.username);
     }
 
-    @action findChatWithParticipants(participants) {
-        // COPY PASTE HATE
+    findCachedChatWithParticipants(participants) {
         // validating participants
         if (!participants || !participants.length) {
             throw new Error('Can not start chat with no participants');
@@ -87,14 +67,21 @@ class ChatStore {
         }
         // we don't want our own user in participants, it's handled on the lowest level only.
         // generally ui should assume current user is participant to everything
-        const filteredParticipants = participants.filter(p => p.username !== User.current.username);
+        const filteredParticipants = this.getSelflessParticipants(participants);
         // maybe we already have this chat cached
         for (const c of this.chats) {
             if (c.hasSameParticipants(filteredParticipants)) return c;
         }
         return null;
     }
-
+    //
+    @action startChat(participants) {
+        const cached = this.findCachedChatWithParticipants(participants);
+        if (cached) return cached;
+        const chat = new Chat(null, this.getSelflessParticipants(participants));
+        this.chats.push(chat);
+        return chat;
+    }
 
     // todo: map
     findById(id) {
