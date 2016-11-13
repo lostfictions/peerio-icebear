@@ -2,6 +2,14 @@
 /**
  * Icebear client lib entry point
  */
+const Promise = require('bluebird');
+
+if (typeof window !== 'undefined') {
+    window.Promise = Promise;
+}
+if (typeof global !== 'undefined') {
+    global.Promise = Promise;
+}
 
 // to extend Buffer module for future imports
 require('./extensions/buffer');

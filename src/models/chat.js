@@ -1,4 +1,4 @@
-const { observable, computed, asMap, when, reaction, autorunAsync } = require('mobx');
+const { observable, computed, action, when, reaction, autorunAsync } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
@@ -15,7 +15,7 @@ class Chat {
     @observable id=null;
     // Message objects
     @observable messages= [];
-    @observable msgMap= {};
+    msgMap= {};
     // initial metadata loading
     @observable loadingMeta = false;
     // initial messages loading
@@ -29,7 +29,9 @@ class Chat {
     @observable errorLoadingMeta = false;
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
+    metaLoaded = false;
     messagesLoaded = false;
+
     /** @type {Array<Contact>} */
     @observable participants=null;
 
@@ -61,24 +63,19 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
-        this.loadMetadata();
-        reaction(() => this.maxUpdateId, () => this.updateMessages(), false, 500);
-        autorunAsync(() => {
-            if (this.unreadCount === 0 || !this.active) return;
-            tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
-        }, 2000);
     }
 
     loadMetadata() {
-        if (this.loadingMeta) return;
+        if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
         this.loadingMeta = true;
-        this.db.loadMeta()
-            .then(() => {
+        return this.db.loadMeta()
+            .then(action(() => {
                 this.id = this.db.id;
                 this.participants = this.db.participants;
                 this.errorLoadingMeta = false;
                 this.loadingMeta = false;
-            })
+                this.metaLoaded = true;
+            }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
                 this.errorLoadingMeta = true;
@@ -88,13 +85,12 @@ class Chat {
 
     loadMessages() {
         if (this.messagesLoaded || this.loadingMessages) return;
-        if (this.errorLoadingMeta || this.loadingMeta) {
-            throw new Error('Can not load messages before meta. ' +
-                `meta loading: ${this.loadingMeta}, meta err: ${this.errorLoadingMeta}`);
+        if (!this.metaLoaded) {
+            this.loadMetadata().then(() => this.loadMessages());
         }
         console.log(`Initial message load for ${this.id}`);
         this.loadingMessages = true;
-        this.db.getMessages().then(kegs => {
+        this.db.getMessages().then(action(kegs => {
             for (const keg of kegs) {
                 if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
                     this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
@@ -104,7 +100,12 @@ class Chat {
             this.messagesLoaded = true;
             this.errorLoadingMessages = false;
             this.loadingMessages = false;
-        }).catch(err => {
+            reaction(() => this.maxUpdateId, () => this.updateMessages(), false, 500);
+            autorunAsync(() => {
+                if (this.unreadCount === 0 || !this.active) return;
+                tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
+            }, 2000);
+        })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
             this.errorLoadingMessages = true;
             this.loadingMessages = false;

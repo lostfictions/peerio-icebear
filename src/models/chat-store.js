@@ -1,12 +1,15 @@
-const { observable, action, computed } = require('mobx');
+const { observable, action, computed, asFlat } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const updateTracker = require('./update-tracker');
+const Queue = require('../helpers/queue');
 
 class ChatStore {
-    @observable chats = [];
+    @observable chats = asFlat([]);
+    // to prevent duplicates
+    chatMap = {};
     /** when chat list loading is in progress */
     @observable loading = false;
     /** did chat list fail to load? */
@@ -16,16 +19,27 @@ class ChatStore {
     // loadAllChats() was called and finished once already
     loaded = false;
 
+
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
-
+    preloadCache = [];
     constructor() {
         updateTracker.data.observe(change => {
             if (change.type !== 'add') return;
-            if (change.name === 'SELF' || this.findById(change.name) !== null) return;
             console.log(`New incoming chat: ${change.name}`);
-            this.chats.push(new Chat(change.name));
+            if (this.loaded) this.addChat(change.name);
+            else this.preloadCache.push(change.name);
+        });
+    }
+
+    addChat(id) {
+        if (id === 'SELF' || !!this.chatMap[id]) return Promise.resolve();
+        const c = new Chat(id);
+        return c.loadMetadata().then(() => {
+            if (c.errorLoadingMeta || this.chatMap[id]) return;
+            this.chatMap[id] = c;
+            this.chats.push(c);
         });
     }
 
@@ -35,15 +49,31 @@ class ChatStore {
         this.loading = true;
         // server api returns all keg databases this user has access to
         socket.send('/auth/kegs/user/collections')
-            .then(list => {
+            .then(action(list => {
+                const promises = [];
+                const lChats = [];
                 for (const id of list) {
-                    if (id === 'SELF' || this.findById(id) !== null) continue;
-                    this.chats.push(new Chat(id));
+                    if (id === 'SELF') continue;
+                    const c = new Chat(id);
+                    lChats.push(c);
+                    promises.push(c.loadMetadata());
                 }
-                this.loadError = false;
-                this.loading = false;
-                this.loaded = true;
-            })
+                // loadMetadata() promises never reject
+                return Promise.all(promises).then(action(() => {
+                    for (let i = 0; i < lChats.length; i++) {
+                        const c = lChats[i];
+                        if (c.errorLoadingMeta) continue;
+                        this.chatMap[c.id] = c;
+                        this.chats.push(c);
+                    }
+                    this.loadError = false;
+                    this.loading = false;
+                    this.loaded = true;
+                    setTimeout(() => {
+                        this.preloadCache.forEach(id => { this.addChat(id); });
+                    });
+                }));
+            }))
             .catch(err => {
                 console.error(normalize(err, 'Fail loading chat list.'));
                 this.loadError = true;
@@ -79,20 +109,17 @@ class ChatStore {
         const cached = this.findCachedChatWithParticipants(participants);
         if (cached) return cached;
         const chat = new Chat(null, this.getSelflessParticipants(participants));
-        this.chats.push(chat);
+        chat.loadMetadata()
+            .then(() => {
+                if (this.chatMap[chat.id]) return;
+                this.chatMap[chat.id] = chat;
+                this.chats.push(chat);
+            });
         return chat;
     }
 
-    // todo: map
-    findById(id) {
-        for (const chat of this.chats) {
-            if (chat.id === id) return chat;
-        }
-        return null;
-    }
-
     @action activate(id) {
-        const chat = this.findById(id);
+        const chat = this.chatMap[id];
         if (!chat) return;
         if (this.activeChat) this.activeChat.active = false;
         chat.active = true;
