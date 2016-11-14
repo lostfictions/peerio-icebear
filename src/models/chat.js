@@ -4,6 +4,7 @@ const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const tracker = require('./update-tracker');
+const socket = require('../network/socket');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -83,6 +84,17 @@ class Chat {
             });
     }
 
+    /**
+     * Returns  list of message kegs in this database starting from collection version
+     * @returns {Promise<Array<MessageKeg>>}
+     */
+    _getMessages(min) {
+        return socket.send('/auth/kegs/query', {
+            collectionId: this.id,
+            minCollectionVersion: min || 0,
+            query: { type: 'message' }
+        });
+    }
     loadMessages() {
         if (this.messagesLoaded || this.loadingMessages) return;
         if (!this.metaLoaded) {
@@ -90,7 +102,7 @@ class Chat {
         }
         console.log(`Initial message load for ${this.id}`);
         this.loadingMessages = true;
-        this.db.getMessages().then(action(kegs => {
+        this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
                 if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
                     this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
@@ -100,7 +112,7 @@ class Chat {
             this.messagesLoaded = true;
             this.errorLoadingMessages = false;
             this.loadingMessages = false;
-            reaction(() => this.maxUpdateId, () => this.updateMessages(), false, 500);
+            reaction(() => this.maxUpdateId, () => this.updateMessages(), false);
             autorunAsync(() => {
                 if (this.unreadCount === 0 || !this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
@@ -117,7 +129,7 @@ class Chat {
             || this.downloadedUpdateId >= this.maxUpdateId) return;
         console.log(`Updating messages for ${this.id} known: ${this.downloadedUpdateId}, max: ${this.maxUpdateId}`);
         this.updating = true;
-        this.db.getMessages(this.downloadedUpdateId + 1)
+        this._getMessages(this.downloadedUpdateId + 1)
             .then(kegs => {
                 for (const keg of kegs) {
                     if (keg.version !== 1 && !this.msgMap[keg.kegId]) {

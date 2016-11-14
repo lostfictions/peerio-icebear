@@ -45,17 +45,6 @@ class ChatKegDb {
                      .then(this._fillFromMeta);
     }
 
-    /**
-     * Returns  list of message kegs in this database starting from collection version
-     * @returns {Promise<Array<MessageKeg>>}
-     */
-    getMessages(min) {
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
-            minCollectionVersion: min || 0,
-            query: { type: 'message' }
-        });
-    }
 
     _fillFromMeta(meta) {
         this.id = meta.id;
