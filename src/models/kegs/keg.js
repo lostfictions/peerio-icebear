@@ -29,6 +29,7 @@ class Keg {
         this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
         this.collectionVersion = 0; // @type {number} kegType-wide last update id for this keg
+        this.props = {};
     }
 
     /**
@@ -96,6 +97,7 @@ class Keg {
                 keyId: '0',
                 type: this.type,
                 payload,
+                props: this.props,
                 // todo: this should be done smarter when we have save retry, keg edit and reconcile
                 version: ++this.version
             }
@@ -122,6 +124,7 @@ class Keg {
         this.id = keg.kegId;
         this.version = keg.version;
         this.collectionVersion = keg.collectionVersion;
+        this.props = keg.props;
         //  is this an empty keg? probably just created.
         if (!keg.payload) return this;
         let payload = keg.payload;
