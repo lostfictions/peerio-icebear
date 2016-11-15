@@ -110,8 +110,10 @@ class User {
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
             this.setReauthOnReconnect();
-            User.setLastAuthenticated(this);
-            return this.loadProfile();
+            return this.loadProfile()
+                .then(() => {
+                    User.setLastAuthenticated(this);
+                })
         }
         return Promise.resolve();
     }
@@ -159,6 +161,8 @@ class User {
      * @returns {Promise}
      */
     static setLastAuthenticated(user) {
+        console.log('set last authenticated', user)
+        console.log('fn', user.firstName)
         return storage.set(`last_user_authenticated`, {
             username: user.username,
             firstName: user.firstName,
