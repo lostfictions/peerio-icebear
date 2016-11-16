@@ -28,6 +28,7 @@ class KnownTypesTracker {
         @observable system = new UpdateInfo();
         @observable profile = new UpdateInfo();
         @observable message = new UpdateInfo();
+        @observable file = new UpdateInfo();
 }
 
 class UpdateTracker {

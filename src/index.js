@@ -25,6 +25,7 @@ const errors = require('./errors');
 const db = require('./db/tiny-db');
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
+const fileStore = require('./models/file-store');
 const validation = require('./helpers/validation');
 
 module.exports = {
@@ -39,4 +40,5 @@ module.exports = {
     contactStore,
     chatStore,
     validation
+    fileStore
 };

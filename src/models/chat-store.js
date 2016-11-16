@@ -4,7 +4,6 @@ const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const updateTracker = require('./update-tracker');
-const Queue = require('../helpers/queue');
 
 class ChatStore {
     @observable chats = asFlat([]);
@@ -23,6 +22,7 @@ class ChatStore {
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
+
     preloadCache = [];
     constructor() {
         updateTracker.data.observe(change => {
