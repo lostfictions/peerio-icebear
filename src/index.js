@@ -39,6 +39,6 @@ module.exports = {
     setTinyDbEngine: db.setEngine,
     contactStore,
     chatStore,
+    fileStore,
     validation
-    fileStore
 };
