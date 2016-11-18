@@ -92,7 +92,7 @@ class ChatKegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     _loadBootKeg() {
-        console.log(`Loading chat boot keg for ${this.id}`);
+       // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
         return boot.load().then(() => {
             this.boot = boot;
