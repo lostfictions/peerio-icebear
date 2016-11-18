@@ -25,6 +25,7 @@ const errors = require('./errors');
 const db = require('./db/tiny-db');
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
+const validation = require('./helpers/validation');
 
 module.exports = {
     errors,
@@ -36,5 +37,6 @@ module.exports = {
     db,
     setTinyDbEngine: db.setEngine,
     contactStore,
-    chatStore
+    chatStore,
+    validation
 };
