@@ -22,7 +22,7 @@ const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
-const db = require('./db/tiny-db');
+const setTinyDbEngine = require('./db/tiny-db').setEngine;
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
 const fileStore = require('./models/file-store');
@@ -35,8 +35,7 @@ module.exports = {
     cryptoUtil,
     User,
     PhraseDictionary,
-    db,
-    setTinyDbEngine: db.setEngine,
+    setTinyDbEngine,
     contactStore,
     chatStore,
     fileStore,
