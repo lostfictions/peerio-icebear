@@ -154,6 +154,22 @@ class Keg {
      */
     deserializeKegPayload(payload) {}
 
+    /**
+     * Generic version that uses this.props object as-is
+     * @returns {Object}
+     */
+    serializeProps() {
+        return this.props || {};
+    }
+
+    /**
+     * Generic version that puts props object as-is to this.prop
+     * @param {Object} props
+     */
+    deserializeProps(props) {
+        this.props = props;
+    }
+
 
     /**
      * Compares keg metadata with encrypted payload to make sure server didn't change metadata.
