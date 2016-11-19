@@ -116,7 +116,7 @@ class Chat {
             autorunAsync(() => {
                 if (this.unreadCount === 0 || !this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
-            }, 2000);
+            }, 700);
         })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
             this.errorLoadingMessages = true;
