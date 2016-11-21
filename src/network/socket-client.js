@@ -93,7 +93,7 @@ class SocketClient {
             console.log('\ud83d\udc94 Socket disconnected.');
             this.authenticated = false;
             clearBuffers();
-            this.connected = true;
+            this.connected = false;
         });
 
         socket.open();
