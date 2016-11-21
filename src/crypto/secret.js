@@ -28,8 +28,11 @@ const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 /**
  * Encrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox().
+ * @param {Uint8Array} msgBytes
+ * @param {Uint8Array} key
+ * @param {[Uint8Array]} extNonce - in case you have o
  */
-exports.encrypt = function(msgBytes, key) {
+exports.encrypt = function(msgBytes, key, extNonce) {
     // validating arguments
     if (!(msgBytes instanceof Uint8Array
         && key instanceof Uint8Array
@@ -46,7 +49,7 @@ exports.encrypt = function(msgBytes, key) {
     const c1 = new Uint8Array(m.length + 24); /* NONCEBYTES */
     // appending nonce to the end of cipher bytes
     for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
-    // view of the same ArrayBuffer for encryption algorythm that does not know about our nonce concatenation
+    // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
     const c = c1.subarray(0, -24);// IDEA: check if we can skip this step
     nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
 

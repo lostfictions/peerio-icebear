@@ -70,7 +70,7 @@ class Keg {
      * @private
      */
     _internalSave() {
-        let payload;
+        let payload, props;
         try {
             payload = this.serializeKegPayload();
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
@@ -86,6 +86,7 @@ class Keg {
             if (!this.plaintext) {
                 payload = secret.encryptString(payload, this.overrideKey || this.db.key).buffer;
             }
+            props = this.serializeProps();
         } catch (err) {
             console.error('Fail preparing keg to save.', err);
             return Promise.reject(err);
@@ -97,7 +98,7 @@ class Keg {
                 keyId: '0',
                 type: this.type,
                 payload,
-                props: this.props,
+                props,
                 // todo: this should be done smarter when we have save retry, keg edit and reconcile
                 version: ++this.version
             }
@@ -124,7 +125,6 @@ class Keg {
         this.id = keg.kegId;
         this.version = keg.version;
         this.collectionVersion = keg.collectionVersion;
-        this.props = keg.props;
         //  is this an empty keg? probably just created.
         if (!keg.payload) return this;
         let payload = keg.payload;
@@ -136,7 +136,7 @@ class Keg {
         payload = JSON.parse(payload);
         if (!this.plaintext) this.detectTampering(payload);
         this.deserializeKegPayload(payload);
-
+        this.deserializeProps(keg.props);
         return this;
     }
 

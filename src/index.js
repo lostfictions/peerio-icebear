@@ -11,8 +11,6 @@ if (typeof global !== 'undefined') {
     global.Promise = Promise;
 }
 
-// to extend Buffer module for future imports
-require('./extensions/buffer');
 require('./extensions/uint8array');
 
 // to create socket client singleton instance
@@ -27,6 +25,7 @@ const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
 const fileStore = require('./models/file-store');
 const validation = require('./helpers/validation');
+const FileStreamAbstract = require('./models/file-stream');
 
 module.exports = {
     errors,
@@ -39,5 +38,6 @@ module.exports = {
     contactStore,
     chatStore,
     fileStore,
-    validation
+    validation,
+    FileStreamAbstract
 };

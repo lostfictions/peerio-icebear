@@ -11,47 +11,52 @@ class FileStreamAbstract {
     /**
      * @param {string} filePath - will be used by 'open' function
      * @param {string} mode - 'read' or 'write'
+     * @param {number} bufferSize
      */
-    constructor(filePath, mode) {
+    constructor(filePath, mode, bufferSize = 1024 * 512) {
         this.filePath = filePath;
         if (mode !== 'read' && mode !== 'write') {
             throw new Error('Invalid stream mode.');
+        }
+        if (mode === 'read') {
+            /** @type {Uint8Array} public interface read buffer */
+            this.buffer = new Uint8Array(bufferSize);
         }
         this.mode = mode;
     }
 
     /**
      * Reads a chunk of data from file stream
-     * @param {number} size - amount of bytes to read from stream (can return less in case of reaching EOF)
-     * @return {Promise<Uint8Array>} - resolves with chunk of data or null in case of EOF
+     * @return {Promise<number>} - resolves with a number of bytes written to buffer
      */
-    read(size) {
-        if (this.mode !== 'read') return Promise.reject(new Error('Attempt to read from write stream.'));
-        if (size <= 0) return Promise.reject(new Error('FileStream.read(): Invalid size. '));
-        return this.readInternal(size);
+    read() {
+        if (this.mode !== 'read') {
+            return Promise.reject(new Error('Attempt to read from write stream.'));
+        }
+        return this.readInternal();
     }
 
-    readInternal(size) {
+    readInternal() {
         throw new AbstractCallError();
     }
 
     /**
      * Writes a chunk of data to file stream
-     * @param {Uint8Array} bytes
-     * @returns {Promise} - resolves when chunk is written out
+     * @param {Uint8Array} buffer
+     * @returns {Promise} - resolves when chunk is written out,
      */
-    write(bytes) {
+    write(buffer) {
         if (this.mode !== 'write') return Promise.reject(new Error('Attempt to write to read stream.'));
-        if (!bytes || !bytes.length) return Promise.resolve();
-        return this.writeInternal(bytes);
+        if (!buffer || !buffer.length) return Promise.resolve();
+        return this.writeInternal(buffer);
     }
 
-    writeInternal(bytes) {
+    writeInternal(buffer) {
         throw new AbstractCallError();
     }
 
     /**
-     * @returns {Promise} - resolves when file is open and ready for reading/writing
+     * @returns {Promise<number>} - resolves with file size when file is open and ready for reading/writing
      */
     open() {
         throw new AbstractCallError();
@@ -64,6 +69,8 @@ class FileStreamAbstract {
         throw new AbstractCallError();
     }
 
+    // Set implementation from client app code
+    static FileStream = null;
 }
 
 module.exports = FileStreamAbstract;
