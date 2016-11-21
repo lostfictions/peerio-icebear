@@ -92,8 +92,8 @@ class SocketClient {
         socket.on('disconnect', () => {
             console.log('\ud83d\udc94 Socket disconnected.');
             this.authenticated = false;
-            clearBuffers();
             this.connected = false;
+            clearBuffers();
         });
 
         socket.open();
