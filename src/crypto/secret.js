@@ -21,7 +21,7 @@ const { EncryptionError, DecryptionError } = require('../errors');
 // const BOXZEROBYTES = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
 // const ZEROBYTES = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
 // const NONCEBYTES = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
-const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
+// const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
 
 // IDEA: try reusing same large ArrayBuffer for output
 
@@ -30,30 +30,35 @@ const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
  * This is a refactored version of nacl.secretbox().
  * @param {Uint8Array} msgBytes
  * @param {Uint8Array} key
- * @param {[Uint8Array]} extNonce - in case you have o
+ * @param {[Uint8Array]} nonce - (24 byte) in case you have want to set your own nonce instead of random one
+ * @param {boolean} appendNonce - default 'true'
  */
-exports.encrypt = function(msgBytes, key, extNonce) {
+exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(), appendNonce = true) {
     // validating arguments
+    // todo: do we need this validation, or encryption failed due to invalid args is not a security issue?
+    /*
     if (!(msgBytes instanceof Uint8Array
         && key instanceof Uint8Array
         && key.length === KEY_LENGTH)) {
         throw new EncryptionError('secret.encrypt: Invalid argument type or key length.');
     }
+    */
+    // todo: there must be a way to avoid this allocation and copy(change tweetnacl.js?)
+    const fullMsgLength = 32 + msgBytes.length; /* ZEROBYTES */
+    const m = new Uint8Array(fullMsgLength);
+    for (let i = 32; i < fullMsgLength; i++) m[i] = msgBytes[i];
 
-    // IDEA: there must be a way to avoid this allocation and copy
-    const m = new Uint8Array(32 + msgBytes.length); /* ZEROBYTES */
-    for (let i = 0; i < msgBytes.length; i++) m[i + 32] = msgBytes[i];
-
-    const nonce = util.getRandomNonce();
-    // container for cipher bytes concatenated with nonce
-    const c1 = new Uint8Array(m.length + 24); /* NONCEBYTES */
-    // appending nonce to the end of cipher bytes
-    for (let i = 0; i < nonce.length; i++) c1[i + m.length] = nonce[i];
+    let c;
+    if (appendNonce) {
+        // container for cipher bytes concatenated with nonce
+        c = new Uint8Array(m.length + 24); /* NONCEBYTES */
+        // appending nonce to the end of cipher bytes
+        for (let i = 0; i < nonce.length; i++) c[i + m.length] = nonce[i];
+    } else c = new Uint8Array(m.length);
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
-    const c = c1.subarray(0, -24);// IDEA: check if we can skip this step
-    nacl.lowlevel.crypto_secretbox(c, m, m.length, nonce, key);
+    nacl.lowlevel.crypto_secretbox(appendNonce ? c.subarray(0, -24) : c, m, m.length, nonce, key);
 
-    return c1;// contains 16 zero bytes in the beginning
+    return c;// contains 16 zero bytes in the beginning, needed for decryption
 };
 
 /**
@@ -67,21 +72,24 @@ exports.encryptString = function(msg, key) {
 /**
  * Decrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox.open().
+ * @param {Uint8Array} cipher - cipher bytes with 16 zerobytes prepended and optionally appended nonce
+ * @param {Uint8Array} key
+ * @param {[Uint8Array]} nonce - optional nonce (specify when it's not appended to cipher bytes)
  */
-exports.decrypt = function(cipher, key) {
+exports.decrypt = function(cipher, key, nonce) {
+    /*
     if (!(cipher instanceof Uint8Array
         && key instanceof Uint8Array
         && key.length === KEY_LENGTH
-        && cipher.length >= 56)) { /* NONCEBYTES + ZEROBYTES */
+        && cipher.length >= 56)) {
         throw new DecryptionError('secret.decrypt: Invalid argument type or length.');
     }
-
-    const c = cipher.subarray(0, -24);
+    */
+    const c = nonce ? cipher : cipher.subarray(0, -24);
     const m = new Uint8Array(c.length);
-    if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, cipher.subarray(-24), key) !== 0) {
+    if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, nonce || cipher.subarray(-24), key) !== 0) {
         throw new DecryptionError('Decryption failed.');
     }
-
     return m.subarray(32); /* ZEROBYTES */
 };
 

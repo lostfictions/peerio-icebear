@@ -8,6 +8,8 @@ const User = require('./user');
 const fileHelper = require('../helpers/file');
 const errors = require('../errors');
 const socket = require('../network/socket');
+const FileUploader = require('./file-uploader');
+const FileNonceGenerator = require('./file-nonce-generator');
 
 class File extends Keg {
     constructor(db) {
@@ -16,7 +18,6 @@ class File extends Keg {
             this.ext = fileHelper.getFileExtension(this.name);
         });
     }
-
 
     /**
      * Server needs some time to process file and upload it to cloud
@@ -34,13 +35,15 @@ class File extends Keg {
     serializeKegPayload() {
         return {
             name: this.name,
-            key: this.key
+            key: this.key,
+            nonce: this.nonce
         };
     }
 
     deserializeKegPayload(data) {
         this.name = data.name;
         this.key = data.key;
+        this.nonce = data.nonce;
     }
 
     serializeProps() {
@@ -62,26 +65,34 @@ class File extends Keg {
 
 
     upload(filePath) {
+        // prevent invalid use
+        if (this.uploading) throw new Error('Upload() call on file in uploading state');
         this.uploading = true;
         this.progress = 0;
-
+        // preparing stream
+        const chunkSize = 1024 * 512;
+        const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
+        const nonceGen = new FileNonceGenerator();
+        // setting keg properties
+        this.nonce = nonceGen.nonce;
         this.uploadedAt = new Date();
         this.name = fileHelper.getFileName(filePath);
         this.key = keys.generateEncryptionKey();
         this.fileId = util.getRandomFileId(User.current.username);
-        const chunkSize = 1024 * 512;
-        const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
+
         return stream.open()
             .then(size => {
+                console.log(`File read stream open. File size: ${size}`);
                 this.size = size;
                 return this.saveToServer();
             })
             .then(() => {
                 return new Promise((resolve, reject) => {
-                    this.uploadChunk(stream, 0, Math.ceil(this.size / chunkSize) - 1, err => {
-                        if (err) reject(errors.normalize(err));
-                        else resolve();
+                    const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
+                    const uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
+                        err ? reject(errors.normalize(err)) : resolve();
                     });
+                    uploader.start();
                 });
             })
             .finally(() => {
@@ -90,16 +101,16 @@ class File extends Keg {
             });
     }
 
-    uploadChunk(stream, chunkNum, maxChunkNum, callback) {
-        this.progress = maxChunkNum > 0 ? Math.min(100, Math.floor(chunkNum / (maxChunkNum / 100))) : 0;
+    uploadChunk(stream, chunkNum, maxChunkNum, nonce, callback) {
         stream.read()
             .then(bytesRead => {
-                if (bytesRead === 0) {
-                    if (chunkNum - 1 !== maxChunkNum) {
-                        callback(new Error(
-                            'Stream reader returned 0 bytes,' +
-                            `but last uploaded chunk is ${chunkNum - 1}/${maxChunkNum}`));
-                    } else callback();
+                if (chunkNum === maxChunkNum) {
+                    if (bytesRead === 0) {
+                        callback();
+                        return;
+                    }
+                    callback(new Error(`Upload data discrepancy. read ${bytesRead} bytes, ` +
+                                       `chunks ${chunkNum - 1}/${maxChunkNum}`));
                     return;
                 }
                 let buffer = stream.buffer;
@@ -109,7 +120,7 @@ class File extends Keg {
                 const sendBuffer = secret.encrypt(buffer, this.key);
                 socket.send('/auth/dev/file/upload-chunk', {
                     fileId: this.fileId,
-                    chunkNum,
+                    chunkId,
                     chunk: sendBuffer.buffer,
                     last: chunkNum === maxChunkNum
                 }).then(() => this.uploadChunk(stream, chunkNum + 1, maxChunkNum, callback));

@@ -125,8 +125,14 @@ function getRandomFileId(username) {
     return bytesToB64(fileId);
 }
 
+
+const converterDataView = new DataView(new ArrayBuffer(4));
 function numberToByteArray(num) {
-    return [num & 0xff, (num >>> 8) & 0xff, (num >>> 16) & 0xff, num >>> 24];
+    converterDataView.setUint32(0, num);
+    return new Uint8Array(converterDataView.buffer.slice());
+}
+function byteArrayToNumber(arr, offset, length) {
+    return new DataView(arr.buffer, offset, length).getUint32(0);
 }
 
 /**
@@ -171,6 +177,7 @@ module.exports = {
     bytesToStr,
     strToBytes,
     numberToByteArray,
+    byteArrayToNumber,
     concatTypedArrays,
     getHexHash,
     getByteHash,
