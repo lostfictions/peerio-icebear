@@ -6,7 +6,7 @@ const User = require('./user');
 const File = require('./file');
 
 class FileStore {
-    @observable files = [];
+    @observable files = []; // todo: this needs to be asFlat(?) - but check for props update in FileLine
     @observable loading = false;
     loaded = false;
 

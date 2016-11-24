@@ -72,7 +72,7 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = 1024 * 512;
+        const chunkSize = 1024 * 256;
         const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
         // setting keg properties

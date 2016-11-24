@@ -39,5 +39,4 @@ describe('Secret key encryption module', () => {
         const actual = crypto.decryptString(encrypted, key);
         actual.should.eql(expected);
     });
-
 });

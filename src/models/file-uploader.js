@@ -14,9 +14,9 @@ class FileUploader {
     cipherChunks = [];
 
     // max data chunks in read queue
-    dataChunksLimit = 3;
+    dataChunksLimit = 2;
     // max data chunks in encrypt queue
-    cipherChunksLimit = 2;
+    cipherChunksLimit = 3;
 
     // currently reading a chunk from file
     reading = false;
@@ -28,8 +28,6 @@ class FileUploader {
     stop = false;
     // end of file reached while reading file
     eofReached = false;
-    // last chunk uploaded
-    lastChunkSent = false;
 
     lastReadChunkId = -1;
     callbackCalled = false;
@@ -112,23 +110,23 @@ class FileUploader {
         this.cipherChunks.push(chunk);
         this.encrypting = false;
         this.file.progressBuffer = Math.ceil(
-            (chunk.id + 1 + this.cipherChunks.length) / ((this.maxChunkId + 1) / 100));
+            (chunk.id + 1 ) / ((this.maxChunkId + 1) / 100));
         this._tick();
     }
-
+    chunksWaitingForResponse = 0;
     _uploadChunk() {
-        if (this.stop || this.uploading || !this.cipherChunks.length) return;
+        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse>2) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
         console.log(`${this.file.fileId}: uploading next chunk ${chunk.id}`);
+        this.chunksWaitingForResponse++;
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
             chunk: chunk.buffer.buffer,
             last: chunk.id === this.maxChunkId
         }).then(() => {
-            this.lastChunkSent = chunk.id === this.maxChunkId;
-            this.uploading = false;
+            this.chunksWaitingForResponse--;
             this.file.progress = Math.floor((chunk.id + 1) / ((this.maxChunkId + 1) / 100));
             this._tick();
         }).catch(err => {
@@ -136,14 +134,12 @@ class FileUploader {
             this.stop = true;
             this._callCallback(errors.normalize(err));
         });
+        this.uploading = false;
+        this._tick();
     }
 
     _checkIfFinished() {
-        if (this._allDone() || this.lastChunkSent) {
-            if (!this._allDone() || !this.lastChunkSent) {
-                console.error(`State discrepancy during file upload. ${this.toString()}`);
-                return;
-            }
+        if (this._allDone()) {
             console.log(`Successfully done uploading file: ${this.file.fileId}`, this.toString());
             this._callCallback();
         }
@@ -159,7 +155,6 @@ class FileUploader {
             uploading: this.uploading,
             stop: this.stop,
             eofReached: this.eofReached,
-            lastChunkSent: this.lastChunkSent,
             lastReadChunkId: this.lastReadChunkId,
             maxChunkId: this.maxChunkId,
             callbackCalled: this.callbackCalled
