@@ -6,7 +6,7 @@ const User = require('./user');
 const File = require('./file');
 
 class FileStore {
-    @observable files = asFlat([]);
+    @observable files = [];
     @observable loading = false;
     loaded = false;
 

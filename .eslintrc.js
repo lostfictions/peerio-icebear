@@ -2,17 +2,18 @@ module.exports = {
     root: true,
     parser: 'babel-eslint',
     extends: [
-        "peerio"
+        'peerio'
     ],
-    rules:{
-        "no-labels":0
+    rules: {
+        'no-labels': 0,
+        'no-mixed-operators': 0
     },
-    globals:{
+    globals: {
         TextEncoder: false,
         TextDecoder: false,
         crypto: false,
         window: false,
-        xdescribe:false,
+        xdescribe: false,
         ENV: false,
         STAGING_SOCKET_SERVER: false
     }

@@ -27,6 +27,7 @@ class File extends Keg {
     @observable uploading = false;
     @observable downloading = false;
     @observable progress = 0;
+    @observable progressBuffer = 0;
     @observable name = '';
     @observable ext ='';
     @observable size = 0;
@@ -69,6 +70,7 @@ class File extends Keg {
         if (this.uploading) throw new Error('Upload() call on file in uploading state');
         this.uploading = true;
         this.progress = 0;
+        this.progressBuffer = 0;
         // preparing stream
         const chunkSize = 1024 * 512;
         const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
@@ -98,34 +100,9 @@ class File extends Keg {
             .finally(() => {
                 this.uploading = false;
                 this.progress = 0;
+                this.progressBuffer = 0;
+                stream && stream.close();
             });
-    }
-
-    uploadChunk(stream, chunkNum, maxChunkNum, nonce, callback) {
-        stream.read()
-            .then(bytesRead => {
-                if (chunkNum === maxChunkNum) {
-                    if (bytesRead === 0) {
-                        callback();
-                        return;
-                    }
-                    callback(new Error(`Upload data discrepancy. read ${bytesRead} bytes, ` +
-                                       `chunks ${chunkNum - 1}/${maxChunkNum}`));
-                    return;
-                }
-                let buffer = stream.buffer;
-                if (bytesRead !== buffer.length) {
-                    buffer = buffer.slice(0, bytesRead);
-                }
-                const sendBuffer = secret.encrypt(buffer, this.key);
-                socket.send('/auth/dev/file/upload-chunk', {
-                    fileId: this.fileId,
-                    chunkId,
-                    chunk: sendBuffer.buffer,
-                    last: chunkNum === maxChunkNum
-                }).then(() => this.uploadChunk(stream, chunkNum + 1, maxChunkNum, callback));
-            })
-            .catch(err => callback(err || new Error('Unknown error: Failed to upload file.')));
     }
 
 

@@ -13,17 +13,12 @@
  * @module crypto/secret
  */
 
+// IDEA: try reusing same large ArrayBuffer for output
 const nacl = require('tweetnacl');
 const util = require('./util');
-const { EncryptionError, DecryptionError } = require('../errors');
+const { DecryptionError } = require('../errors');
 
-// this is for reference, in the code we use numbers for better comprehension
-// const BOXZEROBYTES = nacl.lowlevel.crypto_secretbox_BOXZEROBYTES;
-// const ZEROBYTES = nacl.lowlevel.crypto_secretbox_ZEROBYTES;
-// const NONCEBYTES = nacl.lowlevel.crypto_secretbox_NONCEBYTES;
-// const KEY_LENGTH = nacl.lowlevel.crypto_secretbox_KEYBYTES;
-
-// IDEA: try reusing same large ArrayBuffer for output
+const NONCE_SIZE = 24;
 
 /**
  * Encrypts and authenticates data using symmetric encryption.
@@ -32,8 +27,10 @@ const { EncryptionError, DecryptionError } = require('../errors');
  * @param {Uint8Array} key
  * @param {[Uint8Array]} nonce - (24 byte) in case you have want to set your own nonce instead of random one
  * @param {boolean} appendNonce - default 'true'
+ * @param {boolean} prependLength - if true - adds 4 bytes containing message length to the beginning
  */
-exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(), appendNonce = true) {
+exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
+                           appendNonce = true, prependLength = false) {
     // validating arguments
     // todo: do we need this validation, or encryption failed due to invalid args is not a security issue?
     /*
@@ -46,17 +43,22 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(), appendN
     // todo: there must be a way to avoid this allocation and copy(change tweetnacl.js?)
     const fullMsgLength = 32 + msgBytes.length; /* ZEROBYTES */
     const m = new Uint8Array(fullMsgLength);
-    for (let i = 32; i < fullMsgLength; i++) m[i] = msgBytes[i];
+    for (let i = 32; i < fullMsgLength; i++) m[i] = msgBytes[i - 32];
 
-    let c;
+    const lengthAdded = (appendNonce ? NONCE_SIZE : 0) + (prependLength ? 4 : 0);
+        // container for cipher bytes
+    const c = new Uint8Array(m.length + lengthAdded);
     if (appendNonce) {
-        // container for cipher bytes concatenated with nonce
-        c = new Uint8Array(m.length + 24); /* NONCEBYTES */
-        // appending nonce to the end of cipher bytes
-        for (let i = 0; i < nonce.length; i++) c[i + m.length] = nonce[i];
-    } else c = new Uint8Array(m.length);
+        for (let i = 0; i < NONCE_SIZE; i++) c[c.length - NONCE_SIZE + i] = nonce[i];
+    }
+    if (prependLength) {
+        const l = util.numberToByteArray(c.length - 4);
+        for (let i = 0; i < 4; i++) c[i] = l[i];
+    }
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
-    nacl.lowlevel.crypto_secretbox(appendNonce ? c.subarray(0, -24) : c, m, m.length, nonce, key);
+    nacl.lowlevel.crypto_secretbox(
+        lengthAdded ? c.subarray(prependLength ? 4 : 0, appendNonce ? -NONCE_SIZE : undefined) : c,
+        m, m.length, nonce, key);
 
     return c;// contains 16 zero bytes in the beginning, needed for decryption
 };
@@ -75,8 +77,9 @@ exports.encryptString = function(msg, key) {
  * @param {Uint8Array} cipher - cipher bytes with 16 zerobytes prepended and optionally appended nonce
  * @param {Uint8Array} key
  * @param {[Uint8Array]} nonce - optional nonce (specify when it's not appended to cipher bytes)
+ * @param {[boolean]} containsLength
  */
-exports.decrypt = function(cipher, key, nonce) {
+exports.decrypt = function(cipher, key, nonce, containsLength) {
     /*
     if (!(cipher instanceof Uint8Array
         && key instanceof Uint8Array
@@ -85,9 +88,21 @@ exports.decrypt = function(cipher, key, nonce) {
         throw new DecryptionError('secret.decrypt: Invalid argument type or length.');
     }
     */
-    const c = nonce ? cipher : cipher.subarray(0, -24);
+    let start = 0, end;
+    if (!nonce) {
+        nonce = cipher.subarray(-NONCE_SIZE); //eslint-disable-line
+        end = -NONCE_SIZE;
+    }
+    if (containsLength) {
+        start = 4;
+    }
+
+    let c = cipher;
+    if (start || end) {
+        c = c.subarray(start, end);
+    }
     const m = new Uint8Array(c.length);
-    if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, nonce || cipher.subarray(-24), key) !== 0) {
+    if (nacl.lowlevel.crypto_secretbox_open(m, c, c.length, nonce, key) !== 0) {
         throw new DecryptionError('Decryption failed.');
     }
     return m.subarray(32); /* ZEROBYTES */

@@ -40,7 +40,4 @@ describe('Secret key encryption module', () => {
         actual.should.eql(expected);
     });
 
-    it('should throw in invalid message type (not string or Uint8Array)', () => {
-        (() => crypto.encrypt(1234, key)).should.throw(Error);
-    });
 });
