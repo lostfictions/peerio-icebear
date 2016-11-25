@@ -110,12 +110,12 @@ class FileUploader {
         this.cipherChunks.push(chunk);
         this.encrypting = false;
         this.file.progressBuffer = Math.ceil(
-            (chunk.id + 1 ) / ((this.maxChunkId + 1) / 100));
+            (chunk.id + 1) / ((this.maxChunkId + 1) / 100));
         this._tick();
     }
     chunksWaitingForResponse = 0;
     _uploadChunk() {
-        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse>2) return;
+        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 2) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
         console.log(`${this.file.fileId}: uploading next chunk ${chunk.id}`);
