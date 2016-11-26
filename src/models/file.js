@@ -94,19 +94,24 @@ class File extends Keg {
             .then(() => {
                 return new Promise((resolve, reject) => {
                     const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
-                    const uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
+                    this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
                      //   this.uploading = false;
                         err ? reject(errors.normalize(err)) : resolve();
                     });
-                    uploader.start();
+                    this.uploader.start();
                 });
             })
             .finally(() => {
                 this.uploading = false;
                 this.progress = 0;
                 this.progressBuffer = 0;
+                this.uploader = null;
                 stream && stream.close();
             });
+    }
+
+    cancelUpload() {
+        if (this.uploader) this.uploader.cancel();
     }
 
 

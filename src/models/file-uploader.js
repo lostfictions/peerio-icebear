@@ -53,6 +53,10 @@ class FileUploader {
         this._tick();
     }
 
+    cancel(){
+        this.stop = true;
+    }
+
     /**
      * Wrapper around callback call makes it asynchronous and prevents more then 1 call
      * @param {[Error]} err - in case there was an error

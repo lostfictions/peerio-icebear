@@ -132,6 +132,7 @@ class Keg {
         this.id = keg.kegId;
         this.version = keg.version;
         this.owner = keg.owner;
+        this.deleted = keg.deleted;
         this.collectionVersion = keg.collectionVersion;
         //  is this an empty keg? probably just created.
         if (!keg.payload) return this;
