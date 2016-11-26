@@ -15,6 +15,7 @@ module.exports = {
         window: false,
         xdescribe: false,
         ENV: false,
-        STAGING_SOCKET_SERVER: false
+        STAGING_SOCKET_SERVER: false,
+        WebSocket: false
     }
 };

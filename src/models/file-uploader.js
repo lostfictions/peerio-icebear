@@ -53,7 +53,7 @@ class FileUploader {
         this._tick();
     }
 
-    cancel(){
+    cancel() {
         this.stop = true;
     }
 

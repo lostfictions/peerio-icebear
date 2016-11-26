@@ -25,7 +25,7 @@ class FileStore {
                 const file = new File(User.current.kegdb);
                 file.loadFromKeg(keg);
                 // todo: remove after server fixes query by deleted
-                if(!file.deleted) this.files.push(file);
+                if (!file.deleted) this.files.push(file);
             }
             this.loading = false;
             this.loaded = true;
@@ -43,7 +43,7 @@ class FileStore {
     }
 
     remove(file) {
-        //todo: re-add on fail? notify
+        // todo: re-add on fail? notify
         this.files.remove(file);
         file.remove();
     }
