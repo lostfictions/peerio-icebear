@@ -118,12 +118,20 @@ class Keg {
         }).then(keg => this.loadFromKeg(keg));
     }
 
+    remove() {
+        return socket.send('/auth/kegs/delete', {
+            collectionId: this.db.id,
+            kegId: this.id
+        });
+    }
+
     loadFromKeg(keg) {
         if (this.id && this.id !== keg.kegId) {
             throw new Error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
         }
         this.id = keg.kegId;
         this.version = keg.version;
+        this.owner = keg.owner;
         this.collectionVersion = keg.collectionVersion;
         //  is this an empty keg? probably just created.
         if (!keg.payload) return this;

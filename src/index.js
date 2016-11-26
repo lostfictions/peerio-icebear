@@ -26,6 +26,7 @@ const chatStore = require('./models/chat-store');
 const fileStore = require('./models/file-store');
 const validation = require('./helpers/validation');
 const FileStreamAbstract = require('./models/file-stream');
+const util = require('./util');
 
 module.exports = {
     errors,
@@ -39,5 +40,6 @@ module.exports = {
     chatStore,
     fileStore,
     validation,
-    FileStreamAbstract
+    FileStreamAbstract,
+    util
 };

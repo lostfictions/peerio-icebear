@@ -1,4 +1,4 @@
-const { observable, action, computed, asFlat } = require('mobx');
+const { observable, action, reaction, asFlat } = require('mobx');
 const socket = require('../network/socket');
 // const normalize = require('../errors').normalize;
 const User = require('./user');
@@ -6,7 +6,7 @@ const User = require('./user');
 const File = require('./file');
 
 class FileStore {
-    @observable files = []; // todo: this needs to be asFlat(?) - but check for props update in FileLine
+    @observable files = asFlat([]); // todo: this needs to be asFlat(?) - but check for props update in FileLine
     @observable loading = false;
     loaded = false;
 
@@ -14,7 +14,7 @@ class FileStore {
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion: min || 0,
-            query: { type: 'file' }
+            query: { type: 'file' /* deleted: 'true' */}
         });
     }
 
@@ -38,7 +38,13 @@ class FileStore {
     upload(filePath) {
         const keg = new File(User.current.kegdb);
         keg.upload(filePath);
-        this.files.push(keg);
+        this.files.unshift(keg);
+    }
+
+    remove(file) {
+        file.remove().then(() => {
+            this.files.remove(file);
+        });
     }
 
 

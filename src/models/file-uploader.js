@@ -31,6 +31,8 @@ class FileUploader {
 
     lastReadChunkId = -1;
     callbackCalled = false;
+    // amount of uploaded(-ing) chunks that wait a response from server
+    chunksWaitingForResponse = 0;
 
     /**
      * @param {File} file
@@ -51,10 +53,6 @@ class FileUploader {
         this._tick();
     }
 
-    _allDone() {
-        return this.eofReached && !this.reading && !this.encrypting && !this.uploading
-            && !this.dataChunks.length && !this.cipherChunks;
-    }
     /**
      * Wrapper around callback call makes it asynchronous and prevents more then 1 call
      * @param {[Error]} err - in case there was an error
@@ -113,7 +111,7 @@ class FileUploader {
             (chunk.id + 1) / ((this.maxChunkId + 1) / 100));
         this._tick();
     }
-    chunksWaitingForResponse = 0;
+
     _uploadChunk() {
         if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 2) return;
         this.uploading = true;
@@ -139,7 +137,8 @@ class FileUploader {
     }
 
     _checkIfFinished() {
-        if (this._allDone()) {
+        if (this.eofReached && !this.reading && !this.encrypting && !this.uploading
+            && !this.dataChunks.length && !this.cipherChunks.length && !this.chunksWaitingForResponse) {
             console.log(`Successfully done uploading file: ${this.file.fileId}`, this.toString());
             this._callCallback();
         }
@@ -167,7 +166,7 @@ class FileUploader {
                 this._readChunk();
                 this._encryptChunk();
                 this._uploadChunk();
-                setTimeout(() => this._checkIfFinished());
+                this._checkIfFinished();
             } catch (err) {
                 console.log(`Upload failed for ${this.file.fileId}`, err, this.toString());
                 this.stop = true;

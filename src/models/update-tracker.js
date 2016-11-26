@@ -57,7 +57,7 @@ class UpdateTracker {
             console.warn(`Unknown keg type: ${d.type}`);
             return;
         }
-        tracker.knownUpdateId = d.downloadedUpdateId;
+        tracker.knownUpdateId = d.knownUpdateId;
         tracker.maxUpdateId = d.maxUpdateId;
         tracker.newKegsCount = d.newKegsCount;
     }

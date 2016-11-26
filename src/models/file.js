@@ -1,15 +1,14 @@
 const Keg = require('./kegs/keg');
-const { observable, autorun } = require('mobx');
+const { observable, autorun, computed } = require('mobx');
 const FileStreamAbstract = require('./file-stream');
 const keys = require('../crypto/keys');
-const util = require('../crypto/util');
-const secret = require('../crypto/secret');
+const cryptoUtil = require('../crypto/util');
 const User = require('./user');
 const fileHelper = require('../helpers/file');
 const errors = require('../errors');
-const socket = require('../network/socket');
 const FileUploader = require('./file-uploader');
 const FileNonceGenerator = require('./file-nonce-generator');
+const util = require('../util');
 
 class File extends Keg {
     constructor(db) {
@@ -23,7 +22,7 @@ class File extends Keg {
      * Server needs some time to process file and upload it to cloud
      * before it can be downloaded. This property reflects the processing status.
      */
-    @observable fileProcessingState;
+    @observable readyForDownload = false;
     @observable uploading = false;
     @observable downloading = false;
     @observable progress = 0;
@@ -32,6 +31,10 @@ class File extends Keg {
     @observable ext ='';
     @observable size = 0;
     @observable uploadedAt = null;
+
+    @computed get sizeFormatted() {
+        return util.formatBytes(this.size);
+    }
 
     serializeKegPayload() {
         return {
@@ -58,7 +61,7 @@ class File extends Keg {
 
     deserializeProps(props) {
         this.fileId = props.fileId;
-        this.fileProcessingState = props.fileProcessingState;
+        this.readyForDownload = props.fileProcessingState === 'ready';
         this.size = +props.size;
         this.ext = props.ext;
         this.uploadedAt = new Date(+props.uploadedAt);
@@ -80,7 +83,7 @@ class File extends Keg {
         this.uploadedAt = new Date();
         this.name = fileHelper.getFileName(filePath);
         this.key = keys.generateEncryptionKey();
-        this.fileId = util.getRandomFileId(User.current.username);
+        this.fileId = cryptoUtil.getRandomFileId(User.current.username);
 
         return stream.open()
             .then(size => {
@@ -92,6 +95,7 @@ class File extends Keg {
                 return new Promise((resolve, reject) => {
                     const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
                     const uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
+                     //   this.uploading = false;
                         err ? reject(errors.normalize(err)) : resolve();
                     });
                     uploader.start();
