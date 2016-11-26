@@ -10,6 +10,8 @@ const io = require('socket.io-client/socket.io');
 const Promise = require('bluebird');
 const { ServerError } = require('../errors');
 const { observable } = require('mobx');
+const config = require('../config');
+const util = require('../util');
 
 const STATES = {
     open: 'open',
@@ -47,6 +49,9 @@ class SocketClient {
     url = null;
     @observable connected = false;
     @observable authenticated = false;
+   // for debug (if enabled)
+    bytesReceived = 0;
+    bytesSent = 0;
 
     authenticatedEventListeners = [];
     startedEventListeners = [];
@@ -61,9 +66,26 @@ class SocketClient {
     start(url) {
         if (this.started) return;
         console.log(`Starting socket: ${url}`);
+        const self = this;
         this.url = url;
         this.started = true;
         this.authenticated = false;
+        // <DEBUG>
+        if (config.debug && config.debug.trafficReportInterval > 0) {
+            const s = WebSocket.prototype.send;
+            WebSocket.prototype.send = function(msg) {
+                self.bytesSent += msg.length || msg.byteLength || 0;
+                if (config.debug.socketLogEnabled && typeof msg === 'string') {
+                    console.log('OUTGOING SOCKET MSG:', msg);
+                }
+                return s.call(this, msg);
+            };
+            setInterval(() => {
+                console.log('SENT:', util.formatBytes(self.bytesSent),
+                              'RECEIVED:', util.formatBytes(self.bytesReceived));
+            }, config.debug.trafficReportInterval);
+        }
+        // </DEBUG>
 
         const socket = this.socket = io.connect(url, {
             reconnection: true,
@@ -86,6 +108,7 @@ class SocketClient {
         socket.on('connect', () => {
             console.log('\ud83d\udc9a Socket connected.');
             clearBuffers();
+            this.configureDebugLogger();
             this.connected = true;
         });
 
@@ -97,8 +120,20 @@ class SocketClient {
         });
 
         socket.open();
+
         this.startedEventListeners.forEach(l => setTimeout(l));
         this.startedEventListeners = [];
+    }
+
+    configureDebugLogger() {
+        if (config.debug && config.debug.trafficReportInterval > 0) {
+            this.socket.io.engine.addEventListener('message', (msg) => {
+                this.bytesReceived += msg.length || msg.byteLength || 0;
+                if (config.debug.socketLogEnabled && typeof msg === 'string') {
+                    console.log('INCOMING SOCKET MSG:', msg);
+                }
+            });
+        }
     }
 
     /** Returns connection state */

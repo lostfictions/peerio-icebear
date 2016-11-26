@@ -28,6 +28,10 @@ class Config {
     get termsUrl() {
         return 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md';
     }
+    debug = {
+        trafficReportInterval: 15000,
+        socketLogEnabled: false
+    };
 }
 
 module.exports = new Config();
