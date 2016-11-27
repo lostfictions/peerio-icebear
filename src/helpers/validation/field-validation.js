@@ -36,7 +36,11 @@ function addValidation(store, fName, fieldValidators, positionInForm) {
     if (store[fValid] === undefined) {
         extend[fValid] = false;
     }
+    if (store[fieldValidationMessageText] === undefined) {
+        extend[fieldValidationMessageText] = '';
+    }
     if (store[fValidationMessageComputed] === undefined) {
+        // only show error if the field is dirty
         extend[fValidationMessageComputed] = computed(() => {
             return store[fDirty] ? store[fieldValidationMessageText] : '';
         });
