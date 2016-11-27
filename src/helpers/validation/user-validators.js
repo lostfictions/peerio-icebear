@@ -27,7 +27,7 @@ function _callServer(context, name, value) {
 }
 
 function isValidName(name) {
-    return Promise.resolve(!name);
+    return Promise.resolve(name.length > 0);
 }
 
 function isValidPhone(val) { // eslint-disable-line
@@ -46,7 +46,7 @@ const isValidSignupFirstName = isValid('signup', 'firstName');
 const isValidSignupLastName = isValid('signup', 'lastName');
 const emailFormat = pair(isValidEmail, 'error_invalidEmail');
 const emailAvailability = pair(isValidSignupEmail, 'addressNotAvailable');
-const usernameFormat = pair(isValidUsername, 'usernameNotAvailable');
+const usernameFormat = pair(isValidUsername, 'usernameBadFormat');
 const usernameAvailability = pair(isValidSignupUsername, 'usernameNotAvailable');
 const nameFormat = pair(isValidName, 'error_invalidName');
 const firstNameReserved = pair(isValidSignupFirstName, 'error_invalidName');
