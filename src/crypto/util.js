@@ -129,7 +129,7 @@ function getRandomFileId(username) {
 const converterDataView = new DataView(new ArrayBuffer(4));
 function numberToByteArray(num) {
     converterDataView.setUint32(0, num);
-    return new Uint8Array(converterDataView.buffer.slice());
+    return new Uint8Array(converterDataView.buffer.slice(0));
 }
 function byteArrayToNumber(arr, offset, length) {
     return new DataView(arr.buffer, offset, length).getUint32(0);
