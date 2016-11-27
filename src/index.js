@@ -24,7 +24,7 @@ const setTinyDbEngine = require('./db/tiny-db').setEngine;
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
 const fileStore = require('./models/file-store');
-const validation = require('./helpers/validation');
+const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/file-stream');
 const util = require('./util');
 
