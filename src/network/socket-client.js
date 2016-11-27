@@ -49,9 +49,9 @@ class SocketClient {
     url = null;
     @observable connected = false;
     @observable authenticated = false;
-   // for debug (if enabled)
-    bytesReceived = 0;
-    bytesSent = 0;
+    // for debug (if enabled)
+    @observable bytesReceived = 0;
+    @observable bytesSent = 0;
 
     authenticatedEventListeners = [];
     startedEventListeners = [];

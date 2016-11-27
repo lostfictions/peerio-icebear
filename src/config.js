@@ -6,32 +6,21 @@
  * @module config
  */
 
-// Default values for production apps
-let socketServerUrl = 'wss://app.peerio.com';
-//---------------------------------------------
+const config = {
+    // Default values for production apps
+    socketServerUrl: 'wss://app.peerio.com',
+    termsUrl: 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md',
+    debug: {
+        trafficReportInterval: 15000,
+        socketLogEnabled: false
+    }
+};
 
 // Build time flags/vars to override default values
 if (typeof (ENV) !== 'undefined') {
     if (ENV === 'dev' && typeof (STAGING_SOCKET_SERVER) !== 'undefined') {
-        socketServerUrl = STAGING_SOCKET_SERVER;
+        config.socketServerUrl = STAGING_SOCKET_SERVER;
     }
 }
-//---------------------------------------
 
-class Config {
-    get socketServerUrl() {
-        return socketServerUrl;
-    }
-    set socketServerUrl(val) {
-        socketServerUrl = val;
-    }
-    get termsUrl() {
-        return 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md';
-    }
-    debug = {
-        trafficReportInterval: 15000,
-        socketLogEnabled: false
-    };
-}
-
-module.exports = new Config();
+module.exports = config;
