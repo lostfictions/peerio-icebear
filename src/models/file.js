@@ -114,10 +114,9 @@ class File extends Keg {
         if (this.uploader) this.uploader.cancel();
     }
 
+    // static getByFileId(fileId) {
 
-    static getByFileId(fileId) {
-
-    }
+    // }
 }
 
 

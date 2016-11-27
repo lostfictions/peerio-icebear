@@ -9,6 +9,7 @@
 const keys = require('../crypto/keys');
 const publicCrypto = require('../crypto/public');
 const secret = require('../crypto/secret');
+const cryptoUtil = require('../crypto/util');
 const socket = require('../network/socket');
 const util = require('../util');
 const Promise = require('bluebird');
@@ -109,9 +110,9 @@ module.exports = function mixUserAuthModule() {
         return storage.get(`${this.username}:passcode`)
             .then((passcodeSecretArray) => {
                 if (passcodeSecretArray) {
-                    return new Uint8Array(passcodeSecretArray);
+                    return cryptoUtil.b64ToBytes(passcodeSecretArray);
                 }
-                throw new Error('no passcode found');
+                return Promise.reject(new Error('no passcode found'));
             })
             .then((passcodeSecret) => {
                 if (passcodeSecret) { // will be wiped after first login
@@ -119,7 +120,9 @@ module.exports = function mixUserAuthModule() {
                 }
                 return false;
             })
-            .catch(() => {});
+            .catch(err => {
+                console.log(errors.normalize(err));
+            });
     };
 
     /**
@@ -139,7 +142,8 @@ module.exports = function mixUserAuthModule() {
                 this.passphrase = passcodeData.passphrase;
             })
             .catch(() => {
-                console.log('Deriving passphrase from passcode failed, will ignore and retry login with passphrase');
+                console.log('Deriving passphrase from passcode failed, ' +
+                            'will ignore and retry login with passphrase');
             });
     };
 
@@ -151,7 +155,7 @@ module.exports = function mixUserAuthModule() {
      * @returns {Object}
      */
     this._getAuthDataFromPasscode = (passcode, passcodeSecret) => {
-        return keys.deriveKeyFromPasscode(passcode)
+        return keys.deriveKeyFromPasscode(this.username, passcode)
             .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
             .then(authDataJSON => JSON.parse(authDataJSON));
     };
@@ -165,25 +169,18 @@ module.exports = function mixUserAuthModule() {
      * @returns {Promise}
      */
     this.setPasscode = (passcode) => {
-        try {
-            if (!this.username) throw new Error('Username is required to derive keys');
-            if (!this.passphrase) throw new Error('Passphrase is required to derive keys');
-        } catch (e) {
-            return Promise.reject(errors.normalize(e));
-        }
+        if (!this.username) return Promise.reject(new Error('Username is required to derive keys'));
+        if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
         console.log('Setting passcode');
-        let passcodeSecretArray;
-        return keys.deriveKeyFromPasscode(passcode)
-            .then((passcodeKey) => {
+        return keys.deriveKeyFromPasscode(this.username, passcode)
+            .then(passcodeKey => {
                 return secret.encryptString(JSON.stringify({
                     username: this.username,
                     passphrase: this.passphrase
                 }), passcodeKey);
             })
-            .then((passcodeSecretU8) => {
-                // convert Uint8Array to Array so that it can JSON
-                passcodeSecretArray = Array(...passcodeSecretU8);
-                return storage.set(`${this.username}:passcode`, passcodeSecretArray);
+            .then(passcodeSecretU8 => {
+                return storage.set(`${this.username}:passcode`, cryptoUtil.bytesToB64(passcodeSecretU8));
             });
     };
 };

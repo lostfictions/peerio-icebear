@@ -111,9 +111,7 @@ class User {
             this._firstLoginInSession = false;
             this.setReauthOnReconnect();
             return this.loadProfile()
-                .then(() => {
-                    User.setLastAuthenticated(this);
-                });
+                       .then(() => this.setAsLastAuthenticated().catch(err => console.error(err)));
         }
         return Promise.resolve();
     }
@@ -155,24 +153,21 @@ class User {
     }
 
     /**
-     * Sets the username of the last authenticated user.
-     *
-     * @param {User} user
+     * Saves the data of the last authenticated user.
      * @returns {Promise}
      */
-    static setLastAuthenticated(user) {
-        console.log(`set last authenticated username: ${user.username} `
-                    + `firstName: ${user.firstName} lastName ${user.lastName}`);
+    setAsLastAuthenticated() {
+        console.log(`set last authenticated username: ${this.username} `
+                    + `firstName: ${this.firstName} lastName ${this.lastName}`);
         return storage.set(`last_user_authenticated`, {
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName
+            username: this.username,
+            firstName: this.firstName,
+            lastName: this.lastName
         });
     }
 
     /**
      * (Eventually) removes the username of the last authenticated user.
-     *
      * @returns {Promise<String>}
      */
     static removeLastAuthenticated() {

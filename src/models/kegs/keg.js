@@ -161,6 +161,7 @@ class Keg {
      * Generic version that does nothing..
      * Override in child classes to convert raw keg data into object properties.
      */
+    //eslint-disable-next-line
     deserializeKegPayload(payload) {}
 
     /**

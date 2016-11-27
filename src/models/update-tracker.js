@@ -12,7 +12,7 @@ Update actions:
 
  */
 const socket = require('../network/socket');
-const { observable, asMap, action, transaction } = require('mobx');
+const { observable, asMap, action } = require('mobx');
 
 /**
  * Update information for specific db and keg type

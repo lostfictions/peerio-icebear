@@ -51,6 +51,7 @@ class FileStreamAbstract {
         return this.writeInternal(buffer);
     }
 
+    // eslint-disable-next-line
     writeInternal(buffer) {
         throw new AbstractCallError();
     }

@@ -1,4 +1,4 @@
-const { observable, action, reaction, asFlat } = require('mobx');
+const { observable, action, asFlat } = require('mobx');
 const socket = require('../network/socket');
 // const normalize = require('../errors').normalize;
 const User = require('./user');

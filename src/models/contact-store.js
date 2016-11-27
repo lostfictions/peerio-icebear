@@ -1,4 +1,4 @@
-const { observable, action, when } = require('mobx');
+const { observable, when } = require('mobx');
 const Contact = require('../models/contact');
 
 /**
