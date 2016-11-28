@@ -13,7 +13,7 @@ module.exports = function setKarmaConfig(config) {
             'test/test-index.js': ['webpack', 'sourcemap']
         },
         webpack: {
-            devtool: "inline-source-map",
+            devtool: 'inline-source-map',
             context: path.resolve(__dirname, 'src'),
             bail: true,
             module: {
@@ -23,24 +23,24 @@ module.exports = function setKarmaConfig(config) {
                         loader: 'babel',
                         exclude: [/node_modules/],
                         query: {
-                            "plugins": [
-                                "transform-decorators-legacy",
-                                "transform-class-properties",
-                                "transform-inline-environment-variables",
-                                "transform-es2015-modules-commonjs",
+                            plugins: [
+                                'transform-decorators-legacy',
+                                'transform-class-properties',
+                                'transform-inline-environment-variables',
+                                'transform-es2015-modules-commonjs',
                                 [
-                                    "transform-object-rest-spread", {
-                                    "useBuiltIns": true
+                                    'transform-object-rest-spread', {
+                                    useBuiltIns: true
                                 }
                                 ],
-                                "transform-react-jsx"
+                                'transform-react-jsx'
                             ],
-                            "env": {
-                                "coverage": {
-                                    "plugins": [
+                            env: {
+                                coverage: {
+                                    plugins: [
                                         [
-                                            "__coverage__", {
-                                            "ignore": "*.+(test|stub).*"
+                                            '__coverage__', {
+                                            ignore: '*.+(test|stub).*'
                                         }
                                         ]
                                     ]
@@ -73,12 +73,10 @@ module.exports = function setKarmaConfig(config) {
                 timings: false,
                 chunks: false,
                 chunkModules: false
-            },
+            }
         },
         reporters: [
-            'mocha-clean', process.env.BABEL_ENV === 'coverage'
-                ? 'coverage'
-                : null
+            'progress', process.env.BABEL_ENV === 'coverage' ? 'coverage' : null
         ].filter(i => i != null),
         coverageReporter: {
             reporters: [
@@ -95,11 +93,11 @@ module.exports = function setKarmaConfig(config) {
         },
         port: 9876,
         colors: true,
-        logLevel: config.LOG_INFO,
+        logLevel: config.LOG_ERROR,
         autoWatch: true,
-         browsers: ['Chrome_Debug', 'Safari'],
+        browsers: ['Chrome_Debug', 'Safari'],
         // browsers: ['Chrome_Debug'],
-       // browsers: ['Safari'],
+        // browsers: ['Safari'],
         customLaunchers: {
             Chrome_Debug: {
                 base: 'Chrome',
@@ -107,6 +105,9 @@ module.exports = function setKarmaConfig(config) {
             }
         },
         singleRun: true,
+        client: {
+            captureConsole: false
+        },
         concurrency: Infinity
-    })
+    });
 };
