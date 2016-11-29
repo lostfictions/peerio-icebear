@@ -6,7 +6,7 @@ const User = require('./user');
 const File = require('./file');
 
 class FileStore {
-    @observable files = asFlat([]); // todo: this needs to be asFlat(?) - but check for props update in FileLine
+    @observable files = asFlat([]);
     @observable loading = false;
     loaded = false;
 
@@ -14,7 +14,7 @@ class FileStore {
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion: min || 0,
-            query: { type: 'file' /* deleted: 'true' */}
+            query: { type: 'file', deleted: 'false' }
         });
     }
 
@@ -25,7 +25,7 @@ class FileStore {
                 const file = new File(User.current.kegdb);
                 file.loadFromKeg(keg);
                 // todo: remove after server fixes query by deleted
-                if (!file.deleted) this.files.push(file);
+                this.files.push(file);
             }
             this.loading = false;
             this.loaded = true;
