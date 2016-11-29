@@ -45,18 +45,18 @@ function pair(action, message) {
     return { action, message };
 }
 
-const isValidSignupEmail     = isValid('signup', 'email');
-const isValidSignupUsername  = isValid('signup', 'username');
+const isValidSignupEmail = isValid('signup', 'email');
+const isValidSignupUsername = isValid('signup', 'username');
 const isValidSignupFirstName = isValid('signup', 'firstName');
-const isValidSignupLastName  = isValid('signup', 'lastName');
-const emailFormat            = pair(isValidEmail, 'error_invalidEmail');
-const emailAvailability      = pair(isValidSignupEmail, 'addressNotAvailable');
-const usernameFormat         = pair(isValidUsername, 'usernameBadFormat');
-const usernameAvailability   = pair(isValidSignupUsername, 'usernameNotAvailable');
-const usernameExistence      = pair(isValidLoginUsername, 'usernameNotFound');
-const stringExists           = pair(isNonEmptyString, 'error_invalidName');
-const firstNameReserved      = pair(isValidSignupFirstName, 'error_invalidName');
-const lastNameReserved       = pair(isValidSignupLastName, 'error_invalidName');
+const isValidSignupLastName = isValid('signup', 'lastName');
+const emailFormat = pair(isValidEmail, 'error_invalidEmail');
+const emailAvailability = pair(isValidSignupEmail, 'addressNotAvailable');
+const usernameFormat = pair(isValidUsername, 'usernameBadFormat');
+const usernameAvailability = pair(isValidSignupUsername, 'usernameNotAvailable');
+const usernameExistence = pair(isValidLoginUsername, 'usernameNotFound');
+const stringExists = pair(isNonEmptyString, 'error_invalidName');
+const firstNameReserved = pair(isValidSignupFirstName, 'error_invalidName');
+const lastNameReserved = pair(isValidSignupLastName, 'error_invalidName');
 
 const validators = {
     /** available validators:
