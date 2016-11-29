@@ -6,7 +6,7 @@
  * @module network/socket-client
  */
 
-const io = require('socket.io-client/socket.io');
+const io = require('socket.io-client/dist/socket.io');
 const Promise = require('bluebird');
 const { ServerError } = require('../errors');
 const { observable } = require('mobx');
