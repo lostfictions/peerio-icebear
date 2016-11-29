@@ -16,10 +16,10 @@ const userValidators = require('./user-validators');
  *
  * @param {Object} store
  * @param {String} fName -- field name
- * @param {Array<Object>|Object} fieldValidators
+ * @param {Array<Object>|Object} validatorOrArray
  * @param {Number|undefined} positionInForm [optional]
  */
-function addValidation(store, fName, fieldValidators, positionInForm) {
+function addValidation(store, fName, validatorOrArray, positionInForm) {
     const fValid = `${fName}Valid`;
     const fValidationMessageComputed = `${fName}ValidationMessage`;
     const fieldValidationMessageText = `${fName}ValidationMessageText`;
@@ -27,6 +27,8 @@ function addValidation(store, fName, fieldValidators, positionInForm) {
     const fOnChange = `${fName}OnChange`;
     const fOnBlur = `${fName}OnBlur`;
     const formValid = store.isValid || (() => true);
+    const fieldValidators = Array.isArray(validatorOrArray) ? validatorOrArray : [validatorOrArray];
+
     store.isValid = () => {
         return store[fValid] && formValid();
     };
