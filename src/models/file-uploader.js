@@ -43,6 +43,7 @@ class FileUploader {
      */
     constructor(file, stream, nonceGenerator, maxChunkId, callback) {
         this.file = file;
+        this.file.progressMax = maxChunkId;
         this.stream = stream;
         this.nonceGenerator = nonceGenerator;
         this.maxChunkId = maxChunkId;
@@ -51,6 +52,7 @@ class FileUploader {
 
     start() {
         this._tick();
+        console.log(`starting to upload file id: ${this.file.id}`);
     }
 
     cancel() {
@@ -70,7 +72,7 @@ class FileUploader {
     _readChunk() {
         if (this.eofReached || this.stop || this.reading || this.dataChunks.length >= this.dataChunksLimit) return;
         this.reading = true;
-        console.log(`${this.file.fileId}: reading next chunk ${this.lastReadChunkId + 1}`);
+        console.log(`${this.file.id}: chunk ${this.lastReadChunkId + 1} reading`);
         this.stream.read()
             .then(bytesRead => {
                 if (bytesRead === 0) {
@@ -105,14 +107,13 @@ class FileUploader {
                 || !this.dataChunks.length) return;
         this.encrypting = true;
         const chunk = this.dataChunks.shift();
-        console.log(`${this.file.fileId}: encrypting next chunk ${chunk.id}`);
+        console.log(`${this.file.id}: chunk ${chunk.id} encrypting`);
         chunk.buffer = secret.encrypt(chunk.buffer, this.file.key,
                                       this.nonceGenerator.getNextNonce(chunk.id === this.maxChunkId),
                                       false, true);
         this.cipherChunks.push(chunk);
         this.encrypting = false;
-        this.file.progressBuffer = Math.ceil(
-            (chunk.id + 1) / ((this.maxChunkId + 1) / 100));
+        this.file.progressBuffer = chunk.id;
         this._tick();
     }
 
@@ -120,7 +121,7 @@ class FileUploader {
         if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 2) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
-        console.log(`${this.file.fileId}: uploading next chunk ${chunk.id}`);
+        console.log(`${this.file.id}: chunk ${chunk.id} uploading...`);
         this.chunksWaitingForResponse++;
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
@@ -129,7 +130,7 @@ class FileUploader {
             last: chunk.id === this.maxChunkId
         }).then(() => {
             this.chunksWaitingForResponse--;
-            this.file.progress = Math.floor((chunk.id + 1) / ((this.maxChunkId + 1) / 100));
+            this.file.progress = Math.max(chunk.id, this.file.progress); // response can be out of order
             this._tick();
         }).catch(err => {
             console.log(`Failed uploading file ${this.file.fileId}. Upload filed.`, err);
