@@ -1,5 +1,31 @@
 /**
  * Validation functions for user-related fields, used in field validation.
+ *
+ * On *peerio-desktop* they are used in conuction with the ValidatedInput and OrderedFormStore
+ * components. ValidatedInputs expect validators of the format below as parameters,
+ * and will run through them on change & blur as needed.
+ *
+ * Validators are (arrays of) objects, with signature:
+ *  {
+ *      action: 'function',
+ *      message: ''
+ *  }
+ *
+ *  The action function accepts arguments:
+ *  - value -- usually a string
+ *  - additionalArguments -- optional object
+ *
+ *  It returns true if the value passes validation. Otherwise it may return an
+ *  object with the signature:
+ *
+ *  {
+ *      message: 'optional specific validation message (string)',
+ *      result: false
+ *      // additional data as needed
+ *  }
+ *
+ *  if the function does not return a message, the default message provided by the
+ *  validator will be used.
  */
 const socket = require('../../network/socket');
 
@@ -41,6 +67,16 @@ function isValidLoginUsername(name) {
         .then((value) => !value);
 }
 
+
+function areEqualValues(value, additionalArguments) {
+    if (value === additionalArguments.equalsValue) return Promise.resolve();
+    return Promise.resolve({
+        result: false,
+        message: additionalArguments.equalsErrorMessage
+    });
+}
+
+
 function pair(action, message) {
     return { action, message };
 }
@@ -57,6 +93,7 @@ const usernameExistence = pair(isValidLoginUsername, 'usernameNotFound');
 const stringExists = pair(isNonEmptyString, 'error_invalidName');
 const firstNameReserved = pair(isValidSignupFirstName, 'error_invalidName');
 const lastNameReserved = pair(isValidSignupLastName, 'error_invalidName');
+const valueEquality = pair(areEqualValues, 'error_mustMatch');
 
 const validators = {
     /** available validators:
@@ -77,6 +114,7 @@ const validators = {
     usernameLogin: [usernameFormat, usernameExistence],
     firstName: [stringExists, firstNameReserved],
     lastName: [stringExists, lastNameReserved],
+    valueEquality,
     isValidSignupEmail,
     isValidSignupFirstName,
     isValidSignupLastName
