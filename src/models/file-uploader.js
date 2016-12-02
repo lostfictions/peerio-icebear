@@ -6,6 +6,7 @@
 const socket = require('../network/socket');
 const errors = require('../errors');
 const secret = require('../crypto/secret');
+const cryptoUtil = require('../crypto/util');
 
 class FileUploader {
     // read chunks go here
@@ -43,6 +44,7 @@ class FileUploader {
      */
     constructor(file, stream, nonceGenerator, maxChunkId, callback) {
         this.file = file;
+        this.fileKey = cryptoUtil.b64ToBytes(file.key);
         this.file.progressMax = maxChunkId;
         this.stream = stream;
         this.nonceGenerator = nonceGenerator;
@@ -72,7 +74,7 @@ class FileUploader {
     _readChunk() {
         if (this.eofReached || this.stop || this.reading || this.dataChunks.length >= this.dataChunksLimit) return;
         this.reading = true;
-        console.log(`${this.file.id}: chunk ${this.lastReadChunkId + 1} reading`);
+       // console.log(`${this.file.id}: chunk ${this.lastReadChunkId + 1} reading`);
         this.stream.read()
             .then(bytesRead => {
                 if (bytesRead === 0) {
@@ -107,8 +109,8 @@ class FileUploader {
                 || !this.dataChunks.length) return;
         this.encrypting = true;
         const chunk = this.dataChunks.shift();
-        console.log(`${this.file.id}: chunk ${chunk.id} encrypting`);
-        chunk.buffer = secret.encrypt(chunk.buffer, this.file.key,
+        // console.log(`${this.file.id}: chunk ${chunk.id} encrypting`);
+        chunk.buffer = secret.encrypt(chunk.buffer, this.fileKey,
                                       this.nonceGenerator.getNextNonce(chunk.id === this.maxChunkId),
                                       false, true);
         this.cipherChunks.push(chunk);
@@ -118,10 +120,10 @@ class FileUploader {
     }
 
     _uploadChunk() {
-        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 2) return;
+        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 5) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
-        console.log(`${this.file.id}: chunk ${chunk.id} uploading...`);
+      //  console.log(`${this.file.id}: chunk ${chunk.id} uploading...`);
         this.chunksWaitingForResponse++;
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,

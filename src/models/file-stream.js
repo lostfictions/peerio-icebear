@@ -29,12 +29,12 @@ class FileStreamAbstract {
      * Reads a chunk of data from file stream
      * @return {Promise<number>} - resolves with a number of bytes written to buffer
      */
-    read() {
+    read = () => {
         if (this.mode !== 'read') {
             return Promise.reject(new Error('Attempt to read from write stream.'));
         }
         return this.readInternal();
-    }
+    };
 
     readInternal() {
         throw new AbstractCallError();
@@ -45,14 +45,14 @@ class FileStreamAbstract {
      * @param {Uint8Array} buffer
      * @returns {Promise} - resolves when chunk is written out,
      */
-    write(buffer) {
+    write = (buffer) => {
         if (this.mode !== 'write') return Promise.reject(new Error('Attempt to write to read stream.'));
         if (!buffer || !buffer.length) return Promise.resolve();
         return this.writeInternal(buffer);
-    }
+    };
 
     // eslint-disable-next-line
-    writeInternal(buffer) {
+    writeInternal(buffer, offset) {
         throw new AbstractCallError();
     }
 

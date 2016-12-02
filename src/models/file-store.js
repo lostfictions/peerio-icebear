@@ -53,6 +53,9 @@ class FileStore {
         file.cancelUpload();
     }
 
+    cancelDownload(file) {
+        file.cancelUpload();
+    }
 
 }
 

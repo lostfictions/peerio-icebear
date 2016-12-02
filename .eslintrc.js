@@ -16,6 +16,7 @@ module.exports = {
         xdescribe: false,
         ENV: false,
         STAGING_SOCKET_SERVER: false,
-        WebSocket: false
+        WebSocket: false,
+        XMLHttpRequest: false
     }
 };

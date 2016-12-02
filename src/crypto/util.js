@@ -131,8 +131,13 @@ function numberToByteArray(num) {
     converterDataView.setUint32(0, num);
     return new Uint8Array(converterDataView.buffer.slice(0));
 }
+
 function byteArrayToNumber(arr, offset, length) {
     return new DataView(arr.buffer, offset, length).getUint32(0);
+}
+
+function arrayBufferToNumber(arr, offset, length) {
+    return new DataView(arr, offset, length).getUint32(0);
 }
 
 /**
@@ -178,6 +183,7 @@ module.exports = {
     strToBytes,
     numberToByteArray,
     byteArrayToNumber,
+    arrayBufferToNumber,
     concatTypedArrays,
     getHexHash,
     getByteHash,

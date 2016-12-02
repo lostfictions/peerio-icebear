@@ -7,6 +7,7 @@ const User = require('./user');
 const fileHelper = require('../helpers/file');
 const errors = require('../errors');
 const FileUploader = require('./file-uploader');
+const FileDownloader = require('./file-downloader');
 const FileNonceGenerator = require('./file-nonce-generator');
 const util = require('../util');
 
@@ -70,19 +71,19 @@ class File extends Keg {
 
     upload(filePath) {
         // prevent invalid use
-        if (this.uploading) throw new Error('Upload() call on file in uploading state');
+        if (this.uploading || this.downloading) return Promise.reject();
         this.uploading = true;
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = 1024 * 256;
+        const chunkSize = 1024 * 512;
         const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
         // setting keg properties
-        this.nonce = nonceGen.nonce;
+        this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
         this.uploadedAt = new Date();
         this.name = fileHelper.getFileName(filePath);
-        this.key = keys.generateEncryptionKey();
+        this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
         this.fileId = cryptoUtil.getRandomFileId(User.current.username);
 
         return stream.open()
@@ -95,7 +96,6 @@ class File extends Keg {
                 return new Promise((resolve, reject) => {
                     const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
                     this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
-                     //   this.uploading = false;
                         err ? reject(errors.normalize(err)) : resolve();
                     });
                     this.uploader.start();
@@ -114,9 +114,34 @@ class File extends Keg {
         if (this.uploader) this.uploader.cancel();
     }
 
-    // static getByFileId(fileId) {
+    download(filePath) {
+        if (this.downloading || this.uploading) return Promise.reject();
+        this.downloading = true;
+        this.progress = 0;
+        this.progressBuffer = 0;
+        const nonceGen = new FileNonceGenerator(cryptoUtil.b64ToBytes(this.nonce));
+        const stream = new FileStreamAbstract.FileStream(filePath, 'write');
+        return stream.open()
+            .then(() => {
+                console.log(`File write stream open.`);
+                return new Promise((resolve, reject) => {
+                    this.downloader = new FileDownloader(this, stream, nonceGen, err => {
+                        err ? reject(errors.normalize(err)) : resolve();
+                    });
+                    this.downloader.start();
+                });
+            }).finally(() => {
+                this.downloading = false;
+                this.progress = 0;
+                this.progressBuffer = 0;
+                this.downloader = null;
+                stream && stream.close();
+            });
+    }
 
-    // }
+    cancelDownload() {
+        if (this.downloader) this.downloader.cancel();
+    }
 }
 
 
