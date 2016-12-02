@@ -75,8 +75,11 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         store[fieldValidationMessageText] = '';
         let valid = Promise.resolve(true);
         fieldValidators.forEach(v => {
-            valid = valid.then(r => {
-                return r === true ? v.action(value, fName).then(rs => (rs === true ? rs : v.message)) : r;
+            valid = valid.then(rs => {
+                if (rs === true) {
+                    return rs;
+                }
+                return (rs.message ? rs.message : v.message);
             });
         });
         valid = valid.then(v => {
