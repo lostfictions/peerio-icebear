@@ -114,7 +114,8 @@ class ChatStore {
                 if (this.chatMap[chat.id]) return;
                 this.chatMap[chat.id] = chat;
                 this.chats.push(chat);
-            });
+            })
+            .then(() => this.activate(chat.id));
         return chat;
     }
 
