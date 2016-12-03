@@ -148,15 +148,19 @@ class Chat {
      *
      * @param text
      */
-    sendMessage(text) {
+    sendMessage(text, isAck) {
         const m = new Message(this);
-        m.send(text);
+        m.send(text, isAck);
         this.msgMap[m.tempId] = this.messages.push(m);
         when(() => !m.sending, () => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
             delete this.msgMap[m.tempId];
             this.msgMap[m.id] = m;
         });
+    }
+
+    sendAck() {
+        this.sendMessage('', true);
     }
 
 
