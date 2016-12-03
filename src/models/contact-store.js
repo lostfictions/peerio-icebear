@@ -15,18 +15,28 @@ class ContactStore {
      * @param {string} username
      * @returns {Contact}
      */
-    getContact(username) {
-        const existing = this._findByUsername(username);
+    getContact(queryString) {
+        const existing = this._findInCache(queryString);
         if (existing) return existing;
 
-        const c = new Contact(username);
+        const c = new Contact(queryString);
         this.contacts.unshift(c);
-        when(() => !c.loading, () => { if (c.notFound) this.contacts.remove(c); });
+        when(() => !c.loading, () => {
+            if (c.notFound) {
+                this.contacts.remove(c);
+            } else {
+                for (const contact of this.contacts) {
+                    if (contact.username === c.username && contact !== c) {
+                        this.contacts.remove(contact);
+                    }
+                }
+            }
+        });
         return c;
     }
 
     // todo map
-    _findByUsername(username) {
+    _findInCache(username) {
         for (const contact of this.contacts) {
             if (contact.username === username) return contact;
         }

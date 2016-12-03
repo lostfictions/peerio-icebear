@@ -24,16 +24,17 @@ class Contact {
 
     load() {
         if (this.loading) return;
-        console.log(`Loading contact: ${this.username}`);
+        const queryString = this.username;
+        console.log(`Loading contact: ${queryString}`);
         this.loading = true;
-        socket.send('/auth/lookupUser', { string: this.username })
+        socket.send('/auth/lookupUser', { string: queryString })
               .then(action(resp => {
                   // currently there are old users in the system that don't have encryption public keys
                   if (!resp || !resp.length || !resp[0].profile.encryptionPublicKey) {
                       throw new Error('Contact not found');
                   }
                   const profile = resp[0].profile;
-
+                  this.username = profile.username;
                   this.firstName = profile.firstName || '';
                   this.lastName = profile.lastName || '';
                   this.encryptionPublicKey = new Uint8Array(profile.encryptionPublicKey);
