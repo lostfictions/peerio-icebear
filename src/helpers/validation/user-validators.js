@@ -69,7 +69,7 @@ function isValidLoginUsername(name) {
 
 
 function areEqualValues(value, additionalArguments) {
-    if (value === additionalArguments.equalsValue) return Promise.resolve();
+    if (value === additionalArguments.equalsValue) return Promise.resolve(true);
     return Promise.resolve({
         result: false,
         message: additionalArguments.equalsErrorMessage
