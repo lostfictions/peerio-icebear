@@ -96,15 +96,15 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
             });
         });
         valid = valid.then(() => {
-                console.log(`${fName} is valid`);
-                store[fValid] = true;
-                store[fieldValidationMessageText] = '';
+            console.log(`${fName} is valid`);
+            store[fValid] = true;
+            store[fieldValidationMessageText] = '';
         })
         .catch(error => {
-                console.log(`${fName} is invalid`);
+            console.log(`${fName} is invalid`);
                 // note computed message will only how up if field is dirty
-                store[fValid] = false;
-                store[fieldValidationMessageText] = error.message;
+            store[fValid] = false;
+            store[fieldValidationMessageText] = error.message;
         });
         return null;
     }, true);
