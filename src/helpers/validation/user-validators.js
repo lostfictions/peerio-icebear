@@ -79,7 +79,6 @@ function areEqualValues(value, additionalArguments) {
     });
 }
 
-
 function pair(action, message) {
     return { action, message };
 }
