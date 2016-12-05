@@ -11,7 +11,7 @@ const config = {
     socketServerUrl: 'wss://app.peerio.com',
     termsUrl: 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md',
     debug: {
-        trafficReportInterval: 15000,
+        trafficReportInterval: 60000,
         socketLogEnabled: false
     }
 };
