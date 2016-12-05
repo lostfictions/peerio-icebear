@@ -4,8 +4,13 @@ const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const updateTracker = require('./update-tracker');
+const EventEmitter = require('eventemitter3');
+const _ = require('lodash');
 
 class ChatStore {
+    EVENT_TYPES = {
+        messagesReceived: 'messagesReceived'
+    };
     @observable chats = asFlat([]);
     // to prevent duplicates
     chatMap = {};
@@ -31,11 +36,16 @@ class ChatStore {
             if (this.loaded) this.addChat(change.name);
             else this.preloadCache.push(change.name);
         });
+        this.events = new EventEmitter();
     }
+
+    onNewMessages= _.throttle(() => {
+        this.events.emit(this.EVENT_TYPES.messagesReceived);
+    }, 1000);
 
     addChat(id) {
         if (id === 'SELF' || !!this.chatMap[id]) return Promise.resolve();
-        const c = new Chat(id);
+        const c = new Chat(id, undefined, this);
         return c.loadMetadata().then(() => {
             if (c.errorLoadingMeta || this.chatMap[id]) return;
             this.chatMap[id] = c;
@@ -54,7 +64,7 @@ class ChatStore {
                 const lChats = [];
                 for (const id of list) {
                     if (id === 'SELF') continue;
-                    const c = new Chat(id);
+                    const c = new Chat(id, undefined, this);
                     lChats.push(c);
                     promises.push(c.loadMetadata());
                 }
@@ -108,7 +118,7 @@ class ChatStore {
     @action startChat(participants) {
         const cached = this.findCachedChatWithParticipants(participants);
         if (cached) return cached;
-        const chat = new Chat(null, this.getSelflessParticipants(participants));
+        const chat = new Chat(null, this.getSelflessParticipants(participants), this);
         chat.loadMetadata()
             .then(() => {
                 if (this.chatMap[chat.id]) return;

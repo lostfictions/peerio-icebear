@@ -59,8 +59,9 @@ class Chat {
      * @param {Array<Contact>} participants - chat participants
      * @summary at least one of two arguments should be set
      */
-    constructor(id, participants) {
+    constructor(id, participants, store) {
         this.id = id;
+        this.store = store;
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
@@ -138,6 +139,7 @@ class Chat {
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
                 }
                 this.updating = false;
+                if (kegs.length) this.store.onNewMessages();
             }).catch(err => {
                 console.error('Failed to update messages.', err);
                 this.updating = false;
@@ -147,12 +149,13 @@ class Chat {
     /**
      *
      * @param text
+     * @param isAck
      */
     sendMessage(text, isAck) {
         const m = new Message(this);
-        m.send(text, isAck);
+        const promise = m.send(text, isAck);
         this.msgMap[m.tempId] = this.messages.push(m);
-        when(() => !m.sending, () => {
+        return promise.then(() => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
             delete this.msgMap[m.tempId];
             this.msgMap[m.id] = m;
@@ -160,7 +163,7 @@ class Chat {
     }
 
     sendAck() {
-        this.sendMessage('', true);
+        return this.sendMessage('', true);
     }
 
 

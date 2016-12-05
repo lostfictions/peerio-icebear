@@ -21,10 +21,11 @@ class Message extends Keg {
         this.text = text;
         this.isAck = !!isAck;
         this.timestamp = new Date();
-        this.saveToServer()
+        return this.saveToServer()
             .catch(err => {
                 this.sendError = true;
                 console.error('Error sending message', err);
+                return Promise.reject(err);
             })
             .finally(() => {
                 this.sending = false;
