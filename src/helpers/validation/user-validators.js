@@ -30,7 +30,10 @@
 const socket = require('../../network/socket');
 
 function isValidUsername(name) {
-    return Promise.resolve(!!name.match(/^\w{1,16}$/));
+    if (name) {
+        return Promise.resolve(!!name.match(/^\w{1,16}$/));
+    }
+    return Promise.resolve(false);
 }
 
 function isValidEmail(val) {
