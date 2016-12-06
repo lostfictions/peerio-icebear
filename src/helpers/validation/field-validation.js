@@ -20,6 +20,13 @@ const userValidators = require('./user-validators');
  * @param {Number|undefined} positionInForm [optional]
  */
 function addValidation(store, fName, validatorOrArray, positionInForm) {
+    const byName = store.byName || {};
+    const byOrder = store.byOrder || {};
+    const focus = store.focus || {};
+    byName[fName] = positionInForm;
+    byOrder[positionInForm] = fName;
+    Object.assign(store, { byName, byOrder });
+
     const fValid = `${fName}Valid`;
     const fValidationMessageComputed = `${fName}ValidationMessage`;
     const fieldValidationMessageText = `${fName}ValidationMessageText`;
@@ -33,8 +40,6 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         return store[fValid] && formValid();
     };
     const extend = {};
-    store.fieldOrders = store.fieldOrders || {};
-    store.fieldOrders[fName] = positionInForm;
     if (store[fValid] === undefined) {
         extend[fValid] = false;
     }
@@ -57,11 +62,12 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         store[fDirty] = true;
         store[fName] = val;
         if (positionInForm !== undefined) {
-            _.each(store.fieldOrders, (otherPosition, otherField) => {
-                if (otherPosition < positionInForm) {
+            for(let i = 0; i <= positionInForm; ++i) {
+                const otherField = byOrder[i];
+                if (otherField) {
                     store[`${otherField}Dirty`] = true;
                 }
-            });
+            }
         }
     };
     // mark the field as dirty when blurred
