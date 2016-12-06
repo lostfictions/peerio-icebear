@@ -112,23 +112,8 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
 
 
 const validation = {
-    /**
-     * Decorator. Usage: @validateField(myValidators, positionInForm) target
-     *
-     * @param myValidators
-     * @param positionInForm
-     * @returns {function()}
-     */
-    validateField(myValidators, positionInForm) {
-        // decorator has a target (the form store) & name
-        return (target, name) => {
-            // timeout to let observable initialize properly
-            setTimeout(() => addValidation(target, name, myValidators, positionInForm), 0);
-        };
-    },
-
-    /** available validators: fn or array of fns **/
-    validators: userValidators
+    validators: userValidators,
+    addValidation
 };
 
 module.exports = validation;
