@@ -119,7 +119,8 @@ const validators = {
     valueEquality,
     isValidSignupEmail,
     isValidSignupFirstName,
-    isValidSignupLastName
+    isValidSignupLastName,
+    isValidLoginUsername
 };
 
 module.exports = validators;

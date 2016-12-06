@@ -62,7 +62,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         store[fDirty] = true;
         store[fName] = val;
         if (positionInForm !== undefined) {
-            for(let i = 0; i <= positionInForm; ++i) {
+            for (let i = 0; i <= positionInForm; ++i) {
                 const otherField = byOrder[i];
                 if (otherField) {
                     store[`${otherField}Dirty`] = true;
