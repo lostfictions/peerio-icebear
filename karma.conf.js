@@ -95,8 +95,8 @@ module.exports = function setKarmaConfig(config) {
         colors: true,
         logLevel: config.LOG_ERROR,
         autoWatch: true,
-        browsers: ['Chrome_Debug', 'Safari'],
-        // browsers: ['Chrome_Debug'],
+        // browsers: ['Chrome_Debug', 'Safari'],
+        browsers: ['Chrome_Debug'],
         // browsers: ['Safari'],
         customLaunchers: {
             Chrome_Debug: {
