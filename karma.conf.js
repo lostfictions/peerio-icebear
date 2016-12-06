@@ -85,7 +85,7 @@ module.exports = function setKarmaConfig(config) {
                     dir: 'coverage/',
                     subdir: '.'
                 },
-                //  { type: 'json', dir: 'coverage/', subdir: '.' },
+                { type: 'json', dir: 'coverage/', subdir: '.' },
                 {
                     type: 'text-summary'
                 }
