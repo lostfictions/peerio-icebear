@@ -12,7 +12,8 @@
     "release": "standard-version && git push --follow-tags origin master",
     "doc:serve": "documentation serve -w src/**",
     "doc:lint": "documentation lint src/**",
-    "doc:build": "documentation build src/** -f md -o API.md"
+    "doc:build": "documentation build src/** -f md -o API.md",
+    "ctags": "if [ -f .git/hooks/ctags-all ]; then .git/hooks/ctags-all; fi"
   },
   "repository": {
     "type": "git",
@@ -95,8 +96,9 @@
     "ghooks": {
       "pre-commit": "",
       "pre-push": "if [ `git rev-parse --abbrev-ref HEAD` == 'master' ]; then npm run validate; fi",
-      "post-checkout": "npm update",
-      "post-merge": "npm update",
+      "post-checkout": "npm update && npm run ctags",
+      "post-merge": "npm update && npm run ctags",
+      "post-commit": "npm run ctags",
       "commit-msg": "validate-commit-msg"
     },
     "commitizen": {
