@@ -161,6 +161,15 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
+     * Checks if user has a passcode saved
+     * @returns {Promise}
+     */
+    this.hasPasscode = () => {
+        return storage.get(`${this.username}:passcode`)
+            .then(result => !!result);
+    };
+
+    /**
      * Given a passcode and a populated User model, gets a passcode-encrypted
      * secret containing the username and passphrase as a JSON string and stores
      * it to the local db.
