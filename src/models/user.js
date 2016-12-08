@@ -9,7 +9,7 @@ const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 const storage = require('../db/tiny-db');
 const { observable } = require('mobx');
-const serverWarnings = require('./server-warning')
+const serverWarnings = require('./server-warning');
 
 let currentUser;
 

@@ -23,7 +23,7 @@ class ServerWarning {
 /**
  * Simple observable queue of server warnings.
  *
- * Used in desktop app by SnackbarControl. 
+ * Used in desktop app by SnackbarControl.
  */
 class ServerWarningCollection {
     collection = observable([]);
