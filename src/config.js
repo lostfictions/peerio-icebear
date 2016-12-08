@@ -16,6 +16,7 @@ const config = {
     }
 };
 
+// ONLY FOR WEBPACK FOR TESTING ICEBEAR LIB
 // Build time flags/vars to override default values
 if (typeof (ENV) !== 'undefined') {
     if (ENV === 'dev' && typeof (STAGING_SOCKET_SERVER) !== 'undefined') {

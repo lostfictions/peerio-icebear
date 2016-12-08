@@ -120,7 +120,7 @@ class FileUploader {
     }
 
     _uploadChunk() {
-        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 5) return;
+        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 1) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
       //  console.log(`${this.file.id}: chunk ${chunk.id} uploading...`);
