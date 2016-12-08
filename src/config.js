@@ -17,9 +17,10 @@ const config = {
 };
 
 // Build time flags/vars to override default values
-if (typeof (ENV) !== 'undefined') {
-    if (ENV === 'dev' && typeof (STAGING_SOCKET_SERVER) !== 'undefined') {
-        config.socketServerUrl = STAGING_SOCKET_SERVER;
+if (typeof (process.env.NODE_ENV) !== 'undefined') {
+    if (process.env.NODE_ENV !== 'production' &&
+        typeof (process.env.STAGING_SOCKET_SERVER) !== 'undefined') {
+        config.socketServerUrl = process.env.STAGING_SOCKET_SERVER;
     }
 }
 
