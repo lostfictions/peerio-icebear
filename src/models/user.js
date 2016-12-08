@@ -9,6 +9,7 @@ const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 const storage = require('../db/tiny-db');
 const { observable } = require('mobx');
+const serverWarnings = require('./server-warning')
 
 let currentUser;
 
@@ -120,6 +121,7 @@ class User {
         // only need to set reauth listener once
         if (this.stopReauthenticator) return;
         this.stopReauthenticator = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
+        socket.subscribe(socket.APP_EVENTS.serverWarning, serverWarnings.add);
     }
 
     static validateUsername(username) {
@@ -157,8 +159,6 @@ class User {
      * @returns {Promise}
      */
     setAsLastAuthenticated() {
-        console.log(`set last authenticated username: ${this.username} `
-                    + `firstName: ${this.firstName} lastName ${this.lastName}`);
         return storage.set(`last_user_authenticated`, {
             username: this.username,
             firstName: this.firstName,
