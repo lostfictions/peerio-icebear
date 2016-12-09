@@ -30,22 +30,12 @@ module.exports = function setKarmaConfig(config) {
                                 'transform-es2015-modules-commonjs',
                                 [
                                     'transform-object-rest-spread', {
-                                    useBuiltIns: true
-                                }
+                                        useBuiltIns: true
+                                    }
                                 ],
                                 'transform-react-jsx'
                             ],
-                            env: {
-                                coverage: {
-                                    plugins: [
-                                        [
-                                            '__coverage__', {
-                                            ignore: '*.+(test|stub).*'
-                                        }
-                                        ]
-                                    ]
-                                }
-                            }
+                            env: { coverage: { plugins: [['__coverage__', { ignore: '*.+(test|stub).*' }]] } }
                         }
                     }, {
                         test: /\.json$/,
@@ -57,8 +47,7 @@ module.exports = function setKarmaConfig(config) {
                 new webpack.optimize.DedupePlugin(),
                 new webpack.ProgressPlugin(),
                 new webpack.DefinePlugin({
-                    ENV: "'dev'",
-                    STAGING_SOCKET_SERVER: JSON.stringify(process.env.PEERIO_STAGING_SOCKET_SERVER)
+                    ICEBEAR_TEST_ENV: JSON.stringify(process.env.PEERIO_STAGING_SOCKET_SERVER)
                 })
             ]
         },

@@ -7,8 +7,8 @@
  */
 
 const config = {
-    // Default values for production apps
-    socketServerUrl: 'wss://app.peerio.com',
+    // clients should override this
+    socketServerUrl: 'wss://',
     termsUrl: 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md',
     debug: {
         trafficReportInterval: 60000,
@@ -16,12 +16,10 @@ const config = {
     }
 };
 
-// ONLY FOR WEBPACK FOR TESTING ICEBEAR LIB
-// Build time flags/vars to override default values
-if (typeof (ENV) !== 'undefined') {
-    if (ENV === 'dev' && typeof (STAGING_SOCKET_SERVER) !== 'undefined') {
-        config.socketServerUrl = STAGING_SOCKET_SERVER;
-    }
+// ICEBEAR_TEST_ENV is a constant replacement set by webpack
+// this is only for running icebear unit tests
+if (typeof (ICEBEAR_TEST_ENV) !== 'undefined') {
+    config.socketServerUrl = ICEBEAR_TEST_ENV;
 }
 
 module.exports = config;
