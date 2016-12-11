@@ -27,6 +27,7 @@
  *  if the function does not return a message, the default message provided by the
  *  validator will be used.
  */
+import { when } from 'mobx';
 const socket = require('../../network/socket');
 
 function isValidUsername(name) {
@@ -47,12 +48,16 @@ function isValid(context, name) {
 }
 
 function _callServer(context, name, value) {
-    return socket.send('/noauth/validate', { context, name, value })
-        .then(resp => !!resp && resp.valid)
-        .catch(err => {
-            console.error(err);
-            return false;
+    return new Promise( (resolve, reject) => {
+        when( () => socket.connected, () => {
+            socket.send('/noauth/validate', { context, name, value })
+                .then(resp => resolve(!!resp && resp.valid))
+                .catch(err => {
+                    console.error(err);
+                    resolve(false);
+                });
         });
+    })
 }
 
 function isNonEmptyString(name) {

@@ -77,7 +77,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
 
     // when field changes, reaction is triggered
     reaction(() => store[fName], value => {
-        console.log(`${fName} validation run`);
+        // console.log(`${fName}: ${value} validation run`);
         store[fValid] = false;
         store[fieldValidationMessageText] = '';
         let valid = Promise.resolve(true);
@@ -102,12 +102,12 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
             });
         });
         valid = valid.then(() => {
-            console.log(`${fName} is valid`);
+            // console.log(`${fName} is valid`);
             store[fValid] = true;
             store[fieldValidationMessageText] = '';
         })
         .catch(error => {
-            console.log(`${fName} is invalid`);
+            // console.log(`${fName} is invalid`);
                 // note computed message will only how up if field is dirty
             store[fValid] = false;
             store[fieldValidationMessageText] = error.message;
