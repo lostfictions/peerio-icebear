@@ -15,7 +15,7 @@ class FileUploader {
     cipherChunks = [];
 
     // max data chunks in read queue
-    dataChunksLimit = 2;
+    dataChunksLimit = 1;// DO NOT CHANGE THIS. File reader reuses same buffer.
     // max data chunks in encrypt queue
     cipherChunksLimit = 3;
 
