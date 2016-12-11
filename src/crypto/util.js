@@ -133,11 +133,13 @@ function numberToByteArray(num) {
 }
 
 function byteArrayToNumber(arr, offset, length) {
-    return new DataView(arr.buffer, offset, length).getUint32(0);
+    // safari doesn't like undefined params
+    return new DataView(arr.buffer, offset || 0, length || arr.byteLength).getUint32(0);
 }
 
 function arrayBufferToNumber(arr, offset, length) {
-    return new DataView(arr, offset, length).getUint32(0);
+    // safari doesn't like undefined params
+    return new DataView(arr, offset || 0, length || arr.byteLength).getUint32(0);
 }
 
 /**
