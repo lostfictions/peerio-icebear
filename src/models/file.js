@@ -1,5 +1,5 @@
 const Keg = require('./kegs/keg');
-const { observable, autorun, computed } = require('mobx');
+const { observable, autorun, computed, reaction } = require('mobx');
 const FileStreamAbstract = require('./file-stream');
 const keys = require('../crypto/keys');
 const cryptoUtil = require('../crypto/util');
@@ -11,12 +11,21 @@ const FileDownloader = require('./file-downloader');
 const FileNonceGenerator = require('./file-nonce-generator');
 const util = require('../util');
 
+const fs = () => FileStreamAbstract.FileStream;
+
 class File extends Keg {
     constructor(db) {
         super(null, 'file', db);
         autorun(() => {
             this.ext = fileHelper.getFileExtension(this.name);
         });
+        if (fs().useCache) {
+            reaction(() => this.downloaded || this.name, () => {
+                this.cacheExists = false;
+                !!this.name && fs().exists(this.cachePath)
+                    .then(exists => this.cacheExists = exists);
+            }, true);
+        }
     }
 
     /**
@@ -26,15 +35,28 @@ class File extends Keg {
     @observable readyForDownload = false;
     @observable uploading = false;
     @observable downloading = false;
+    @observable downloaded = false;
     @observable progress = 0;
     @observable progressBuffer = 0;
     @observable name = '';
     @observable ext ='';
     @observable size = 0;
     @observable uploadedAt = null;
+    @observable cacheExists = false;
+    @observable selected = false;
+    @computed get cachePath() {
+        if (fs().useCache) {
+            return fs().cachePath(this.name);
+        }
+        return null;
+    }
 
     @computed get sizeFormatted() {
         return util.formatBytes(this.size);
+    }
+
+    launchViewer() {
+        return fs().launchViewer(this.cachePath);
     }
 
     serializeKegPayload() {
@@ -114,13 +136,18 @@ class File extends Keg {
         if (this.uploader) this.uploader.cancel();
     }
 
+    /**
+     * @param {string} [filePath] - file path (optional)
+     */
     download(filePath) {
-        if (this.downloading || this.uploading) return Promise.reject();
+        if (this.downloading || this.uploading) return Promise.reject(new Error('File is already downloading'));
+        const path = filePath || this.cachePath;
+        if (!path) return Promise.reject(new Error('No path or cache path provided'));
         this.downloading = true;
         this.progress = 0;
         this.progressBuffer = 0;
         const nonceGen = new FileNonceGenerator(cryptoUtil.b64ToBytes(this.nonce));
-        const stream = new FileStreamAbstract.FileStream(filePath, 'write');
+        const stream = new FileStreamAbstract.FileStream(path, 'write');
         return stream.open()
             .then(() => {
                 console.log(`File write stream open.`);
@@ -135,7 +162,7 @@ class File extends Keg {
                 this.progress = 0;
                 this.progressBuffer = 0;
                 this.downloader = null;
-                stream && stream.close();
+                stream && stream.close().then(() => (this.downloaded = true));
             });
     }
 

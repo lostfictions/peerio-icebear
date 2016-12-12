@@ -70,6 +70,32 @@ class FileStreamAbstract {
         throw new AbstractCallError();
     }
 
+    /**
+     * Are we using static cache directory to save downloaded files?
+     */
+    static useCache = false;
+
+    /**
+     * @returns {string} - actual device path
+     */
+    static cachePath(name) {
+        throw new AbstractCallError();
+    }
+
+    /**
+     * @returns Promise<boolean> - if path exists on device
+     */
+    static exists() {
+        throw new AbstractCallError();
+    }
+
+    /**
+     * Launch external viewer
+     */
+    static launchViewer(path) {
+        throw new AbstractCallError();
+    }
+
     // Set implementation from client app code
     static FileStream = null;
 }

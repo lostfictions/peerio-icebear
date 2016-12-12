@@ -123,7 +123,7 @@ class FileUploader {
         if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 1) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
-      //  console.log(`${this.file.id}: chunk ${chunk.id} uploading...`);
+        // console.log(`${this.file.id}: chunk ${chunk.id} uploading...`)
         this.chunksWaitingForResponse++;
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
@@ -131,6 +131,7 @@ class FileUploader {
             chunk: chunk.buffer.buffer,
             last: chunk.id === this.maxChunkId
         }).then(() => {
+            // console.log(`${this.file.id}: chunk ${chunk.id} uploaded`);
             this.chunksWaitingForResponse--;
             this.file.progress = Math.max(chunk.id, this.file.progress); // response can be out of order
             this._tick();

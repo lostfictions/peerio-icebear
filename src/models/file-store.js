@@ -20,7 +20,9 @@ class FileStore {
 
     loadAllFiles() {
         if (this.loading || this.loaded) return;
+        this.loading = true;
         this._getFiles().then(action(kegs => {
+            this.files.clear();
             for (const keg of kegs) {
                 const file = new File(User.current.kegdb);
                 file.loadFromKeg(keg);
@@ -30,6 +32,12 @@ class FileStore {
             this.loading = false;
             this.loaded = true;
         }));
+    }
+
+    // todo: should work with updates
+    reloadAllFiles() {
+        this.loaded = false;
+        this.loadAllFiles();
     }
 
     /**
