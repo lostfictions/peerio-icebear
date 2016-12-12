@@ -28,6 +28,7 @@
  *  validator will be used.
  */
 import { when } from 'mobx';
+
 const socket = require('../../network/socket');
 
 function isValidUsername(name) {
@@ -48,8 +49,8 @@ function isValid(context, name) {
 }
 
 function _callServer(context, name, value) {
-    return new Promise( (resolve, reject) => {
-        when( () => socket.connected, () => {
+    return new Promise((resolve, reject) => {
+        when(() => socket.connected, () => {
             socket.send('/noauth/validate', { context, name, value })
                 .then(resp => resolve(!!resp && resp.valid))
                 .catch(err => {
@@ -57,7 +58,7 @@ function _callServer(context, name, value) {
                     resolve(false);
                 });
         });
-    })
+    });
 }
 
 function isNonEmptyString(name) {

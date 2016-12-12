@@ -23,7 +23,7 @@ class File extends Keg {
             reaction(() => this.downloaded || this.name, () => {
                 this.cacheExists = false;
                 !!this.name && fs().exists(this.cachePath)
-                    .then(exists => this.cacheExists = exists);
+                    .then(exists => (this.cacheExists = exists));
             }, true);
         }
     }
