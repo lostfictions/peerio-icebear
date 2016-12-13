@@ -158,7 +158,7 @@ class Chat {
     }
 
     sendAck() {
-        return this.sendMessage('\u{0001f44d}');
+        return this.sendMessage('👍');
     }
 
 
