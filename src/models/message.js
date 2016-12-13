@@ -14,12 +14,11 @@ class Message extends Keg {
         super(null, 'message', chat.db);
     }
 
-    send(text, isAck) {
+    send(text) {
         this.sending = true;
         this.assignTemporaryId();
         this.sender = contactStore.getContact(User.current.username);
         this.text = text;
-        this.isAck = !!isAck;
         this.timestamp = new Date();
         return this.saveToServer()
             .catch(err => {
@@ -37,7 +36,6 @@ class Message extends Keg {
         return {
             sender: this.sender.username,
             text: this.text,
-            isAck: !!this.isAck,
             timestamp: this.timestamp.valueOf()
         };
     }
@@ -45,7 +43,6 @@ class Message extends Keg {
     deserializeKegPayload(payload) {
         this.sender = contactStore.getContact(payload.sender);
         this.text = payload.text;
-        this.isAck = payload.isAck;
         this.timestamp = new Date(payload.timestamp);
     }
 }

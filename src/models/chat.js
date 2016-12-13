@@ -146,14 +146,9 @@ class Chat {
             }).finally(() => this.updateMessages());
     }
 
-    /**
-     *
-     * @param text
-     * @param isAck
-     */
-    sendMessage(text, isAck) {
+    sendMessage(text) {
         const m = new Message(this);
-        const promise = m.send(text, isAck);
+        const promise = m.send(text);
         this.msgMap[m.tempId] = this.messages.push(m);
         return promise.then(() => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
@@ -163,7 +158,7 @@ class Chat {
     }
 
     sendAck() {
-        return this.sendMessage('', true);
+        return this.sendMessage('\u{0001f44d}');
     }
 
 
