@@ -11,6 +11,13 @@ if (typeof global !== 'undefined') {
     global.Promise = Promise;
 }
 
+Promise.config({
+    // Enables all warnings except forgotten return statements.
+    warnings: {
+        wForgottenReturn: false
+    }
+});
+
 require('./extensions/uint8array');
 
 // to create socket client singleton instance
