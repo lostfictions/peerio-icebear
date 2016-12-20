@@ -117,7 +117,10 @@ class ChatStore {
     //
     @action startChat(participants) {
         const cached = this.findCachedChatWithParticipants(participants);
-        if (cached) return cached;
+        if (cached) {
+            this.activate(cached.id);
+            return cached;
+        }
         const chat = new Chat(null, this.getSelflessParticipants(participants), this);
         chat.loadMetadata()
             .then(() => {
