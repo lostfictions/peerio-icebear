@@ -94,6 +94,7 @@ class File extends Keg {
     upload(filePath) {
         // prevent invalid use
         if (this.uploading || this.downloading) return Promise.reject();
+        this.owner = User.current.username; // todo: probably remove this after files get proper updates
         this.uploading = true;
         this.progress = 0;
         this.progressBuffer = 0;
