@@ -81,6 +81,7 @@ module.exports = function setKarmaConfig(config) {
             ]
         },
         port: 9876,
+        browserNoActivityTimeout: 60000,
         colors: true,
         logLevel: config.LOG_ERROR,
         autoWatch: true,

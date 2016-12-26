@@ -10,7 +10,8 @@ const Contact = require('../../src/models/contact');
 const { when } = require('mobx');
 
 // this is a sequenced test suite
-describe('User model', () => {
+describe('User model', function() {
+    this.timeout(15000);
     // instances of User *for the same account*
     const user = new User();
     const userInst2 = new User();
@@ -22,7 +23,6 @@ describe('User model', () => {
     window.userLogin = userInst2;
 
     before(function (done) {
-        this.timeout(6000);
         user.username = userInst2.username = userInst3.username = userInst4.username = helpers.getRandomUsername();
         console.log(`Test username: ${user.username}`);
         user.passphrase = userInst2.passphrase = passphrase;
@@ -34,14 +34,12 @@ describe('User model', () => {
         () => User.validateUsername(user.username).then(available => available.should.be.true));
 
     it('#02 should register new user', function () {
-        this.timeout(6000);
         user.firstName = 'Severus';
         user.lastName = 'Snape';
         return user.createAccountAndLogin();
     });
 
     it('#03 should login', function (done) {
-        this.timeout(6000);
         user.stopReauthenticator();
         socket.close();
         socket.onceConnected(() => userInst2.login()
@@ -53,8 +51,6 @@ describe('User model', () => {
 
     it('#04 can log in with passcode', function (done) {
         const passcode = 'passcode bla';
-
-        this.timeout(6000);
         userInst2.stopReauthenticator();
         user.setPasscode(passcode)
             .then(() => {
@@ -72,7 +68,6 @@ describe('User model', () => {
     });
 
     it('#05 can log in with passphrase even when passcode is set', function (done) {
-        this.timeout(6000);
         userInst3.stopReauthenticator();
         socket.close();
         userInst4.passphrase = passphrase;
@@ -96,10 +91,9 @@ describe('User model', () => {
             .then((last) => {
                 should.not.exist(last)
             })
-    })
+    });
 
     it('Should load existing contact', function (done) {
-        this.timeout(4000);
         const c = new Contact('anritest7');
         c.load();
         when(()=>!c.loading,
@@ -113,7 +107,6 @@ describe('User model', () => {
     });
 
     it('Should fail on not existing contact', function (done) {
-        this.timeout(4000);
         const c = new Contact('tmux');
         c.load();
         when(()=>!c.loading,
