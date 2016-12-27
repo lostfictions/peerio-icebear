@@ -53,7 +53,8 @@ class File extends Keg {
 
     @computed get cachePath() {
         if (this.FileStream.useCache) {
-            return this.FileStream.cachePath(this.fileId);
+            const uid = cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
+            return this.FileStream.cachePath(`${uid}.${this.ext}`);
         }
         return null;
     }
