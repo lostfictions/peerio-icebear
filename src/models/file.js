@@ -20,9 +20,9 @@ class File extends Keg {
             this.ext = fileHelper.getFileExtension(this.name);
         });
         if (fs().useCache) {
-            reaction(() => this.downloaded || this.name, () => {
+            reaction(() => this.downloaded || this.fileId, () => {
                 this.cacheExists = false;
-                !!this.name && fs().exists(this.cachePath)
+                !!this.fileId && fs().exists(this.cachePath)
                     .then(exists => (this.cacheExists = exists));
             }, true);
         }
@@ -45,9 +45,10 @@ class File extends Keg {
     @observable uploadedAt = null;
     @observable cacheExists = false;
     @observable selected = false;
+    @observable fileId = null;
     @computed get cachePath() {
         if (fs().useCache) {
-            return fs().cachePath(this.name);
+            return fs().cachePath(this.fileId);
         }
         return null;
     }
@@ -100,7 +101,7 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = 1024 * 100;
+        const chunkSize = fs().chunkSize || 1024 * 512;
         const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
         // setting keg properties
