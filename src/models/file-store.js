@@ -43,10 +43,11 @@ class FileStore {
     /**
      *
      * @param {string} filePath
+     * @param {string} fileName
      */
-    upload(filePath) {
+    upload(filePath, fileName) {
         const keg = new File(User.current.kegdb);
-        keg.upload(filePath);
+        keg.upload(filePath, fileName);
         this.files.unshift(keg);
     }
 

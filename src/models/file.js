@@ -37,6 +37,7 @@ class File extends Keg {
     @observable downloading = false;
     @observable downloaded = false;
     @observable progress = 0;
+    @observable progressMax = 0;
     @observable progressBuffer = 0;
     @observable name = '';
     @observable ext ='';
@@ -91,7 +92,7 @@ class File extends Keg {
     }
 
 
-    upload(filePath) {
+    upload(filePath, fileName) {
         // prevent invalid use
         if (this.uploading || this.downloading) return Promise.reject();
         this.owner = User.current.username; // todo: probably remove this after files get proper updates
@@ -99,13 +100,13 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = 1024 * 256;
+        const chunkSize = 1024 * 100;
         const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
         // setting keg properties
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
         this.uploadedAt = new Date();
-        this.name = fileHelper.getFileName(filePath);
+        this.name = fileName || fileHelper.getFileName(filePath);
         this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
         this.fileId = cryptoUtil.getRandomFileId(User.current.username);
 
