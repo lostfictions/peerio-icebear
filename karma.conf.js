@@ -85,6 +85,7 @@ module.exports = function setKarmaConfig(config) {
         colors: true,
         logLevel: config.LOG_ERROR,
         autoWatch: true,
+        concurrency: 1, // 1 browser at a time
         browsers: ['Chrome_Debug', 'Safari'],
         // browsers: ['Chrome_Debug'],
         // browsers: ['Safari'],
@@ -97,7 +98,6 @@ module.exports = function setKarmaConfig(config) {
         singleRun: true,
         client: {
             captureConsole: false
-        },
-        concurrency: Infinity
+        }
     });
 };

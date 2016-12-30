@@ -11,18 +11,22 @@ const FileDownloader = require('./file-downloader');
 const FileNonceGenerator = require('./file-nonce-generator');
 const util = require('../util');
 
-const fs = () => FileStreamAbstract.FileStream;
 
 class File extends Keg {
+
+    get FileStream() {
+        return FileStreamAbstract.FileStream;
+    }
+
     constructor(db) {
         super(null, 'file', db);
         autorun(() => {
             this.ext = fileHelper.getFileExtension(this.name);
         });
-        if (fs().useCache) {
+        if (this.FileStream.useCache) {
             reaction(() => this.downloaded || this.fileId, () => {
                 this.cacheExists = false;
-                !!this.fileId && fs().exists(this.cachePath)
+                !!this.fileId && this.FileStream.exists(this.cachePath)
                     .then(exists => (this.cacheExists = exists));
             }, true);
         }
@@ -46,9 +50,10 @@ class File extends Keg {
     @observable cacheExists = false;
     @observable selected = false;
     @observable fileId = null;
+
     @computed get cachePath() {
-        if (fs().useCache) {
-            return fs().cachePath(this.fileId);
+        if (this.FileStream.useCache) {
+            return this.FileStream.cachePath(this.fileId);
         }
         return null;
     }
@@ -58,7 +63,7 @@ class File extends Keg {
     }
 
     launchViewer() {
-        return fs().launchViewer(this.cachePath);
+        return this.FileStream.launchViewer(this.cachePath);
     }
 
     serializeKegPayload() {
@@ -101,8 +106,8 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = fs().chunkSize || 1024 * 512;
-        const stream = new FileStreamAbstract.FileStream(filePath, 'read', chunkSize);
+        const chunkSize = this.FileStream.chunkSize || 1024 * 512;
+        const stream = new this.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
         // setting keg properties
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
@@ -150,7 +155,7 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         const nonceGen = new FileNonceGenerator(cryptoUtil.b64ToBytes(this.nonce));
-        const stream = new FileStreamAbstract.FileStream(path, 'write');
+        const stream = new this.FileStream(path, 'write');
         return stream.open()
             .then(() => {
                 console.log(`File write stream open.`);

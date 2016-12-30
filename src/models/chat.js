@@ -39,12 +39,12 @@ class Chat {
     @computed get chatName() {
         if (!this.participants) return '';
         return this.participants.length === 0 ? User.current.username
-                                            : this.participants.map(p => p.username).join(', ');
+                                              : this.participants.map(p => p.username).join(', ');
     }
 
     @observable unreadCount = tracker.getDigest(this.id, 'message').newKegsCount;
 
-    downloadedUpdateId =0;
+    downloadedUpdateId = 0;
     @observable maxUpdateId = tracker.getDigest(this.id, 'message').maxUpdateId;
 
     /**
