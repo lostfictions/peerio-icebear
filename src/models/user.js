@@ -9,7 +9,7 @@ const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 const storage = require('../db/tiny-db');
 const { observable } = require('mobx');
-const serverWarnings = require('./server-warning');
+const systemWarnings = require('./system-warning');
 
 let currentUser;
 
@@ -121,7 +121,7 @@ class User {
         // only need to set reauth listener once
         if (this.stopReauthenticator) return;
         this.stopReauthenticator = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
-        socket.subscribe(socket.APP_EVENTS.serverWarning, serverWarnings.add);
+        socket.subscribe(socket.APP_EVENTS.serverWarning, systemWarnings.addServerWarning);
     }
 
     static validateUsername(username) {

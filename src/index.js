@@ -34,7 +34,7 @@ const fileStore = require('./models/file-store');
 const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/file-stream');
 const util = require('./util');
-const serverWarnings = require('./models/server-warning');
+const systemWarnings = require('./models/system-warning');
 
 module.exports = {
     errors,
@@ -50,5 +50,5 @@ module.exports = {
     validation,
     FileStreamAbstract,
     util,
-    serverWarnings
+    systemWarnings
 };
