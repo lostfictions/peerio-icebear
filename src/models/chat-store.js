@@ -28,13 +28,7 @@ class ChatStore {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
 
-    preloadCache = [];
     constructor() {
-        tracker.onKegDbAdded(id => {
-            console.log(`New incoming chat: ${id}`);
-            if (this.loaded) this.addChat(id);
-            else this.preloadCache.push(id);
-        });
         this.events = new EventEmitter();
     }
 
@@ -42,7 +36,8 @@ class ChatStore {
         this.events.emit(this.EVENT_TYPES.messagesReceived);
     }, 1000);
 
-    addChat(id) {
+    addChat = id => {
+        if (!id) throw new Error(`Invalid chat id. ${id}`);
         if (id === 'SELF' || !!this.chatMap[id]) return Promise.resolve();
         const c = new Chat(id, undefined, this);
         return c.loadMetadata().then(() => {
@@ -50,7 +45,7 @@ class ChatStore {
             this.chatMap[id] = c;
             this.chats.push(c);
         });
-    }
+    };
 
     // initial fill chats list
     @action loadAllChats() {
@@ -78,11 +73,18 @@ class ChatStore {
                     this.loadError = false;
                     this.loading = false;
                     this.loaded = true;
-                    setTimeout(() => {
-                        this.preloadCache.forEach(id => { this.addChat(id); });
-                    });
                 }));
             }))
+            .then(() => {
+                // subscribe to future chats that will be created
+                tracker.onKegDbAdded(id => {
+                    console.log(`New incoming chat: ${id}`);
+                    this.addChat(id);
+                });
+                // check if chats were created while we were loading chat list
+                // unlikely but possible
+                Object.keys(tracker.digest).forEach(this.addChat);
+            })
             .catch(err => {
                 console.error(normalize(err, 'Fail loading chat list.'));
                 this.loadError = true;

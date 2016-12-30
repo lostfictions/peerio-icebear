@@ -44,7 +44,7 @@ class File extends Keg {
     @observable progressMax = 0;
     @observable progressBuffer = 0;
     @observable name = '';
-    @observable ext ='';
+    @observable ext = '';
     @observable size = 0;
     @observable uploadedAt = null;
     @observable cacheExists = false;
