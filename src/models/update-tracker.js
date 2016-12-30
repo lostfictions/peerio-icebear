@@ -1,83 +1,237 @@
 /**
  * Keg update handling module
  */
-/*
 
-Update actions:
-+ 1. Get and store actual update info on auth    -  updates module
-+ 2. Get and store actual update info on event   -  updates module
-3. Pull updated data if needed                 -  corresponding stores (chat etc.)
-4. Inform server about read stuff              -  stores -> updates module -> server
-+ 5. Display unread notifications                -  UI -> updates module
-
- */
 const socket = require('../network/socket');
-const { observable, asMap, action } = require('mobx');
 
-/**
- * Update information for specific db and keg type
+/*
+ * How does update tracking work:
+ *
+ * 1. Update Tracker interacts with application logic via
+ *      a. UpdateTracker.data object - at any time, app logic can read data from that object,
+ *          although it's not always guaranteed to be fully up to date, but it is not a problem because:
+ *      b. Update events - update events are triggered in an effective manner, see (2.,3.)
+ * 2. Every time connection is authenticated, Update Tracker performs update of relevant data
+ *    (cuz we might have missed it while disconnected). We don't do full update info reload because it has
+ *    a potential to grow really big.
+ *      a. SELF database info is always reloaded
+ *      b. anything that is {unread: true} is reloaded
+ *      c. anything that contains {kegType: 'critical keg type(we don't have them yet)'} is reloaded
+ *      d. anything that is currently active in the UI (chat) is reloaded
  */
-class UpdateInfo {
-    @observable knownUpdateId = 0;
-    @observable maxUpdateId = 0;
-    @observable newKegsCount = 0;
-}
-
-/** returns a tracker for known types for one db */
-class KnownTypesTracker {
-        @observable system = new UpdateInfo();
-        @observable profile = new UpdateInfo();
-        @observable message = new UpdateInfo();
-        @observable file = new UpdateInfo();
-}
-
 class UpdateTracker {
-    // data[dbId][kegType].knownUpdateId
-    @observable data = asMap();
-    started = false;
+    // listeners to new keg db added event
+    dbAddedHandlers = [];
+    // listeners to changes in existing keg dbs
+    updateHandlers = {};
+    // keg databases that are currently 'active' in UI (user interacts with them directly)
+    // we need this to make sure we update them on reconnect
+    activeKegDbs = ['SELF'];
+    // tracker data
+    digest = {};
+    // this flag controls whether updates to digest will immediately fire an event or
+    // will accumulate to allow effective/minimal events generation after large amounts for digest data
+    // has been processed
+    accumulateEvents = true;
+    // accumulated events go here
+    eventCache = { add: [], update: {} };
 
     constructor() {
-        socket.onceStarted(this.start.bind(this));
+        socket.onceStarted(() => {
+            socket.subscribe(socket.APP_EVENTS.kegsUpdate, this.processDigestEvent.bind(this));
+            socket.subscribe(socket.SOCKET_EVENTS.authenticated, this.loadUnreadDigest.bind(this));
+            // when disconnected, we know that reconnect will trigger digest reload
+            // and we want to accumulate events during that time
+            socket.subscribe(socket.SOCKET_EVENTS.disconnect, () => { this.accumulateEvents = true; });
+            if (socket.authenticated) this.loadUnreadDigest();
+        });
     }
 
-    start() {
-        if (this.started) return;
-        this.started = true;
-        socket.subscribe(socket.APP_EVENTS.kegsUpdate, this.processUpdateEvent.bind(this));
-        socket.subscribe(socket.SOCKET_EVENTS.authenticated, this.loadFullUpdateData.bind(this));
-        if (socket.authenticated) this.loadFullUpdateData();
-    }
+    // to return from getDigest()
+    zeroDigest = { maxUpdateId: 0, knownUpdateId: 0, newKegsCount: 0 };
 
-    processUpdateEvent(d) {
-        if (!this.data.has(d.kegDbId)) {
-            this.data.set(d.kegDbId, new KnownTypesTracker());
-        }
-        const tracker = this.data.get(d.kegDbId)[d.type];
-        if (!tracker) {
-            console.warn(`Unknown keg type: ${d.type}`);
-            return;
-        }
-        tracker.knownUpdateId = d.knownUpdateId;
-        tracker.maxUpdateId = d.maxUpdateId;
-        tracker.newKegsCount = d.newKegsCount;
+    /**
+     * Wrapper around this.digest to safely retrieve data that might be not retrieved yet,
+     * so we want to avoid null reference. This function will return zeroes in case of null.
+     * @param {string} id - keg db id
+     * @param {string} type - keg type
+     */
+    getDigest(id, type) {
+        if (!this.digest[id]) return this.zeroDigest;
+        const d = this.digest[id][type];
+        if (!d) return this.zeroDigest;
+        return d;
     }
 
     /**
-     * Fills this.data with full update info from server
+     * Subscribes handler to an event of new keg db created for this user
+     * @param {function} handler
      */
-    loadFullUpdateData() {
-        console.log('Loading full update data.');
-        socket.send('/auth/kegs/updates/digest')
-            .then(action(digest => {
-                for (const d of digest) {
-                    this.processUpdateEvent(d);
-                }
-            }));
+    onKegDbAdded(handler) {
+        if (this.dbAddedHandlers.includes(handler)) {
+            console.error('This handler already subscribed to onKegDbAdded');
+            return;
+        }
+        this.dbAddedHandlers.push(handler);
     }
 
-    seenThis(chatId, type, updateId) {
+    /**
+     * Subscribes handler to an event of keg of specific type change in keg db
+     * @param {string} kegDbId - id of the db to watch
+     * @param {string} kegType - keg type to watch
+     * @param {function} handler
+     */
+    onKegTypeUpdated(kegDbId, kegType, handler) {
+        if (!this.updateHandlers[kegDbId]) {
+            this.updateHandlers[kegDbId] = {};
+        }
+
+        if (!this.updateHandlers[kegDbId][kegType]) {
+            this.updateHandlers[kegDbId][kegType] = [];
+        }
+        if (this.updateHandlers[kegDbId][kegType].includes(handler)) {
+            console.error('This handler already subscribed to onKegTypeUpdated');
+            return;
+        }
+        this.updateHandlers[kegDbId][kegType].push(handler);
+    }
+
+    /**
+     * Lets Update Tracker know that user is interested in this database full updates even after reconnect
+     * @param {string} id - keg db id
+     */
+    activateKegDb(id) {
+        if (this.activeKegDbs.includes(id)) return;
+        this.activeKegDbs.push(id);
+        // todo when server supports it: load digest for this db
+        //   socket.send('/auth/kegs/updates/digest')
+    }
+
+
+    deactivateKegDb(id) {
+        const ind = this.activeKegDbs.indexOf(id);
+        if (ind < 0) return;
+        this.activeKegDbs.splice(ind, 1);
+    }
+
+    /**
+     * Unsubscribes handler from all events (onKegTypeUpdated, onKegDbAdded)
+     * @param {function} handler
+     */
+    unsubscribe(handler) {
+        let ind = this.dbAddedHandlers.indexOf(handler);
+        if (ind >= 0) this.dbAddedHandlers.splice(ind, 1);
+        for (const db in this.updateHandlers) {
+            for (const type in this.updateHandlers[db]) {
+                ind = this.updateHandlers[db][type].indexOf(handler);
+                if (ind >= 0) this.updateHandlers[db][type].splice(ind, 1);
+            }
+        }
+    }
+
+    //  {"kegDbId":"SELF","type":"profile","maxUpdateId":3, knownUpdateId: 0, newKegsCount: 1},
+    processDigestEvent(ev) {
+        // here we want to do 2 things
+        // 1. update internal data tracker
+        // 2. fire or accumulate events
+
+        let shouldEmitUpdateEvent = false;
+
+        // kegdb yet unknown to our digest? consider it just added
+        if (!this.digest[ev.kegDbId]) {
+            shouldEmitUpdateEvent = true;
+            this.digest[ev.kegDbId] = {};
+            if (this.accumulateEvents) {
+                if (!this.eventCache.add.includes(ev.kegDbId)) {
+                    this.eventCache.add.push(ev.kegDbId);
+                }
+            } else {
+                this.emitKegDbAddedEvent(ev.kegDbId);
+            }
+        }
+        const dbDigest = this.digest[ev.kegDbId];
+        if (!dbDigest[ev.type]) {
+            shouldEmitUpdateEvent = true;
+            dbDigest[ev.type] = {};
+        }
+        const typeDigest = dbDigest[ev.type];
+        // if this db and keg type was already known to us
+        // we need to check if this event actually brings something new to us,
+        // or maybe it was out of order and we don't care for its data
+        if (!shouldEmitUpdateEvent
+            && typeDigest.maxUpdateId >= ev.maxUpdateId
+            && typeDigest.knownUpdateId >= ev.knownUpdateId
+            && typeDigest.newKegsCount === ev.newKegsCount) {
+            return; // known data / not interested
+        }
+        // storing data in internal digest cache
+        typeDigest.maxUpdateId = ev.maxUpdateId;
+        typeDigest.knownUpdateId = ev.knownUpdateId;
+        typeDigest.newKegsCount = ev.newKegsCount;
+        // creating event
+        if (this.accumulateEvents) {
+            const rec = this.eventCache.update[ev.kegDbId] = this.eventCache.update[ev.kegDbId] || [];
+            if (!rec.includes(ev.type)) {
+                rec.push(ev.type);
+            }
+        } else {
+            this.emitKegTypeUpdatedEvent(ev.kegDbId, ev.type);
+        }
+    }
+
+    emitKegDbAddedEvent(id) {
+        this.dbAddedHandlers.forEach(handler => {
+            handler(id);
+        });
+    }
+
+    emitKegTypeUpdatedEvent(id, type) {
+        if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return;
+        this.updateHandlers[id][type].forEach(handler => {
+            handler();
+        });
+    }
+
+    flushAccumulatedEvents() {
+        this.eventCache.add.forEach(id => {
+            this.emitKegDbAddedEvent(id);
+        });
+        for (const id in this.eventCache.update) {
+            this.eventCache.update[id].forEach(type => {
+                this.emitKegTypeUpdatedEvent(id, type);
+            });
+        }
+        this.eventCache = { add: [], update: {} };
+        this.accumulateEvents = false;
+    }
+
+    /**
+     * Fills this.data with full update info from server.
+     * Initial call, reads only unread data.
+     */
+    loadUnreadDigest() {
+        socket.send('/auth/kegs/updates/digest')
+            .then(digest => {
+                for (const d of digest) {
+                    this.processDigestEvent(d);
+                }
+            }).then(() => {
+                this.flushAccumulatedEvents();
+            });
+        // todo: when server supports it
+        // todo: load unread
+        // todo: load active keg databases
+    }
+
+    /**
+     * Stores max update id that user has seen to server.
+     * @param {string} id - keg db id
+     * @param {string} type - keg type
+     * @param {number} updateId - max known update id
+     */
+    seenThis(id, type, updateId) {
         socket.send('/auth/kegs/updates/last-known-version', {
-            collectionId: chatId,
+            collectionId: id,
             type,
             lastKnownVersion: updateId
         });

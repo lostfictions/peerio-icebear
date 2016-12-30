@@ -42,17 +42,10 @@ class Chat {
                                             : this.participants.map(p => p.username).join(', ');
     }
 
-    @computed get unreadCount() {
-        if (!this.id) return 0;
-        if (!tracker.data.has(this.id)) return 0;
-        return tracker.data.get(this.id).message.newKegsCount;
-    }
+    @observable unreadCount = tracker.getDigest(this.id, 'message').newKegsCount;
+
     downloadedUpdateId =0;
-    @computed get maxUpdateId() {
-        if (!this.id) return 0;
-        if (!tracker.data.has(this.id)) return 0;
-        return tracker.data.get(this.id).message.maxUpdateId;
-    }
+    @observable maxUpdateId = tracker.getDigest(this.id, 'message').maxUpdateId;
 
     /**
      * @param {string} id - chat id
@@ -67,6 +60,11 @@ class Chat {
         this.db = new ChatKegDb(id, participants);
     }
 
+    onMessageDigestUpdate = () => {
+        this.unreadCount = tracker.digest[this.id].message.newKegsCount;
+        this.maxUpdateId = tracker.digest[this.id].message.maxUpdateId;
+    };
+
     loadMetadata() {
         if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
         this.loadingMeta = true;
@@ -77,6 +75,7 @@ class Chat {
                 this.errorLoadingMeta = false;
                 this.loadingMeta = false;
                 this.metaLoaded = true;
+                tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));

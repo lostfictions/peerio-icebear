@@ -3,7 +3,7 @@ const Chat = require('./chat');
 const socket = require('../network/socket');
 const normalize = require('../errors').normalize;
 const User = require('./user');
-const updateTracker = require('./update-tracker');
+const tracker = require('./update-tracker');
 const EventEmitter = require('eventemitter3');
 const _ = require('lodash');
 
@@ -30,11 +30,10 @@ class ChatStore {
 
     preloadCache = [];
     constructor() {
-        updateTracker.data.observe(change => {
-            if (change.type !== 'add') return;
-            console.log(`New incoming chat: ${change.name}`);
-            if (this.loaded) this.addChat(change.name);
-            else this.preloadCache.push(change.name);
+        tracker.onKegDbAdded(id => {
+            console.log(`New incoming chat: ${id}`);
+            if (this.loaded) this.addChat(id);
+            else this.preloadCache.push(id);
         });
         this.events = new EventEmitter();
     }
@@ -135,7 +134,11 @@ class ChatStore {
     @action activate(id) {
         const chat = this.chatMap[id];
         if (!chat) return;
-        if (this.activeChat) this.activeChat.active = false;
+        if (this.activeChat) {
+            tracker.deactivateKegDb(this.activeChat.id);
+            this.activeChat.active = false;
+        }
+        tracker.activateKegDb(id);
         chat.active = true;
         this.activeChat = chat;
     }
