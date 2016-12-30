@@ -2,6 +2,9 @@ const { observable, computed } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
 
+/**
+ * Warnings that come from the icebear lib, not the server.
+ */
 class SystemWarning {
     constructor(object) {
         this.content = object.content;
