@@ -22,6 +22,7 @@ class ServerWarning extends SystemWarning {
     constructor(object) {
         super(object);
         this.content = object.msg;
+        this.token = object.token;
         this.action = this.action.bind(this);
     }
 
