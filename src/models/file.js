@@ -14,13 +14,6 @@ const systemWarnings = require('./system-warning');
 
 class File extends Keg {
 
-    /**
-     * User will receive a notification (snackbar) for short downloads.
-     *
-     * @type {number}
-     */
-    SHORT_DOWNLOAD_TIME_THRESHOLD_MS = 2000;
-
     get FileStream() {
         return FileStreamAbstract.FileStream;
     }
@@ -116,8 +109,6 @@ class File extends Keg {
         const chunkSize = this.FileStream.chunkSize || 1024 * 512;
         const stream = new this.FileStream(filePath, 'read', chunkSize);
         const nonceGen = new FileNonceGenerator();
-        // time to upload
-        const uploadStartTimestamp = Date.now();
         // setting keg properties
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
         this.uploadedAt = new Date();
@@ -140,15 +131,15 @@ class File extends Keg {
                     this.uploader.start();
                 });
             })
+            .catch(() => {
+                systemWarnings.add({
+                    content: 'file_uploadFailed',
+                    data: {
+                        fileName: this.name
+                    }
+                });
+            })
             .finally(() => {
-                if (Date.now() - uploadStartTimestamp < this.SHORT_DOWNLOAD_TIME_THRESHOLD_MS) {
-                    systemWarnings.add({
-                        content: 'file_shortUploadComplete',
-                        data: {
-                            fileName: this.name
-                        }
-                    });
-                }
                 this.uploading = false;
                 this.progress = 0;
                 this.progressBuffer = 0;

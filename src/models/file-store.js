@@ -1,14 +1,32 @@
-const { observable, action, asFlat } = require('mobx');
+const { observable, action, asFlat, when, reaction } = require('mobx');
 const socket = require('../network/socket');
 // const normalize = require('../errors').normalize;
 const User = require('./user');
 // const updateTracker = require('./update-tracker');
 const File = require('./file');
+const systemWarnings = require('./system-warning');
 
 class FileStore {
     @observable files = asFlat([]);
     @observable loading = false;
+    @observable ongoingUploads = 0;
     loaded = false;
+
+    /**
+     * Attach handlers that will alert the user when a busy upload queue is
+     * consumed.
+     */
+    constructor() {
+        reaction(() => this.ongoingUploads, () => {
+            if (this.ongoingUploads > 0) {
+                when(() => this.ongoingUploads === 0, () => {
+                    systemWarnings.add({
+                        content: 'file_uploadComplete'
+                    });
+                });
+            }
+        });
+    }
 
     _getFiles(min) {
         return socket.send('/auth/kegs/query', {
@@ -41,14 +59,20 @@ class FileStore {
     }
 
     /**
+     * Upload a file and keep track of its uploading state.
      *
      * @param {string} filePath
      * @param {string} fileName
      */
     upload(filePath, fileName) {
+        this.ongoingUploads += 1;
         const keg = new File(User.current.kegdb);
         keg.upload(filePath, fileName);
         this.files.unshift(keg);
+
+        when(() => !keg.uploading, () => {
+            this.ongoingUploads -= 1;
+        });
     }
 
     remove(file) {

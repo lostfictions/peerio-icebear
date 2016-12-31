@@ -20,7 +20,6 @@ class SystemWarning {
  */
 class ServerWarning extends SystemWarning {
     constructor(object) {
-        console.log('create serverwarning', object.msg)
         super(object);
         this.content = object.msg;
         this.action = this.action.bind(this);
