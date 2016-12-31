@@ -7,10 +7,12 @@ const User = require('../../src/models/user');
 const helpers = require('../helpers');
 const socket = require('../../src/network/socket');
 const Contact = require('../../src/models/contact');
-const { when } = require('mobx');
+const {when} = require('mobx');
+const systemWarnings = require('../../src/models/system-warning');
+const _ = require('lodash');
 
 // this is a sequenced test suite
-describe('User model', function() {
+describe('User model', function () {
     this.timeout(15000);
     // instances of User *for the same account*
     const user = new User();
@@ -28,6 +30,7 @@ describe('User model', function() {
         user.passphrase = userInst2.passphrase = passphrase;
         user.email = `${user.username}@mailinator.com`;
         socket.onceConnected(done);
+        socket.started && socket.open();
     });
 
     it('#01 should server-validate username',
@@ -78,7 +81,7 @@ describe('User model', function() {
         socket.open();
     });
 
-    it('#06 can get the last authenticated user', function() {
+    it('#06 can get the last authenticated user', function () {
         return User.getLastAuthenticated()
             .then((last) => {
                 console.log('last user ', last)
@@ -96,7 +99,7 @@ describe('User model', function() {
     it('Should load existing contact', function (done) {
         const c = new Contact('anritest7');
         c.load();
-        when(()=>!c.loading,
+        when(() => !c.loading,
             () => {
                 c.loading.should.be.false;
                 c.notFound.should.be.false;
@@ -109,12 +112,26 @@ describe('User model', function() {
     it('Should fail on not existing contact', function (done) {
         const c = new Contact('tmux');
         c.load();
-        when(()=>!c.loading,
+        when(() => !c.loading,
             () => {
                 c.loading.should.be.false;
                 c.notFound.should.be.true;
                 done();
             }
         );
+    });
+
+    it('Should receive server warning', function (done) {
+       let count = 0;
+        // this has to get unsubscribed, but i'd rather burn the entire test file with fire later
+        socket.subscribe(socket.APP_EVENTS.serverWarning, () => {
+            if(++count<2) return;
+            const messages = _.map(systemWarnings.collection, 'content');
+            messages.indexOf('testwarning').should.be.greaterThan(-1);
+            done();
+        });
+        socket.send('/auth/testServerWarning');
+        socket.close();
+        socket.open();
     });
 });
