@@ -29,16 +29,16 @@
  */
 const socket = require('../../network/socket');
 
-const VALIDATION_THROTTLING_PERIOD_MS = 500;
+const VALIDATION_THROTTLING_PERIOD_MS = 1500;
 const usernameRegex = /^\w{1,16}$/;
 const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
     /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
 
-let serverValidationQueue = Promise.resolve();
-
+let validationPromiseQueue = Promise.resolve();
+const validationRequestQueue = [];
 /**
- * Throttled & promisified call to validaion API.
+ * Throttled & promisified call to validation API.
  *
  * @param {String} context -- context for field, e.g "signup"
  * @param {String} name -- field name
@@ -47,16 +47,19 @@ let serverValidationQueue = Promise.resolve();
  * @private
  */
 function _callServer(context, name, value) {
-    const throttledResult = serverValidationQueue.then(() => {
-        return socket.send('/noauth/validate', { context, name, value })
+    validationRequestQueue.push({ context, name, value });
+
+    const throttledResult = validationPromiseQueue.then(() => {
+        return socket.send('/noauth/validate', validationRequestQueue[validationRequestQueue.length - 1])
             .then(resp => (!!resp && resp.valid))
             .catch(err => {
                 console.error(err);
                 return Promise.resolve(false);
             });
     });
-    serverValidationQueue = Promise.delay(VALIDATION_THROTTLING_PERIOD_MS)
-        .return(serverValidationQueue);
+    validationPromiseQueue = Promise
+        .delay(VALIDATION_THROTTLING_PERIOD_MS)
+        .return(validationPromiseQueue);
     return throttledResult;
 }
 
