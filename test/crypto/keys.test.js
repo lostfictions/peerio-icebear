@@ -4,7 +4,9 @@
 const crypto = require('../../src/crypto/keys');
 const util = require('../../src/crypto/util');
 
-describe('Crypto Keys module', () => {
+describe('Crypto Keys module', function() {
+    this.timeout(5000);
+
     it('should derive keys', () => {
         const username = 'user';
         const passphrase = 'hidden award watts chained restored';
