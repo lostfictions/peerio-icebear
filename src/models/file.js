@@ -138,6 +138,7 @@ class File extends Keg {
                         fileName: this.name
                     }
                 });
+                return Promise.reject(new Error('upload failed'))
             })
             .finally(() => {
                 this.uploading = false;
