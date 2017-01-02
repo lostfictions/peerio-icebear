@@ -30,7 +30,6 @@
 const socket = require('../../network/socket');
 
 const VALIDATION_THROTTLING_PERIOD_MS = 500;
-const VALIDATION_TIMEOUT_MS = 2000;
 const usernameRegex = /^\w{1,16}$/;
 const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
@@ -51,7 +50,6 @@ function _callServer(context, name, value) {
     const throttledResult = serverValidationQueue.then(() => {
         return socket.send('/noauth/validate', { context, name, value })
             .then(resp => (!!resp && resp.valid))
-            .timeout(VALIDATION_TIMEOUT_MS) // not connected
             .catch(err => {
                 console.error(err);
                 return Promise.resolve(false);
