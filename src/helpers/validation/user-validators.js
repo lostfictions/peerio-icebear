@@ -31,16 +31,20 @@ import { when } from 'mobx';
 
 const socket = require('../../network/socket');
 
+const usernameRegex = /^\w{1,16}$/;
+const emailRegex = /^[^ ]+@[^ ]+/i;
+const phoneRegex =
+    /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
+
 function isValidUsername(name) {
     if (name) {
-        return Promise.resolve(!!name.match(/^\w{1,16}$/));
+        return Promise.resolve(!!name.match(usernameRegex));
     }
     return Promise.resolve(false);
 }
 
 function isValidEmail(val) {
-    const emailRegex = new RegExp(/^[^ ]+@[^ ]+/i);
-    return Promise.resolve(!!emailRegex.test(val));
+    return Promise.resolve(emailRegex.test(val));
 }
 
 function isValid(context, name) {
@@ -65,10 +69,8 @@ function isNonEmptyString(name) {
     return Promise.resolve(name.length > 0);
 }
 
-function isValidPhone(val) { // eslint-disable-line
-    const phoneRegex =
-              new RegExp(/^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i);
-    return Promise.resolve(!!phoneRegex.test(val));
+function isValidPhone(val) {
+    return Promise.resolve(phoneRegex.test(val));
 }
 
 function isValidLoginUsername(name) {
