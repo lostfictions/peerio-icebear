@@ -29,14 +29,13 @@
  */
 const socket = require('../../network/socket');
 
-const VALIDATION_THROTTLING_PERIOD_MS = 1500;
+const VALIDATION_THROTTLING_PERIOD_MS = 500;
 const usernameRegex = /^\w{1,16}$/;
 const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
     /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
 
-let validationPromiseQueue = Promise.resolve();
-const validationRequestQueue = [];
+let serverValidationStore = { pendingRequest: null, cachedResult: true };
 /**
  * Throttled & promisified call to validation API.
  *
@@ -47,20 +46,30 @@ const validationRequestQueue = [];
  * @private
  */
 function _callServer(context, name, value) {
-    validationRequestQueue.push({ context, name, value });
+    serverValidationStore.pendingRequest = { context, name, value };
 
-    const throttledResult = validationPromiseQueue.then(() => {
-        return socket.send('/noauth/validate', validationRequestQueue[validationRequestQueue.length - 1])
-            .then(resp => (!!resp && resp.valid))
-            .catch(err => {
-                console.error(err);
-                return Promise.resolve(false);
-            });
-    });
-    validationPromiseQueue = Promise
+    const callThrottled = () => {
+        if (serverValidationStore.pendingRequest) {
+            return socket.send('/noauth/validate', serverValidationStore.pendingRequest)
+                .then(resp => {
+                    serverValidationStore = {
+                        pendingRequest: null,
+                        cachedResult: !!resp && resp.valid
+                    };
+                    return Promise.resolve(serverValidationStore.cachedResult);
+                })
+                .catch(() => {
+                    serverValidationStore = { pendingRequest: null, cachedResult: false };
+                    return Promise.resolve(serverValidationStore.cachedResult);
+                });
+        }
+        // avoid leaving an unresolved promise
+        return Promise.resolve(serverValidationStore.cachedResult);
+    };
+
+    return Promise
         .delay(VALIDATION_THROTTLING_PERIOD_MS)
-        .return(validationPromiseQueue);
-    return throttledResult;
+        .then(callThrottled);
 }
 
 function isValidUsername(name) {
