@@ -27,9 +27,35 @@
  *  if the function does not return a message, the default message provided by the
  *  validator will be used.
  */
-import { when } from 'mobx';
-
 const socket = require('../../network/socket');
+
+const VALIDATION_THROTTLING_PERIOD_MS = 500;
+const VALIDATION_TIMEOUT_MS = 2000;
+let serverValidationQueue = Promise.resolve();
+
+/**
+ * Throttled & promisified call to validaion API.
+ *
+ * @param {String} context -- context for field, e.g "signup"
+ * @param {String} name -- field name
+ * @param {*} value
+ * @returns {Promise<Boolean>}
+ * @private
+ */
+function _callServer(context, name, value) {
+    const throttledResult = serverValidationQueue.then(() => {
+        return socket.send('/noauth/validate', { context, name, value })
+            .then(resp => (!!resp && resp.valid))
+            .timeout(VALIDATION_TIMEOUT_MS) // not connected
+            .catch(err => {
+                console.error(err);
+                return Promise.resolve(false);
+            });
+    });
+    serverValidationQueue = Promise.delay(VALIDATION_THROTTLING_PERIOD_MS)
+        .return(serverValidationQueue);
+    return throttledResult;
+}
 
 function isValidUsername(name) {
     if (name) {
@@ -48,19 +74,6 @@ function isValid(context, name) {
         (value ? _callServer(context, name || n, value) : Promise.resolve(false));
 }
 
-function _callServer(context, name, value) {
-    return new Promise((resolve, reject) => {
-        when(() => socket.connected, () => {
-            socket.send('/noauth/validate', { context, name, value })
-                .then(resp => resolve(!!resp && resp.valid))
-                .catch(err => {
-                    console.error(err);
-                    resolve(false);
-                });
-        });
-    });
-}
-
 function isNonEmptyString(name) {
     return Promise.resolve(name.length > 0);
 }
@@ -75,7 +88,6 @@ function isValidLoginUsername(name) {
     return isValid('signup', 'username')(name)
         .then((value) => !value);
 }
-
 
 function areEqualValues(value, additionalArguments) {
     if (value === additionalArguments.equalsValue) return Promise.resolve(true);
