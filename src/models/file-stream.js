@@ -1,4 +1,6 @@
 const { AbstractCallError } = require('../errors');
+const db = require('../db/tiny-db');
+
 /**
  * Abstract File Stream class, inherit you own, override following functions
  * - open()
@@ -57,6 +59,29 @@ class FileStreamAbstract {
     }
 
     /**
+     * @param {long} pos - current download/upload position. download or upload is determined by FS mode
+     * @returns {Promise} - resolves when position was saved in local storage
+     */
+    static savePosition(mode, path, pos) {
+        const key = `cache::${mode}::${path}`;
+        // console.log(`file-stream.js: saving ${key}, ${pos}`);
+        return pos ?
+            db.set(key, pos)
+            : db.remove(key);
+    }
+
+    /**
+     * @returns {Promise} - resolves with cached position or 0
+     */
+    static loadPosition(mode, path) {
+        const key = `cache::${mode}::${path}`;
+        return db.get(key).then(pos => {
+            // console.log(`file-stream.js: loading ${key}, ${pos}`);
+            return pos;
+        });
+    }
+
+    /**
      * @returns {Promise<number>} - resolves with file size when file is open and ready for reading/writing
      */
     open() {
@@ -78,6 +103,7 @@ class FileStreamAbstract {
     /**
      * @returns {string} - actual device path
      */
+    // eslint-disable-next-line
     static cachePath(name) {
         throw new AbstractCallError();
     }
@@ -92,6 +118,7 @@ class FileStreamAbstract {
     /**
      * Launch external viewer
      */
+    // eslint-disable-next-line
     static launchViewer(path) {
         throw new AbstractCallError();
     }

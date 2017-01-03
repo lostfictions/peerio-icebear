@@ -26,8 +26,16 @@ class File extends Keg {
         if (this.FileStream.useCache) {
             reaction(() => this.downloaded || this.fileId, () => {
                 this.cacheExists = false;
-                !!this.fileId && this.FileStream.exists(this.cachePath)
-                    .then(exists => (this.cacheExists = exists));
+                const path = this.cachePath;
+                !!this.fileId && this.FileStream.exists(path)
+                    .then(exists => {
+                        this.cacheExists = exists;
+                        exists && this.FileStream.loadPosition('download', path)
+                            .then(pos => {
+                                this.isPartialDownload = !!pos;
+                                this._downloadPosition = pos;
+                            });
+                    });
             }, true);
         }
     }
@@ -50,6 +58,21 @@ class File extends Keg {
     @observable cacheExists = false;
     @observable selected = false;
     @observable fileId = null;
+    @observable isPartialDownload = false;
+    _downloadPosition = 0;
+
+    get downloadPosition() {
+        return this._downloadPosition;
+    }
+
+    set downloadPosition(val) {
+        this._downloadPosition = val;
+        this.FileStream.useCache && this.FileStream.savePosition('download', this.cachePath, val);
+        if (!val) {
+            this.isPartialDownload = false;
+        }
+    }
+
 
     @computed get cachePath() {
         if (this.FileStream.useCache) {
