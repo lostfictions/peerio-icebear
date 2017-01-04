@@ -64,7 +64,7 @@ class FileStore {
             this.files.forEach(f => {
                 // when file finished checking its download status
                 when(() => f.isPartialDownload, () => f.download());
-                when(() => f.isPartialUpload, () => f.upload());
+                when(() => f.nonce && f.isPartialUpload, () => f.upload());
             });
         });
     }

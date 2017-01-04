@@ -61,10 +61,13 @@ class FileUploader extends FileResumableAbstract {
     start() {
         console.log(`file-uploader.js: checking if partial file`);
         if (this.file.uploadPosition) {
-            const { pos, chunkId, progress } = this.file.uploadPosition;
-            if (pos && chunkId && progress) {
+            console.log('file-uploader chunk loaded');
+            console.log(this.file.uploadPosition);
+            const { pos, chunkId, progress, lastReadChunkId } = this.file.uploadPosition;
+            if (pos && chunkId && progress && lastReadChunkId) {
                 this.stream.seek(pos);
                 this.pos = pos;
+                this.lastReadChunkId = lastReadChunkId;
                 this.nonceGenerator.chunkId = chunkId;
                 this.file.progress = progress;
                 console.log(`file-uploader.js: resuming ${this.pos}, ${this.nonceGenerator.chunkId}`);
@@ -167,7 +170,8 @@ class FileUploader extends FileResumableAbstract {
             const chunkId = this.nonceGenerator.chunkId;
             const progress = this.file.progress;
             const path = this.filePath;
-            this.file.uploadPosition = { pos, chunkId, progress, path };
+            const lastReadChunkId = this.lastReadChunkId;
+            this.file.uploadPosition = { pos, chunkId, progress, path, lastReadChunkId };
             this._tick();
         }).catch(err => {
             console.log(`Failed uploading file ${this.file.fileId}. Upload filed.`, err);

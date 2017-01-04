@@ -33,7 +33,7 @@ class File extends Keg {
                                     if (!exists) {
                                         return Promise.reject(new Error(`file.js: ${pos.path} does not exist`));
                                     }
-                                    console.log(pos);
+                                    // this._uploadPosition = pos;
                                     this._partialUploadPath = pos.path;
                                     this.isPartialUpload = true;
                                     return true;
@@ -165,6 +165,10 @@ class File extends Keg {
             console.error('file.js: no cached path available');
             throw new Error('file.js: no cached path available');
         }
+        if (!filePath && !this.nonce) {
+            console.error('file.js: trying to resume upload with missing nonce');
+            throw new Error('file.js: trying to resume upload with missing nonce');
+        }
         // prevent invalid use
         if (this.uploading || this.downloading) return Promise.reject();
         this.owner = User.current.username; // todo: probably remove this after files get proper updates
@@ -174,8 +178,8 @@ class File extends Keg {
         // preparing stream
         const chunkSize = this.FileStream.chunkSize || 1024 * 512;
         const stream = new this.FileStream(filePath, 'read', chunkSize);
+        // if we are recovering upload, restore nonce
         const nonceGen = new FileNonceGenerator();
-        // setting keg properties
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
         this.uploadedAt = new Date();
         this.name = fileName || this.name || fileHelper.getFileName(filePath);
@@ -197,7 +201,8 @@ class File extends Keg {
                     this.uploader.start();
                 });
             })
-            .catch(() => {
+            .catch(err => {
+                console.error(err);
                 systemWarnings.add({
                     content: 'file_uploadFailed',
                     data: {
