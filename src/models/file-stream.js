@@ -48,7 +48,9 @@ class FileStreamAbstract {
      * @returns {Promise} - resolves when chunk is written out,
      */
     write = (buffer) => {
-        if (this.mode !== 'write') return Promise.reject(new Error('Attempt to write to read stream.'));
+        if (this.mode !== 'write' && this.mode !== 'append') {
+            return Promise.reject(new Error(`file-stream.js: Attempt to write to read stream. ${this.mode}`));
+        }
         if (!buffer || !buffer.length) return Promise.resolve();
         return this.writeInternal(buffer);
     };
