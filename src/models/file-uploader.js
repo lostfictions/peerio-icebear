@@ -7,8 +7,9 @@ const socket = require('../network/socket');
 const errors = require('../errors');
 const secret = require('../crypto/secret');
 const cryptoUtil = require('../crypto/util');
+const FileResumableAbstract = require('./file-resumable-abstract');
 
-class FileUploader {
+class FileUploader extends FileResumableAbstract {
     // read chunks go here
     dataChunks = [];
     // encrypted chunks go here
@@ -33,7 +34,10 @@ class FileUploader {
     lastReadChunkId = -1;
     callbackCalled = false;
     // amount of uploaded(-ing) chunks that wait a response from server
-    chunksWaitingForResponse = 0;
+    // chunksWaitingForResponse = 0;
+    currentUploadingChunk = null;
+    pos = 0;
+    filePath = null;
 
     /**
      * @param {File} file
@@ -42,8 +46,10 @@ class FileUploader {
      * @param {number} maxChunkId
      * @param {function} callback
      */
-    constructor(file, stream, nonceGenerator, maxChunkId, callback) {
+    constructor(file, stream, nonceGenerator, maxChunkId, filePath, callback) {
+        super();
         this.file = file;
+        this.filePath = filePath;
         this.fileKey = cryptoUtil.b64ToBytes(file.key);
         this.file.progressMax = maxChunkId;
         this.stream = stream;
@@ -53,12 +59,25 @@ class FileUploader {
     }
 
     start() {
+        console.log(`file-uploader.js: checking if partial file`);
+        if (this.file.uploadPosition) {
+            const { pos, chunkId, progress } = this.file.uploadPosition;
+            if (pos && chunkId && progress) {
+                this.stream.seek(pos);
+                this.pos = pos;
+                this.nonceGenerator.chunkId = chunkId;
+                this.file.progress = progress;
+                console.log(`file-uploader.js: resuming ${this.pos}, ${this.nonceGenerator.chunkId}`);
+            }
+        }
         this._tick();
         console.log(`starting to upload file id: ${this.file.id}`);
     }
 
     cancel() {
         this.stop = true;
+        this.file.uploadPosition = null;
+        this._checkTimeout(true);
     }
 
     /**
@@ -66,6 +85,8 @@ class FileUploader {
      * @param {[Error]} err - in case there was an error
      */
     _callCallback(err) {
+        // we are done, clearing timeouts and positions
+        this.cancel();
         if (this.callbackCalled) return;
         this.callbackCalled = true;
         setTimeout(() => this.callback(err));
@@ -77,6 +98,7 @@ class FileUploader {
        // console.log(`${this.file.id}: chunk ${this.lastReadChunkId + 1} reading`);
         this.stream.read()
             .then(bytesRead => {
+                this.pos += bytesRead;
                 if (bytesRead === 0) {
                     this.eofReached = true;
                     if (this.lastReadChunkId !== this.maxChunkId) {
@@ -84,7 +106,6 @@ class FileUploader {
                                                 `chunk id, but max chunk id is${this.maxChunkId}`);
                         console.log(err);
                         console.log(`Upload failed for file ${this.file.fileId}`);
-                        this.stop = true;
                         this._callCallback(err);
                     }
                 } else {
@@ -99,7 +120,6 @@ class FileUploader {
             })
             .catch(err => {
                 console.log(`Failed reading file ${this.file.fileId}. Upload filed.`, err);
-                this.stop = true;
                 this._callCallback(errors.normalize(err));
             });
     }
@@ -119,26 +139,43 @@ class FileUploader {
         this._tick();
     }
 
+    _abortChunkUpload() {
+        console.error('file-uploader.js: aborting chunk');
+        const chunk = this.currentUploadingChunk;
+        this.cipherChunks.unshift(chunk);
+        this.currentUploadingChunk = null;
+    }
+
     _uploadChunk() {
-        if (this.stop || this.uploading || !this.cipherChunks.length || this.chunksWaitingForResponse > 1) return;
+        if (this.stop || this.uploading || !this.cipherChunks.length || this.currentUploadingChunk) return;
         this.uploading = true;
         const chunk = this.cipherChunks.shift();
+        this.currentUploadingChunk = chunk;
         // console.log(`${this.file.id}: chunk ${chunk.id} uploading...`)
-        this.chunksWaitingForResponse++;
+        // this.chunksWaitingForResponse++;
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
             chunk: chunk.buffer.buffer,
             last: chunk.id === this.maxChunkId
         }).then(() => {
+            this._checkTimeout(true);
             // console.log(`${this.file.id}: chunk ${chunk.id} uploaded`);
             this.chunksWaitingForResponse--;
             this.file.progress = Math.max(chunk.id, this.file.progress); // response can be out of order
+            const pos = this.pos;
+            const chunkId = this.nonceGenerator.chunkId;
+            const progress = this.file.progress;
+            const path = this.filePath;
+            this.file.uploadPosition = { pos, chunkId, progress, path };
             this._tick();
         }).catch(err => {
             console.log(`Failed uploading file ${this.file.fileId}. Upload filed.`, err);
             this.stop = true;
             this._callCallback(errors.normalize(err));
+        }).finally(() => {
+            this.currentUploadingChunk = null;
+            this._checkTimeout(true);
         });
         this.uploading = false;
         this._tick();
@@ -171,6 +208,7 @@ class FileUploader {
     _tick = () => {
         setTimeout(() => {
             try {
+                this._checkTimeout();
                 this._readChunk();
                 this._encryptChunk();
                 this._uploadChunk();

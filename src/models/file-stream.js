@@ -12,12 +12,12 @@ class FileStreamAbstract {
 
     /**
      * @param {string} filePath - will be used by 'open' function
-     * @param {string} mode - 'read' or 'write'
+     * @param {string} mode - 'read' or 'write' or 'append'
      * @param {number} bufferSize
      */
     constructor(filePath, mode, bufferSize = 1024 * 512) {
         this.filePath = filePath;
-        if (mode !== 'read' && mode !== 'write') {
+        if (mode !== 'read' && mode !== 'write' && mode !== 'append') {
             throw new Error('Invalid stream mode.');
         }
         if (mode === 'read') {
@@ -59,6 +59,25 @@ class FileStreamAbstract {
     }
 
     /**
+     * Move file position pointer
+     * @param {long} pos
+     * @returns {long} new position immediately
+     */
+    seek = (pos) => {
+        if (this.mode !== 'read') throw new Error('Seek only on read streams');
+        return this.seekInternal(pos);
+    }
+
+    /**
+     * Move file position pointer
+     * @param {long} pos
+     */
+    // eslint-disable-next-line
+    seekInternal(pos) {
+        throw new AbstractCallError();
+    }
+
+    /**
      * @param {long} pos - current download/upload position. download or upload is determined by FS mode
      * @returns {Promise} - resolves when position was saved in local storage
      */
@@ -76,7 +95,8 @@ class FileStreamAbstract {
     static loadPosition(mode, path) {
         const key = `cache::${mode}::${path}`;
         return db.get(key).then(pos => {
-            // console.log(`file-stream.js: loading ${key}, ${pos}`);
+            // console.log(`file-stream.js: loading ${key}`);
+            console.log(pos);
             return pos;
         });
     }

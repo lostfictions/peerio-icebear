@@ -1,5 +1,5 @@
 const Keg = require('./kegs/keg');
-const { observable, autorun, computed, reaction } = require('mobx');
+const { observable, autorun, computed, reaction, when } = require('mobx');
 const FileStreamAbstract = require('./file-stream');
 const keys = require('../crypto/keys');
 const cryptoUtil = require('../crypto/util');
@@ -24,7 +24,29 @@ class File extends Keg {
             this.ext = fileHelper.getFileExtension(this.name);
         });
         if (this.FileStream.useCache) {
+            when(() => this.fileId, () => {
+                this.FileStream.loadPosition('upload', this.fileId)
+                    .then(pos => {
+                        if (pos && pos.path) {
+                            return this.FileStream.exists(pos.path)
+                                .then(exists => {
+                                    if (!exists) {
+                                        return Promise.reject(new Error(`file.js: ${pos.path} does not exist`));
+                                    }
+                                    console.log(pos);
+                                    this._partialUploadPath = pos.path;
+                                    this.isPartialUpload = true;
+                                    return true;
+                                });
+                        }
+                        return Promise.reject(new Error('file.js: upload path unspecified'));
+                    })
+                    .catch(() => {
+                        this.uploadPosition = null;
+                    });
+            });
             reaction(() => this.downloaded || this.fileId, () => {
+                if (!this.fileId) return;
                 this.cacheExists = false;
                 const path = this.cachePath;
                 !!this.fileId && this.FileStream.exists(path)
@@ -33,7 +55,7 @@ class File extends Keg {
                         exists && this.FileStream.loadPosition('download', path)
                             .then(pos => {
                                 this.isPartialDownload = !!pos;
-                                this._downloadPosition = pos;
+                                this._downloadPosition = pos || {};
                             });
                     });
             }, true);
@@ -59,7 +81,10 @@ class File extends Keg {
     @observable selected = false;
     @observable fileId = null;
     @observable isPartialDownload = false;
-    _downloadPosition = 0;
+    @observable isPartialUpload = false;
+    _downloadPosition = {};
+    _uploadPosition = {};
+    _partialUploadPath = null;
 
     get downloadPosition() {
         return this._downloadPosition;
@@ -73,6 +98,17 @@ class File extends Keg {
         }
     }
 
+    get uploadPosition() {
+        return this._uploadPosition;
+    }
+
+    set uploadPosition(val) {
+        this._uploadPosition = val;
+        this.FileStream.useCache && this.FileStream.savePosition('upload', this.fileId, val);
+        if (!val) {
+            this.isPartialUpload = false;
+        }
+    }
 
     @computed get cachePath() {
         if (this.FileStream.useCache) {
@@ -122,7 +158,13 @@ class File extends Keg {
     }
 
 
-    upload(filePath, fileName) {
+    upload(filePathParam, fileName) {
+        let filePath = null;
+        filePath = filePathParam || this._partialUploadPath;
+        if (!filePath) {
+            console.error('file.js: no cached path available');
+            throw new Error('file.js: no cached path available');
+        }
         // prevent invalid use
         if (this.uploading || this.downloading) return Promise.reject();
         this.owner = User.current.username; // todo: probably remove this after files get proper updates
@@ -136,7 +178,7 @@ class File extends Keg {
         // setting keg properties
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
         this.uploadedAt = new Date();
-        this.name = fileName || fileHelper.getFileName(filePath);
+        this.name = fileName || this.name || fileHelper.getFileName(filePath);
         this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
         this.fileId = cryptoUtil.getRandomFileId(User.current.username);
 
@@ -149,7 +191,7 @@ class File extends Keg {
             .then(() => {
                 return new Promise((resolve, reject) => {
                     const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
-                    this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, err => {
+                    this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, filePath, err => {
                         err ? reject(errors.normalize(err)) : resolve();
                     });
                     this.uploader.start();
@@ -188,7 +230,7 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         const nonceGen = new FileNonceGenerator(cryptoUtil.b64ToBytes(this.nonce));
-        const stream = new this.FileStream(path, 'write');
+        const stream = new this.FileStream(path, this.isPartialDownload ? 'append' : 'write');
         return stream.open()
             .then(() => {
                 console.log(`File write stream open.`);

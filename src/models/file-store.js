@@ -58,6 +58,17 @@ class FileStore {
         }));
     }
 
+    resume() {
+        when(() => !this.loading, () => {
+            console.log('file-store.js: resuming');
+            this.files.forEach(f => {
+                // when file finished checking its download status
+                when(() => f.isPartialDownload, () => f.download());
+                when(() => f.isPartialUpload, () => f.upload());
+            });
+        });
+    }
+
     // this essentially does the same as loadAllFiles but with filter,
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
     updateFiles = () => {
