@@ -1,4 +1,4 @@
-const { observable, action, asFlat, when, reaction } = require('mobx');
+const { observable, action, asFlat, when, reaction, computed } = require('mobx');
 const socket = require('../network/socket');
 // const normalize = require('../errors').normalize;
 const User = require('./user');
@@ -14,6 +14,17 @@ class FileStore {
     loaded = false;
     updating = false;
     knownCollectionVersion = 0;
+
+    @computed get hasSelectedFiles() {
+        return this.files.some(FileStore.isFileSelected);
+    }
+    static isFileSelected(file) {
+        return file.selected;
+    }
+    getSelectedFiles() {
+        return this.files.filter(FileStore.isFileSelected);
+    }
+
 
     /**
      * Attach handlers that will alert the user when a busy upload queue is

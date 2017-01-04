@@ -73,6 +73,7 @@ class ChatStore {
                     this.loadError = false;
                     this.loading = false;
                     this.loaded = true;
+                    if (this.chats.length) this.activate(this.chats[0].id);
                 }));
             }))
             .then(() => {

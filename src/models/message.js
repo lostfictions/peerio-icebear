@@ -45,6 +45,15 @@ class Message extends Keg {
         this.text = payload.text;
         this.timestamp = new Date(payload.timestamp);
     }
+
+    serializeProps() {
+        if (this.files) return { files: JSON.stringify(this.files) };
+        return {};
+    }
+
+    deserializeProps(props) {
+        if (props.files) this.files = JSON.parse(props.files);
+    }
 }
 
 module.exports = Message;

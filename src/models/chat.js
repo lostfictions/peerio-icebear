@@ -1,10 +1,11 @@
-const { observable, computed, action, when, reaction, autorunAsync } = require('mobx');
+const { observable, computed, action, reaction, autorunAsync } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const tracker = require('./update-tracker');
 const socket = require('../network/socket');
+const File = require('./file');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -16,7 +17,7 @@ class Chat {
     @observable id=null;
     // Message objects
     @observable messages= [];
-    msgMap= {};
+    msgMap = {};
     // initial metadata loading
     @observable loadingMeta = false;
     // initial messages loading
@@ -145,8 +146,9 @@ class Chat {
             }).finally(() => this.updateMessages());
     }
 
-    sendMessage(text) {
+    sendMessage(text, files) {
         const m = new Message(this);
+        if (files) m.files = this._shareFiles(files);
         const promise = m.send(text);
         this.msgMap[m.tempId] = this.messages.push(m);
         return promise.then(() => {
@@ -157,9 +159,23 @@ class Chat {
     }
 
     sendAck() {
-        return this.sendMessage('👍');
+        return this.sendMessage('👍');// <- this is not a whitespace, it's unicode :thumb_up::
     }
 
+    _shareFiles(files) {
+        if (!files || !files.length) return null;
+        const ids = [];
+        for (let i = 0; i < files.length; i++) {
+            const source = files[i];
+            const f = new File(this.db);
+            f.deserializeKegPayload(source.serializeKegPayload());
+            f.deserializeProps(source.serializeProps());
+            if (!f.fileOwner) f.fileOwner = User.current.username;
+            f.saveToServer();
+            ids.push(f.fileId);
+        }
+        return ids;
+    }
 
     /**
      * Checks if this chat's participants are the same one that are passed

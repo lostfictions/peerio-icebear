@@ -144,8 +144,9 @@ class File extends Keg {
         return {
             fileId: this.fileId,
             size: this.size,
-            ext: this.ext,
-            uploadedAt: this.uploadedAt.valueOf()
+            ext: this.ext, // not really needed, since it's computed, but we want to be able to search for it
+            uploadedAt: this.uploadedAt.valueOf(),
+            fileOwner: this.fileOwner
         };
     }
 
@@ -155,6 +156,7 @@ class File extends Keg {
         this.size = +props.size;
         this.ext = props.ext;
         this.uploadedAt = new Date(+props.uploadedAt);
+        this.fileOwner = props.fileOwner;
     }
 
 
