@@ -58,9 +58,8 @@ class FileStore {
         this._getFiles().then(action(kegs => {
             for (const keg of kegs) {
                 const file = new File(User.current.kegdb);
-                file.loadFromKeg(keg);
-                this.knownCollectionVersion = Math.max(this.knownCollectionVersion, file.collectionVersion);
-                this.files.push(file);
+                this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                if (file.loadFromKeg(keg)) this.files.push(file);
             }
             this.loading = false;
             this.loaded = true;
@@ -93,8 +92,8 @@ class FileStore {
                     console.log(keg);
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegdb);
-                    file.loadFromKeg(keg);
-                    this.knownCollectionVersion = Math.max(this.knownCollectionVersion, file.collectionVersion);
+                    this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                    if (!file.loadFromKeg(keg)) continue;
                     if (!file.deleted && !existing) this.files.push(file);
                     if (file.deleted && existing) this.files.remove(file);
                 }

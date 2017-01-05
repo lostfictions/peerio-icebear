@@ -126,27 +126,32 @@ class Keg {
     }
 
     loadFromKeg(keg) {
-        if (this.id && this.id !== keg.kegId) {
-            throw new Error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
-        }
-        this.id = keg.kegId;
-        this.version = keg.version;
-        this.owner = keg.owner;
-        this.deleted = keg.deleted;
-        this.collectionVersion = keg.collectionVersion;
+        try {
+            if (this.id && this.id !== keg.kegId) {
+                throw new Error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+            }
+            this.id = keg.kegId;
+            this.version = keg.version;
+            this.owner = keg.owner;
+            this.deleted = keg.deleted;
+            this.collectionVersion = keg.collectionVersion;
         //  is this an empty keg? probably just created.
-        if (!keg.payload) return this;
-        let payload = keg.payload;
+            if (!keg.payload) return this;
+            let payload = keg.payload;
         // should we decrypt?
-        if (!this.plaintext) {
-            payload = new Uint8Array(keg.payload);
-            payload = secret.decryptString(payload, this.overrideKey || this.db.key);
+            if (!this.plaintext) {
+                payload = new Uint8Array(keg.payload);
+                payload = secret.decryptString(payload, this.overrideKey || this.db.key);
+            }
+            payload = JSON.parse(payload);
+            if (!this.plaintext) this.detectTampering(payload);
+            this.deserializeKegPayload(payload);
+            this.deserializeProps(keg.props);
+            return this;
+        } catch (err) {
+            console.error(err);
+            return false;
         }
-        payload = JSON.parse(payload);
-        if (!this.plaintext) this.detectTampering(payload);
-        this.deserializeKegPayload(payload);
-        this.deserializeProps(keg.props);
-        return this;
     }
 
     /**

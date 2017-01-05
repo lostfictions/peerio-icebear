@@ -106,7 +106,8 @@ class Chat {
         this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
                 if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
-                    this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
+                    const msg = new Message(this).loadFromKeg(keg);
+                    if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                 }
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
             }
@@ -134,7 +135,8 @@ class Chat {
             .then(kegs => {
                 for (const keg of kegs) {
                     if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
-                        this.msgMap[keg.kegId] = this.messages.push(new Message(this).loadFromKeg(keg));
+                        const msg = new Message(this).loadFromKeg(keg);
+                        if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                     }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
                 }
