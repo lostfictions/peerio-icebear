@@ -82,6 +82,7 @@ class File extends Keg {
     @observable fileId = null;
     @observable isPartialDownload = false;
     @observable isPartialUpload = false;
+    @observable show = true;
     _downloadPosition = {};
     _uploadPosition = {};
     _partialUploadPath = null;

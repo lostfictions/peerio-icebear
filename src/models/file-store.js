@@ -6,6 +6,7 @@ const User = require('./user');
 const File = require('./file');
 const systemWarnings = require('./system-warning');
 const tracker = require('./update-tracker');
+const _ = require('lodash');
 
 class FileStore {
     @observable files = asFlat([]);
@@ -22,7 +23,7 @@ class FileStore {
     @computed get hasSelectedFiles() {
         return this.files.some(FileStore.isFileSelected);
     }
-    @computed get allSelected(){
+    @computed get allSelected() {
         return this.files.every(FileStore.isFileSelected);
     }
 
@@ -45,7 +46,22 @@ class FileStore {
 
     @action selectAll() {
         for (let i = 0; i < this.files.length; i++) {
+            if (!this.files[i].show) continue;
             this.files[i].selected = true;
+        }
+    }
+
+    @action filterByName(query) {
+        const regex = new RegExp(_.escapeRegExp(query), 'i');
+        for (let i = 0; i < this.files.length; i++) {
+            this.files[i].show = regex.test(this.files[i].name);
+            if (!this.files[i].show) this.files[i].selected = false;
+        }
+    }
+
+    @action clearFilter() {
+        for (let i = 0; i < this.files.length; i++) {
+            this.files[i].show = true;
         }
     }
 
