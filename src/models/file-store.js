@@ -15,14 +15,38 @@ class FileStore {
     updating = false;
     knownCollectionVersion = 0;
 
-    @computed get hasSelectedFiles() {
-        return this.files.some(FileStore.isFileSelected);
-    }
     static isFileSelected(file) {
         return file.selected;
     }
+
+    @computed get hasSelectedFiles() {
+        return this.files.some(FileStore.isFileSelected);
+    }
+    @computed get allSelected(){
+        return this.files.every(FileStore.isFileSelected);
+    }
+
+    /**
+     * Returns currently selected files (file.selected == true)
+     * @returns {Array<File>}
+     */
     getSelectedFiles() {
         return this.files.filter(FileStore.isFileSelected);
+    }
+
+    /**
+     * Deselects all files
+     */
+    @action clearSelection() {
+        for (let i = 0; i < this.files.length; i++) {
+            this.files[i].selected = false;
+        }
+    }
+
+    @action selectAll() {
+        for (let i = 0; i < this.files.length; i++) {
+            this.files[i].selected = true;
+        }
     }
 
 
