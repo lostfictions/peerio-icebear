@@ -26,6 +26,13 @@ class FileStore {
     @computed get allSelected() {
         return this.files.every(FileStore.isFileSelected);
     }
+    @computed get selectedFilesCount() {
+        let ret = 0;
+        for (let i = 0; i < this.files.length; i++) {
+            if(this.files[i].selected) ret+=1;
+        }
+        return ret;
+    }
 
     /**
      * Returns currently selected files (file.selected == true)
