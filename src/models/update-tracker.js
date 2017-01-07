@@ -39,11 +39,11 @@ class UpdateTracker {
     constructor() {
         socket.onceStarted(() => {
             socket.subscribe(socket.APP_EVENTS.kegsUpdate, this.processDigestEvent.bind(this));
-            socket.subscribe(socket.SOCKET_EVENTS.authenticated, this.loadUnreadDigest.bind(this));
+            socket.subscribe(socket.SOCKET_EVENTS.authenticated, this.loadDigest.bind(this));
             // when disconnected, we know that reconnect will trigger digest reload
             // and we want to accumulate events during that time
             socket.subscribe(socket.SOCKET_EVENTS.disconnect, () => { this.accumulateEvents = true; });
-            if (socket.authenticated) this.loadUnreadDigest();
+            if (socket.authenticated) this.loadDigest();
         });
     }
 
@@ -192,7 +192,7 @@ class UpdateTracker {
         });
     }
 
-    flushAccumulatedEvents() {
+    _flushAccumulatedEvents = () => {
         this.eventCache.add.forEach(id => {
             this.emitKegDbAddedEvent(id);
         });
@@ -203,24 +203,25 @@ class UpdateTracker {
         }
         this.eventCache = { add: [], update: {} };
         this.accumulateEvents = false;
-    }
+    };
+
+    _processDigestResponse = digest => {
+        for (let i = 0; i < digest.length; i++) {
+            this.processDigestEvent(digest[i]);
+        }
+    };
 
     /**
      * Fills this.data with full update info from server.
      * Initial call, reads only unread data.
      */
-    loadUnreadDigest() {
-        socket.send('/auth/kegs/updates/digest')
-            .then(digest => {
-                for (const d of digest) {
-                    this.processDigestEvent(d);
-                }
-            }).then(() => {
-                this.flushAccumulatedEvents();
-            });
-        // todo: when server supports it
-        // todo: load unread
-        // todo: load active keg databases
+    loadDigest() {
+        console.log(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
+        socket.send('/auth/kegs/updates/digest', { unread: true })
+            .then(this._processDigestResponse)
+            .then(() => socket.send('/auth/kegs/updates/digest', { kegDbIds: this.activeKegDbs }))
+            .then(this._processDigestResponse)
+            .then(this._flushAccumulatedEvents);
     }
 
     /**

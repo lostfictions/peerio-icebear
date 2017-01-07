@@ -29,7 +29,7 @@ class FileStore {
     @computed get selectedFilesCount() {
         let ret = 0;
         for (let i = 0; i < this.files.length; i++) {
-            if(this.files[i].selected) ret+=1;
+            if (this.files[i].selected) ret += 1;
         }
         return ret;
     }
