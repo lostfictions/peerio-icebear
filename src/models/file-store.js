@@ -12,6 +12,7 @@ class FileStore {
     @observable files = asFlat([]);
     @observable loading = false;
     @observable ongoingUploads = 0;
+    @observable currentFilter = '';
     loaded = false;
     updating = false;
     knownCollectionVersion = 0;
@@ -59,6 +60,7 @@ class FileStore {
     }
 
     @action filterByName(query) {
+        this.currentFilter = query;
         const regex = new RegExp(_.escapeRegExp(query), 'i');
         for (let i = 0; i < this.files.length; i++) {
             this.files[i].show = regex.test(this.files[i].name);
@@ -67,6 +69,7 @@ class FileStore {
     }
 
     @action clearFilter() {
+        this.currentFilter = '';
         for (let i = 0; i < this.files.length; i++) {
             this.files[i].show = true;
         }
