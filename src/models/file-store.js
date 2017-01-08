@@ -24,10 +24,14 @@ class FileStore {
     @computed get hasSelectedFiles() {
         return this.files.some(FileStore.isFileSelected);
     }
-    @computed get allSelected() {
-        return this.files.every(FileStore.isFileSelected);
+    @computed get allVisibleSelected() {
+        for (let i = 0; i < this.files.length; i++) {
+            if (!this.files[i].show) continue;
+            if (this.files[i].selected === false) return false;
+        }
+        return true;
     }
-    @computed get selectedFilesCount() {
+    @computed get selectedCount() {
         let ret = 0;
         for (let i = 0; i < this.files.length; i++) {
             if (this.files[i].selected) ret += 1;
