@@ -10,6 +10,8 @@ const config = {
     // clients should override this
     socketServerUrl: 'wss://',
     termsUrl: 'https://github.com/PeerioTechnologies/peerio-documentation/blob/master/Terms_of_Use.md',
+    supportUrl: 'https://peerio.zendesk.com',
+    chunkSize: 1024 * 512,
     debug: {
         trafficReportInterval: 60000,
         socketLogEnabled: false

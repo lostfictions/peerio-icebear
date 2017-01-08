@@ -118,11 +118,6 @@ class FileStreamAbstract {
     }
 
     /**
-     * Are we using static cache directory to save downloaded files?
-     */
-    static useCache = false;
-
-    /**
      * @returns {string} - actual device path
      */
     // eslint-disable-next-line

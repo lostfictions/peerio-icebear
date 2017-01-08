@@ -11,6 +11,7 @@ const FileDownloader = require('./file-downloader');
 const FileNonceGenerator = require('./file-nonce-generator');
 const util = require('../util');
 const systemWarnings = require('./system-warning');
+const config = require('../config');
 
 class File extends Keg {
 
@@ -23,7 +24,7 @@ class File extends Keg {
         autorun(() => {
             this.ext = fileHelper.getFileExtension(this.name);
         });
-        if (this.FileStream.useCache) {
+        if (config.isMobile) {
             when(() => this.fileId, () => {
                 this.FileStream.loadPosition('upload', this.fileId)
                     .then(pos => {
@@ -93,7 +94,7 @@ class File extends Keg {
 
     set downloadPosition(val) {
         this._downloadPosition = val;
-        this.FileStream.useCache && this.FileStream.savePosition('download', this.cachePath, val);
+        config.isMobile && this.FileStream.savePosition('download', this.cachePath, val);
         if (!val) {
             this.isPartialDownload = false;
         }
@@ -105,14 +106,14 @@ class File extends Keg {
 
     set uploadPosition(val) {
         this._uploadPosition = val;
-        this.FileStream.useCache && this.FileStream.savePosition('upload', this.fileId, val);
+        config.isMobile && this.FileStream.savePosition('upload', this.fileId, val);
         if (!val) {
             this.isPartialUpload = false;
         }
     }
 
     @computed get cachePath() {
-        if (this.FileStream.useCache) {
+        if (config.isMobile) {
             const uid = cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
             return this.FileStream.cachePath(`${uid}.${this.ext}`);
         }
@@ -179,8 +180,7 @@ class File extends Keg {
         this.progress = 0;
         this.progressBuffer = 0;
         // preparing stream
-        const chunkSize = this.FileStream.chunkSize || 1024 * 512;
-        const stream = new this.FileStream(filePath, 'read', chunkSize);
+        const stream = new this.FileStream(filePath, 'read', config.chunkSize);
         // if we are recovering upload, restore nonce
         const nonceGen = new FileNonceGenerator();
         this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
@@ -197,7 +197,7 @@ class File extends Keg {
             })
             .then(() => {
                 return new Promise((resolve, reject) => {
-                    const maxChunkId = Math.ceil(this.size / chunkSize) - 1;
+                    const maxChunkId = Math.ceil(this.size / config.chunkSize) - 1;
                     this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, filePath, err => {
                         err ? reject(errors.normalize(err)) : resolve();
                     });
