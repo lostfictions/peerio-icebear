@@ -14,18 +14,18 @@ const mockDb = {};
 
 const engine = {
     setValue: (key, val) => {
-        console.log(`set -- TinyDb in-memory mock call.`);
+        console.warn(`set -- TinyDb in-memory mock call.`);
         mockDb[key] = val;
         return Promise.resolve();
     },
 
     getValue: key => {
-        console.log(`get --TinyDb in-memory mock call.`);
+        console.warn(`get -- TinyDb in-memory mock call.`);
         return Promise.resolve(mockDb[key]);
     },
 
     removeValue: key => {
-        console.log(`remove --TinyDb in-memory mock call.`);
+        console.warn(`remove -- TinyDb in-memory mock call.`);
         delete mockDb[key];
         return Promise.resolve();
     }

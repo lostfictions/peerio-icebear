@@ -1,12 +1,14 @@
-/* eslint-disable no-unused-vars */
 /**
  * Icebear client lib entry point
  */
+
+// replacing native Promise with bluebird implementation
 const Promise = require('bluebird');
 
 if (typeof window !== 'undefined') {
     window.Promise = Promise;
 }
+
 if (typeof global !== 'undefined') {
     global.Promise = Promise;
 }
@@ -18,16 +20,16 @@ Promise.config({
     }
 });
 
+// extending native classes
 require('./extensions/uint8array');
 
-// to create socket client singleton instance
+// exporting Icebear Library Interface
 const socket = require('./network/socket');
 const User = require('./models/user');
 const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
-const setTinyDbEngine = require('./db/tiny-db').setEngine;
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
 const fileStore = require('./models/file-store');
@@ -49,7 +51,6 @@ module.exports = {
     cryptoSecret,
     User,
     PhraseDictionary,
-    setTinyDbEngine,
     contactStore,
     chatStore,
     fileStore,

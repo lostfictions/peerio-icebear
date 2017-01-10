@@ -1,12 +1,12 @@
+/* eslint-disable no-unused-vars */
 const { AbstractCallError } = require('../errors');
 const db = require('../db/tiny-db');
 
 /**
- * Abstract File Stream class, inherit you own, override following functions
- * - open()
- * - close()
- * - readInternal()
- * - writeInternal()
+ * Abstract File Stream class
+ *  1. inherit you own
+ *  2. override required functions
+ *  3. set FileStreamAbstract.FileStream = YourFileStreamImplementation
  */
 class FileStreamAbstract {
 
@@ -21,7 +21,7 @@ class FileStreamAbstract {
             throw new Error('Invalid stream mode.');
         }
         if (mode === 'read') {
-            /** @type {Uint8Array} public interface read buffer */
+            // when reading file, we are going to reuse the same buffer
             this.buffer = new Uint8Array(bufferSize);
         }
         this.mode = mode;
@@ -62,17 +62,17 @@ class FileStreamAbstract {
 
     /**
      * Move file position pointer
-     * @param {long} pos
-     * @returns {long} new position immediately
+     * @param {number} pos
+     * @returns {number} new position immediately
      */
     seek = (pos) => {
         if (this.mode !== 'read') throw new Error('Seek only on read streams');
         return this.seekInternal(pos);
-    }
+    };
 
     /**
      * Move file position pointer
-     * @param {long} pos
+     * @param {number} pos
      */
     // eslint-disable-next-line
     seekInternal(pos) {
@@ -80,7 +80,7 @@ class FileStreamAbstract {
     }
 
     /**
-     * @param {long} pos - current download/upload position. download or upload is determined by FS mode
+     * @param {number} pos - current download/upload position. download or upload is determined by FS mode
      * @returns {Promise} - resolves when position was saved in local storage
      */
     static savePosition(mode, path, pos) {
@@ -118,24 +118,25 @@ class FileStreamAbstract {
     }
 
     /**
-     * @returns {string} - actual device path
+     * @param {string} name - file name
+     * @returns {string} - actual device path for file
      */
-    // eslint-disable-next-line
     static cachePath(name) {
         throw new AbstractCallError();
     }
 
     /**
-     * @returns Promise<boolean> - if path exists on device
+     * @param {string} path
+     * @returns Promise<boolean> - true if path exists on device
      */
-    static exists() {
+    static exists(path) {
         throw new AbstractCallError();
     }
 
     /**
      * Launch external viewer
+     * @param {string} path - file path to open in a viewer
      */
-    // eslint-disable-next-line
     static launchViewer(path) {
         throw new AbstractCallError();
     }
