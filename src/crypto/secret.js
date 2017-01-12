@@ -56,10 +56,18 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
         for (let i = 0; i < 4; i++) c[i] = l[i];
     }
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
-    nacl.lowlevel.crypto_secretbox(
-        lengthAdded ? c.subarray(prependLength ? 4 : 0, appendNonce ? -NONCE_SIZE : undefined) : c,
-        m, m.length, nonce, key);
-
+    const input = lengthAdded ? c.subarray(prependLength ? 4 : 0, appendNonce ? -NONCE_SIZE : undefined) : c;
+    // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
+    let cipherContainer=c; // default value
+    if(lengthAdded) {
+        const start = prependLength ? 4 : 0;
+        if(appendNonce){
+            cipherContainer = c.subarray(start, -NONCE_SIZE);
+        } else {
+            cipherContainer = c.subarray(start);
+        }
+    }
+    nacl.lowlevel.crypto_secretbox(cipherContainer, m, m.length, nonce, key);
     return c;// contains 16 zero bytes in the beginning, needed for decryption
 };
 
