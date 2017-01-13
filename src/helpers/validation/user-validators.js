@@ -50,18 +50,20 @@ function _callServer(context, name, value) {
 
     const callThrottled = () => {
         if (serverValidationStore.pendingRequest) {
-            return socket.send('/noauth/validate', serverValidationStore.pendingRequest)
-                .then(resp => {
-                    serverValidationStore = {
-                        pendingRequest: null,
-                        cachedResult: !!resp && resp.valid
-                    };
-                    return Promise.resolve(serverValidationStore.cachedResult);
-                })
-                .catch(() => {
-                    serverValidationStore = { pendingRequest: null, cachedResult: false };
-                    return Promise.resolve(serverValidationStore.cachedResult);
-                });
+            return (function(currentStore) {
+                return socket.send('/noauth/validate', currentStore.pendingRequest)
+                    .then(resp => {
+                        serverValidationStore = {
+                            pendingRequest: null,
+                            cachedResult: !!resp && resp.valid
+                        };
+                        return Promise.resolve(serverValidationStore.cachedResult);
+                    })
+                    .catch(() => {
+                        serverValidationStore = { pendingRequest: null, cachedResult: false };
+                        return Promise.resolve(serverValidationStore.cachedResult);
+                    });
+            }(serverValidationStore));
         }
         // avoid leaving an unresolved promise
         return Promise.resolve(serverValidationStore.cachedResult);
