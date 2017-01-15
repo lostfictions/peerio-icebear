@@ -13,29 +13,25 @@ class FileStreamAbstract {
     /**
      * @param {string} filePath - will be used by 'open' function
      * @param {string} mode - 'read' or 'write' or 'append'
-     * @param {number} bufferSize
      */
-    constructor(filePath, mode, bufferSize = 1024 * 512) {
+    constructor(filePath, mode) {
         this.filePath = filePath;
         if (mode !== 'read' && mode !== 'write' && mode !== 'append') {
             throw new Error('Invalid stream mode.');
-        }
-        if (mode === 'read') {
-            // when reading file, we are going to reuse the same buffer
-            this.buffer = new Uint8Array(bufferSize);
         }
         this.mode = mode;
     }
 
     /**
      * Reads a chunk of data from file stream
-     * @return {Promise<number>} - resolves with a number of bytes written to buffer
+     * @param {number} size - amount of bytes to read (if possible)
+     * @return {Promise<Uint8Array>} - resolves with a number of bytes written to buffer
      */
-    read = () => {
+    read = (size) => {
         if (this.mode !== 'read') {
             return Promise.reject(new Error('Attempt to read from write stream.'));
         }
-        return this.readInternal();
+        return this.readInternal(size);
     };
 
     readInternal() {
@@ -56,7 +52,7 @@ class FileStreamAbstract {
     };
 
     // eslint-disable-next-line
-    writeInternal(buffer, offset) {
+    writeInternal(buffer) {
         throw new AbstractCallError();
     }
 
@@ -104,7 +100,8 @@ class FileStreamAbstract {
     }
 
     /**
-     * @returns {Promise<number>} - resolves with file size when file is open and ready for reading/writing
+     * This function has to set 'size' property
+     * @returns {Promise<FileStreamAbstract>} - this
      */
     open() {
         throw new AbstractCallError();
@@ -118,10 +115,10 @@ class FileStreamAbstract {
     }
 
     /**
-     * @param {string} name - file name
+     * @param {string} name - normalized file name (deterministically generated)
      * @returns {string} - actual device path for file
      */
-    static cachePath(name) {
+    static getFullPath(name) {
         throw new AbstractCallError();
     }
 

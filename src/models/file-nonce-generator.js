@@ -11,10 +11,11 @@ class FileNonceGenerator {
     /**
      * Creates new nonce, or reuses existing one
      * @param {[Uint8Array]} nonce
+     * @param {number} chunkId - chunk id to start with (next nonce will use this id)
      */
-    constructor(nonce = util.getRandomNonce()) {
+    constructor(nonce = util.getRandomNonce(), chunkId) {
         this.nonce = nonce;
-        this.chunkId = -1;
+        this.chunkId = typeof chunkId === 'undefined' ? -1 : (chunkId - 1);
         this._resetControlBytes();
     }
 

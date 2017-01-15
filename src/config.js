@@ -18,7 +18,12 @@ const config = new class {
     supportUrl = 'https://peerio.zendesk.com';
 
     socketServerUrl = 'wss://';
-    uploadChunkSize = 1024 * 512;
+    upload = {
+        chunkSize: 1024 * 512,
+        maxReadQueue: 2, // max amount of chunks to pre-buffer for upload
+        maxSendQueue: 2, // max amount of chunks to pre-encrypt for sending
+        maxParallelUploadingChunks: 2 // max amount of uploaded chunks waiting for server response
+    };
 
     // -- client-specific implementations
     FileStream = null;
