@@ -20,6 +20,7 @@ class FileStreamAbstract {
             throw new Error('Invalid stream mode.');
         }
         this.mode = mode;
+        this.pos = 0;
     }
 
     /**
@@ -31,7 +32,12 @@ class FileStreamAbstract {
         if (this.mode !== 'read') {
             return Promise.reject(new Error('Attempt to read from write stream.'));
         }
-        return this.readInternal(size);
+        return this.readInternal(size).then(this._increasePosition);
+    };
+
+    _increasePosition = (buf) => {
+        this.pos += buf.length;
+        return buf;
     };
 
     readInternal() {
@@ -47,11 +53,11 @@ class FileStreamAbstract {
         if (this.mode !== 'write' && this.mode !== 'append') {
             return Promise.reject(new Error(`file-stream.js: Attempt to write to read stream. ${this.mode}`));
         }
+        this._increasePosition(buffer);
         if (!buffer || !buffer.length) return Promise.resolve();
-        return this.writeInternal(buffer);
+        return this.writeInternal(buffer).then(this._increasePosition);
     };
 
-    // eslint-disable-next-line
     writeInternal(buffer) {
         throw new AbstractCallError();
     }
@@ -75,29 +81,6 @@ class FileStreamAbstract {
         throw new AbstractCallError();
     }
 
-    /**
-     * @param {number} pos - current download/upload position. download or upload is determined by FS mode
-     * @returns {Promise} - resolves when position was saved in local storage
-     */
-    static savePosition(mode, path, pos) {
-        const key = `cache::${mode}::${path}`;
-        // console.log(`file-stream.js: saving ${key}, ${pos}`);
-        return pos ?
-            db.set(key, pos)
-            : db.remove(key);
-    }
-
-    /**
-     * @returns {Promise} - resolves with cached position or 0
-     */
-    static loadPosition(mode, path) {
-        const key = `cache::${mode}::${path}`;
-        return db.get(key).then(pos => {
-            // console.log(`file-stream.js: loading ${key}`);
-            console.log(pos);
-            return pos;
-        });
-    }
 
     /**
      * This function has to set 'size' property
