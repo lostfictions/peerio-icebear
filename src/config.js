@@ -20,9 +20,13 @@ const config = new class {
     socketServerUrl = 'wss://';
     upload = {
         chunkSize: 1024 * 512,
-        maxReadQueue: 2, // max amount of chunks to pre-buffer for upload
-        maxSendQueue: 2, // max amount of chunks to pre-encrypt for sending
-        maxParallelUploadingChunks: 2 // max amount of uploaded chunks waiting for server response
+        maxEncryptQueue: 2, // max amount of chunks to pre-buffer for upload
+        maxUploadQueue: 2, // max amount of chunks to pre-encrypt for sending
+        maxResponseQueue: 2 // max amount of uploaded chunks waiting for server response
+    };
+
+    download = {
+        chunkSize: 1024 * 1024 // amount of bytes to download at once for further processing
     };
 
     // -- client-specific implementations

@@ -118,11 +118,8 @@ class File extends Keg {
         return stream.open().return(stream);
     }
 
-    _startUploader(stream, nonceGen, filePath) {
-        // this assumes constant chunk size per client type (desktop, mobile, etc)
-        // if we introduce dynamic chunk size - this needs rethinking
-        const maxChunkId = Math.ceil(this.size / config.upload.chunkSize) - 1;
-        this.uploader = new FileUploader(this, stream, nonceGen, maxChunkId, filePath);
+    _startUploader(stream, nonceGen) {
+        this.uploader = new FileUploader(this, stream, nonceGen);
         return this.uploader.start();
     }
 
@@ -146,7 +143,7 @@ class File extends Keg {
                     console.log(`File read stream open. File size: ${stream.size}`);
                     this.size = stream.size;
                     // now we have all the metadata for our keg, so we save it
-                    return this.saveToServer().then(() => this._startUploader(stream, nonceGen, filePath));
+                    return this.saveToServer().then(() => this._startUploader(stream, nonceGen));
                 })
                 .catch(err => {
                     console.error(err);
