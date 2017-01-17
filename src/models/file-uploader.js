@@ -5,21 +5,18 @@
 const socket = require('../network/socket');
 const errors = require('../errors');
 const secret = require('../crypto/secret');
-const cryptoUtil = require('../crypto/util');
 const config = require('../config');
+const FileProcessor = require('./file-processor');
 
-class FileUploader {
+class FileUploader extends FileProcessor {
     // read chunks go here
     encryptQueue = [];
     // encrypted chunks go here
     uploadQueue = [];
-    // next queue processing calls will stop if stop == true
-    stop = false;
     // end of file reached while reading file
     eofReached = false;
-    // upload stopped and promise resolved/rejected
-    uploadFinished = false;
 
+    readingChunk = false;
     lastReadChunkId = -1;
     // amount of chunks that currently wait for response from server
     chunksWaitingForResponse = 0;
@@ -30,54 +27,23 @@ class FileUploader {
      * @param {FileNonceGenerator} nonceGenerator
      */
     constructor(file, stream, nonceGenerator) {
-        this.file = file;
-        this.fileKey = cryptoUtil.b64ToBytes(file.key);
+        super(file, stream, nonceGenerator, 'upload');
         this.file.progressMax = stream.size;
-        this.stream = stream;
-        this.nonceGenerator = nonceGenerator;
     }
-
-    start() {
-        console.log(`starting uploader for file id: ${this.file.id}`);
-        this._tick();
-        return new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
-    }
-
-    cancel() {
-        this.stop = true;
-    }
-
-    // stops upload and resolves or rejects upload promise
-    _finishUpload(err) {
-        if (this.uploadFinished) return;
-        this.uploadFinished = true;
-        this.stop = true; // bcs in case of error some calls might be scheduled
-        if (err) {
-            console.log(`Failed to upload file ${this.file.fileId}. Upload filed.`, err);
-            this.reject(errors.normalize(err));
-            return;
-        }
-        console.log(`Successfully done uploading file: ${this.file.fileId}`, this.toString());
-        this.resolve();
-    }
-
-    // shortcut to finish upload with error
-    _error = err => {
-        this._finishUpload(err || new Error('Upload failed.'));
-    };
 
     // reads chunk from fs and puts it in encryption queue
     _readChunk() {
-        if (this.stop || this.eofReached || this.encryptQueue.length >= config.upload.maxEncryptQueue) return;
+        if (this.readingChunk || this.stop || this.eofReached
+            || this.encryptQueue.length >= config.upload.maxEncryptQueue) return;
+        this.readingChunk = true;
         this.stream.read(config.upload.chunkSize)
             .then(this._processReadChunk)
             .catch(this._error);
     }
 
     _processReadChunk = buffer => {
+        this.readingChunk = false;
+        if (this.stop) return;
         if (buffer.length === 0) {
             this.eofReached = true;
         } else {
@@ -117,6 +83,7 @@ class FileUploader {
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
+                if (this.stop) return;
                 this.file.progress =
                     this.file.progressBuffer - (this.uploadQueue.length * config.upload.chunkSize);
                 this._tick();
@@ -129,7 +96,7 @@ class FileUploader {
     _checkIfFinished() {
         if (this.eofReached && !this.encryptQueue.length
             && !this.uploadQueue.length && !this.chunksWaitingForResponse) {
-            this._finishUpload();
+            this._finishProcess();
             return true;
         }
         return false;
@@ -139,25 +106,25 @@ class FileUploader {
     toString() {
         return JSON.stringify({
             // fileId: this.file.fileId,
-            dataChunksLength: this.encryptQueue.length,
-            cipherChunksLength: this.uploadQueue.length,
-            // stop: this.stop,
-            // eofReached: this.eofReached,
+            encryptQueue: this.encryptQueue.length,
+            uploadQueue: this.uploadQueue.length,
+            stop: this.stop,
+            eofReached: this.eofReached,
+            finished: this.processFinished,
             lastReadChunkId: this.lastReadChunkId
         });
     }
 
     _tick = () => {
-        if (this.uploadFinished || this._checkIfFinished()) return;
+        if (this.processFinished || this._checkIfFinished()) return;
         setTimeout(() => {
             try {
-               // console.log(this.toString());
+                console.log(this.toString());
                 this._readChunk();
                 setTimeout(this._encryptChunk);
                 this._uploadChunk();
             } catch (err) {
-                console.log(`Upload failed for ${this.file.fileId}`, err, this.toString());
-                this._finishUpload(errors.normalize(err));
+                this._finishProcess(errors.normalize(err));
             }
         });
     }

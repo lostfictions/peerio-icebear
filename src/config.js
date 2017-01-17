@@ -26,7 +26,9 @@ const config = new class {
     };
 
     download = {
-        chunkSize: 1024 * 1024 // amount of bytes to download at once for further processing
+        chunkSize: 1024 * 1024, // amount of bytes to download at once for further processing
+        maxParseQueue: 5,  // max amount of chunks to pre-buffer (download)
+        maxDecryptQueue: 5  // max amount of chunks to extract and queue for decrypt
     };
 
     // -- client-specific implementations
