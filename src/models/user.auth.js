@@ -41,7 +41,7 @@ module.exports = function mixUserAuthModule() {
         if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
         if (!this.authSalt) return Promise.reject(new Error('Salt is required to derive keys'));
         if (this.bootKey && this.authKeys) return Promise.resolve();
-        return keys.deriveKeys(this.username, this.passphrase, this.authSalt)
+        return keys.deriveAccountKeys(this.username, this.passphrase, this.authSalt)
             .then(keySet => {
                 this.bootKey = keySet.bootKey;
                 this.authKeys = keySet.authKeyPair;

@@ -143,27 +143,55 @@ function arrayBufferToNumber(arr, offset, length) {
 }
 
 /**
- * Hashes a value.
- * @param {number} length - hash length 1-32
- * @param {Uint8Array} value - value to hash
- * @returns {string} - hex encoded string hash
+ * Adds 0 bytes to the end of a uint8array until it is length bytes long.
+ *
+ * @param {Uint8Array} u
+ * @param {Number} length
  */
-function getHexHash(length, value) {
-    const h = new BLAKE2s(length);
-    h.update(value);
-    return h.hexDigest();
+function padBytes(u, length) {
+    const newBytes = new Uint8Array(length).fill(0);
+    newBytes.set(u);
+    return newBytes;
 }
-
 /**
  * Hashes a value.
  * @param {number} length - hash length 1-32
  * @param {Uint8Array} value - value to hash
+ * @param {String} personalizationString [optional]
+ * @retuens {Blake2s}
+ * @private
+ */
+function _getHash(length, value, personalizationString) {
+    const personalization = personalizationString ? {
+        personalization: padBytes(strToBytes(personalizationString), 8)
+    } : undefined;
+    const h = new BLAKE2s(length, personalization);
+    h.update(value);
+    return h;
+}
+
+/**
+ * Hashes a value and returns hex string.
+ *
+ * @param {number} length - hash length 1-32
+ * @param {Uint8Array} value - value to hash
+ * @param {String} personalizationString [optional]
+ * @returns {string} - hex encoded string hash
+ */
+function getHexHash(length, value, personalizationString) {
+    return _getHash(length, value, personalizationString).hexDigest();
+}
+
+/**
+ * Hashes a value and returns bytes.
+ *
+ * @param {number} length - hash length 1-32
+ * @param {Uint8Array} value - value to hash
+ * @param {String} personalizationString [optional]
  * @returns {Uint8Array} - hex encoded string hash
  */
-function getByteHash(length, value) {
-    const h = new BLAKE2s(length);
-    h.update(value);
-    return h.digest();
+function getByteHash(length, value, personalizationString) {
+    return _getHash(length, value, personalizationString).digest();
 }
 
 function getEncryptedByteHash(length, value) {

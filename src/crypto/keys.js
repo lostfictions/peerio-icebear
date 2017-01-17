@@ -8,6 +8,7 @@ const BLAKE2s = require('blake2s-js');
 const nacl = require('tweetnacl');
 const util = require('./util');
 const err = require('../errors');
+const _ = require('lodash');
 
 /**
  * @typedef {Object} KeyPair
@@ -16,32 +17,85 @@ const err = require('../errors');
  */
 
 /**
- * Deterministically derives boot key and auth key pair.
+ * scrypt defaults
+ * WARNING: changing scrypt params will break compatibility with older scrypt-generated data
+ *
+ * @type {Object}
+ * @property {Number} N
+ * @property {Number} r
+ * @property {Number} dkLen
+ * @property {Number} interruptStep
  */
-exports.deriveKeys = function(username, passphrase, salt) {
-    return new Promise((resolve, reject) => {
-        const prehashed = new BLAKE2s(32, { personalization: util.strToBytes('PeerioPH') });
-        prehashed.update(util.strToBytes(passphrase));
-        const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
-        const options = {
-            N: 16384,
-            r: 8,
-            dkLen: 64,
-            interruptStep: 200
-        };
+const scryptOptions = {
+    N: 16384,
+    r: 8,
+    dkLen: 64,
+    interruptStep: 200
+};
 
-        // warning: changing scrypt params will break compatibility with older scrypt-generated data
-        // params: password, salt, resource cost, block size, key length, async interrupt step (ms.)
-        scrypt(prehashed.digest(), fullSalt, options, (derivedBytes) => {
+
+/**
+ * Deterministically derives boot key and auth key pair.
+ *
+ * @param {String} username
+ * @param {String} passphrase
+ * @param {Uint8Array} salt
+ */
+exports.deriveAccountKeys = function(username, passphrase, salt) {
+    const fullSalt = util.concatTypedArrays(util.strToBytes(username), salt);
+
+    return this._deriveKeys(passphrase, fullSalt, 'PeerioPH')
+        .then((derivedByteArray) => {
             const keys = {};
             try {
-                keys.bootKey = new Uint8Array(derivedBytes.slice(0, 32));
-                const secretKey = new Uint8Array(derivedBytes.slice(32, 64));
+                keys.bootKey = new Uint8Array(derivedByteArray.slice(0, 32));
+                const secretKey = new Uint8Array(derivedByteArray.slice(32, 64));
                 keys.authKeyPair = nacl.box.keyPair.fromSecretKey(secretKey);
             } catch (ex) {
-                reject(err.normalize(ex, 'Scrypt callback exception.'));
+                return Promise.reject(err.normalize(ex, 'Scrypt callback exception.'));
             }
-            resolve(keys);
+            return keys;
+        });
+};
+
+/**
+ * Derive keys for a ghost/ephemeral user.
+ *
+ * @param {String} id -- ghost ID
+ * @param {String} passphrase
+ * @returns {Promise<KeyPair>}
+ */
+exports.deriveEphemeralKeys = function(id, passphrase) {
+    const ephemeralIDBytes = util.strToBytes(id);
+    return this._deriveKeys(passphrase, ephemeralIDBytes, undefined, { dkLen: 32 })
+        .then((keyBytes) => {
+            return nacl.box.keyPair.fromSecretKey(new Uint8Array(keyBytes));
+        });
+};
+
+/**
+ * Derive keys -- agnostic.
+ *
+ * @param {String} passphraseString
+ * @param {Uint8Array} saltBytes
+ * @param {String} personalizationString [optional]
+ * @param {Object} options [optional]
+ * @returns {Promise<Array>}
+ * @private
+ */
+exports._deriveKeys = function(passphraseString, saltBytes, personalizationString, options) {
+    // overwrite any default properties
+    const opts = options || {};
+    _.defaults(opts, scryptOptions);
+    return new Promise((resolve) => {
+        const personalization = personalizationString ? {
+            personalization: util.strToBytes(personalizationString)
+        } : undefined;
+        const prehashed = new BLAKE2s(32, personalization);
+        prehashed.update(util.strToBytes(passphraseString));
+
+        scrypt(prehashed.digest(), saltBytes, opts, (derivedBytes) => {
+            resolve(derivedBytes);
         });
     });
 };

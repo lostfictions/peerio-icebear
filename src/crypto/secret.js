@@ -58,10 +58,10 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
     const input = lengthAdded ? c.subarray(prependLength ? 4 : 0, appendNonce ? -NONCE_SIZE : undefined) : c;
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
-    let cipherContainer=c; // default value
-    if(lengthAdded) {
+    let cipherContainer = c; // default value
+    if (lengthAdded) {
         const start = prependLength ? 4 : 0;
-        if(appendNonce){
+        if (appendNonce) {
             cipherContainer = c.subarray(start, -NONCE_SIZE);
         } else {
             cipherContainer = c.subarray(start);

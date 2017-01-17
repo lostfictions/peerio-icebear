@@ -78,4 +78,37 @@ describe('Crypto Utilities module', () => {
         set2.should.be.an.instanceOf(Uint8Array);
         set1.should.not.be.deep.eql(set2);
     });
+
+    it('should generate a non-personalized byte hash', () => {
+        const string = util.strToBytes('bladiblalala');
+        const b64hash = 'ABQX3yKKNjDMvkY7wVqCwpqA7FZWM9tNjM8lkjiXDNA=';
+        const hash1 = util.getByteHash(32, string);
+        const hash2 = util.getByteHash(16, string);
+        hash1.should.deep.equal(util.b64ToBytes(b64hash));
+        hash2.length.should.equal(16);
+    });
+
+    it('should generate a non-personalized hex hash', () => {
+        const string = util.strToBytes('bladiblalala');
+        const hash = util.getHexHash(32, string);
+        hash.should.deep.equal('001417df228a3630ccbe463bc15a82c29a80ec565633db4d8ccf259238970cd0');
+    });
+
+    it('should generate a non-personalized byte hash', () => {
+        const string = util.strToBytes('bladiblalala');
+        const personalization = 'b123';
+        const b64hash = 'BEfBvNVzkBZgS0lbx3kCkd8t2AqeGXMSygzALv00V6w=';
+        const hash = util.getByteHash(32, string, personalization);
+        hash.should.deep.equal(util.b64ToBytes(b64hash));
+    });
+
+    it('should generate a non-personalized hex hash', () => {
+        const string = util.strToBytes('bladiblalala');
+        const personalization1 = 'b123';
+        const personalization2 = 'fg';
+        const hash1 = util.getHexHash(32, string, personalization1);
+        const hash2 = util.getHexHash(32, string, personalization2);
+        hash1.should.deep.equal('0447c1bcd5739016604b495bc7790291df2dd80a9e197312ca0cc02efd3457ac');
+        hash2.should.deep.equal('2cf712b1f1f35527d4f3c09ee7ddeca8237f71b0be58cba5cfe11087a434ce82');
+    });
 });
