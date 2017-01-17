@@ -46,6 +46,7 @@ class User {
     constructor() {
         this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
         this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
+        this.validatePasscode = this.validatePasscode.bind(this);
         this.login = this.login.bind(this);
         this.kegdb = new KegDb('SELF');
         // this is not really extending prototype, but we don't care because User is almost a singleton
@@ -173,6 +174,21 @@ class User {
     static removeLastAuthenticated() {
         return storage.remove(`last_user_authenticated`);
     }
+
+    validatePasscode(passcode) {
+        return this.hasPasscode()
+            .then(r => {
+                if (!r) return Promise.reject(new Error('user.auth.js: passcode is not set'));
+                const u = new User();
+                u.passphrase = passcode;
+                u.username = this.username;
+                return u._checkForPasscode()
+                    .then(() => {
+                        return u.passphrase && u.passphrase !== passcode ?
+                            Promise.resolve(u.passphrase) : Promise.reject(new Error('user.auth.js: passcode is not valid'));
+                    });
+            })
+    };
 }
 
 module.exports = User;
