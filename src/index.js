@@ -35,12 +35,18 @@ const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/file-stream');
 const util = require('./util');
 const systemWarnings = require('./models/system-warning');
+const cryptoKeys = require('./crypto/keys');
+const cryptoPublic = require('./crypto/public');
+const cryptoSecret = require('./crypto/secret');
 
 module.exports = {
     errors,
     config,
     socket,
     cryptoUtil,
+    cryptoKeys,
+    cryptoPublic,
+    cryptoSecret,
     User,
     PhraseDictionary,
     setTinyDbEngine,
