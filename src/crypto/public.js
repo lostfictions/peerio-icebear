@@ -28,7 +28,7 @@ module.exports.decryptCompat = function(cipher, nonce, theirPublicKey, mySecretK
 /**
  * Encrypt
  *
- * @param {Uint8Array} cipher
+ * @param {Uint8Array} msgBytes
  * @param {Uint8Array} theirPublicKey
  * @param {Uint8Array} mySecretKey
  * @return {Uint8Array}

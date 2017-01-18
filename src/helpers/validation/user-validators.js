@@ -28,8 +28,9 @@
  *  validator will be used.
  */
 const socket = require('../../network/socket');
+const _ = require('lodash');
 
-const VALIDATION_THROTTLING_PERIOD_MS = 500;
+const VALIDATION_THROTTLING_PERIOD_MS = 400;
 const usernameRegex = /^\w{1,16}$/;
 const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
@@ -47,23 +48,20 @@ let serverValidationStore = { pendingRequest: null, cachedResult: true };
  */
 function _callServer(context, name, value) {
     serverValidationStore.pendingRequest = { context, name, value };
-
+    
     const callThrottled = () => {
         if (serverValidationStore.pendingRequest) {
-            return (function(currentStore) {
-                return socket.send('/noauth/validate', currentStore.pendingRequest)
-                    .then(resp => {
-                        serverValidationStore = {
-                            pendingRequest: null,
-                            cachedResult: !!resp && resp.valid
-                        };
-                        return Promise.resolve(serverValidationStore.cachedResult);
-                    })
-                    .catch(() => {
-                        serverValidationStore = { pendingRequest: null, cachedResult: false };
-                        return Promise.resolve(serverValidationStore.cachedResult);
-                    });
-            }(serverValidationStore));
+            const pending = _.clone(serverValidationStore.pendingRequest);
+            serverValidationStore.pendingRequest = undefined;
+            return socket.send('/noauth/validate', pending)
+                .then(resp => {
+                    serverValidationStore.cachedResult = !!resp && resp.valid;
+                    return Promise.resolve(serverValidationStore.cachedResult);
+                })
+                .catch(() => {
+                    serverValidationStore.cachedResult = false;
+                    return Promise.resolve(false);
+                });
         }
         // avoid leaving an unresolved promise
         return Promise.resolve(serverValidationStore.cachedResult);
