@@ -187,8 +187,8 @@ class User {
                         return u.passphrase && u.passphrase !== passcode ?
                             Promise.resolve(u.passphrase) : Promise.reject(new Error('user.auth.js: passcode is not valid'));
                     });
-            })
-    };
+            });
+    }
 }
 
 module.exports = User;
