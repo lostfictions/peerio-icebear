@@ -57,6 +57,10 @@ class File extends Keg {
         return util.formatBytes(this.size);
     }
 
+    @computed get chunksCount() {
+        return Math.ceil(this.size / this.chunkSize);
+    }
+
     // -- keg serializators --------------------------------------------------------------------------------------
     serializeKegPayload() {
         return {
@@ -78,7 +82,8 @@ class File extends Keg {
             size: this.size,
             ext: this.ext, // don't really need to store, since it's computed, but we want to search by extension
             uploadedAt: this.uploadedAt.valueOf(),
-            fileOwner: this.fileOwner
+            fileOwner: this.fileOwner,
+            chunkSize: this.chunkSize
         };
     }
 
@@ -88,6 +93,7 @@ class File extends Keg {
         this.size = +props.size;
         this.uploadedAt = new Date(+props.uploadedAt);
         this.fileOwner = props.fileOwner;
+        this.chunkSize = +props.chunkSize;
     }
 
     // -- class methods ------------------------------------------------------------------------------------------
@@ -131,8 +137,6 @@ class File extends Keg {
             this._resetUploadAndDownloadState();
             this.uploading = true;
 
-            const nonceGen = new FileNonceGenerator();
-            this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
             this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
             this.name = fileName || this.name || fileHelper.getFileName(filePath);
             this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
@@ -142,6 +146,9 @@ class File extends Keg {
                 .then(stream => {
                     console.log(`File read stream open. File size: ${stream.size}`);
                     this.size = stream.size;
+                    this.chunkSize = config.upload.getChunkSize(this.size);
+                    const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
+                    this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
                     // now we have all the metadata for our keg, so we save it
                     return this.saveToServer().then(() => this._startUploader(stream, nonceGen));
                 })
@@ -184,7 +191,7 @@ class File extends Keg {
             this._resetUploadAndDownloadState();
             const path = filePath || this.cachePath;
             this.downloading = true;
-            const nonceGen = new FileNonceGenerator(cryptoUtil.b64ToBytes(this.nonce));
+            const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
             return this._createWriteStream(path)
                 .then(stream => this._startDownloader(stream, nonceGen))
                 .then(() => { this.cached = true; })

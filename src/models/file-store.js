@@ -183,7 +183,7 @@ class FileStore {
     }
 
     remove(file) {
-        // this.files.remove(file);
+        // todo: mark file as 'deleting' and render accordingly
         file.remove();
     }
 

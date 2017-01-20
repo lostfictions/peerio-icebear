@@ -9,13 +9,16 @@ const util = require('../crypto/util');
  */
 class FileNonceGenerator {
     /**
-     * Creates new nonce, or reuses existing one
-     * @param {[Uint8Array]} nonce
-     * @param {number} chunkId - chunk id to start with (next nonce will use this id)
+     * Creates new nonce, or reuses existing one.
+     * Chunk Id is zero-based.
+     * @param {number} startChunkId - chunk id to start with (next nonce will use this id)
+     * @param {number} maxChunkId
+     * @param {[Uint8Array]} nonce - leave empty to generate random one
      */
-    constructor(nonce = util.getRandomNonce(), chunkId) {
+    constructor(startChunkId, maxChunkId, nonce = util.getRandomNonce()) {
         this.nonce = nonce;
-        this.chunkId = typeof chunkId === 'undefined' ? -1 : (chunkId - 1);
+        this.chunkId = startChunkId;
+        this.maxChunkId = maxChunkId;
         this._resetControlBytes();
     }
 
@@ -27,6 +30,7 @@ class FileNonceGenerator {
         const bytes = util.numberToByteArray(this.chunkId);
         this.nonce.set(bytes, 1);
     }
+
     _writeLastChunkFlag() {
         this.nonce[0] = 1;
     }
@@ -34,10 +38,13 @@ class FileNonceGenerator {
     /**
      * @returns {Uint8Array|null} - nonce for the next chunk
      */
-    getNextNonce(last) {
-        this.chunkId++;
+    getNextNonce() {
         this._writeChunkNum();
-        if (last) this._writeLastChunkFlag();
+        if (this.chunkId === this.maxChunkId) {
+            this._writeLastChunkFlag();
+        } else {
+            this.chunkId++;
+        }
         return this.nonce;
     }
 

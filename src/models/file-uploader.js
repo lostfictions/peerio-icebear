@@ -31,12 +31,20 @@ class FileUploader extends FileProcessor {
         this.file.progressMax = stream.size;
     }
 
+    get _isEncryptQueueFull() {
+        return (this.encryptQueue.length + 1) * this.file.chunkSize > config.upload.encryptBufferSize;
+    }
+
+    get _isUploadQueueFull() {
+        // chunk overhead neglecting is ok, too small
+        return (this.uploadQueue.length + 1) * this.file.chunkSize > config.upload.uploadBufferSize;
+    }
+
     // reads chunk from fs and puts it in encryption queue
     _readChunk() {
-        if (this.readingChunk || this.stop || this.eofReached
-            || this.encryptQueue.length >= config.upload.maxEncryptQueue) return;
+        if (this.readingChunk || this.stop || this.eofReached || this._isEncryptQueueFull) return;
         this.readingChunk = true;
-        this.stream.read(config.upload.chunkSize)
+        this.stream.read(this.file.chunkSize)
             .then(this._processReadChunk)
             .catch(this._error);
     }
@@ -53,13 +61,12 @@ class FileUploader extends FileProcessor {
     };
 
     _encryptChunk = () => {
-        if (this.stop || this.uploadQueue.length >= config.upload.maxUploadQueue
-            || !this.encryptQueue.length) return;
+        if (this.stop || this._isUploadQueueFull || !this.encryptQueue.length) return;
         try {
             const chunk = this.encryptQueue.shift();
-            chunk.buffer = secret.encrypt(chunk.buffer, this.fileKey,
-                            this.nonceGenerator.getNextNonce(this.eofReached && this.encryptQueue.length === 0),
-                            false, true);
+            const isLast = this.eofReached && this.encryptQueue.length === 0;
+            const nonce = this.nonceGenerator.getNextNonce(isLast);
+            chunk.buffer = secret.encrypt(chunk.buffer, this.fileKey, nonce, false, false);
             this.uploadQueue.push(chunk);
             this.file.progressBuffer = this.stream.pos;
             this._tick();
@@ -79,13 +86,13 @@ class FileUploader extends FileProcessor {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
             chunk: chunk.buffer.buffer,
-            last: this.eofReached && this.uploadQueue.length === 0 && this.encryptQueue.length === 0
+            last: this.eofReached && !this.uploadQueue.length && !this.encryptQueue.length
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
                 if (this.stop) return;
                 this.file.progress =
-                    this.file.progressBuffer - (this.uploadQueue.length * config.upload.chunkSize);
+                    this.file.progressBuffer - (this.uploadQueue.length * this.file.chunkSize);
                 this._tick();
             })
             .catch(this._error);
