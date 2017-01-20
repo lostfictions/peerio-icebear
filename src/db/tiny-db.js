@@ -28,6 +28,10 @@ const engine = {
         console.warn(`remove -- TinyDb in-memory mock call.`);
         delete mockDb[key];
         return Promise.resolve();
+    },
+
+    getAllKeys: () => {
+        return Object.keys(mockDb);
     }
 };
 
@@ -65,7 +69,9 @@ const db = {
      * remove a key
      * @param {string} key
      */
-    remove: (key) => engine.removeValue(db.getKey(key))
+    remove: (key) => engine.removeValue(db.getKey(key)),
+
+    getAllKeys: () => engine.getAllKeys()
 };
 
 module.exports = db;

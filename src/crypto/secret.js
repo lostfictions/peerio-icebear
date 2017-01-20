@@ -27,7 +27,7 @@ const NONCE_SIZE = 24;
  * @param {Uint8Array} key
  * @param {[Uint8Array]} nonce - (24 byte) in case you have want to set your own nonce instead of random one
  * @param {boolean} appendNonce - default 'true'
- * @param {boolean} prependLength - if true - adds 4 bytes containing message length to the beginning
+ * @param {boolean} prependLength - prepends 4 bytes containing message length after encryption
  */
 exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
                            appendNonce = true, prependLength = false) {
@@ -46,7 +46,7 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
     for (let i = 32; i < fullMsgLength; i++) m[i] = msgBytes[i - 32];
 
     const lengthAdded = (appendNonce ? NONCE_SIZE : 0) + (prependLength ? 4 : 0);
-        // container for cipher bytes
+    // container for cipher bytes
     const c = new Uint8Array(m.length + lengthAdded);
     if (appendNonce) {
         for (let i = 0; i < NONCE_SIZE; i++) c[c.length - NONCE_SIZE + i] = nonce[i];
@@ -55,8 +55,6 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
         const l = util.numberToByteArray(c.length - 4);
         for (let i = 0; i < 4; i++) c[i] = l[i];
     }
-    // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
-    const input = lengthAdded ? c.subarray(prependLength ? 4 : 0, appendNonce ? -NONCE_SIZE : undefined) : c;
     // view of the same ArrayBuffer for encryption algorithm that does not know about our nonce concatenation
     let cipherContainer = c; // default value
     if (lengthAdded) {
