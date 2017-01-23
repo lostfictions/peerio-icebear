@@ -25,9 +25,9 @@ class PhraseDictionary {
     getPassphrase(length) {
         let ret = '';
         for (let i = 0; i < length; i++) {
-            ret += this.dict[util.getRandomNumber(0, this.dict.length)];
+            ret += this.dict[util.getRandomNumber(0, this.dict.length)] + ' ';
         }
-        return ret;
+        return ret.trim(' ');
     }
 
     /** Free RAM by deleting cached dictionary */
