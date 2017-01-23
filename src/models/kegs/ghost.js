@@ -1,11 +1,11 @@
 const { observable,computed, action } = require('mobx');
 const contactStore = require('../stores/contact-store');
 const socket = require('../../network/socket')();
-const User = require('../user');
 const Keg = require('./keg');
 const cryptoUtil = require('../../crypto/util');
 const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
+const User = require('../user');
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
@@ -15,7 +15,7 @@ class Ghost extends Keg {
     @observable subject = '';
     @observable recipients = observable.shallowArray([]);
     @observable files = observable.shallowArray([]);
-    @observable passphrase = 'icebear'; //todo fill
+    @observable passphrase = undefined;
     @observable timestamp = Date.now();
     @observable sent = false;
 
@@ -41,8 +41,8 @@ class Ghost extends Keg {
     constructor() {
         const db = User.current.kegdb;
         super(null, 'ghost', db);
-        this.ghostId = cryptoUtil.getRandomFileId(User.current.username);
         this.version = 2;
+        this.ghostId = cryptoUtil.getRandomFileId(User.current.username);
     }
 
     /**

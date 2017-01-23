@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fs = require('fs');
 const { observable, action, computed} = require('mobx');
 const socket = require('../../network/socket')();
 const Ghost = require('../kegs/ghost');
@@ -14,7 +15,6 @@ class MailStore {
     @computed get selectedGhost () {
         return _.find(this.ghosts, { ghostId: this.selectedId })
     }
-
 
     constructor() {
         this.loadAllGhosts = this.loadAllGhosts.bind(this);
@@ -62,7 +62,6 @@ class MailStore {
         });
     }
 
-
     /**
      * Send a new ghost.
      *
@@ -70,6 +69,7 @@ class MailStore {
      */
     createGhost() {
         const g = new Ghost();
+        
         this.ghosts.unshift(g);
         return g;
 
