@@ -124,6 +124,13 @@ class FileStreamAbstract {
         throw new AbstractCallError();
     }
 
+    /**
+     * @returns Promise<string[]> - array of absolute paths to cache items
+     */
+    static getCacheList() {
+        throw new AbstractCallError();
+    }
+
 }
 
 module.exports = FileStreamAbstract;
