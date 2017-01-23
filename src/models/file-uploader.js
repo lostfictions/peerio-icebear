@@ -126,7 +126,6 @@ class FileUploader extends FileProcessor {
         if (this.processFinished || this._checkIfFinished()) return;
         setTimeout(() => {
             try {
-                console.log(this.toString());
                 this._readChunk();
                 setTimeout(this._encryptChunk);
                 this._uploadChunk();

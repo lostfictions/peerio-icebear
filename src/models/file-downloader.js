@@ -60,7 +60,6 @@ class FileDownloader extends FileProcessor {
         this._getChunkUrl(this.downloadPos, this.downloadPos + this.downloadChunkSize - 1)
             .then(this._download)
             .then(dlChunk => {
-                console.log(`Downloaded ${dlChunk.byteLength} bytes`);
                 if (dlChunk.byteLength === 0) {
                     this.downloadEof = true;
                     this._tick();

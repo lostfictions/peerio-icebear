@@ -13,7 +13,7 @@ class UploadConfig {
             { maxFileSize: 256 * 1024 * 100, chunkSize: 256 * 1024 },
             // up to ~50Mb file
             { maxFileSize: 384 * 1024 * 134, chunkSize: 384 * 1024 },
-            // up tp ~250Mb file
+            // up to ~250Mb file
             { maxFileSize: 512 * 1024 * 300, chunkSize: 512 * 1024 },
             // above 250Mb
             { maxFileSize: null, chunkSize: 768 * 1024 }
