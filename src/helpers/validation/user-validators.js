@@ -36,7 +36,7 @@ const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
     /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
 
-let serverValidationStore = { pendingRequest: null, cachedResult: true };
+const serverValidationStore = { pendingRequest: null, cachedResult: true };
 /**
  * Throttled & promisified call to validation API.
  *
@@ -48,7 +48,7 @@ let serverValidationStore = { pendingRequest: null, cachedResult: true };
  */
 function _callServer(context, name, value) {
     serverValidationStore.pendingRequest = { context, name, value };
-    
+
     const callThrottled = () => {
         if (serverValidationStore.pendingRequest) {
             const pending = _.clone(serverValidationStore.pendingRequest);

@@ -63,7 +63,7 @@ class FileProcessor {
     };
 
     // override in child classes if cleanup needed on finish
-    cleanup(){
+    cleanup() {
 
     }
 

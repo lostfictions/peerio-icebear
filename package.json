@@ -11,7 +11,7 @@
     "commitmsg": "validate-commit-msg",
     "test": "BABEL_ENV=coverage karma start",
     "check-coverage": "istanbul check-coverage --statements 23 --branches 5 --functions 9 --lines 24",
-    "validate": "npm-run-all --parallel lint  test --serial check-coverage",
+    "validate": "npm-run-all --serial lint",
     "start": "karma start --no-single-run",
     "lint": "eslint . --fix --ext .js,.jsx",
     "release": "standard-version && git push --follow-tags origin master",
@@ -73,7 +73,7 @@
     "chai": "3.5.0",
     "cz-conventional-changelog": "1.2.0",
     "diff2html-cli": "2.0.5",
-    "documentation": "4.0.0-beta16",
+    "documentation": "4.0.0-beta18",
     "eslint-config-peerio": "*",
     "eslint-loader": "1.6.1",
     "file-loader": "0.9.0",
@@ -95,7 +95,7 @@
     "rimraf": "2.5.4",
     "standard-version": "4.0.0",
     "validate-commit-msg": "2.10.1",
-    "webpack": "2.1.0-beta.25"
+    "webpack": "2.2.0"
   },
   "config": {
     "commitizen": {
