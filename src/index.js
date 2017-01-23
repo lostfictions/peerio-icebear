@@ -21,16 +21,17 @@ Promise.config({
 require('./extensions/uint8array');
 
 // to create socket client singleton instance
-const socket = require('./network/socket');
+const socket = require('./network/socket')();
 const User = require('./models/user');
 const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
 const setTinyDbEngine = require('./db/tiny-db').setEngine;
-const contactStore = require('./models/contact-store');
-const chatStore = require('./models/chat-store');
-const fileStore = require('./models/file-store');
+const contactStore = require('./models/stores/contact-store');
+const chatStore = require('./models/stores/chat-store');
+const fileStore = require('./models/stores/file-store');
+const mailStore = require('./models/stores/mail-store');
 const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/file-stream');
 const util = require('./util');
@@ -53,6 +54,7 @@ module.exports = {
     contactStore,
     chatStore,
     fileStore,
+    mailStore,
     validation,
     FileStreamAbstract,
     util,

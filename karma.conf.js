@@ -5,7 +5,7 @@ module.exports = function setKarmaConfig(config) {
     config.set({
         basePath: '',
         frameworks: [
-            'mocha', 'chai'
+            'mocha', 'chai', 'sinon-chai'
         ],
         files: ['test/test-index.js'],
         exclude: [],
@@ -30,8 +30,8 @@ module.exports = function setKarmaConfig(config) {
                                 'transform-es2015-modules-commonjs',
                                 [
                                     'transform-object-rest-spread', {
-                                        useBuiltIns: true
-                                    }
+                                    useBuiltIns: true
+                                }
                                 ],
                                 'transform-react-jsx'
                             ],
@@ -48,6 +48,9 @@ module.exports = function setKarmaConfig(config) {
                 new webpack.ProgressPlugin(),
                 new webpack.DefinePlugin({
                     ICEBEAR_TEST_ENV: JSON.stringify(process.env.PEERIO_STAGING_SOCKET_SERVER)
+                }),
+                new webpack.ProvidePlugin( {
+                    'sinon': 'sinon'
                 })
             ]
         },
@@ -97,7 +100,10 @@ module.exports = function setKarmaConfig(config) {
         },
         singleRun: true,
         client: {
-            captureConsole: false
+            captureConsole: false,
+            chai: {
+                includeStack: true
+            }
         }
     });
 };

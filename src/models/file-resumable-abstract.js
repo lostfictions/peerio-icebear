@@ -1,6 +1,6 @@
 const { AbstractCallError } = require('../errors');
 const { when } = require('mobx');
-const socket = require('../network/socket');
+const socket = require('../network/socket')();
 
 class FileResumableAbstract {
     _tick() {

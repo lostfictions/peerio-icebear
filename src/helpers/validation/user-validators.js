@@ -27,7 +27,7 @@
  *  if the function does not return a message, the default message provided by the
  *  validator will be used.
  */
-const socket = require('../../network/socket');
+const socket = require('../../network/socket')();
 const _ = require('lodash');
 
 const VALIDATION_THROTTLING_PERIOD_MS = 400;

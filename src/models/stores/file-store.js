@@ -1,11 +1,10 @@
 const { observable, action, asFlat, when, reaction, computed } = require('mobx');
-const socket = require('../network/socket');
+const socket = require('../../network/socket')();
 // const normalize = require('../errors').normalize;
-const User = require('./user');
-// const updateTracker = require('./update-tracker');
-const File = require('./file');
-const systemWarnings = require('./system-warning');
-const tracker = require('./update-tracker');
+const User = require('../user');
+const File = require('../file');
+const systemWarnings = require('../system-warning');
+const tracker = require('../update-tracker');
 const _ = require('lodash');
 
 class FileStore {

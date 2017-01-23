@@ -1,4 +1,4 @@
-const socket = require('../network/socket');
+const socket = require('../network/socket')();
 const util = require('../crypto/util');
 const secret = require('../crypto/secret');
 const cryptoUtil = require('../crypto/util');

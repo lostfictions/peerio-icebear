@@ -2,7 +2,7 @@
  * Keg update handling module
  */
 
-const socket = require('../network/socket');
+const socket = require('../network/socket')();
 
 /*
  * How does update tracking work:

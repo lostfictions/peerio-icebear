@@ -2,7 +2,7 @@
  * Keg database module.
  */
 const BootKeg = require('./boot-keg');
-// const socket = require('../../network/socket');
+// const socket = require('../../network/socket')();
 
 class KegDb {
     /**

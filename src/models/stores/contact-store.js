@@ -1,5 +1,5 @@
 const { observable, when } = require('mobx');
-const Contact = require('../models/contact');
+const Contact = require('../contact');
 
 /**
  * Contact(Peerio user) information store.

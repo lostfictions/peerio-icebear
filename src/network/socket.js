@@ -15,4 +15,11 @@ socket.start = function() {
     wrappedStart.call(socket, config.socketServerUrl);
 };
 
-module.exports = socket;
+
+module.exports = function(s) {
+
+
+
+    
+    return s || socket;
+};

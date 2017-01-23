@@ -2,7 +2,7 @@
  * Base class for kegs
  * @module models/keg
  */
-const socket = require('../../network/socket');
+const socket = require('../../network/socket')();
 const secret = require('../../crypto/secret');
 const { AntiTamperError } = require('../../errors');
 
@@ -49,12 +49,14 @@ class Keg {
      * @returns {Promise<Keg>}
      */
     saveToServer() {
+        console.log('save to server')
         if (this.id) return this._internalSave();
 
         return socket.send('/auth/kegs/create', {
             collectionId: this.db.id,
             type: this.type
         }).then(resp => {
+            console.log('saved to server', resp)
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
