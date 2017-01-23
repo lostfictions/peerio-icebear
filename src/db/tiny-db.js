@@ -84,6 +84,7 @@ class TinyDb {
      * @returns {Promise<Object>}
      */
     getValue(key) {
+        if (!key) return Promise.reject(new Error('Invalid tinydb key'));
         return this.engine.getValue(key)
             .then(this._decrypt)
             .then(JSON.parse);
@@ -95,12 +96,14 @@ class TinyDb {
      * @returns {Promise}
      */
     setValue(key, value) {
+        if (!key) return Promise.reject(new Error('Invalid tinydb key'));
         let val = JSON.stringify(value);
         val = this._encrypt(val);
         return this.engine.setValue(key, val);
     }
 
     removeValue(key) {
+        if (!key) return Promise.reject(new Error('Invalid tinydb key'));
         return this.engine.removeValue(key);
     }
 
