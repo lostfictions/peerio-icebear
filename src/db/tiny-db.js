@@ -73,6 +73,7 @@ class TinyDb {
      * @returns {string}
      */
     _decrypt= (ciphertext) => {
+        if (ciphertext == null) return null;
         if (!this.key) return ciphertext;
         const buf = util.b64ToBytes(ciphertext);
         return secret.decryptString(buf, this.key);
