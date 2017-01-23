@@ -1,180 +1,161 @@
 const socket = require('../network/socket')();
-const util = require('../crypto/util');
 const secret = require('../crypto/secret');
-const cryptoUtil = require('../crypto/util');
-const FileResumableAbstract = require('./file-resumable-abstract');
+const config = require('../config');
+const FileProcessor = require('./file-processor');
 
-const CHUNK_OVERHEAD = 32; // not counting prepended 4 bytes denoting chunk size
+const CHUNK_OVERHEAD = 32;
 
-class FileDownloader extends FileResumableAbstract {
-    // if stop == true, download will stop as soon as possible
-    stop = false;
-    callbackCalled = false;
+class FileDownloader extends FileProcessor {
+    // chunks as they were uploaded
+    decryptQueue = [];
+    // flag to indicate that chunk is currently waiting for write promise resolve
+    writing = false;
+    // prevent parallel downloads
+    downloading = false;
+    // position of the blob as it is stored in the cloud
+    downloadPos = 0;
+    // blob was fully read
+    downloadEof = false;
 
     /**
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator
-     * @param {function} callback
+     * @param {{partialChunkSize, wholeChunks}} resumeParams
      */
-    constructor(file, stream, nonceGenerator, callback) {
-        super();
-        this.file = file;
-        this.fileKey = cryptoUtil.b64ToBytes(file.key);
-        this.file.progressMax = file.size;
-        this.stream = stream;
-        this.nonceGenerator = nonceGenerator;
-        this.callback = callback;
-        this._getUrlParams = { fileId: file.fileId };
+    constructor(file, stream, nonceGenerator, resumeParams) {
+        super(file, stream, nonceGenerator, 'download');
+        this.file.progressMax = file.size + file.chunksCount * CHUNK_OVERHEAD;
+        this.getUrlParams = { fileId: file.fileId };
+        this.chunkSizeWithOverhead = file.chunkSize + CHUNK_OVERHEAD;
+        this.downloadChunkSize = Math.floor(config.download.maxDownloadChunkSize / this.chunkSizeWithOverhead)
+                                    * this.chunkSizeWithOverhead;
+        if (resumeParams) {
+            this.partialChunkSize = resumeParams.partialChunkSize;
+            nonceGenerator.chunkId = resumeParams.wholeChunks;
+            this.file.progressBuffer = this.file.progress = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
+            this.downloadPos = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
+        }
+        socket.onDisconnect(this._abortXhr);
     }
 
-    start() {
-        console.log(`file-downloader.js: checking if partial file`);
-        if (this.file.downloadPosition) {
-            const { pos, chunkId, progress } = this.file.downloadPosition;
-            if (pos && chunkId && progress) {
-                this.pos = pos;
-                this.nonceGenerator.chunkId = chunkId;
-                this.file.progress = progress;
-                console.log(`file-downloader.js: resuming ${this.pos}, ${this.nonceGenerator.chunkId}`);
-            }
+    get _isDecryptQueueFull() {
+        return (this.decryptQueue.length * (this.chunkSizeWithOverhead + 1))
+                    > config.download.maxDecryptBufferSize;
+    }
+
+    _abortXhr = () => {
+        if (this.currentXhr) this.currentXhr.abort();
+    };
+
+    cleanup() {
+        socket.unsubscribe(socket.SOCKET_EVENTS.disconnect, this._abortXhr);
+    }
+
+    // downloads config.download.chunkSize size chunk and stores it in parseQueue
+    _downloadChunk() {
+        if (this.stopped || this.downloading || this.downloadEof || this._isDecryptQueueFull) return;
+
+        this.downloading = true;
+        this._getChunkUrl(this.downloadPos, this.downloadPos + this.downloadChunkSize - 1)
+            .then(this._download)
+            .then(dlChunk => {
+                console.log(`Downloaded ${dlChunk.byteLength} bytes`);
+                if (dlChunk.byteLength === 0) {
+                    this.downloadEof = true;
+                    this._tick();
+                    return;
+                }
+                this.downloadPos += dlChunk.byteLength;
+                for (let i = 0; i < dlChunk.byteLength; i += this.chunkSizeWithOverhead) {
+                    const chunk = new Uint8Array(dlChunk, i,
+                        Math.min(this.chunkSizeWithOverhead, dlChunk.byteLength - i));
+                    this.decryptQueue.push(chunk);
+                }
+                this.downloading = false;
+                this._tick();
+            })
+            .catch(this._error);
+    }
+
+    _decryptChunk() {
+        if (this.stopped || this.writing || !this.decryptQueue.length) return;
+        let chunk = this.decryptQueue.shift();
+        this.file.progress += chunk.length;
+        const nonce = this.nonceGenerator.getNextNonce();
+        chunk = secret.decrypt(chunk, this.fileKey, nonce, false);
+        this.writing = true;
+        if (this.partialChunkSize) {
+            chunk = new Uint8Array(chunk, this.partialChunkSize, chunk.length - this.partialChunkSize);
+            this.partialChunkSize = 0;
         }
+        this.stream.write(chunk).then(this._onWriteEnd).catch(this._error);
+    }
+
+    _onWriteEnd = () => {
+        this.writing = false;
         this._tick();
-        console.log(`starting to download file id: ${this.file.id}`);
-    }
+    };
 
-    cancel() {
-        this.stop = true;
-        // TODO: delete partial file
-        this.file.downloadPosition = null;
-    }
-
-    pos = 0;
-    lastPos = 0;
-
-    _tick = () => {
-        if (this.stop) {
-            this._callCallback('Download was cancelled.');
-            return;
+    _checkIfFinished() {
+        if (this.downloadEof && !this.decryptQueue.length && !this.writing) {
+            this._finishProcess();
+            return true;
         }
-        const errorStop = (err) => {
-            console.log(`Download failed for ${this.file.fileId}`, err);
-            this.cancel();
-            this._callCallback(err);
-        };
-        this._checkTimeout();
+        return false;
+    }
+    _tick = () => {
+        if (this.processFinished || this._checkIfFinished()) return;
         setTimeout(() => {
             try {
-                this._getNextChunkSize()
-                    .then(this._getChunk)
-                    .then(this._decryptChunk)
-                    .catch(err => {
-                        // sometimes we get empty response after resume
-                        // try to redo last chunk for this
-                        console.error('file-downloader.js: error decrypting');
-                        errorStop(err);
-                        return Promise.reject(err);
-                    })
-                    .then(this._writeChunk)
-                    .then(() => {
-                        this.lastPos = this.pos;
-                        const pos = this.pos;
-                        const chunkId = this.nonceGenerator.chunkId;
-                        const progress = this.file.progress;
-                        this.file.downloadPosition = { pos, chunkId, progress };
-                        if (this.file.progress === this.file.size) {
-                            this._callCallback();
-                            this.file.downloadPosition = 0;
-                            return;
-                        }
-                        this._tick();
-                    })
-                    .catch(errorStop);
+                this._downloadChunk();
+                this._decryptChunk();
             } catch (err) {
-                errorStop(err);
+                this._error(err);
             }
         });
     };
 
     _getChunkUrl(from, to) {
-        return socket.send('/auth/dev/file/url', this._getUrlParams)
+        return socket.send('/auth/dev/file/url', this.getUrlParams)
             .then(f => `${f.url}?rangeStart=${from}&rangeEnd=${to}`);
     }
 
-    _getNextChunkSize() {
-        const start = this.pos;
-        this.pos += 4;
-        return this._getChunkUrl(start, this.pos - 1)
-                    .then(this._downloadUrl)
-                    .then(util.arrayBufferToNumber);
-    }
+    // if enabling support for parallel XHR requests - convert this to array
+    currentXhr = null;
 
-    _getChunk = (size) => {
-        this.file.progress += size - CHUNK_OVERHEAD;
-        const start = this.pos;
-        this.pos += size;
-        return this._getChunkUrl(start, this.pos - 1)
-                    .then(this._downloadUrl);
-    };
-
-    _decryptChunk = (chunk) => {
-        const nonce = this.nonceGenerator.getNextNonce(this.file.progress === this.file.size);
-        return secret.decrypt(new Uint8Array(chunk), this.fileKey,
-                                nonce, false);
-    };
-
-    _writeChunk = (chunk) => {
-        this.stream.write(chunk);
-    };
-
-
-    _abortChunkUpload = () => {
-        if (this.xhr) {
-            this.xhr.abort();
-            this.xhr = null;
-        }
-    }
-
-    _downloadUrl = (url) => {
-        return new Promise((resolve /* , reject */) => {
-            const self = this;
-
-            const submit = () => {
-                const xhr = new XMLHttpRequest();
-                this.xhr = xhr;
-
-                xhr.onreadystatechange = function() {
-                    self._checkTimeout();
-                    if (this.readyState !== 4) return;
-                    self.xhr = null;
-                    if (this.status === 200 || this.status === 206) {
-                        self._checkTimeout(true);
-                        resolve(this.response);
-                        return;
-                    }
-                    console.error(`file-downloader.js: error downloading chunk`);
-                };
-
-                xhr.open('GET', url);
-                xhr.responseType = 'arraybuffer';
-                xhr.send();
-                this._checkTimeout();
+    _download = (url) => {
+        const self = this;
+        const startProgress = this.file.progressBuffer;
+        const p = new Promise((resolve, reject) => {
+            const xhr = this.currentXhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (this.readyState !== 4) return;
+                if (this.status === 200 || this.status === 206) {
+                    resolve(this.response);
+                    return;
+                }
+                self.file.progressBuffer = startProgress;
+                if (!p.isRejected()) reject();
             };
 
-            submit();
-        });
-    }
+            xhr.onprogress = function(event) {
+                self.file.progressBuffer = startProgress + event.loaded;
+            };
 
-    /**
-     * Wrapper around callback call makes it asynchronous and prevents more then 1 call
-     * @param {[Error]} err - in case there was an error
-     */
-    _callCallback(err) {
-        this._checkTimeout(true);
-        if (this.callbackCalled) return;
-        this.callbackCalled = true;
-        setTimeout(() => this.callback(err));
-    }
+            xhr.ontimeout = xhr.onabort = xhr.onerror = function() {
+                self.file.progressBuffer = startProgress;
+                if (!p.isRejected()) reject();
+            };
+
+            xhr.open('GET', url);
+            xhr.responseType = 'arraybuffer';
+            xhr.send();
+        }).finally(() => { this.currentXhr = null; });
+
+        return p;
+    };
+
 
 }
 

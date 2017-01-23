@@ -1,4 +1,4 @@
-const { observable, action, computed, asFlat } = require('mobx');
+const { observable, action, computed } = require('mobx');
 const Chat = require('../chat');
 const socket = require('../../network/socket')();
 const normalize = require('../../errors').normalize;
@@ -11,7 +11,7 @@ class ChatStore {
     EVENT_TYPES = {
         messagesReceived: 'messagesReceived'
     };
-    @observable chats = asFlat([]);
+    @observable chats = observable.shallowArray([]);
     // to prevent duplicates
     chatMap = {};
     /** when chat list loading is in progress */

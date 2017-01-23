@@ -1,41 +1,42 @@
+/* eslint-disable no-unused-vars */
 const { AbstractCallError } = require('../errors');
-const db = require('../db/tiny-db');
 
 /**
- * Abstract File Stream class, inherit you own, override following functions
- * - open()
- * - close()
- * - readInternal()
- * - writeInternal()
+ * Abstract File Stream class
+ *  1. inherit you own
+ *  2. override required functions
+ *  3. set FileStreamAbstract.FileStream = YourFileStreamImplementation
  */
 class FileStreamAbstract {
 
     /**
      * @param {string} filePath - will be used by 'open' function
      * @param {string} mode - 'read' or 'write' or 'append'
-     * @param {number} bufferSize
      */
-    constructor(filePath, mode, bufferSize = 1024 * 512) {
+    constructor(filePath, mode) {
         this.filePath = filePath;
         if (mode !== 'read' && mode !== 'write' && mode !== 'append') {
             throw new Error('Invalid stream mode.');
         }
-        if (mode === 'read') {
-            /** @type {Uint8Array} public interface read buffer */
-            this.buffer = new Uint8Array(bufferSize);
-        }
         this.mode = mode;
+        this.pos = 0;
     }
 
     /**
      * Reads a chunk of data from file stream
-     * @return {Promise<number>} - resolves with a number of bytes written to buffer
+     * @param {number} size - amount of bytes to read (if possible)
+     * @return {Promise<Uint8Array>} - resolves with a number of bytes written to buffer
      */
-    read = () => {
+    read = (size) => {
         if (this.mode !== 'read') {
             return Promise.reject(new Error('Attempt to read from write stream.'));
         }
-        return this.readInternal();
+        return this.readInternal(size).then(this._increasePosition);
+    };
+
+    _increasePosition = (buf) => {
+        this.pos += buf.length;
+        return buf;
     };
 
     readInternal() {
@@ -51,60 +52,38 @@ class FileStreamAbstract {
         if (this.mode !== 'write' && this.mode !== 'append') {
             return Promise.reject(new Error(`file-stream.js: Attempt to write to read stream. ${this.mode}`));
         }
+        this._increasePosition(buffer);
         if (!buffer || !buffer.length) return Promise.resolve();
-        return this.writeInternal(buffer);
+        return this.writeInternal(buffer).then(this._increasePosition);
     };
 
-    // eslint-disable-next-line
-    writeInternal(buffer, offset) {
+    writeInternal(buffer) {
         throw new AbstractCallError();
     }
 
     /**
      * Move file position pointer
-     * @param {long} pos
-     * @returns {long} new position immediately
+     * @param {number} pos
+     * @returns {number} new position immediately
      */
     seek = (pos) => {
         if (this.mode !== 'read') throw new Error('Seek only on read streams');
         return this.seekInternal(pos);
-    }
+    };
 
     /**
      * Move file position pointer
-     * @param {long} pos
+     * @param {number} pos
      */
     // eslint-disable-next-line
     seekInternal(pos) {
         throw new AbstractCallError();
     }
 
-    /**
-     * @param {long} pos - current download/upload position. download or upload is determined by FS mode
-     * @returns {Promise} - resolves when position was saved in local storage
-     */
-    static savePosition(mode, path, pos) {
-        const key = `cache::${mode}::${path}`;
-        // console.log(`file-stream.js: saving ${key}, ${pos}`);
-        return pos ?
-            db.set(key, pos)
-            : db.remove(key);
-    }
 
     /**
-     * @returns {Promise} - resolves with cached position or 0
-     */
-    static loadPosition(mode, path) {
-        const key = `cache::${mode}::${path}`;
-        return db.get(key).then(pos => {
-            // console.log(`file-stream.js: loading ${key}`);
-            console.log(pos);
-            return pos;
-        });
-    }
-
-    /**
-     * @returns {Promise<number>} - resolves with file size when file is open and ready for reading/writing
+     * This function has to set 'size' property
+     * @returns {Promise<FileStreamAbstract>} - this
      */
     open() {
         throw new AbstractCallError();
@@ -118,30 +97,33 @@ class FileStreamAbstract {
     }
 
     /**
-     * @returns {string} - actual device path
+     * @param {string} name - normalized file name (deterministically generated)
+     * @returns {string} - actual device path for file
      */
-    // eslint-disable-next-line
-    static cachePath(name) {
+    static getFullPath(name) {
         throw new AbstractCallError();
     }
 
     /**
-     * @returns Promise<boolean> - if path exists on device
+     * @param {string} path
+     * @returns Promise<boolean> - true if path exists on device
      */
-    static exists() {
+    static exists(path) {
         throw new AbstractCallError();
     }
 
     /**
      * Launch external viewer
+     * @param {string} path - file path to open in a viewer
      */
-    // eslint-disable-next-line
     static launchViewer(path) {
         throw new AbstractCallError();
     }
 
-    // Set implementation from client app code
-    static FileStream = null;
+    static getStat(path) {
+        throw new AbstractCallError();
+    }
+
 }
 
 module.exports = FileStreamAbstract;

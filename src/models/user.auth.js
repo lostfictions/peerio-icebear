@@ -14,7 +14,7 @@ const socket = require('../network/socket')();
 const util = require('../util');
 const Promise = require('bluebird');
 const errors = require('../errors');
-const storage = require('../db/tiny-db');
+const TinyDb = require('../db/tiny-db');
 
 module.exports = function mixUserAuthModule() {
     /**
@@ -108,7 +108,7 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._checkForPasscode = () => {
-        return storage.get(`${this.username}:passcode`)
+        return TinyDb.system.getValue(`${this.username}:passcode`)
             .then((passcodeSecretArray) => {
                 if (passcodeSecretArray) {
                     return cryptoUtil.b64ToBytes(passcodeSecretArray);
@@ -166,7 +166,7 @@ module.exports = function mixUserAuthModule() {
      * @returns {Promise}
      */
     this.hasPasscode = () => {
-        return storage.get(`${this.username}:passcode`)
+        return TinyDb.system.getValue(`${this.username}:passcode`)
             .then(result => !!result);
     };
 
@@ -190,7 +190,7 @@ module.exports = function mixUserAuthModule() {
                 }), passcodeKey);
             })
             .then(passcodeSecretU8 => {
-                return storage.set(`${this.username}:passcode`, cryptoUtil.bytesToB64(passcodeSecretU8));
+                return TinyDb.system.setValue(`${this.username}:passcode`, cryptoUtil.bytesToB64(passcodeSecretU8));
             });
     };
 };

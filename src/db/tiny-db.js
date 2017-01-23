@@ -1,71 +1,112 @@
-/**
- * Pluggable local storage for small amounts of data.
- * Icebear lib delegates to desktop and mobile apps storage implementation injection to this interface.
- *
- * call require('icebear').setTinyDbEngine(YourDBImplementation) before using icebear library.
- *
- * Your implementation should expose the following API:
- * - setValue (key, val)
- * - getValue (key)
- *
- * All functions should return promises.
- */
-const mockDb = {};
+/* eslint no-prototype-builtins:0 */
 
-const engine = {
-    setValue: (key, val) => {
-        console.log(`set -- TinyDb in-memory mock call.`);
-        mockDb[key] = val;
-        return Promise.resolve();
-    },
-
-    getValue: key => {
-        console.log(`get --TinyDb in-memory mock call.`);
-        return Promise.resolve(mockDb[key]);
-    },
-
-    removeValue: key => {
-        console.log(`remove --TinyDb in-memory mock call.`);
-        delete mockDb[key];
+// An example of how to implement storage in client apps
+/*
+class KeyValueStorageExample {
+    data = {};
+    constructor(name) {
+        this.name = name;
+    }
+    // should return null if value doesn't exist
+    getValue(key) {
+        return Promise.resolve(this.data[key]);
+    }
+    setValue(key, value) {
+        this.data[key] = value;
         return Promise.resolve();
     }
-};
+    removeValue(key) {
+        delete this.data[key];
+        return Promise.resolve();
+    }
+    getAllKeys() {
+        return Promise.resolve(Object.keys(this.data));
+    }
+}
+*/
 
-const db = {
+const secret = require('../crypto/secret');
+const util = require('../crypto/util');
+const config = require('../config');
+
+let systemDb;
+
+class TinyDb {
+    // unencrypted system database, singleton
+    static get system() {
+        if (!systemDb) TinyDb.openSystemDb();
+        return systemDb;
+    }
+    // encrypted user database
+    static user = null;
+
+    static openSystemDb() {
+        systemDb = new TinyDb('system');
+    }
+
+    static openUserDb(username, key) {
+        TinyDb.user = new TinyDb(username, key);
+    }
+
     /**
-     * Call to set the actual storage implementation functions
-     * @param implementation<{{setValue: function, getValue: function}}>
+     * @param {string} name - database name
+     * @param {Uint8Array} [key] - encryption key
      */
-    setEngine: implementation => {
-        engine.setValue = implementation.setValue;
-        engine.getValue = implementation.getValue;
-        engine.removeValue = implementation.removeValue;
-    },
-
-    prefix: 'icebearlib',
-    /** Format key name from prefix for db key */
-    getKey: key => `${db.prefix}::${key}`,
+    constructor(name, key) {
+        this.name = name;
+        this.key = key;
+        this.engine = new config.StorageEngine(name);
+    }
 
     /**
-     * Get value for key
-     * @param {string} key - key
-     * @returns {Promise<object>}
+     * @param {string} valueString
+     * @returns {string} ciphertext
      */
-    get: key => engine.getValue(db.getKey(key)),
+    _encrypt = (valueString) => {
+        if (!this.key) return valueString;
+        const buf = secret.encryptString(valueString, this.key);
+        return util.bytesToB64(buf);
+    };
 
     /**
-     * Set value for key
-     * @param {string} key - key
-     * @param {Object} val - JSON-serializable value
-     * @return {Promise}
+     * @param {string} ciphertext
+     * @returns {string}
      */
-    set: (key, val) => engine.setValue(db.getKey(key), val),
+    _decrypt= (ciphertext) => {
+        if (!this.key) return ciphertext;
+        const buf = util.b64ToBytes(ciphertext);
+        return secret.decryptString(buf, this.key);
+    };
 
     /**
-     * remove a key
      * @param {string} key
+     * @returns {Promise<Object>}
      */
-    remove: (key) => engine.removeValue(db.getKey(key))
-};
+    getValue(key) {
+        return this.engine.getValue(key)
+            .then(this._decrypt)
+            .then(JSON.parse);
+    }
 
-module.exports = db;
+    /**
+     * @param {string} key
+     * @param {Object} value
+     * @returns {Promise}
+     */
+    setValue(key, value) {
+        let val = JSON.stringify(value);
+        val = this._encrypt(val);
+        return this.engine.setValue(key, val);
+    }
+
+    removeValue(key) {
+        return this.engine.removeValue(key);
+    }
+
+    getAllKeys() {
+        return this.engine.getAllKeys();
+    }
+
+}
+
+module.exports = TinyDb;
