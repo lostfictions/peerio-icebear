@@ -10,6 +10,7 @@ const FileNonceGenerator = require('./file-nonce-generator');
 const util = require('../util');
 const systemWarnings = require('./system-warning');
 const config = require('../config');
+const TinyDb = require('../db/tiny-db');
 
 class File extends Keg {
 
@@ -119,11 +120,6 @@ class File extends Keg {
         }
     }
 
-    _createReadStream(filePath) {
-        const stream = new config.FileStream(filePath, 'read');
-        return stream.open().return(stream);
-    }
-
     _startUploader(stream, nonceGen) {
         this.uploader = new FileUploader(this, stream, nonceGen);
         return this.uploader.start();
@@ -142,8 +138,9 @@ class File extends Keg {
             this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
             this.fileId = cryptoUtil.getRandomFileId(User.current.username);
 
-            return this._createReadStream(filePath)
-                .then(stream => {
+            const stream = new config.FileStream(filePath, 'read');
+            return stream.open()
+                .then(() => {
                     console.log(`File read stream open. File size: ${stream.size}`);
                     this.size = stream.size;
                     this.chunkSize = config.upload.getChunkSize(this.size);
@@ -162,7 +159,7 @@ class File extends Keg {
                     });
                     return Promise.reject(new Error(err));
                 })
-                .finally(() => this._resetUploadAndDownloadState());
+                .finally(() => this._resetUploadAndDownloadState(stream));
         } catch (ex) {
             this._resetUploadAndDownloadState();
             console.error(ex);
@@ -170,32 +167,62 @@ class File extends Keg {
         }
     }
 
-    _createWriteStream(path) {
-        const stream = new config.FileStream(path, 'write'); // todo: append
-        return stream.open();
+    _startDownloader(stream, nonceGen, resumeParams) {
+        this.downloader = new FileDownloader(this, stream, nonceGen, resumeParams);
+        return this.downloader.start();
     }
 
-    _startDownloader(stream, nonceGen) {
-        this.downloader = new FileDownloader(this, stream, nonceGen);
-        return this.downloader.start();
+    _getDlResumeParams(path) {
+        return config.FileStream.getStat(path)
+            .then(stat => {
+                if (stat.size >= this.size) {
+                    return Promise.resolve(false); // do not download
+                }
+                const wholeChunks = Math.floor(stat.size / this.chunkSize);
+                const partialChunkSize = stat.size % this.chunkSize;
+                return { wholeChunks, partialChunkSize };
+            })
+            .catch(err => {
+                console.log(err);
+                return Promise.resolve(true); // download from start
+            });
     }
 
     /**
      * @param {string} [filePath] - file path (optional)
+     * @param {boolean} resume
      */
-    download(filePath) {
+    download(filePath, resume) {
         if (this.downloading || this.uploading) {
             return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
         }
         try {
             this._resetUploadAndDownloadState();
-            const path = filePath || this.cachePath;
             this.downloading = true;
+            this.saveDownloadStartFact(filePath);
             const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
-            return this._createWriteStream(path)
-                .then(stream => this._startDownloader(stream, nonceGen))
-                .then(() => { this.cached = true; })
-                .finally(() => this._resetUploadAndDownloadState());
+            let stream, mode = 'write';
+            let p = Promise.resolve(true);
+            if (resume) {
+                p = this._getDlResumeParams(filePath);
+            }
+            return p
+                .then(resumeParams => {
+                    if (resumeParams === false) return;
+                    if (resumeParams !== true) {
+                        mode = 'append';
+                    } else resumeParams = null; // eslint-disable-line
+
+                    stream = new config.FileStream(filePath, mode);
+                    // eslint-disable-next-line consistent-return
+                    return stream.open()
+                        .then(() => this._startDownloader(stream, nonceGen, resumeParams));
+                })
+                .then(() => {
+                    this.saveDownloadEndFact();
+                    this.cached = true; // currently for mobile only
+                })
+                .finally(() => this._resetUploadAndDownloadState(stream));
         } catch (ex) {
             this._resetUploadAndDownloadState();
             console.error(ex);
@@ -211,6 +238,16 @@ class File extends Keg {
     cancelDownload() {
         if (!this.downloader) return;
         this._resetUploadAndDownloadState();
+    }
+
+    saveDownloadStartFact(path) {
+        TinyDb.user.setValue(`DOWNLOAD:${this.fileId}`, {
+            fileId: this.fileId,
+            path
+        });
+    }
+    saveDownloadEndFact() {
+        TinyDb.user.removeValue(`DOWNLOAD:${this.fileId}`);
     }
 }
 

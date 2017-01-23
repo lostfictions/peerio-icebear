@@ -42,7 +42,7 @@ class FileUploader extends FileProcessor {
 
     // reads chunk from fs and puts it in encryption queue
     _readChunk() {
-        if (this.readingChunk || this.stop || this.eofReached || this._isEncryptQueueFull) return;
+        if (this.readingChunk || this.stopped || this.eofReached || this._isEncryptQueueFull) return;
         this.readingChunk = true;
         this.stream.read(this.file.chunkSize)
             .then(this._processReadChunk)
@@ -51,7 +51,7 @@ class FileUploader extends FileProcessor {
 
     _processReadChunk = buffer => {
         this.readingChunk = false;
-        if (this.stop) return;
+        if (this.stopped) return;
         if (buffer.length === 0) {
             this.eofReached = true;
         } else {
@@ -61,7 +61,7 @@ class FileUploader extends FileProcessor {
     };
 
     _encryptChunk = () => {
-        if (this.stop || this._isUploadQueueFull || !this.encryptQueue.length) return;
+        if (this.stopped || this._isUploadQueueFull || !this.encryptQueue.length) return;
         try {
             const chunk = this.encryptQueue.shift();
             const isLast = this.eofReached && this.encryptQueue.length === 0;
@@ -76,7 +76,7 @@ class FileUploader extends FileProcessor {
     };
 
     _uploadChunk() {
-        if (this.stop || !this.uploadQueue.length
+        if (this.stopped || !this.uploadQueue.length
             || this.chunksWaitingForResponse >= config.upload.maxResponseQueue) return;
 
         const chunk = this.uploadQueue.shift();
@@ -90,7 +90,7 @@ class FileUploader extends FileProcessor {
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
-                if (this.stop) return;
+                if (this.stopped) return;
                 this.file.progress =
                     this.file.progressBuffer - (this.uploadQueue.length * this.file.chunkSize);
                 this._tick();
@@ -115,7 +115,7 @@ class FileUploader extends FileProcessor {
             // fileId: this.file.fileId,
             encryptQueue: this.encryptQueue.length,
             uploadQueue: this.uploadQueue.length,
-            stop: this.stop,
+            stopped: this.stopped,
             eofReached: this.eofReached,
             finished: this.processFinished,
             lastReadChunkId: this.lastReadChunkId

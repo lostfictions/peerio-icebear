@@ -5,8 +5,8 @@ const errors = require('../errors');
 const cryptoUtil = require('../crypto/util');
 
 class FileProcessor {
-    // next queue processing calls will stop if stop == true
-    stop = false;
+    // next queue processing calls will stop if stopped == true
+    stopped = false;
     // process stopped and promise resolved/rejected
     processFinished = false;
 
@@ -41,7 +41,13 @@ class FileProcessor {
     _finishProcess(err) {
         if (this.processFinished) return;
         this.processFinished = true;
-        this.stop = true; // bcs in case of error some calls might be scheduled
+        this.stopped = true; // bcs in case of error some calls might be scheduled
+        try {
+            this.stream.close();
+        } catch (e) {
+            // really don't care
+        }
+        this.cleanup();
         if (err) {
             console.log(`Failed to ${this.processType} file ${this.file.fileId}.`, err);
             this.reject(errors.normalize(err));
@@ -55,6 +61,11 @@ class FileProcessor {
     _error = err => {
         this._finishProcess(err || new Error(`${this.processType} failed`));
     };
+
+    // override in child classes if cleanup needed on finish
+    cleanup(){
+
+    }
 
 
 }

@@ -1,15 +1,15 @@
-const { observable, action, asFlat, when, reaction, computed } = require('mobx');
+const { observable, action, when, reaction, computed } = require('mobx');
 const socket = require('../network/socket');
-// const normalize = require('../errors').normalize;
 const User = require('./user');
-// const updateTracker = require('./update-tracker');
 const File = require('./file');
 const systemWarnings = require('./system-warning');
 const tracker = require('./update-tracker');
+const TinyDb = require('../db/tiny-db');
+
 const _ = require('lodash');
 
 class FileStore {
-    @observable files = asFlat([]);
+    @observable files = observable.shallowArray([]);
     @observable loading = false;
     @observable ongoingUploads = 0;
     @observable currentFilter = '';
@@ -117,20 +117,15 @@ class FileStore {
             }
             this.loading = false;
             this.loaded = true;
+            this.resumeBrokenDownloads();
+            socket.onAuthenticated(() => {
+                setTimeout(() => {
+                    if (socket.authenticated) this.resumeBrokenDownloads();
+                }, 3000);
+            });
             tracker.onKegTypeUpdated('SELF', 'file', this.updateFiles);
             setTimeout(this.updateFiles);
         }));
-    }
-
-    resume() {
-        when(() => !this.loading, () => {
-            console.log('file-store.js: resuming');
-            this.files.forEach(f => {
-                // when file finished checking its download status
-                when(() => f.isPartialDownload, () => f.download());
-                when(() => f.nonce && f.isPartialUpload, () => f.upload());
-            });
-        });
     }
 
     // this essentially does the same as loadAllFiles but with filter,
@@ -194,6 +189,23 @@ class FileStore {
 
     cancelDownload(file) {
         file.cancelUpload();
+    }
+
+    resumeBrokenDownloads() {
+        console.log('Checking for interrupted downloads.');
+        const regex = /^DOWNLOAD:(.*)$/;
+        TinyDb.user.getAllKeys()
+            .then(keys => {
+                for (let i = 0; i < keys.length; i++) {
+                    const match = regex.exec(keys[i]);
+                    if (!match || !match[1]) continue;
+                    const file = this.getById(match[1]);
+                    if (file) {
+                        console.log(`Requesting download resume for ${keys[i]}`);
+                        TinyDb.user.getValue(keys[i]).then(dlInfo => file.download(dlInfo.path, true));
+                    }
+                }
+            });
     }
 
 }

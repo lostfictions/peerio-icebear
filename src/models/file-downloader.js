@@ -1,5 +1,4 @@
 const socket = require('../network/socket');
-const util = require('../crypto/util');
 const secret = require('../crypto/secret');
 const config = require('../config');
 const FileProcessor = require('./file-processor');
@@ -22,14 +21,22 @@ class FileDownloader extends FileProcessor {
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator
+     * @param {{partialChunkSize, wholeChunks}} resumeParams
      */
-    constructor(file, stream, nonceGenerator) {
+    constructor(file, stream, nonceGenerator, resumeParams) {
         super(file, stream, nonceGenerator, 'download');
         this.file.progressMax = file.size + file.chunksCount * CHUNK_OVERHEAD;
         this.getUrlParams = { fileId: file.fileId };
         this.chunkSizeWithOverhead = file.chunkSize + CHUNK_OVERHEAD;
         this.downloadChunkSize = Math.floor(config.download.maxDownloadChunkSize / this.chunkSizeWithOverhead)
                                     * this.chunkSizeWithOverhead;
+        if (resumeParams) {
+            this.partialChunkSize = resumeParams.partialChunkSize;
+            nonceGenerator.chunkId = resumeParams.wholeChunks;
+            this.file.progressBuffer = this.file.progress = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
+            this.downloadPos = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
+        }
+        socket.onDisconnect(this._abortXhr);
     }
 
     get _isDecryptQueueFull() {
@@ -37,12 +44,20 @@ class FileDownloader extends FileProcessor {
                     > config.download.maxDecryptBufferSize;
     }
 
+    _abortXhr = () => {
+        if (this.currentXhr) this.currentXhr.abort();
+    };
+
+    cleanup() {
+        socket.unsubscribe(socket.SOCKET_EVENTS.disconnect, this._abortXhr);
+    }
+
     // downloads config.download.chunkSize size chunk and stores it in parseQueue
     _downloadChunk() {
-        if (this.stop || this.downloading || this.downloadEof || this._isDecryptQueueFull) return;
+        if (this.stopped || this.downloading || this.downloadEof || this._isDecryptQueueFull) return;
 
         this.downloading = true;
-        this._getChunkUrl(this.downloadPos, this.downloadPos + this.downloadChunkSize-1)
+        this._getChunkUrl(this.downloadPos, this.downloadPos + this.downloadChunkSize - 1)
             .then(this._download)
             .then(dlChunk => {
                 console.log(`Downloaded ${dlChunk.byteLength} bytes`);
@@ -64,12 +79,16 @@ class FileDownloader extends FileProcessor {
     }
 
     _decryptChunk() {
-        if (this.stop || this.writing || !this.decryptQueue.length) return;
+        if (this.stopped || this.writing || !this.decryptQueue.length) return;
         let chunk = this.decryptQueue.shift();
         this.file.progress += chunk.length;
         const nonce = this.nonceGenerator.getNextNonce();
         chunk = secret.decrypt(chunk, this.fileKey, nonce, false);
         this.writing = true;
+        if (this.partialChunkSize) {
+            chunk = new Uint8Array(chunk, this.partialChunkSize, chunk.length - this.partialChunkSize);
+            this.partialChunkSize = 0;
+        }
         this.stream.write(chunk).then(this._onWriteEnd).catch(this._error);
     }
 
@@ -102,29 +121,39 @@ class FileDownloader extends FileProcessor {
             .then(f => `${f.url}?rangeStart=${from}&rangeEnd=${to}`);
     }
 
+    // if enabling support for parallel XHR requests - convert this to array
+    currentXhr = null;
 
     _download = (url) => {
         const self = this;
         const startProgress = this.file.progressBuffer;
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
+        const p = new Promise((resolve, reject) => {
+            const xhr = this.currentXhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if (this.readyState !== 4) return;
                 if (this.status === 200 || this.status === 206) {
                     resolve(this.response);
                     return;
                 }
-                reject(this);
+                self.file.progressBuffer = startProgress;
+                if (!p.isRejected()) reject();
             };
 
             xhr.onprogress = function(event) {
                 self.file.progressBuffer = startProgress + event.loaded;
             };
 
+            xhr.ontimeout = xhr.onabort = xhr.onerror = function() {
+                self.file.progressBuffer = startProgress;
+                if (!p.isRejected()) reject();
+            };
+
             xhr.open('GET', url);
             xhr.responseType = 'arraybuffer';
             xhr.send();
-        });
+        }).finally(() => { this.currentXhr = null; });
+
+        return p;
     };
 
 

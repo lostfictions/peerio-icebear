@@ -1,8 +1,8 @@
 const BPromise = require('bluebird');
-const { computed, observable, action, asFlat } = require('mobx');
+const { computed, observable, action } = require('mobx');
 
 class Queue {
-    @observable tasks = asFlat([]);
+    @observable tasks = observable.shallowArray([]);
     @observable runningTasks = 0;
     @computed get queueLength() {
         return this.tasks.length + this.runningTasks;

@@ -222,6 +222,16 @@ class SocketClient {
         this.startedEventListeners.push(callback);
     }
 
+    /** Shortcut to frequently used 'authenticated' subscription */
+    onAuthenticated(handler) {
+        this.subscribe(SOCKET_EVENTS.authenticated, handler);
+    }
+
+    /** Shortcut to frequently used 'disconnect' subscription */
+    onDisconnect(handler) {
+        this.subscribe(SOCKET_EVENTS.disconnect, handler);
+    }
+
     /** Closes current connection and disables reconnects. */
     close() {
         this.socket.close();

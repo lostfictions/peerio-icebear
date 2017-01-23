@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 const { AbstractCallError } = require('../errors');
-const db = require('../db/tiny-db');
 
 /**
  * Abstract File Stream class
@@ -121,8 +120,10 @@ class FileStreamAbstract {
         throw new AbstractCallError();
     }
 
-    // Set implementation from client app code
-    static FileStream = null;
+    static getStat(path) {
+        throw new AbstractCallError();
+    }
+
 }
 
 module.exports = FileStreamAbstract;
