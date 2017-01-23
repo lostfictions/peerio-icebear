@@ -249,6 +249,11 @@ class File extends Keg {
     saveDownloadEndFact() {
         TinyDb.user.removeValue(`DOWNLOAD:${this.fileId}`);
     }
+
+    deleteCache() {
+        config.FileSystem.delete(this.cachePath);
+        this.cached = false;
+    }
 }
 
 
