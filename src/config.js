@@ -4,9 +4,6 @@
  * ! Is not supposed be edited at runtime !
  * @module config
  */
-
-const TinyDb = require('./db/tiny-db');
-
 class UploadConfig {
     get chunkSizes() {
         return [
@@ -63,9 +60,7 @@ const config = new class {
 
     // -- client-specific implementations
     FileStream = null;
-    set TinyDb(engine) {
-        TinyDb.setEngine(engine);
-    }
+    StorageEngine = null;
 }();
 
 // ICEBEAR_TEST_ENV is a constant replacement set by webpack

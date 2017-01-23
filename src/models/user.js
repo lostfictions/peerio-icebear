@@ -7,7 +7,7 @@ const mixUserProfileModule = require('./user.profile');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
-const storage = require('../db/tiny-db');
+const TinyDb = require('../db/tiny-db');
 const { observable } = require('mobx');
 const systemWarnings = require('./system-warning');
 
@@ -111,6 +111,7 @@ class User {
         socket.setAuthenticatedState();
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
+            TinyDb.openUserDb(this.username, this.kegdb.key);
             this.setReauthOnReconnect();
             return this.loadProfile()
                        .then(() => this.setAsLastAuthenticated().catch(err => console.error(err)));
@@ -149,7 +150,7 @@ class User {
      * @returns {Promise<String>}
      */
     static getLastAuthenticated() {
-        return storage.get(`last_user_authenticated`)
+        return TinyDb.system.getValue(`last_user_authenticated`)
             .then(obj => {
                 return obj;
             });
@@ -160,7 +161,7 @@ class User {
      * @returns {Promise}
      */
     setAsLastAuthenticated() {
-        return storage.set(`last_user_authenticated`, {
+        return TinyDb.system.setValue(`last_user_authenticated`, {
             username: this.username,
             firstName: this.firstName,
             lastName: this.lastName
@@ -172,7 +173,7 @@ class User {
      * @returns {Promise<String>}
      */
     static removeLastAuthenticated() {
-        return storage.remove(`last_user_authenticated`);
+        return TinyDb.system.removeValue(`last_user_authenticated`);
     }
 
     validatePasscode(passcode) {
@@ -184,8 +185,9 @@ class User {
                 u.username = this.username;
                 return u._checkForPasscode()
                     .then(() => {
-                        return u.passphrase && u.passphrase !== passcode ?
-                            Promise.resolve(u.passphrase) : Promise.reject(new Error('user.auth.js: passcode is not valid'));
+                        return u.passphrase && u.passphrase !== passcode
+                            ? Promise.resolve(u.passphrase)
+                            : Promise.reject(new Error('user.auth.js: passcode is not valid'));
                     });
             });
     }

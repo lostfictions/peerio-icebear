@@ -40,6 +40,7 @@ const systemWarnings = require('./models/system-warning');
 const cryptoKeys = require('./crypto/keys');
 const cryptoPublic = require('./crypto/public');
 const cryptoSecret = require('./crypto/secret');
+const TinyDb = require('./db/tiny-db');
 
 module.exports = {
     errors,
@@ -51,6 +52,7 @@ module.exports = {
     cryptoSecret,
     User,
     PhraseDictionary,
+    TinyDb,
     contactStore,
     chatStore,
     fileStore,
