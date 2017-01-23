@@ -1,4 +1,4 @@
-const { observable,computed, asFlat } = require('mobx');
+const { observable,computed, action } = require('mobx');
 const contactStore = require('../stores/contact-store');
 const socket = require('../../network/socket')();
 const User = require('../user');
@@ -8,15 +8,31 @@ const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
 
 class Ghost extends Keg {
+    DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
+
     @observable sending = false;
     @observable sendError = false;
     @observable subject = '';
-    @observable recipients = asFlat([]);
-    @observable files = asFlat([]);
+    @observable recipients = observable.shallowArray([]);
+    @observable files = observable.shallowArray([]);
     @observable passphrase = 'icebear'; //todo fill
+    @observable timestamp = Date.now();
+    @observable sent = false;
 
-    get preview() {
-        return this.text && this.text.length > 0 ? this.text.substr(0, 20): '...';
+    get date() {
+        return new Date(this.timestamp);
+    }
+
+    @computed get preview() {
+        return this.body && this.body.length > 0 ? this.body.substring(0, 20) : '...';
+    }
+
+    get expiryDte() {
+        return new Date(this.timestamp + (this.lifeSpanInSeconds * 1000));
+    }
+
+    get timeRemaining() {
+
     }
 
     /**
@@ -25,7 +41,6 @@ class Ghost extends Keg {
     constructor() {
         const db = User.current.kegdb;
         super(null, 'ghost', db);
-        this.sent = false;
         this.ghostId = cryptoUtil.getRandomFileId(User.current.username);
         this.version = 2;
     }
@@ -38,38 +53,51 @@ class Ghost extends Keg {
     serializeKegPayload() {
         return {
             ghostId: this.ghostId,
-            ghostPublicKey: this.keypair.publicKey,
+            subject: this.subject,
+            passphrase: this.passphrase,
             recipients: this.recipients.slice(),
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: 2,
             files: this.files,
-            body: this.asymEncryptedGhostBody,
+            body: this.body,
             timestamp: this.timestamp
         };
+    }
+
+    // serializeProps() {
+    //     return {
+    //
+    //     }
+    // }
+
+    @action deserializeKegPayload(data) {
+        console.log('ghost data', data)
+        this.body = data.body;
+        this.subject = data.subject;
+        this.ghostId = data.ghostId;
+        this.passphrase = data.passphrase;
+        this.files = data.files; // FIXME
+        this.timestamp = data.timestamp;
+        this.recipients = data.recipients;
+        this.sent = true;
+    }
+
+    @action deserializeProps(props) {
+        console.log('ghost props', props);
     }
 
     /**
-     * to be sent to ephemeral recipient.
+     *
+     * @param text
      */
-    serializeGhostPayload() {
-        return {
-            subject: this.subject,
-            ghostId: this.ghostId,
-            lifeSpanInSeconds: this.lifeSpanInSeconds,
-            version: 2,
-            files: this.files,
-            body: this.asymEncryptedGhostBody,
-            timestamp: this.timestamp
-        };
-    }
-
     send(text) {
         this.sending = true;
         this.sender = contactStore.getContact(User.current.username);
-        this.text = text;
-        this.timestamp = new Date();
-        this.lifeSpanInSeconds = 864000;
+        this.body = text;
+        this.timestamp = Date.now();
+        this.lifeSpanInSeconds = this.DEFAULT_GHOST_LIFESPAN;
 
+        console.log('send', this.subject)
         console.log('recipients', this.recipients.slice())
 
         // todo attach files properly
@@ -111,6 +139,21 @@ class Ghost extends Keg {
     }
 
     /**
+     * to be sent to ephemeral recipient, encrypted asymmetrically
+     */
+    serializeGhostPayload() {
+        return {
+            subject: this.subject,
+            ghostId: this.ghostId,
+            lifeSpanInSeconds: this.lifeSpanInSeconds,
+            version: 2,
+            files: this.files,
+            body: this.asymEncryptedGhostBody,
+            timestamp: this.timestamp
+        };
+    }
+
+    /**
      * Encrypt for the ephemeral keypair.
      *
      * @returns {*}
@@ -118,9 +161,6 @@ class Ghost extends Keg {
     encryptForEphemeralRecipient() {
         try {
             const body = JSON.stringify(this.serializeGhostPayload());
-            console.log('encrypt', body);
-            console.log('their key', this.keypair.publicKey);
-            console.log('my key', User.current.encryptionKeys.secretKey)
             this.asymEncryptedGhostBody = publicCrypto.encrypt(
                 cryptoUtil.strToBytes(body),
                 this.keypair.publicKey,

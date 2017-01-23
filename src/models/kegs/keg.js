@@ -127,6 +127,12 @@ class Keg {
         });
     }
 
+    /**
+     * synchronous!
+     *
+     * @param {Object} keg
+     * @returns {Keg|Boolean}
+     */
     loadFromKeg(keg) {
         try {
             if (this.id && this.id !== keg.kegId) {
