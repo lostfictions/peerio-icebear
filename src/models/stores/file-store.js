@@ -5,6 +5,8 @@ const File = require('../file');
 const systemWarnings = require('../system-warning');
 const tracker = require('../update-tracker');
 const TinyDb = require('../../db/tiny-db');
+const config = require('../../config');
+const fileHelpers = require('../../helpers/file');
 const _ = require('lodash');
 
 class FileStore {
@@ -117,6 +119,7 @@ class FileStore {
             this.loading = false;
             this.loaded = true;
             this.resumeBrokenDownloads();
+            this.detectCachedFiles();
             socket.onAuthenticated(() => {
                 setTimeout(() => {
                     if (socket.authenticated) this.resumeBrokenDownloads();
@@ -187,7 +190,7 @@ class FileStore {
     }
 
     cancelDownload(file) {
-        file.cancelUpload();
+        file.cancelDownload();
     }
 
     resumeBrokenDownloads() {
@@ -205,6 +208,21 @@ class FileStore {
                     }
                 }
             });
+    }
+
+    detectCachedFiles() {
+        if (!config.isMobile || this.files.length === 0) return;
+        let c = this.files.length - 1;
+        const checkFile = () => {
+            if (c < 0) return;
+            const file = this.files[c];
+            if (file && !file.downloading && config.FileStream.exists(file.cachePath)) {
+                file.cached = true;
+            }
+            c--;
+            setTimeout(checkFile);
+        };
+        checkFile();
     }
 
 }

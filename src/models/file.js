@@ -231,12 +231,11 @@ class File extends Keg {
     }
 
     cancelUpload() {
-        if (!this.uploader) return;
         this._resetUploadAndDownloadState();
     }
 
     cancelDownload() {
-        if (!this.downloader) return;
+        this.saveDownloadEndFact();
         this._resetUploadAndDownloadState();
     }
 
@@ -248,6 +247,11 @@ class File extends Keg {
     }
     saveDownloadEndFact() {
         TinyDb.user.removeValue(`DOWNLOAD:${this.fileId}`);
+    }
+
+    deleteCache() {
+        config.FileSystem.delete(this.cachePath);
+        this.cached = false;
     }
 }
 
