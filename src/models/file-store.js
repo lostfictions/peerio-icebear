@@ -190,7 +190,7 @@ class FileStore {
     }
 
     cancelDownload(file) {
-        file.cancelUpload();
+        file.cancelDownload();
     }
 
     resumeBrokenDownloads() {

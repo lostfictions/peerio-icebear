@@ -231,12 +231,11 @@ class File extends Keg {
     }
 
     cancelUpload() {
-        if (!this.uploader) return;
         this._resetUploadAndDownloadState();
     }
 
     cancelDownload() {
-        if (!this.downloader) return;
+        this.saveDownloadEndFact();
         this._resetUploadAndDownloadState();
     }
 
