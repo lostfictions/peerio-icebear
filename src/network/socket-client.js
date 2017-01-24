@@ -232,7 +232,7 @@ class SocketClient {
         this.subscribe(SOCKET_EVENTS.disconnect, handler);
     }
 
-    /** Closes current connection and disables reconnects. */
+    /** Closes currentDict connection and disables reconnects. */
     close() {
         this.socket.close();
     }

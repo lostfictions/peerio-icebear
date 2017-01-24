@@ -37,7 +37,7 @@ class ChatKegDb {
         this.participants = this.participants || [];
         // duplicate absence should be handled level higher but just to be safe.
         const arg = { participants: _.uniq(this.participants.map(p => p.username)) };
-        // participants should not include current user, but just to be safe.
+        // participants should not include currentDict user, but just to be safe.
         if (arg.participants.indexOf(User.current.username) < 0) {
             arg.participants.push(User.current.username);
         }

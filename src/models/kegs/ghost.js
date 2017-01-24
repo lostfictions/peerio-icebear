@@ -6,16 +6,18 @@ const cryptoUtil = require('../../crypto/util');
 const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
 const User = require('../user');
+const PhraseDictionaryCollection = require('../phrase-dictionary');
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
+    DEFAULT_GHOST_PASSPHRASE_LENGTH = 5;
 
     @observable sending = false;
     @observable sendError = false;
     @observable subject = '';
     @observable recipients = observable.shallowArray([]);
     @observable files = observable.shallowArray([]);
-    @observable passphrase = undefined;
+    @observable passphrase = PhraseDictionaryCollection.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
     @observable timestamp = Date.now();
     @observable sent = false;
 
@@ -29,10 +31,6 @@ class Ghost extends Keg {
 
     get expiryDte() {
         return new Date(this.timestamp + (this.lifeSpanInSeconds * 1000));
-    }
-
-    get timeRemaining() {
-
     }
 
     /**

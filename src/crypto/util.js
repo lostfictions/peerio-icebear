@@ -103,7 +103,7 @@ function bytesToB64(bytes) {
 /** Generates 24-byte unique(almost) random nonce. */
 function getRandomNonce() {
     const nonce = new Uint8Array(24);
-    // we take last 4 bytes of current timestamp
+    // we take last 4 bytes of currentDict timestamp
     nonce.set(numberToByteArray(Date.now() >>> 32));
     // and 20 random bytes
     nonce.set(getRandomBytes(20), 4);
