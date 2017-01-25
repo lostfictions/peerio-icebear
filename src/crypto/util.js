@@ -100,6 +100,10 @@ function bytesToB64(bytes) {
     return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
 }
 
+function bytesToHex(bytes) {
+    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('hex');
+}
+
 /** Generates 24-byte unique(almost) random nonce. */
 function getRandomNonce() {
     const nonce = new Uint8Array(24);
@@ -210,6 +214,7 @@ module.exports = {
     bytesToB64,
     b64ToBytes,
     bytesToStr,
+    bytesToHex,
     strToBytes,
     numberToByteArray,
     byteArrayToNumber,
