@@ -7,6 +7,7 @@ const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
 const User = require('../user');
 const PhraseDictionaryCollection = require('../phrase-dictionary');
+const config = require('../../config');
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
@@ -29,7 +30,11 @@ class Ghost extends Keg {
         return this.body && this.body.length > 0 ? this.body.substring(0, 20) : '...';
     }
 
-    get expiryDte() {
+    @computed get url() {
+        return `${config.ghostFrontendUrl}?${this.ghostId}`;
+    }
+
+    @computed get expiryDate() {
         return new Date(this.timestamp + (this.lifeSpanInSeconds * 1000));
     }
 
@@ -40,7 +45,7 @@ class Ghost extends Keg {
         const db = User.current.kegdb;
         super(null, 'ghost', db);
         this.version = 2;
-        this.ghostId = cryptoUtil.getRandomFileId(User.current.username);
+        this.ghostId = cryptoUtil.bytesToHex(cryptoUtil.strToBytes(cryptoUtil.getRandomFileId(User.current.username)));
     }
 
     /**
@@ -95,12 +100,12 @@ class Ghost extends Keg {
         this.timestamp = Date.now();
         this.lifeSpanInSeconds = this.DEFAULT_GHOST_LIFESPAN;
 
-        console.log('send', this.subject)
-        console.log('recipients', this.recipients.slice())
+        console.log('ghost id', this.ghostId)
 
         // todo attach files properly
         return keys.deriveEphemeralKeys(this.ghostId, this.passphrase)
             .then((kp) => {
+                console.log('keypair', kp)
                 this.keypair = kp;
                 return this.encryptForEphemeralRecipient();
             })
@@ -125,6 +130,11 @@ class Ghost extends Keg {
      * @returns {Promise}
      */
     sendGhost() {
+        console.log('meta', {ghostId: this.ghostId,
+            ghostPublicKey: this.keypair.publicKey.buffer,
+            recipients: this.recipients.slice(),
+            lifeSpanInSeconds: this.lifeSpanInSeconds,
+            version: this.version})
         return socket.send('/auth/ghost/send', {
             ghostId: this.ghostId,
             ghostPublicKey: this.keypair.publicKey.buffer,
@@ -145,8 +155,8 @@ class Ghost extends Keg {
             ghostId: this.ghostId,
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: 2,
-            files: this.files,
-            body: this.asymEncryptedGhostBody,
+            files: this.files.slice(),
+            body: this.body,
             timestamp: this.timestamp
         };
     }
@@ -157,6 +167,7 @@ class Ghost extends Keg {
      * @returns {*}
      */
     encryptForEphemeralRecipient() {
+        console.log('encrypted body', this.serializeGhostPayload())
         try {
             const body = JSON.stringify(this.serializeGhostPayload());
             this.asymEncryptedGhostBody = publicCrypto.encrypt(
@@ -164,6 +175,7 @@ class Ghost extends Keg {
                 this.keypair.publicKey,
                 User.current.encryptionKeys.secretKey
             );
+            console.log('aym', this.asymEncryptedGhostBody)
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);
