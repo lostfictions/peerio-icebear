@@ -12,7 +12,7 @@ class MailStore {
     @observable loaded = false;
     @observable selectedId = null;
 
-    @computed get selectedGhost () {
+    @computed get selectedGhost() {
         return _.find(this.ghosts, { ghostId: this.selectedId })
     }
 
@@ -69,7 +69,7 @@ class MailStore {
      */
     createGhost() {
         const g = new Ghost();
-        
+
         this.ghosts.unshift(g);
         return g;
 
