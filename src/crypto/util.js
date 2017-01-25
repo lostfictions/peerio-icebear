@@ -158,7 +158,7 @@ function padBytes(u, length) {
  * @param {number} length - hash length 1-32
  * @param {Uint8Array} value - value to hash
  * @param {String} personalizationString [optional]
- * @retuens {Blake2s}
+ * @returns {BLAKE2s}
  * @private
  */
 function _getHash(length, value, personalizationString) {
