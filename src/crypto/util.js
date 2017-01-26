@@ -237,6 +237,7 @@ module.exports = {
     getRandomNumber,
     getRandomNonce,
     getRandomUserSpecificIdB64,
+    getRandomUserSpecificIdHex,
     bytesToB64,
     b64ToBytes,
     bytesToStr,
