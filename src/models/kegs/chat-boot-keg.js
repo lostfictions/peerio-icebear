@@ -1,7 +1,5 @@
 const Keg = require('./keg');
-const util = require('../../crypto/util');
-const publicCrypto = require('../../crypto/public');
-const keys = require('../../crypto/keys');
+const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
 
 // todo: we need more reliable - server controlled participant info
 // todo: or some kind of protection from peers corrupting data
@@ -40,10 +38,10 @@ class ChatBootKeg extends Keg {
         // keys for every participant
         this.encryptedKeys = data.encryptedKeys;
         // public key from ephemeral key pair that encrypted keys
-        this.publicKey = util.b64ToBytes(data.publicKey);
+        this.publicKey = cryptoUtil.b64ToBytes(data.publicKey);
         // decrypting keg key that was encrypted for me
         let kegKey = data.encryptedKeys[this.user.username];
-        kegKey = util.b64ToBytes(kegKey);
+        kegKey = cryptoUtil.b64ToBytes(kegKey);
         kegKey = publicCrypto.decrypt(kegKey, this.publicKey, this.user.encryptionKeys.secretKey);
         if (kegKey === false) {
             console.error('Failed to decrypt chat key for myself.');
@@ -66,14 +64,14 @@ class ChatBootKeg extends Keg {
         const ephemeralKeyPair = keys.generateEncryptionKeyPair();
         const ret = {
             // users will need ephemeral public key to decrypt keg key
-            publicKey: util.bytesToB64(ephemeralKeyPair.publicKey),
+            publicKey: cryptoUtil.bytesToB64(ephemeralKeyPair.publicKey),
             encryptedKeys: {}
         };
         // iterating user public keys and encrypting kegKey for them
         for (const username of Object.keys(this.participantPublicKeys)) {
             const userPKey = this.participantPublicKeys[username];
             const encKey = publicCrypto.encrypt(this.kegKey, userPKey, ephemeralKeyPair.secretKey);
-            ret.encryptedKeys[username] = util.bytesToB64(encKey);
+            ret.encryptedKeys[username] = cryptoUtil.bytesToB64(encKey);
         }
         return ret;
     }

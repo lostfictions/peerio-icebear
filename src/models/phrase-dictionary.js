@@ -26,7 +26,7 @@ class PhraseDictionary {
         if (!this.dict) throw new Error('no dictionary available');
         let ret = '';
         for (let i = 0; i < length; i++) {
-            ret += this.dict[util.getRandomNumber(0, this.dict.length)] + ' ';
+            ret += `${this.dict[util.getRandomNumber(0, this.dict.length)]} `;
         }
         return ret.trim(' ');
     }

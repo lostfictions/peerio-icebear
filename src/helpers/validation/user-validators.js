@@ -48,7 +48,7 @@ const serverValidationStore = { pendingRequest: null, cachedResult: true };
  */
 function _callServer(context, name, value) {
     serverValidationStore.pendingRequest = { context, name, value };
-    
+
     const callThrottled = () => {
         if (serverValidationStore.pendingRequest) {
             const pending = _.clone(serverValidationStore.pendingRequest);

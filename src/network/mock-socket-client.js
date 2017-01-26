@@ -15,7 +15,6 @@ class MockSocketClient {
     }
 
     send(name, data) {
-
         console.log('mock send');
         return {};
     }

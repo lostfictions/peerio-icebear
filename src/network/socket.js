@@ -17,9 +17,5 @@ socket.start = function() {
 
 
 module.exports = function(s) {
-
-
-
-    
     return s || socket;
 };

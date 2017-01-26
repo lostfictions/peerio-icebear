@@ -71,7 +71,7 @@ module.exports = function mixUserRegisterModule() {
             },
             signing: {
                 token: cng.signingKey.token.buffer,
-                signature: signCrypto.sign(cng.signingKey.token, this.signKeys.secretKey).buffer
+                signature: signCrypto.signDetached(cng.signingKey.token, this.signKeys.secretKey).buffer
             }
         };
 

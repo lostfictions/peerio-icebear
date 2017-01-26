@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const fs = require('fs');
-const { observable, action, computed} = require('mobx');
+const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket')();
 const Ghost = require('../kegs/ghost');
 const User = require('../user');
@@ -12,8 +12,8 @@ class MailStore {
     @observable loaded = false;
     @observable selectedId = null;
 
-    @computed get selectedGhost () {
-        return _.find(this.ghosts, { ghostId: this.selectedId })
+    @computed get selectedGhost() {
+        return _.find(this.ghosts, { ghostId: this.selectedId });
     }
 
     constructor() {
@@ -49,7 +49,7 @@ class MailStore {
                 this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                 if (ghost.loadFromKeg(keg)) {
                     this.ghosts.push(ghost);
-                    console.log('loaded ghost', ghost.body)
+                    console.log('loaded ghost', ghost.body);
                 }
             }
             this.loading = false;
@@ -69,13 +69,13 @@ class MailStore {
      */
     createGhost() {
         const g = new Ghost();
-        
+
         this.ghosts.unshift(g);
         return g;
 
-        //when(() => !g.sending, () => {
+        // when(() => !g.sending, () => {
         //
-        //});
+        // });
     }
 
     /**
