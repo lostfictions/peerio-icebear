@@ -28,7 +28,6 @@ const socket = require('./network/socket');
 const User = require('./models/user');
 const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
-const cryptoUtil = require('./crypto/util');
 const errors = require('./errors');
 const contactStore = require('./models/contact-store');
 const chatStore = require('./models/chat-store');
@@ -37,19 +36,14 @@ const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/file-stream-abstract');
 const util = require('./util');
 const systemWarnings = require('./models/system-warning');
-const cryptoKeys = require('./crypto/keys');
-const cryptoPublic = require('./crypto/public');
-const cryptoSecret = require('./crypto/secret');
+const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
 
 module.exports = {
     errors,
     config,
     socket,
-    cryptoUtil,
-    cryptoKeys,
-    cryptoPublic,
-    cryptoSecret,
+    crypto,
     User,
     PhraseDictionary,
     TinyDb,

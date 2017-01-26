@@ -15,11 +15,11 @@ class ContactStore {
      * @param {string} username
      * @returns {Contact}
      */
-    getContact(queryString) {
-        const existing = this._findInCache(queryString);
+    getContact(username) {
+        const existing = this._findInCache(username);
         if (existing) return existing;
 
-        const c = new Contact(queryString);
+        const c = new Contact(username);
         this.contacts.unshift(c);
         when(() => !c.loading, () => {
             if (c.notFound) {
