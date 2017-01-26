@@ -2,7 +2,7 @@
  * Keg database module
  */
 const ChatBootKeg = require('./chat-boot-keg');
-const socket = require('../../network/socket')();
+const socket = require('../../network/socket');
 const User = require('../user');
 const contactStore = require('../stores/contact-store');
 const _ = require('lodash');

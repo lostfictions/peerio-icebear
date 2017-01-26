@@ -1,6 +1,6 @@
 const { observable, action, computed } = require('mobx');
 const Chat = require('../chat');
-const socket = require('../../network/socket')();
+const socket = require('../../network/socket');
 const normalize = require('../../errors').normalize;
 const User = require('../user');
 const tracker = require('../update-tracker');

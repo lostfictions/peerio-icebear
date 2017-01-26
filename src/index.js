@@ -24,7 +24,7 @@ Promise.config({
 require('./extensions/uint8array');
 
 // exporting Icebear Library Interface
-const socket = require('./network/socket')();
+const socket = require('./network/socket');
 const User = require('./models/user');
 const PhraseDictionaryCollection = require('./models/phrase-dictionary');
 const config = require('./config');

@@ -6,7 +6,7 @@
 const keys = require('../crypto/keys');
 const publicCrypto = require('../crypto/public');
 const signCrypto = require('../crypto/sign');
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const util = require('../util');
 
 module.exports = function mixUserRegisterModule() {

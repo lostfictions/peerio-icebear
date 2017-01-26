@@ -4,7 +4,7 @@ const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
 const User = require('./user');
 const tracker = require('./update-tracker');
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const File = require('./file');
 
 // to assign when sending a message and don't have an id yet

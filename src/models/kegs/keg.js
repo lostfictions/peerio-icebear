@@ -2,7 +2,7 @@
  * Base class for kegs
  * @module models/keg
  */
-const socket = require('../../network/socket')();
+const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
 const { observable, when } = require('mobx');

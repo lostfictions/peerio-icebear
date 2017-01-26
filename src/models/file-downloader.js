@@ -1,4 +1,4 @@
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const secret = require('../crypto/secret');
 const config = require('../config');
 const FileProcessor = require('./file-processor');

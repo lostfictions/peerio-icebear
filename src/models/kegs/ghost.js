@@ -1,6 +1,6 @@
 const { observable, computed, action } = require('mobx');
 const contactStore = require('../stores/contact-store');
-const socket = require('../../network/socket')();
+const socket = require('../../network/socket');
 const Keg = require('./keg');
 const cryptoUtil = require('../../crypto/util');
 const keys = require('../../crypto/keys');

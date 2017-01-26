@@ -2,7 +2,7 @@
  * @module models/user
  */
 const Promise = require('bluebird');
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const mixUserProfileModule = require('./user.profile');
 const mixUserRegisterModule = require('./user.register');
 const mixUserAuthModule = require('./user.auth');

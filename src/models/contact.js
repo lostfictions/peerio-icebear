@@ -1,4 +1,4 @@
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const { observable, action, reaction } = require('mobx');
 const util = require('../crypto/util');
 

@@ -2,7 +2,7 @@
  * Skynet's little brother who tries hard to remove bottlenecks in the whole
  * "read -> encrypt -> upload" process to maximize upload speed.
  */
-const socket = require('../network/socket')();
+const socket = require('../network/socket');
 const errors = require('../errors');
 const secret = require('../crypto/secret');
 const config = require('../config');
