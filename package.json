@@ -7,6 +7,7 @@
     "prepush": "if [ `git rev-parse --abbrev-ref HEAD` == 'master' ]; then npm run validate; fi",
     "postcheckout": "npm update && npm run ctags",
     "postmerge": "npm update && npm run ctags",
+    "precommit": "npm run lint && npm run ctags",
     "postcommit": "npm run ctags",
     "commitmsg": "validate-commit-msg",
     "test": "BABEL_ENV=coverage karma start",
