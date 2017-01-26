@@ -38,6 +38,7 @@ const util = require('./util');
 const systemWarnings = require('./models/system-warning');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
+const legacyMigrator = require('./legacy/account_migrator');
 
 module.exports = {
     errors,
@@ -53,5 +54,6 @@ module.exports = {
     validation,
     FileStreamAbstract,
     util,
-    systemWarnings
+    systemWarnings,
+    legacyMigrator
 };

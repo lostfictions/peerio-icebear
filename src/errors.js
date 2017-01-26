@@ -59,13 +59,13 @@ function getGenericCustomError(name, msg) {
     err.prototype.constructor = err;
     return err;
 }
-// -- Custom Errors ----------------------------------------------------------------------------------------------------
+// -- Custom Errors ----------------------------------------------------------------------------------------------
 module.exports.DecryptionError = getGenericCustomError('DecryptionError');
 module.exports.EncryptionError = getGenericCustomError('EncryptionError');
 module.exports.AntiTamperError = getGenericCustomError('AntiTamperError');
-module.exports.AbstractCallError = getGenericCustomError(
-                                    'AbstractCallError', 'Abstract function call. Override this function.');
-// -- Server Errors ----------------------------------------------------------------------------------------------------
+module.exports.AbstractCallError = getGenericCustomError('AbstractCallError',
+                                                         'Abstract function call. Override this function.');
+// -- Server Errors ----------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,
     malformedRequest: 406,
@@ -76,6 +76,7 @@ const serverErrorCodes = {
     twoFAAuthRequired: 424,
     accountThrottled: 425,
     accountBlacklisted: 426,
+    accountMigrationRequired: 434,
     captchaPending: 435,
     accountClosed: 488,
     incorrectTimestamp: 442,
