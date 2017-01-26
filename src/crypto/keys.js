@@ -33,7 +33,10 @@ function scryptPromise(passphrase, salt, options) {
  * @param {[string]} personalization
  */
 function prehashPass(pass, personalization) {
-    const prehashedPass = new BLAKE2s(32, personalization && util.strToBytes(personalization));
+    if (personalization) {
+        personalization = { personalization: util.strToBytes(personalization) }; // eslint-disable-line
+    }
+    const prehashedPass = new BLAKE2s(32, personalization);
     prehashedPass.update(util.strToBytes(pass));
     return prehashedPass.digest();
 }
