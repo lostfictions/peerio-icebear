@@ -5,10 +5,13 @@
  */
 
 const nacl = require('tweetnacl');
-// const util = require('./util');
-// const { DecryptionError } = require('../errors');
 
-/** Signs the message with secret key and returns detached signature*/
+/**
+ * Signs the message with secret key and returns detached signature
+ * @param {Uint8Array} message
+ * @param {Uint8Array} secretKey
+ * @returns {Uint8Array} signature
+ */
 function signDetached(message, secretKey) {
     return nacl.sign.detached(message, secretKey);
 }

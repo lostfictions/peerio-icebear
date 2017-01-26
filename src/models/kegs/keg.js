@@ -3,8 +3,11 @@
  * @module models/keg
  */
 const socket = require('../../network/socket');
-const secret = require('../../crypto/secret');
+const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
+const { observable, when } = require('mobx');
+const contactStore = require('../contact-store');
+const { getUser } = require('../current-user');
 
 let temporaryKegId = 0;
 function getTemporaryKegId() {
@@ -14,6 +17,9 @@ function getTemporaryKegId() {
  * Base class with common metadata and operations.
  */
 class Keg {
+
+    @observable signIsValid = null;// true/false/null are the valid values
+
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
@@ -73,6 +79,7 @@ class Keg {
         let payload, props;
         try {
             payload = this.serializeKegPayload();
+            props = this.serializeProps();
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
             if (!this.plaintext) {
                 payload._sys = {
@@ -84,15 +91,18 @@ class Keg {
             payload = JSON.stringify(payload);
             // should we encrypt the string?
             if (!this.plaintext) {
-                payload = secret.encryptString(payload, this.overrideKey || this.db.key).buffer;
+                payload = secret.encryptString(payload, this.overrideKey || this.db.key);
+                if (this.db.id !== 'SELF') {
+                    props.signature = this._sign(payload); // here we need Uint8Array
+                }
             }
-            props = this.serializeProps();
+            payload = payload.buffer; // socket accepts ArrayBuffer
         } catch (err) {
             console.error('Fail preparing keg to save.', err);
             return Promise.reject(err);
         }
         return socket.send('/auth/kegs/update', {
-            collectionId: this.db.id, // todo: rename to dbId on server and here
+            collectionId: this.db.id,
             update: {
                 kegId: this.id,
                 keyId: '0',
@@ -105,6 +115,13 @@ class Keg {
         }).then(resp => {
             this.collectionVersion = resp.collectionVersion;
         });
+    }
+
+    _sign(payload) {
+        let s = sign.signDetached(payload, getUser().signKeys.secretKey);
+        s = cryptoUtil.bytesToB64(s);
+        this.signIsValid = true;
+        return s;
     }
 
     /**
@@ -128,19 +145,21 @@ class Keg {
     loadFromKeg(keg) {
         try {
             if (this.id && this.id !== keg.kegId) {
-                throw new Error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+                console.error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+                return false;
             }
             this.id = keg.kegId;
             this.version = keg.version;
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion;
-        //  is this an empty keg? probably just created.
+            //  is this an empty keg? probably just created.
             if (!keg.payload) return this;
             let payload = keg.payload;
-        // should we decrypt?
+            // should we decrypt?
             if (!this.plaintext) {
                 payload = new Uint8Array(keg.payload);
+                if (this.db.id !== 'SELF') this._verifySignature(payload, keg.props.signature);
                 payload = secret.decryptString(payload, this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
@@ -151,6 +170,22 @@ class Keg {
         } catch (err) {
             console.error(err);
             return false;
+        }
+    }
+
+    _verifySignature(payload, signature) {
+        if (!signature) {
+            this.signIsValid = false;
+            return;
+        }
+        signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
+        const contact = contactStore.getContact(this.owner);
+        if (!contact.loading) {
+            this.signIsValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
+        } else {
+            when(() => !contact.loading, () => {
+                this.signIsValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
+            });
         }
     }
 

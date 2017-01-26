@@ -6,9 +6,11 @@ const fs = require('fs');
 
 class FileLogger {
     constructor(path) {
-        try{
-        fs.unlinkSync(path);
-        } catch (err){}
+        try {
+            fs.unlinkSync(path);
+        } catch (err) {
+            // we don't care
+        }
         this.path = path;
     }
     append(data) {
