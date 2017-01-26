@@ -18,7 +18,7 @@ function getTemporaryKegId() {
  */
 class Keg {
 
-    @observable signIsValid = null;// true/false/null are the valid values
+    @observable isSignValid = null;// true/false/null are the valid values
 
     /**
      * @param {[string]} id - kegId, or null for new kegs
@@ -120,7 +120,7 @@ class Keg {
     _sign(payload) {
         let s = sign.signDetached(payload, getUser().signKeys.secretKey);
         s = cryptoUtil.bytesToB64(s);
-        this.signIsValid = true;
+        this.isSignValid = true;
         return s;
     }
 
@@ -175,16 +175,16 @@ class Keg {
 
     _verifySignature(payload, signature) {
         if (!signature) {
-            this.signIsValid = false;
+            this.isSignValid = false;
             return;
         }
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
         const contact = contactStore.getContact(this.owner);
         if (!contact.loading) {
-            this.signIsValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
+            this.isSignValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
         } else {
             when(() => !contact.loading, () => {
-                this.signIsValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
+                this.isSignValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
             });
         }
     }

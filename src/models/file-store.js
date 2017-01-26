@@ -59,7 +59,8 @@ class FileStore {
 
     @action selectAll() {
         for (let i = 0; i < this.files.length; i++) {
-            if (!this.files[i].show) continue;
+            const file = this.files[i];
+            if (!file.show || !file.readyForDownload) continue;
             this.files[i].selected = true;
         }
     }
