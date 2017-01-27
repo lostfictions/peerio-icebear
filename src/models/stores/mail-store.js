@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const fs = require('fs');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');
 const Ghost = require('../kegs/ghost');
