@@ -8,6 +8,9 @@ const secret = require('../crypto/secret');
 const config = require('../config');
 const FileProcessor = require('./file-processor');
 
+// todo: this is duplication
+const CHUNK_OVERHEAD = 32;
+
 class FileUploader extends FileProcessor {
     // read chunks go here
     encryptQueue = [];
@@ -25,10 +28,26 @@ class FileUploader extends FileProcessor {
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator
+     * @param {[number]} startFromChunk - in case of resume, start uploading from the chunk after this one
      */
-    constructor(file, stream, nonceGenerator) {
+    constructor(file, stream, nonceGenerator, startFromChunk) {
         super(file, stream, nonceGenerator, 'upload');
-        this.file.progressMax = stream.size;
+        // amount of bytes to read and to send
+        this.file.progressMax = file.size;
+        if (startFromChunk != null) {
+            console.log(`Resuming upload. Starting with chunk ${startFromChunk}`);
+            nonceGenerator.chunkId = startFromChunk;
+            this.lastReadChunkId = startFromChunk - 1;
+            this.file.progress = startFromChunk * file.chunkSize;
+            console.log(`progress ${this.file.progress}`);
+            stream.seek(startFromChunk * file.chunkSize);
+            console.log(`Upload continues from ${stream.nextReadPos}`);
+        }
+        socket.onDisconnect(this._error);
+    }
+
+    cleanup() {
+        socket.unsubscribe(socket.SOCKET_EVENTS.disconnect, this._error);
     }
 
     get _isEncryptQueueFull() {
@@ -52,6 +71,7 @@ class FileUploader extends FileProcessor {
     _processReadChunk = buffer => {
         this.readingChunk = false;
         if (this.stopped) return;
+        console.log(`read ${buffer.length} bytes`, `pos: ${this.stream.pos}`);
         if (buffer.length === 0) {
             this.eofReached = true;
         } else {
@@ -68,7 +88,6 @@ class FileUploader extends FileProcessor {
             const nonce = this.nonceGenerator.getNextNonce(isLast);
             chunk.buffer = secret.encrypt(chunk.buffer, this.fileKey, nonce, false, false);
             this.uploadQueue.push(chunk);
-            this.file.progressBuffer = this.stream.pos;
             this._tick();
         } catch (err) {
             this._error(err);
@@ -81,7 +100,7 @@ class FileUploader extends FileProcessor {
 
         const chunk = this.uploadQueue.shift();
         this.chunksWaitingForResponse++;
-
+        console.log(`sending chunk ${chunk.id}`);
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
@@ -90,9 +109,9 @@ class FileUploader extends FileProcessor {
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
+                console.log(`chunk ${chunk.id} sent`);
                 if (this.stopped) return;
-                this.file.progress =
-                    this.file.progressBuffer - (this.uploadQueue.length * this.file.chunkSize);
+                this.file.progress += this.file.chunkSize;
                 this._tick();
             })
             .catch(this._error);

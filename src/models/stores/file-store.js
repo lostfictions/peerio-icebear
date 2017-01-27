@@ -120,10 +120,14 @@ class FileStore {
             this.loading = false;
             this.loaded = true;
             this.resumeBrokenDownloads();
+            this.resumeBrokenUploads();
             this.detectCachedFiles();
             socket.onAuthenticated(() => {
                 setTimeout(() => {
-                    if (socket.authenticated) this.resumeBrokenDownloads();
+                    if (socket.authenticated) {
+                        this.resumeBrokenDownloads();
+                        this.resumeBrokenUploads();
+                    }
                 }, 3000);
             });
             tracker.onKegTypeUpdated('SELF', 'file', this.updateFiles);
@@ -206,6 +210,23 @@ class FileStore {
                     if (file) {
                         console.log(`Requesting download resume for ${keys[i]}`);
                         TinyDb.user.getValue(keys[i]).then(dlInfo => file.download(dlInfo.path, true));
+                    }
+                }
+            });
+    }
+
+    resumeBrokenUploads() {
+        console.log('Checking for interrupted uploads.');
+        const regex = /^UPLOAD:(.*)$/;
+        TinyDb.user.getAllKeys()
+            .then(keys => {
+                for (let i = 0; i < keys.length; i++) {
+                    const match = regex.exec(keys[i]);
+                    if (!match || !match[1]) continue;
+                    const file = this.getById(match[1]);
+                    if (file) {
+                        console.log(`Requesting upload resume for ${keys[i]}`);
+                        TinyDb.user.getValue(keys[i]).then(dlInfo => file.upload(dlInfo.path, null, true));
                     }
                 }
             });

@@ -11,6 +11,10 @@ const util = require('../util');
 const systemWarnings = require('./system-warning');
 const config = require('../config');
 const TinyDb = require('../db/tiny-db');
+const socket = require('../network/socket');
+
+// todo: this is duplication
+const CHUNK_OVERHEAD = 32;
 
 class File extends Keg {
 
@@ -60,6 +64,10 @@ class File extends Keg {
 
     @computed get chunksCount() {
         return Math.ceil(this.size / this.chunkSize);
+    }
+
+    get sizeWithOverhead() {
+        return this.size + this.chunksCount * CHUNK_OVERHEAD;
     }
 
     // -- keg serializators --------------------------------------------------------------------------------------
@@ -120,34 +128,81 @@ class File extends Keg {
         }
     }
 
-    _startUploader(stream, nonceGen) {
-        this.uploader = new FileUploader(this, stream, nonceGen);
-        return this.uploader.start();
+    _getUlResumeParams(path) {
+        return config.FileStream.getStat(path)
+            .then(stat => {
+                if (stat.size !== this.size) {
+                    systemWarnings.add({
+                        content: 'file_sizeChangedUploadStop',
+                        data: {
+                            fileName: this.name
+                        }
+                    });
+                    throw new Error(`Upload file size mismatch. Was ${this.size} now ${stat.size}`);
+                }
+                // check file state on server
+                return socket.send('/auth/dev/file/state', { fileId: this.fileId });
+            })
+            .then(state => {
+                console.log(state);
+                if (state.status === 'ready' || state.chunksUploadComplete) {
+                    throw new Error('File already uploaded.');
+                }
+                return state.lastChunkNum + 1;
+            })
+            .catch(err => {
+                console.log(err);
+                this.saveUploadEndFact();
+                this._resetUploadAndDownloadState();
+                this.remove();
+                return Promise.reject(); // do not upload
+            });
     }
 
-    upload(filePath, fileName) {
+    upload(filePath, fileName, resume) {
         if (this.downloading || this.uploading) {
             return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
         }
         try {
+            this.selected = false;
             this._resetUploadAndDownloadState();
             this.uploading = true;
-
-            this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
-            this.name = fileName || this.name || fileHelper.getFileName(filePath);
-            this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
-            this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
-
-            const stream = new config.FileStream(filePath, 'read');
-            return stream.open()
-                .then(() => {
+            let p = Promise.resolve(null);
+            if (resume) {
+                p = this._getUlResumeParams(filePath);
+            }
+            let stream, nextChunkId, nonceGen;
+            return p.then(nextChunk => {
+                nextChunkId = nextChunk;
+                // no need to set values when it's a resume
+                if (nextChunkId === null) {
+                    this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
+                    this.name = fileName || this.name || fileHelper.getFileName(filePath);
+                    this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
+                    this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
+                }
+                stream = new config.FileStream(filePath, 'read');
+                return stream.open();
+            })
+                .then(() => { // eslint-disable-line consistent-return
                     console.log(`File read stream open. File size: ${stream.size}`);
-                    this.size = stream.size;
-                    this.chunkSize = config.upload.getChunkSize(this.size);
-                    const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
-                    this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
-                    // now we have all the metadata for our keg, so we save it
-                    return this.saveToServer().then(() => this._startUploader(stream, nonceGen));
+                    if (nextChunkId === null) {
+                        this.size = stream.size;
+                        this.chunkSize = config.upload.getChunkSize(this.size);
+                        nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
+                        this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
+                        return this.saveToServer();
+                    }
+                    nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
+                })
+                .then(() => {
+                    if (nextChunkId === null) this.saveUploadStartFact(filePath);
+                    this.uploader = new FileUploader(this, stream, nonceGen, nextChunkId);
+                    return this.uploader.start();
+                })
+                .then(() => {
+                    this.saveUploadEndFact();
+                    this._resetUploadAndDownloadState(stream);
                 })
                 .catch(err => {
                     console.error(err);
@@ -157,9 +212,9 @@ class File extends Keg {
                             fileName: this.name
                         }
                     });
+                    this._resetUploadAndDownloadState();
                     return Promise.reject(new Error(err));
-                })
-                .finally(() => this._resetUploadAndDownloadState(stream));
+                });
         } catch (ex) {
             this._resetUploadAndDownloadState();
             console.error(ex);
@@ -167,10 +222,6 @@ class File extends Keg {
         }
     }
 
-    _startDownloader(stream, nonceGen, resumeParams) {
-        this.downloader = new FileDownloader(this, stream, nonceGen, resumeParams);
-        return this.downloader.start();
-    }
 
     _getDlResumeParams(path) {
         return config.FileStream.getStat(path)
@@ -216,13 +267,26 @@ class File extends Keg {
                     stream = new config.FileStream(filePath, mode);
                     // eslint-disable-next-line consistent-return
                     return stream.open()
-                        .then(() => this._startDownloader(stream, nonceGen, resumeParams));
+                        .then(() => {
+                            this.downloader = new FileDownloader(this, stream, nonceGen, resumeParams);
+                            return this.downloader.start();
+                        });
                 })
                 .then(() => {
                     this.saveDownloadEndFact();
+                    this._resetUploadAndDownloadState(stream);
                     this.cached = true; // currently for mobile only
                 })
-                .finally(() => this._resetUploadAndDownloadState(stream));
+                .catch(err => {
+                    console.error(err);
+                    systemWarnings.add({
+                        content: 'file_downloadFailed',
+                        data: {
+                            fileName: this.name
+                        }
+                    });
+                    this._resetUploadAndDownloadState();
+                });
         } catch (ex) {
             this._resetUploadAndDownloadState();
             console.error(ex);
@@ -231,6 +295,7 @@ class File extends Keg {
     }
 
     cancelUpload() {
+        this.saveUploadEndFact();
         this._resetUploadAndDownloadState();
     }
 
@@ -249,9 +314,25 @@ class File extends Keg {
         TinyDb.user.removeValue(`DOWNLOAD:${this.fileId}`);
     }
 
+    saveUploadStartFact(path) {
+        TinyDb.user.setValue(`UPLOAD:${this.fileId}`, {
+            fileId: this.fileId,
+            path
+        });
+    }
+
+    saveUploadEndFact() {
+        TinyDb.user.removeValue(`UPLOAD:${this.fileId}`);
+    }
+
     deleteCache() {
         config.FileSystem.delete(this.cachePath);
         this.cached = false;
+    }
+
+    remove() {
+        this._resetUploadAndDownloadState();
+        super.remove();
     }
 }
 

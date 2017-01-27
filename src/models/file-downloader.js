@@ -25,7 +25,8 @@ class FileDownloader extends FileProcessor {
      */
     constructor(file, stream, nonceGenerator, resumeParams) {
         super(file, stream, nonceGenerator, 'download');
-        this.file.progressMax = file.size + file.chunksCount * CHUNK_OVERHEAD;
+        // total amount to download and save to disk
+        this.file.progressMax = file.sizeWithOverhead;
         this.getUrlParams = { fileId: file.fileId };
         this.chunkSizeWithOverhead = file.chunkSize + CHUNK_OVERHEAD;
         this.downloadChunkSize = Math.floor(config.download.maxDownloadChunkSize / this.chunkSizeWithOverhead)
@@ -33,7 +34,7 @@ class FileDownloader extends FileProcessor {
         if (resumeParams) {
             this.partialChunkSize = resumeParams.partialChunkSize;
             nonceGenerator.chunkId = resumeParams.wholeChunks;
-            this.file.progressBuffer = this.file.progress = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
+            this.file.progress = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
             this.downloadPos = this.chunkSizeWithOverhead * resumeParams.wholeChunks;
         }
         socket.onDisconnect(this._abortXhr);
@@ -49,6 +50,7 @@ class FileDownloader extends FileProcessor {
     };
 
     cleanup() {
+        this._abortXhr();
         socket.unsubscribe(socket.SOCKET_EVENTS.disconnect, this._abortXhr);
     }
 
@@ -80,7 +82,6 @@ class FileDownloader extends FileProcessor {
     _decryptChunk() {
         if (this.stopped || this.writing || !this.decryptQueue.length) return;
         let chunk = this.decryptQueue.shift();
-        this.file.progress += chunk.length;
         const nonce = this.nonceGenerator.getNextNonce();
         chunk = secret.decrypt(chunk, this.fileKey, nonce, false);
         this.writing = true;
@@ -125,7 +126,7 @@ class FileDownloader extends FileProcessor {
 
     _download = (url) => {
         const self = this;
-        const startProgress = this.file.progressBuffer;
+        let lastLoaded = 0;
         const p = new Promise((resolve, reject) => {
             const xhr = this.currentXhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
@@ -134,16 +135,15 @@ class FileDownloader extends FileProcessor {
                     resolve(this.response);
                     return;
                 }
-                self.file.progressBuffer = startProgress;
                 if (!p.isRejected()) reject();
             };
 
             xhr.onprogress = function(event) {
-                self.file.progressBuffer = startProgress + event.loaded;
+                self.file.progress += event.loaded - lastLoaded;
+                lastLoaded = event.loaded;
             };
 
             xhr.ontimeout = xhr.onabort = xhr.onerror = function() {
-                self.file.progressBuffer = startProgress;
                 if (!p.isRejected()) reject();
             };
 
