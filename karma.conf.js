@@ -5,7 +5,7 @@ module.exports = function setKarmaConfig(config) {
     config.set({
         basePath: '',
         frameworks: [
-            'mocha', 'chai', 'sinon-chai'
+            'mocha', 'chai'
         ],
         files: ['test/test-index.js'],
         exclude: [],
@@ -48,9 +48,6 @@ module.exports = function setKarmaConfig(config) {
                 new webpack.ProgressPlugin(),
                 new webpack.DefinePlugin({
                     ICEBEAR_TEST_ENV: JSON.stringify(process.env.PEERIO_STAGING_SOCKET_SERVER)
-                }),
-                new webpack.ProvidePlugin( {
-                    'sinon': 'sinon'
                 })
             ]
         },
