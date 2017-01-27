@@ -6,8 +6,8 @@
  * @module models/user
  */
 
-const { keys, publicCrypto, secret, cryptoUtil } = require('../crypto');
 const socket = require('../network/socket');
+const { keys, publicCrypto, secret, cryptoUtil } = require('../crypto');
 const util = require('../util');
 const Promise = require('bluebird');
 const errors = require('../errors');

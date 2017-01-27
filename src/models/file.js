@@ -136,7 +136,7 @@ class File extends Keg {
             this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
             this.name = fileName || this.name || fileHelper.getFileName(filePath);
             this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
-            this.fileId = cryptoUtil.getRandomFileId(User.current.username);
+            this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
 
             const stream = new config.FileStream(filePath, 'read');
             return stream.open()

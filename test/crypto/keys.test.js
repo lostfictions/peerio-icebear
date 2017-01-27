@@ -54,7 +54,7 @@ describe('Crypto Keys module', function() {
 
     describe('ghost/ephemeral keys', () => {
         before(() => {
-            this.ghostID = 'CvfX223vsFuVerNrGS1n1sz4AYfpERb8JbeBeWUYMqdo';
+            this.ghostID = new Uint8Array(Buffer.from('CvfX223vsFuVerNrGS1n1sz4AYfpERb8JbeBeWUYMqdo', 'utf-8').buffer);
             this.passphrase = 'latch floats varied harper vast';
 
             this.expected = {

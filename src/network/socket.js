@@ -1,4 +1,3 @@
-
 /**
  * Main SocketClient singleton instance
  * @module network/socket
@@ -16,3 +15,4 @@ socket.start = function() {
 };
 
 module.exports = socket;
+

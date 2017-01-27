@@ -1,12 +1,12 @@
 const { observable, when } = require('mobx');
-const Contact = require('../models/contact');
+const Contact = require('../contact');
 
 /**
  * Contact(Peerio user) information store.
  * Currently provides access to any public profiles and caches lookups.
  */
 class ContactStore {
-    /** @type {Array<Contact>} - A list of Contact objects that were requested in current session. (cache) */
+    /** @type {Array<Contact>} - A list of Contact objects that were requested in currentDict session. (cache) */
     @observable contacts = [];
 
     /**

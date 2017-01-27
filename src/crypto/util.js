@@ -100,10 +100,18 @@ function bytesToB64(bytes) {
     return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
 }
 
+function bytesToHex(bytes) {
+    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('hex');
+}
+
+function hexToBytes(str) {
+    return new Uint8Array(Buffer.from(str, 'hex').buffer);
+}
+
 /** Generates 24-byte unique(almost) random nonce. */
 function getRandomNonce() {
     const nonce = new Uint8Array(24);
-    // we take last 4 bytes of current timestamp
+    // we take last 4 bytes of currentDict timestamp
     nonce.set(numberToByteArray(Date.now() >>> 32));
     // and 20 random bytes
     nonce.set(getRandomBytes(20), 4);
@@ -111,20 +119,46 @@ function getRandomNonce() {
 }
 
 /**
- * Generates 32-byte unique random fileId.
- * @returns {string} - B64 encoded 42 bytes [16: username+timestamp hash][26: random bytes]
+ * Generator for 32-byte unique random user-specific ids used for files and ghosts.
  */
-const fileIdLength = 42;
-const fileIdHashPartLength = 16;
-const fileIdRandomPartLength = fileIdLength - fileIdHashPartLength; // 26
-function getRandomFileId(username) {
-    const fileId = new Uint8Array(fileIdLength);
-    const hash = getByteHash(fileIdHashPartLength, strToBytes(username + Date.now().toString()));
+const randomIdLength = 42;
+const randomIdHashPartLength = 16;
+const randomIdRandomPartLength = randomIdLength - randomIdHashPartLength; // 26
+
+/**
+ * Generates random id bytes.
+ *
+ * @param {String} username
+ * @returns {Uint8Array} 42 bytes [16: username+timestamp hash][26: random bytes]
+ * @private
+ */
+function _getRandomUserSpecificIdBytes(username) {
+    const fileId = new Uint8Array(randomIdLength);
+    const hash = getByteHash(randomIdHashPartLength, strToBytes(username + Date.now().toString()));
     fileId.set(hash);
-    fileId.set(getRandomBytes(fileIdRandomPartLength), fileIdHashPartLength);
-    return bytesToB64(fileId);
+    fileId.set(getRandomBytes(randomIdRandomPartLength), randomIdHashPartLength);
+    return fileId;
 }
 
+/**
+ * Random ID in base64.
+ *
+ * @param {String} username
+ * @returns {String} base64 encoding
+ */
+function getRandomUserSpecificIdB64(username) {
+    return bytesToB64(_getRandomUserSpecificIdBytes(username));
+}
+
+/**
+ * Random ID in hex.
+ *
+ * @param {String} username
+ * @returns {String} hex encoding
+ */
+function getRandomUserSpecificIdHex(username) {
+    return bytesToHex(_getRandomUserSpecificIdBytes(username));
+}
 
 const converterDataView = new DataView(new ArrayBuffer(4));
 function numberToByteArray(num) {
@@ -206,10 +240,13 @@ module.exports = {
     getRandomBytes,
     getRandomNumber,
     getRandomNonce,
-    getRandomFileId,
+    getRandomUserSpecificIdB64,
+    getRandomUserSpecificIdHex,
     bytesToB64,
     b64ToBytes,
     bytesToStr,
+    bytesToHex,
+    hexToBytes,
     strToBytes,
     numberToByteArray,
     byteArrayToNumber,

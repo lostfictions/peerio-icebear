@@ -11,7 +11,7 @@ class PhraseDictionary {
     dict;
 
     /**
-     * Creates new PhraseDictionary
+     * Creates new PhraseDictionaryCollection
      * @param dictString - '\n' separated word list
      */
     constructor(dictString) {
@@ -23,11 +23,12 @@ class PhraseDictionary {
      * @length - passphrase word count
      */
     getPassphrase(length) {
+        if (!this.dict) throw new Error('no dictionary available');
         let ret = '';
         for (let i = 0; i < length; i++) {
-            ret += this.dict[util.getRandomNumber(0, this.dict.length)];
+            ret += `${this.dict[util.getRandomNumber(0, this.dict.length)]} `;
         }
-        return ret;
+        return ret.trim(' ');
     }
 
     /** Free RAM by deleting cached dictionary */
@@ -48,7 +49,32 @@ class PhraseDictionary {
             }
         }
     }
-
 }
 
-module.exports = PhraseDictionary;
+/**
+ * Singleton.
+ */
+class PhraseDictionaryCollection {
+    dicts = {};
+    currentDict = undefined;
+    currentLocale = undefined;
+
+    addDictionary(localeCode, dict) {
+        if (!this.dicts[localeCode]) {
+            this.dicts[localeCode] = new PhraseDictionary(dict);
+        }
+    }
+
+    selectDictionary(localeCode) {
+        if (!this.dicts[localeCode]) throw new Error('dictionary unavailable');
+        this.currentDict = this.dicts[localeCode];
+        this.currentLocale = localeCode;
+    }
+
+    get current() {
+        return this.currentDict;
+    }
+}
+
+
+module.exports = new PhraseDictionaryCollection();

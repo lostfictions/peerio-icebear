@@ -6,7 +6,7 @@ const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
 const { observable, when } = require('mobx');
-const contactStore = require('../contact-store');
+const contactStore = require('../stores/contact-store');
 const { getUser } = require('../current-user');
 
 let temporaryKegId = 0;
@@ -55,12 +55,14 @@ class Keg {
      * @returns {Promise<Keg>}
      */
     saveToServer() {
+        console.log('save to server');
         if (this.id) return this._internalSave();
 
         return socket.send('/auth/kegs/create', {
             collectionId: this.db.id,
             type: this.type
         }).then(resp => {
+            console.log('saved to server', resp);
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
@@ -142,6 +144,12 @@ class Keg {
         });
     }
 
+    /**
+     * synchronous!
+     *
+     * @param {Object} keg
+     * @returns {Keg|Boolean}
+     */
     loadFromKeg(keg) {
         try {
             if (this.id && this.id !== keg.kegId) {

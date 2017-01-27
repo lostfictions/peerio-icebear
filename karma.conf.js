@@ -30,8 +30,8 @@ module.exports = function setKarmaConfig(config) {
                                 'transform-es2015-modules-commonjs',
                                 [
                                     'transform-object-rest-spread', {
-                                        useBuiltIns: true
-                                    }
+                                    useBuiltIns: true
+                                }
                                 ],
                                 'transform-react-jsx'
                             ],
@@ -97,7 +97,10 @@ module.exports = function setKarmaConfig(config) {
         },
         singleRun: true,
         client: {
-            captureConsole: false
+            captureConsole: false,
+            chai: {
+                includeStack: true
+            }
         }
     });
 };

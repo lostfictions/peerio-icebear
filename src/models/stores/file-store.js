@@ -1,12 +1,12 @@
 const { observable, action, when, reaction, computed } = require('mobx');
-const socket = require('../network/socket');
-const User = require('./user');
-const File = require('./file');
-const systemWarnings = require('./system-warning');
-const tracker = require('./update-tracker');
-const TinyDb = require('../db/tiny-db');
-const config = require('../config');
-const fileHelpers = require('../helpers/file');
+const socket = require('../../network/socket');
+const User = require('../user');
+const File = require('../file');
+const systemWarnings = require('../system-warning');
+const tracker = require('../update-tracker');
+const TinyDb = require('../../db/tiny-db');
+const config = require('../../config');
+const fileHelpers = require('../../helpers/file');
 const _ = require('lodash');
 
 class FileStore {
