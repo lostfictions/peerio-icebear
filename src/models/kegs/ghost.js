@@ -39,13 +39,15 @@ class Ghost extends Keg {
     }
 
     /**
+     * Constructor.
      *
+     * NOTE: ghost IDs are in hex.
      */
     constructor() {
         const db = User.current.kegdb;
         super(null, 'ghost', db);
         this.version = 2;
-        this.ghostId = cryptoUtil.bytesToHex(cryptoUtil.strToBytes(cryptoUtil.getRandomFileId(User.current.username)));
+        this.ghostId = cryptoUtil.getRandomUserSpecificIdHex(User.current.username);
     }
 
     /**
@@ -153,6 +155,9 @@ class Ghost extends Keg {
     serializeGhostPayload() {
         return {
             subject: this.subject,
+            username: User.current.username,
+            firstName: User.current.firstName,
+            lastName: User.current.lastName,
             ghostId: this.ghostId,
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: 2,
