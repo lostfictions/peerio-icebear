@@ -103,9 +103,10 @@ class Ghost extends Keg {
         console.log('ghost id', this.ghostId);
 
         // todo attach files properly
-        return keys.deriveEphemeralKeys(this.ghostId, this.passphrase)
+        return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
             .then((kp) => {
                 console.log('keypair', kp);
+                console.log('ghost public key', cryptoUtil.bytesToB64(kp.publicKey));
                 this.keypair = kp;
                 return this.encryptForEphemeralRecipient();
             })

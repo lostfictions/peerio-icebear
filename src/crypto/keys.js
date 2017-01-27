@@ -72,16 +72,14 @@ function deriveAccountKeys(username, passphrase, randomSalt) {
 
 /**
  * Derive keys for a ghost/ephemeral user.
- * @param {String} id - ephemeral ID
+ * @param {Uint8Array} salt - e.g. ephemeral ID
  * @param {String} passphrase
  * @returns {Promise<KeyPair>}
  */
-function deriveEphemeralKeys(id, passphrase) {
+function deriveEphemeralKeys(salt, passphrase) {
     try {
         const scryptOptions = { N: 16384, r: 8, dkLen: 32, interruptStep: 200, encoding: 'binary' };
-        const salt = util.strToBytes(id);
         const pass = prehashPass(passphrase);
-
         return scryptPromise(pass, salt, scryptOptions)
             .then(keyBytes => nacl.box.keyPair.fromSecretKey(keyBytes));
     } catch (ex) {
