@@ -26,13 +26,13 @@ function getAuthToken(username, publicKeyString) {
 
 function decryptAuthToken(data, keyPair) {
     const dToken = nacl.box.open(
-                    data.token,
-                    data.nonce,
-                    data.ephemeralServerPublicKey,
+                    new Uint8Array(data.token),
+                    new Uint8Array(data.nonce),
+                    new Uint8Array(data.ephemeralServerPK),
                     keyPair.secretKey
                 );
     if (dToken && dToken.length === 0x20 && dToken[0] === 0x41 && dToken[1] === 0x54) {
-        return dToken;
+        return dToken.slice();
     }
     throw new Error('Failed to decrypt legacy auth token');
 }
