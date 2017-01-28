@@ -104,7 +104,6 @@ class Ghost extends Keg {
 
         console.log('ghost id', this.ghostId);
 
-        // todo attach files properly
         return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
             .then((kp) => {
                 console.log('keypair', kp);
@@ -133,13 +132,9 @@ class Ghost extends Keg {
      * @returns {Promise}
      */
     sendGhost() {
-        console.log('meta', { ghostId: this.ghostId,
-            ghostPublicKey: this.keypair.publicKey.buffer,
-            recipients: this.recipients.slice(),
-            lifeSpanInSeconds: this.lifeSpanInSeconds,
-            version: this.version });
         return socket.send('/auth/ghost/send', {
             ghostId: this.ghostId,
+            signature: this.ghostSignature,
             ghostPublicKey: this.keypair.publicKey.buffer,
             recipients: this.recipients.slice(),
             lifeSpanInSeconds: this.lifeSpanInSeconds,
@@ -168,7 +163,7 @@ class Ghost extends Keg {
     }
 
     /**
-     * Encrypt for the ephemeral keypair.
+     * Encrypt for the ephemeral keypair and signs the ciphertext. 
      *
      * @returns {*}
      */
@@ -181,7 +176,7 @@ class Ghost extends Keg {
                 this.keypair.publicKey,
                 User.current.encryptionKeys.secretKey
             );
-            console.log('aym', this.asymEncryptedGhostBody);
+            this.ghostSignature = this.sign(this.asymEncryptedGhostBody);
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);

@@ -95,7 +95,7 @@ class Keg {
             if (!this.plaintext) {
                 payload = secret.encryptString(payload, this.overrideKey || this.db.key);
                 if (this.db.id !== 'SELF') {
-                    props.signature = this._sign(payload); // here we need Uint8Array
+                    props.signature = this._signKegPayload(payload); // here we need Uint8Array
                 }
             }
             payload = payload.buffer; // socket accepts ArrayBuffer
@@ -119,7 +119,27 @@ class Keg {
         });
     }
 
-    _sign(payload) {
+    /**
+     * Sign the encrypted payload and mark the keg as signed.
+     *
+     * @param {Uint8Array} payload
+     * @returns {String} base64
+     * @private
+     */
+    _signKegPayload(payload) {
+        const signed = this.sign(payload);
+        this.isSignValid = true;
+        return signed;
+    }
+
+    /**
+     * Sign some bytes.
+     *
+     * @param {Uint8Array} payload
+     * @returns {String} base64
+     * @private
+     */
+    sign(payload) {
         let s = sign.signDetached(payload, getUser().signKeys.secretKey);
         s = cryptoUtil.bytesToB64(s);
         this.isSignValid = true;
@@ -167,7 +187,7 @@ class Keg {
             // should we decrypt?
             if (!this.plaintext) {
                 payload = new Uint8Array(keg.payload);
-                if (this.db.id !== 'SELF') this._verifySignature(payload, keg.props.signature);
+                if (this.db.id !== 'SELF') this._verifyKegSignature(payload, keg.props.signature);
                 payload = secret.decryptString(payload, this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
@@ -181,6 +201,12 @@ class Keg {
         }
     }
 
+    /**
+     * 
+     * @param {Uint8Array} payload
+     * @param {String} signature
+     * @private
+     */
     _verifySignature(payload, signature) {
         if (!signature) {
             this.isSignValid = false;
