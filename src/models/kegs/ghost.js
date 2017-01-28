@@ -155,6 +155,7 @@ class Ghost extends Keg {
             lastName: User.current.lastName,
             ghostId: this.ghostId,
             lifeSpanInSeconds: this.lifeSpanInSeconds,
+            signingPublicKey: cryptoUtil.bytesToB64(User.current.signKeys.publicKey),
             version: 2,
             files: this.files.slice(),
             body: this.body,
@@ -163,7 +164,7 @@ class Ghost extends Keg {
     }
 
     /**
-     * Encrypt for the ephemeral keypair and signs the ciphertext. 
+     * Encrypt for the ephemeral keypair and signs the ciphertext.
      *
      * @returns {*}
      */

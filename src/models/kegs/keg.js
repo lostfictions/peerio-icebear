@@ -202,7 +202,7 @@ class Keg {
     }
 
     /**
-     * 
+     *
      * @param {Uint8Array} payload
      * @param {String} signature
      * @private
