@@ -97,8 +97,8 @@ class Keg {
                 if (this.db.id !== 'SELF') {
                     props.signature = this._signKegPayload(payload); // here we need Uint8Array
                 }
+                payload = payload.buffer; // socket accepts ArrayBuffer
             }
-            payload = payload.buffer; // socket accepts ArrayBuffer
         } catch (err) {
             console.error('Fail preparing keg to save.', err);
             return Promise.reject(err);
