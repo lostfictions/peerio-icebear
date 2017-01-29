@@ -1,8 +1,8 @@
 /**
  * Abstract parent class for FileDownloader and FileUploader
  */
-const errors = require('../errors');
-const cryptoUtil = require('../crypto/util');
+const errors = require('../../errors');
+const cryptoUtil = require('../../crypto/util');
 
 class FileProcessor {
     // next queue processing calls will stop if stopped == true

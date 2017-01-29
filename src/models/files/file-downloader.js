@@ -1,6 +1,6 @@
-const socket = require('../network/socket');
-const secret = require('../crypto/secret');
-const config = require('../config');
+const socket = require('../../network/socket');
+const secret = require('../../crypto/secret');
+const config = require('../../config');
 const FileProcessor = require('./file-processor');
 
 const CHUNK_OVERHEAD = 32;

@@ -1,17 +1,17 @@
-const Keg = require('./kegs/keg');
+const Keg = require('./../kegs/keg');
 const { observable, computed, action } = require('mobx');
-const keys = require('../crypto/keys');
-const cryptoUtil = require('../crypto/util');
-const User = require('./user');
-const fileHelper = require('../helpers/file');
+const keys = require('../../crypto/keys');
+const cryptoUtil = require('../../crypto/util');
+const User = require('./../user');
+const fileHelper = require('../../helpers/file');
 const FileUploader = require('./file-uploader');
 const FileDownloader = require('./file-downloader');
 const FileNonceGenerator = require('./file-nonce-generator');
-const util = require('../util');
-const systemWarnings = require('./system-warning');
-const config = require('../config');
-const TinyDb = require('../db/tiny-db');
-const socket = require('../network/socket');
+const util = require('../../util');
+const systemWarnings = require('./../system-warning');
+const config = require('../../config');
+const TinyDb = require('../../db/tiny-db');
+const socket = require('../../network/socket');
 
 // todo: this is duplication
 const CHUNK_OVERHEAD = 32;

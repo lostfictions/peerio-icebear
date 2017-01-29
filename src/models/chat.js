@@ -5,7 +5,7 @@ const normalize = require('../errors').normalize;
 const User = require('./user');
 const tracker = require('./update-tracker');
 const socket = require('../network/socket');
-const File = require('./file');
+const File = require('./files/file');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;

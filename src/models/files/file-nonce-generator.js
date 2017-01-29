@@ -1,4 +1,4 @@
-const util = require('../crypto/util');
+const util = require('../../crypto/util');
 
 /**
  * Helper class to generate sequential nonces for file chunks.

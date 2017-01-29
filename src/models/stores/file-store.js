@@ -1,7 +1,7 @@
 const { observable, action, when, reaction, computed } = require('mobx');
 const socket = require('../../network/socket');
 const User = require('../user');
-const File = require('../file');
+const File = require('../files/file');
 const systemWarnings = require('../system-warning');
 const tracker = require('../update-tracker');
 const TinyDb = require('../../db/tiny-db');

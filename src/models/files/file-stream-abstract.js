@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-const { AbstractCallError } = require('../errors');
+const { AbstractCallError } = require('../../errors');
 
 /**
  * Abstract File Stream class
