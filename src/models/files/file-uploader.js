@@ -84,8 +84,7 @@ class FileUploader extends FileProcessor {
         if (this.stopped || this._isUploadQueueFull || !this.encryptQueue.length) return;
         try {
             const chunk = this.encryptQueue.shift();
-            const isLast = this.eofReached && this.encryptQueue.length === 0;
-            const nonce = this.nonceGenerator.getNextNonce(isLast);
+            const nonce = this.nonceGenerator.getNextNonce();
             chunk.buffer = secret.encrypt(chunk.buffer, this.fileKey, nonce, false, false);
             this.uploadQueue.push(chunk);
             this._tick();
@@ -105,7 +104,7 @@ class FileUploader extends FileProcessor {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
             chunk: chunk.buffer.buffer,
-            last: this.eofReached && !this.uploadQueue.length && !this.encryptQueue.length
+            last: !this.uploadQueue.length && this.nonceGenerator.eof
         })
             .then(() => {
                 this.chunksWaitingForResponse--;

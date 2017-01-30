@@ -20,6 +20,7 @@ class FileNonceGenerator {
         this.chunkId = startChunkId;
         this.maxChunkId = maxChunkId;
         this._resetControlBytes();
+        this.eof = false;
     }
 
     _resetControlBytes() {
@@ -33,12 +34,14 @@ class FileNonceGenerator {
 
     _writeLastChunkFlag() {
         this.nonce[0] = 1;
+        this.eof = true;
     }
 
     /**
      * @returns {Uint8Array|null} - nonce for the next chunk
      */
     getNextNonce() {
+        if (this.eof) throw new Error('Attempt to generate nonce past maxChunkId.');
         this._writeChunkNum();
         if (this.chunkId === this.maxChunkId) {
             this._writeLastChunkFlag();
