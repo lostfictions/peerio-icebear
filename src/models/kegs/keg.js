@@ -207,7 +207,7 @@ class Keg {
      * @param {String} signature
      * @private
      */
-    _verifySignature(payload, signature) {
+    _verifyKegSignature(payload, signature) {
         if (!signature) {
             this.isSignValid = false;
             return;
