@@ -1,5 +1,7 @@
 const { observable, computed, action } = require('mobx');
+const _ = require('lodash');
 const contactStore = require('../stores/contact-store');
+const fileStore = require('../stores/file-store');
 const socket = require('../../network/socket');
 const Keg = require('./keg');
 const cryptoUtil = require('../../crypto/util');
@@ -38,15 +40,20 @@ class Ghost extends Keg {
         return new Date(this.timestamp + (this.lifeSpanInSeconds * 1000));
     }
 
+    @computed get fileCounter() {
+        return this.files.length;
+    }
+
     /**
      * Constructor.
      *
-     * NOTE: ghost IDs are in hex.
+     * NOTE: ghost IDs are in hex for browser compatibility.
      */
     constructor() {
         const db = User.current.kegdb;
         super(null, 'ghost', db);
         this.version = 2;
+        // encode user-specific ID in hex
         this.ghostId = cryptoUtil.getRandomUserSpecificIdHex(User.current.username);
     }
 
@@ -63,32 +70,21 @@ class Ghost extends Keg {
             recipients: this.recipients.slice(),
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: 2,
-            files: this.files,
+            files: _.map(this.files, 'fileId'),
             body: this.body,
             timestamp: this.timestamp
         };
     }
 
-    // serializeProps() {
-    //     return {
-    //
-    //     }
-    // }
-
     @action deserializeKegPayload(data) {
-        console.log('ghost data', data);
         this.body = data.body;
         this.subject = data.subject;
         this.ghostId = data.ghostId;
         this.passphrase = data.passphrase;
-        this.files = data.files; // FIXME
+        this.files = data.files; //fixme
         this.timestamp = data.timestamp;
         this.recipients = data.recipients;
         this.sent = true;
-    }
-
-    @action deserializeProps(props) {
-        console.log('ghost props', props);
     }
 
     /**
@@ -101,8 +97,6 @@ class Ghost extends Keg {
         this.body = text;
         this.timestamp = Date.now();
         this.lifeSpanInSeconds = this.DEFAULT_GHOST_LIFESPAN;
-
-        console.log('ghost id', this.ghostId);
 
         return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
             .then((kp) => {
@@ -139,7 +133,7 @@ class Ghost extends Keg {
             recipients: this.recipients.slice(),
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: this.version,
-            files: [],         // // todo !!!! build files, include key
+            files: this.files.slice(),
             body: this.asymEncryptedGhostBody.buffer
         });
     }
@@ -157,8 +151,11 @@ class Ghost extends Keg {
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             signingPublicKey: cryptoUtil.bytesToB64(User.current.signKeys.publicKey),
             version: 2,
-            files: this.files.slice(),
             body: this.body,
+            files: _.map(this.files, (fileId) => {
+                const file = fileStore.getById(fileId);
+                return _.assign({}, file.serializeProps(), file.serializeKegPayload());
+            }),
             timestamp: this.timestamp
         };
     }
@@ -182,6 +179,20 @@ class Ghost extends Keg {
         } catch (e) {
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Attaches files.
+     *
+     * @param {Array<File>} files
+     */
+    attachFiles(files) {
+        this.files.clear();
+        if (!files || !files.length) return null;
+        files.forEach((file) => {
+            this.files.push(file.fileId);
+        });
+        return files.slice();
     }
 
     /**
