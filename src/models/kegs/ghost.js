@@ -4,9 +4,8 @@ const contactStore = require('../stores/contact-store');
 const fileStore = require('../stores/file-store');
 const socket = require('../../network/socket');
 const Keg = require('./keg');
-const cryptoUtil = require('../../crypto/util');
+const { cryptoUtil, publicCrypto, sign } = require('../../crypto');
 const keys = require('../../crypto/keys');
-const publicCrypto = require('../../crypto/public');
 const User = require('../user');
 const PhraseDictionaryCollection = require('../phrase-dictionary');
 const config = require('../../config');
@@ -81,7 +80,7 @@ class Ghost extends Keg {
         this.subject = data.subject;
         this.ghostId = data.ghostId;
         this.passphrase = data.passphrase;
-        this.files = data.files; //fixme
+        this.files = data.files; // fixme
         this.timestamp = data.timestamp;
         this.recipients = data.recipients;
         this.sent = true;
@@ -174,7 +173,8 @@ class Ghost extends Keg {
                 this.keypair.publicKey,
                 User.current.encryptionKeys.secretKey
             );
-            this.ghostSignature = this.sign(this.asymEncryptedGhostBody);
+            const s = sign.signDetached(this.asymEncryptedGhostBody, User.current.signKeys.secretKey);
+            this.ghostSignature = cryptoUtil.bytesToB64(s);
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);

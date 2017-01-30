@@ -127,23 +127,10 @@ class Keg {
      * @private
      */
     _signKegPayload(payload) {
-        const signed = this.sign(payload);
+        let signed = sign.signDetached(payload, getUser().signKeys.secretKey);
+        signed = cryptoUtil.bytesToB64(signed);
         this.isSignValid = true;
         return signed;
-    }
-
-    /**
-     * Sign some bytes.
-     *
-     * @param {Uint8Array} payload
-     * @returns {String} base64
-     * @private
-     */
-    sign(payload) {
-        let s = sign.signDetached(payload, getUser().signKeys.secretKey);
-        s = cryptoUtil.bytesToB64(s);
-        this.isSignValid = true;
-        return s;
     }
 
     /**
