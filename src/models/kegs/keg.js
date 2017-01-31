@@ -18,8 +18,8 @@ function getTemporaryKegId() {
  */
 class Keg {
 
-    @observable isSignValid = null;// true/false/null are the valid values
-
+    @observable signatureError = null;// true/false/null are the valid values
+    @observable sharedKegError = null;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
@@ -54,9 +54,9 @@ class Keg {
      * Saves keg to server, creates keg (reserves id) first if needed
      * @returns {Promise<Keg>}
      */
-    saveToServer() {
+    saveToServer(cleanShareData) {
         console.log('save to server');
-        if (this.id) return this._internalSave();
+        if (this.id) return this._internalSave(cleanShareData);
 
         return socket.send('/auth/kegs/create', {
             collectionId: this.db.id,
@@ -66,7 +66,7 @@ class Keg {
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
-            return this._internalSave();
+            return this._internalSave(cleanShareData);
         });
     }
 
@@ -77,11 +77,16 @@ class Keg {
      * @returns {Promise}
      * @private
      */
-    _internalSave() {
+    _internalSave(cleanShareData) {
         let payload, props;
         try {
             payload = this.serializeKegPayload();
             props = this.serializeProps();
+            if (cleanShareData) {
+                props.sharedKegSenderPK = null;
+                props.sharedKegRecipientPK = null;
+                props.sharedKegReencrypted = 'true';
+            }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
             if (!this.plaintext) {
                 payload._sys = {
@@ -96,6 +101,7 @@ class Keg {
                 payload = secret.encryptString(payload, this.overrideKey || this.db.key);
                 if (this.db.id !== 'SELF') {
                     props.signature = this._signKegPayload(payload); // here we need Uint8Array
+                    this.signatureError = false;
                 }
                 payload = payload.buffer; // socket accepts ArrayBuffer
             }
@@ -120,8 +126,7 @@ class Keg {
     }
 
     /**
-     * Sign the encrypted payload and mark the keg as signed.
-     *
+     * Sign the encrypted payload of this keg
      * @param {Uint8Array} payload
      * @returns {String} base64
      * @private
@@ -129,7 +134,6 @@ class Keg {
     _signKegPayload(payload) {
         let signed = sign.signDetached(payload, getUser().signKeys.secretKey);
         signed = cryptoUtil.bytesToB64(signed);
-        this.isSignValid = true;
         return signed;
     }
 
@@ -152,9 +156,8 @@ class Keg {
     }
 
     /**
-     * synchronous!
-     *
-     * @param {Object} keg
+     * Synchronous function to rehydrate current Keg instance with data from server.
+     * @param {Object} keg as stored on server
      * @returns {Keg|Boolean}
      */
     loadFromKeg(keg) {
@@ -168,24 +171,47 @@ class Keg {
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion;
+            this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
             if (!keg.payload) return this;
             let payload = keg.payload;
+            let sharedKey = null;
             // should we decrypt?
             if (!this.plaintext) {
                 payload = new Uint8Array(keg.payload);
-                if (this.db.id !== 'SELF') this._verifyKegSignature(payload, keg.props.signature);
-                payload = secret.decryptString(payload, this.overrideKey || this.db.key);
+                // SELF kegs do not require signing
+                if (this.db.id !== 'SELF') {
+                    this._verifyKegSignature(payload, keg.props.signature);
+                }
+                // is this keg shared with us and needs re-encryption?
+                if (keg.props.sharedBy && !keg.props.sharedKegReencrypted) {
+                    // async call, changes state of the keg in case of issues
+                    this._validateAndReEncryptSharedKeg(keg.props);
+                    // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
+                    sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
+                }
+                payload = secret.decryptString(payload, sharedKey || this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
-            if (!this.plaintext) this.detectTampering(payload);
+            if (!(this.plaintext || (keg.props.sharedBy && !keg.props.sharedKegReencrypted))) this.detectTampering(payload);
             this.deserializeKegPayload(payload);
-            this.deserializeProps(keg.props);
             return this;
         } catch (err) {
             console.error(err);
             return false;
         }
+    }
+
+    _validateAndReEncryptSharedKeg(kegProps) {
+        // we need to make sure that sender's public key really belongs to him
+        const contact = contactStore.getContact(kegProps.sharedBy);
+        contact.whenLoaded(() => {
+            if (cryptoUtil.bytesToB64(contact.encryptionPublicKey) !== kegProps.sharedKegSenderPK) {
+                this.sharedKegError = true;
+                return;
+            }
+            this.saveToServer(true);
+        });
     }
 
     /**
@@ -195,22 +221,17 @@ class Keg {
      * @private
      */
     _verifyKegSignature(payload, signature) {
-        if (!payload) {
-            this.isSignValid = null;
-        }
+        if (!payload) return;
         if (!signature) {
-            this.isSignValid = false;
+            this.signatureError = true;
             return;
         }
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
         const contact = contactStore.getContact(this.owner);
-        if (!contact.loading) {
-            this.isSignValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
-        } else {
-            when(() => !contact.loading, () => {
-                this.isSignValid = sign.verifyDetached(payload, signature, contact.signingPublicKey);
-            });
-        }
+        contact.whenLoaded(() => {
+            this.signatureError = contact.notFound
+                || !sign.verifyDetached(payload, signature, contact.signingPublicKey);
+        });
     }
 
     /**

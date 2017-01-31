@@ -96,6 +96,7 @@ class Chat {
             query: { type: 'message' }
         });
     }
+
     loadMessages() {
         if (this.messagesLoaded || this.loadingMessages) return;
         if (!this.metaLoaded) {
@@ -168,13 +169,13 @@ class Chat {
         if (!files || !files.length) return null;
         const ids = [];
         for (let i = 0; i < files.length; i++) {
-            const source = files[i];
-            const f = new File(this.db);
-            f.deserializeKegPayload(source.serializeKegPayload());
-            f.deserializeProps(source.serializeProps());
-            if (!f.fileOwner) f.fileOwner = User.current.username;
-            f.saveToServer();
-            ids.push(f.fileId);
+            const file = files[i];
+            this.participants.forEach(p => {
+                if (p.isMe) return;
+                // todo: handle failure
+                file.share(p);
+            });
+            ids.push(file.fileId);
         }
         return ids;
     }

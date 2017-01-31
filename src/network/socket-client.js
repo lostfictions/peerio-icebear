@@ -204,6 +204,7 @@ class SocketClient {
             this.socket.emit(name, data, handler);
         });
     }
+
     /** Executes a callback only once when socket will connect, or immediately if socket is connected already */
     onceConnected(callback) {
         if (this.socket.connected) {
@@ -215,6 +216,18 @@ class SocketClient {
             this.unsubscribe(SOCKET_EVENTS.connect, handler);
         };
         this.subscribe(SOCKET_EVENTS.connect, handler);
+    }
+
+    onceAuthenticated(callback) {
+        if (this.socket.authenticated) {
+            setTimeout(callback, 0);
+            return;
+        }
+        const handler = () => {
+            setTimeout(callback, 0);
+            this.unsubscribe(SOCKET_EVENTS.authenticated, handler);
+        };
+        this.subscribe(SOCKET_EVENTS.authenticated, handler);
     }
 
     /** Executes a callback once socket is started */

@@ -145,7 +145,6 @@ class FileStore {
         this._getFiles(this.knownCollectionVersion + 1)
             .then(action(kegs => {
                 for (const keg of kegs) {
-                    console.log(keg);
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegdb);
                     this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);

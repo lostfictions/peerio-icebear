@@ -94,7 +94,7 @@ class ChatStore {
     }
 
     getSelflessParticipants(participants) {
-        return participants.filter(p => p.username !== User.current.username);
+        return participants.filter(p => !p.isMe);
     }
 
     findCachedChatWithParticipants(participants) {

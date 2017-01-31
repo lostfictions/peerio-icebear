@@ -4,7 +4,7 @@ const contactStore = require('../stores/contact-store');
 const fileStore = require('../stores/file-store');
 const socket = require('../../network/socket');
 const Keg = require('./keg');
-const { cryptoUtil, publicCrypto, sign } = require('../../crypto');
+const { cryptoUtil, publicCrypto, sign, secret } = require('../../crypto');
 const keys = require('../../crypto/keys');
 const User = require('../user');
 const PhraseDictionaryCollection = require('../phrase-dictionary');
@@ -168,10 +168,9 @@ class Ghost extends Keg {
         console.log('encrypted body', this.serializeGhostPayload());
         try {
             const body = JSON.stringify(this.serializeGhostPayload());
-            this.asymEncryptedGhostBody = publicCrypto.encrypt(
-                cryptoUtil.strToBytes(body),
-                this.keypair.publicKey,
-                User.current.encryptionKeys.secretKey
+            this.asymEncryptedGhostBody = secret.encryptString(
+                body,
+                User.current.getSharedKey(this.keypair.publicKey)
             );
             const s = sign.signDetached(this.asymEncryptedGhostBody, User.current.signKeys.secretKey);
             this.ghostSignature = cryptoUtil.bytesToB64(s);

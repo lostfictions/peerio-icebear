@@ -1,12 +1,13 @@
 const Keg = require('./../kegs/keg');
 const { observable, computed, action } = require('mobx');
-const cryptoUtil = require('../../crypto/util');
+const { cryptoUtil, secret } = require('../../crypto');
 const fileHelper = require('../../helpers/file');
 const util = require('../../util');
 const config = require('../../config');
 const socket = require('../../network/socket');
 const uploadModule = require('./file.upload');
 const downloadModule = require('./file.download');
+const { getUser } = require('../current-user');
 
 // todo: this is duplication
 const CHUNK_OVERHEAD = 32;
@@ -84,14 +85,14 @@ class File extends Keg {
             size: this.size,
             ext: this.ext, // don't really need to store, since it's computed, but we want to search by extension
             uploadedAt: this.uploadedAt.valueOf(),
-            fileOwner: this.fileOwner,
+            fileOwner: this.fileOwner || this.sharedBy,
             chunkSize: this.chunkSize
         };
     }
 
     @action deserializeProps(props) {
         this.fileId = props.fileId;
-        this.readyForDownload = props.fileProcessingState === 'ready';
+        this.readyForDownload = props.fileProcessingState === 'ready' || !!props.sharedBy;
         this.size = +props.size;
         this.uploadedAt = new Date(+props.uploadedAt);
         this.fileOwner = props.fileOwner;
@@ -99,6 +100,32 @@ class File extends Keg {
     }
 
     // -- class methods ------------------------------------------------------------------------------------------
+    share(contact) {
+        const data = {
+            recipient: contact.username,
+            originalKegId: this.id,
+            keg: {
+                type: this.type
+            }
+        };
+        // todo: this is questionable, could we leak properties we don't want to this way?
+        // todo: on the other hand we can forget to add properties that we do want to share
+        data.keg.props = this.serializeProps();
+        data.keg.payload = this.serializeKegPayload();
+        data.keg.payload = JSON.stringify(data.keg.payload);
+        data.keg.payload = secret.encryptString(
+            data.keg.payload, getUser().getSharedKey(contact.encryptionPublicKey)
+        );
+        data.keg.payload = data.keg.payload.buffer;
+        // when we implement key change history, this will help to figure out which key to use
+        // this properties should not be blindly trusted, recipient verifies them
+        data.keg.props.sharedKegSenderPK = cryptoUtil.bytesToB64(getUser().encryptionKeys.publicKey);
+        // reserved for future key change feature support
+        data.keg.props.sharedKegRecipientPK = cryptoUtil.bytesToB64(contact.encryptionPublicKey);
+
+        return socket.send('/auth/kegs/share', data);
+    }
+
     // Open file with system's default file type handler app
     launchViewer(path) {
         return config.FileStream.launchViewer(path || this.cachePath);

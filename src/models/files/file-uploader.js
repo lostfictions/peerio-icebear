@@ -71,7 +71,7 @@ class FileUploader extends FileProcessor {
     _processReadChunk = buffer => {
         this.readingChunk = false;
         if (this.stopped) return;
-        console.log(`read ${buffer.length} bytes`, `pos: ${this.stream.pos}`);
+        // console.log(`read ${buffer.length} bytes`, `pos: ${this.stream.pos}`);
         if (buffer.length === 0) {
             this.eofReached = true;
         } else {
@@ -99,7 +99,7 @@ class FileUploader extends FileProcessor {
 
         const chunk = this.uploadQueue.shift();
         this.chunksWaitingForResponse++;
-        console.log(`sending chunk ${chunk.id}`);
+        // console.log(`sending chunk ${chunk.id}`);
         socket.send('/auth/dev/file/upload-chunk', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
@@ -108,7 +108,7 @@ class FileUploader extends FileProcessor {
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
-                console.log(`chunk ${chunk.id} sent`);
+                // console.log(`chunk ${chunk.id} sent`);
                 if (this.stopped) return;
                 this.file.progress += this.file.chunkSize;
                 this._tick();
