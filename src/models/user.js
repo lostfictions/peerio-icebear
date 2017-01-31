@@ -11,6 +11,7 @@ const TinyDb = require('../db/tiny-db');
 const { observable } = require('mobx');
 const systemWarnings = require('./system-warning');
 const currentUserHelper = require('./current-user');
+const { publicCrypto } = require('../crypto');
 
 let currentUser;
 
@@ -192,6 +193,24 @@ class User {
                             : Promise.reject(new Error('user.auth.js: passcode is not valid'));
                     });
             });
+    }
+
+    // Cache for precomputed asymmetric encryption shared keys,
+    // where secretKey == this.encryptionKeypair.secretKey.
+    // We don't place this into crypto module to avoid shooting ourselves in the knee in numerous ways
+    _sharedKeyCache = {};
+
+    /**
+     * @param {Uint8Array} theirPublicKey
+     * @return {Uint8Array}
+     */
+    getSharedKey(theirPublicKey) {
+        const cacheKey = theirPublicKey.join(',');
+        let cachedValue = this._sharedKeyCache[cacheKey];
+        if (cachedValue) return cachedValue;
+        cachedValue = publicCrypto.computeSharedKey(theirPublicKey, this.encryptionKeys.secretKey);
+        this._sharedKeyCache[cacheKey] = cachedValue;
+        return cachedValue;
     }
 }
 
