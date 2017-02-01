@@ -106,7 +106,7 @@ class Chat {
         this.loadingMessages = true;
         this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
-                if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
+                if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
                     const msg = new Message(this).loadFromKeg(keg);
                     if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                 }
@@ -135,7 +135,7 @@ class Chat {
         this._getMessages(this.downloadedUpdateId + 1)
             .then(kegs => {
                 for (const keg of kegs) {
-                    if (keg.version !== 1 && !this.msgMap[keg.kegId]) {
+                    if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
                         const msg = new Message(this).loadFromKeg(keg);
                         if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                     }
