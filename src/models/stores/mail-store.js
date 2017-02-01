@@ -44,7 +44,7 @@ class MailStore {
         this.loading = true;
         this._getGhosts().then(action(kegs => {
             for (const keg of kegs) {
-                const ghost = new Ghost(User.current.kegdb);
+                const ghost = new Ghost(User.current.kegDb);
                 this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                 if (ghost.loadFromKeg(keg)) {
                     this.ghosts.push(ghost);

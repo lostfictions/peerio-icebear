@@ -137,7 +137,7 @@ class UpdateTracker {
 
         let shouldEmitUpdateEvent = false;
 
-        // kegdb yet unknown to our digest? consider it just added
+        // kegDb yet unknown to our digest? consider it just added
         if (!this.digest[ev.kegDbId]) {
             shouldEmitUpdateEvent = true;
             this.digest[ev.kegDbId] = {};

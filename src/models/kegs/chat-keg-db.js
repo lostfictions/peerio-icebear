@@ -24,7 +24,7 @@ class ChatKegDb {
 
     /**
      * Performs initial load of the keg database data based on id or participants list.
-     * Will create kegdb and bootkeg if needed.
+     * Will create kegDb and bootkeg if needed.
      * @returns {Promise}
      */
     loadMeta() {

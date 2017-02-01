@@ -5,9 +5,9 @@
 const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
-const { observable, when } = require('mobx');
-const contactStore = require('../stores/contact-store');
-const { getUser } = require('../../helpers/current-user');
+const { observable } = require('mobx');
+const { getContactStore } = require('../../helpers/di-contact-store');
+const { getUser } = require('../../helpers/di-current-user');
 
 let temporaryKegId = 0;
 function getTemporaryKegId() {
@@ -193,7 +193,9 @@ class Keg {
                 payload = secret.decryptString(payload, sharedKey || this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
-            if (!(this.plaintext || (keg.props.sharedBy && !keg.props.sharedKegReencrypted))) this.detectTampering(payload);
+            if (!(this.plaintext || (keg.props.sharedBy && !keg.props.sharedKegReencrypted))) {
+                this.detectTampering(payload);
+            }
             this.deserializeKegPayload(payload);
             return this;
         } catch (err) {
@@ -204,7 +206,7 @@ class Keg {
 
     _validateAndReEncryptSharedKeg(kegProps) {
         // we need to make sure that sender's public key really belongs to him
-        const contact = contactStore.getContact(kegProps.sharedBy);
+        const contact = getContactStore().getContact(kegProps.sharedBy);
         contact.whenLoaded(() => {
             if (cryptoUtil.bytesToB64(contact.encryptionPublicKey) !== kegProps.sharedKegSenderPK) {
                 this.sharedKegError = true;
@@ -227,7 +229,7 @@ class Keg {
             return;
         }
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
-        const contact = contactStore.getContact(this.owner);
+        const contact = getContactStore().getContact(this.owner);
         contact.whenLoaded(() => {
             this.signatureError = contact.notFound
                 || !sign.verifyDetached(payload, signature, contact.signingPublicKey);

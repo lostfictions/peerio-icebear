@@ -10,7 +10,7 @@ const KegDb = require('./kegs/keg-db');
 const TinyDb = require('../db/tiny-db');
 const { observable } = require('mobx');
 const systemWarnings = require('./system-warning');
-const currentUserHelper = require('./../helpers/current-user');
+const currentUserHelper = require('./../helpers/di-current-user');
 const { publicCrypto } = require('../crypto');
 
 let currentUser;
@@ -50,7 +50,7 @@ class User {
         this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
         this.validatePasscode = this.validatePasscode.bind(this);
         this.login = this.login.bind(this);
-        this.kegdb = new KegDb('SELF');
+        this.kegDb = new KegDb('SELF');
         // this is not really extending prototype, but we don't care because User is almost a singleton
         // (new instance created on every initial login attempt only)
         mixUserProfileModule.call(this);
@@ -69,7 +69,7 @@ class User {
                    .then(() => this._authenticateConnection())
                    .then(() => {
                        console.log('Creating boot keg.');
-                       return this.kegdb.createBootKeg(this.bootKey, this.signKeys,
+                       return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
                            this.encryptionKeys, this.overrideKey);
                    })
                     .then(() => this._postAuth());
@@ -95,11 +95,11 @@ class User {
         console.log('Starting login sequence');
         return this._preAuth()
             .then(() => this._authenticateConnection())
-            .then(() => this.kegdb.loadBootKeg(this.bootKey))
+            .then(() => this.kegDb.loadBootKeg(this.bootKey))
             .then(() => {
                 // todo: doesn't look very good
-                this.encryptionKeys = this.kegdb.boot.encryptionKeys;
-                this.signKeys = this.kegdb.boot.signKeys;
+                this.encryptionKeys = this.kegDb.boot.encryptionKeys;
+                this.signKeys = this.kegDb.boot.signKeys;
             })
             .then(() => this._postAuth());
     }
@@ -113,7 +113,7 @@ class User {
         socket.setAuthenticatedState();
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
-            TinyDb.openUserDb(this.username, this.kegdb.key);
+            TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
             return this.loadProfile()
                        .then(() => this.setAsLastAuthenticated().catch(err => console.error(err)));

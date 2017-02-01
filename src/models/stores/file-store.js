@@ -113,7 +113,7 @@ class FileStore {
         this.loading = true;
         this._getFiles().then(action(kegs => {
             for (const keg of kegs) {
-                const file = new File(User.current.kegdb);
+                const file = new File(User.current.kegDb);
                 this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                 if (file.loadFromKeg(keg)) this.files.push(file);
             }
@@ -146,7 +146,7 @@ class FileStore {
             .then(action(kegs => {
                 for (const keg of kegs) {
                     const existing = this.getById(keg.props.fileId);
-                    const file = existing || new File(User.current.kegdb);
+                    const file = existing || new File(User.current.kegDb);
                     this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                     if (!file.loadFromKeg(keg)) continue;
                     if (!file.deleted && !existing) this.files.push(file);
@@ -174,7 +174,7 @@ class FileStore {
      */
     upload(filePath, fileName) {
         this.ongoingUploads += 1;
-        const keg = new File(User.current.kegdb);
+        const keg = new File(User.current.kegDb);
         keg.upload(filePath, fileName);
         this.files.unshift(keg);
 

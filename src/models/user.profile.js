@@ -30,7 +30,7 @@ class UserProfile extends Keg {
 
 
 module.exports = function mixUserRegisterModule() {
-    const _profileKeg = new UserProfile(this.kegdb, this);
+    const _profileKeg = new UserProfile(this.kegDb, this);
 
     this.loadProfile = function() {
         console.log('Loading user profile.');

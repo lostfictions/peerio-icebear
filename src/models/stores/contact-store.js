@@ -1,6 +1,6 @@
 const { observable, when } = require('mobx');
 const Contact = require('../contact');
-
+const { setContactStore } = require('../../helpers/di-contact-store');
 /**
  * Contact(Peerio user) information store.
  * Currently provides access to any public profiles and caches lookups.
@@ -53,5 +53,6 @@ class ContactStore {
     // }
 }
 
-
-module.exports = new ContactStore();
+const store = new ContactStore();
+setContactStore(store);
+module.exports = store;

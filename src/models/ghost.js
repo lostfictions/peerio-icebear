@@ -49,7 +49,7 @@ class Ghost extends Keg {
      * NOTE: ghost IDs are in hex for browser compatibility.
      */
     constructor() {
-        const db = User.current.kegdb;
+        const db = User.current.kegDb;
         super(null, 'ghost', db);
         this.version = 2;
         // encode user-specific ID in hex
