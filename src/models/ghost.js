@@ -69,26 +69,32 @@ class Ghost extends Keg {
             recipients: this.recipients.slice(),
             lifeSpanInSeconds: this.lifeSpanInSeconds,
             version: 2,
-            files: _.map(this.files, 'fileId'),
+            files: this.files.slice(),
             body: this.body,
             timestamp: this.timestamp
         };
     }
 
+    /**
+     * Load existing (sent) ghost from keg storage.
+     *
+     * @param {Object} data
+     */
     @action deserializeKegPayload(data) {
         this.body = data.body;
         this.subject = data.subject;
         this.ghostId = data.ghostId;
         this.passphrase = data.passphrase;
-        this.files = data.files; // fixme
+        this.files = data.files;
         this.timestamp = data.timestamp;
         this.recipients = data.recipients;
         this.sent = true;
     }
 
     /**
+     * Send a ghost.
      *
-     * @param text
+     * @param {String} text - message content
      */
     send(text) {
         this.sending = true;
@@ -99,7 +105,6 @@ class Ghost extends Keg {
 
         return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
             .then((kp) => {
-                console.log('keypair', kp);
                 console.log('ghost public key', cryptoUtil.bytesToB64(kp.publicKey));
                 this.keypair = kp;
                 return this.encryptForEphemeralRecipient();
@@ -111,7 +116,7 @@ class Ghost extends Keg {
             })
             .catch(err => {
                 this.sendError = true;
-                console.error('Error sending message', err);
+                console.error('Error sending ghost', err);
                 return Promise.reject(err);
             })
             .finally(() => {
@@ -165,7 +170,6 @@ class Ghost extends Keg {
      * @returns {*}
      */
     encryptForEphemeralRecipient() {
-        console.log('encrypted body', this.serializeGhostPayload());
         try {
             const body = JSON.stringify(this.serializeGhostPayload());
             this.asymEncryptedGhostBody = secret.encryptString(
