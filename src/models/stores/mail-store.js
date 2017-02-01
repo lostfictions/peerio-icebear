@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');
-const Ghost = require('../kegs/ghost');
+const Ghost = require('../ghost');
 const User = require('../user');
 const tracker = require('../update-tracker');
 

@@ -10,7 +10,7 @@ const KegDb = require('./kegs/keg-db');
 const TinyDb = require('../db/tiny-db');
 const { observable } = require('mobx');
 const systemWarnings = require('./system-warning');
-const currentUserHelper = require('./current-user');
+const currentUserHelper = require('./../helpers/current-user');
 const { publicCrypto } = require('../crypto');
 
 let currentUser;

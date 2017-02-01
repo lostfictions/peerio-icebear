@@ -7,7 +7,7 @@ const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
 const { observable, when } = require('mobx');
 const contactStore = require('../stores/contact-store');
-const { getUser } = require('../current-user');
+const { getUser } = require('../../helpers/current-user');
 
 let temporaryKegId = 0;
 function getTemporaryKegId() {

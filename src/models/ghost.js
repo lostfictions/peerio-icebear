@@ -1,14 +1,14 @@
 const { observable, computed, action } = require('mobx');
 const _ = require('lodash');
-const contactStore = require('../stores/contact-store');
-const fileStore = require('../stores/file-store');
-const socket = require('../../network/socket');
-const Keg = require('./keg');
-const { cryptoUtil, publicCrypto, sign, secret } = require('../../crypto');
-const keys = require('../../crypto/keys');
-const User = require('../user');
-const PhraseDictionaryCollection = require('../phrase-dictionary');
-const config = require('../../config');
+const contactStore = require('./stores/contact-store');
+const fileStore = require('./stores/file-store');
+const socket = require('../network/socket');
+const Keg = require('./kegs/keg');
+const { cryptoUtil, sign, secret } = require('../crypto/index');
+const keys = require('../crypto/keys');
+const User = require('./user');
+const PhraseDictionaryCollection = require('./phrase-dictionary');
+const config = require('../config');
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days

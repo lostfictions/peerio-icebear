@@ -7,7 +7,7 @@ const config = require('../../config');
 const socket = require('../../network/socket');
 const uploadModule = require('./file.upload');
 const downloadModule = require('./file.download');
-const { getUser } = require('../current-user');
+const { getUser } = require('../../helpers/current-user');
 
 // todo: this is duplication
 const CHUNK_OVERHEAD = 32;

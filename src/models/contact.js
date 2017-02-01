@@ -1,7 +1,7 @@
 const socket = require('../network/socket');
 const { observable, action, reaction, when } = require('mobx');
 const util = require('../crypto/util');
-const { getUser } = require('./current-user');
+const { getUser } = require('./../helpers/current-user');
 
 /**
  * Possible states and how to read them:
