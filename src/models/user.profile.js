@@ -22,7 +22,14 @@ class UserProfile extends Keg {
         this.user.isDeleted = data.deleted;
         this.user.primaryAddress = data.primaryAddressValue;
         this.user.primaryAddressType = data.primaryAddressType;
-        this.user.addresses = data.addresses;
+        this.user.addresses = data.addresses || [];
+        this.user.primaryAddressConfirmed = false;
+        for (let i = 0; i < this.user.addresses.length; i++) {
+            const a = this.user.addresses[i];
+            if (a.address !== this.user.primaryAddress) continue;
+            this.user.primaryAddressConfirmed = a.confirmed;
+            break;
+        }
         this.user.isBlacklisted = data.isBlackListed;
         this.user.use2fa = data.user2fa;
     }
