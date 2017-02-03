@@ -35,6 +35,7 @@ const fileStore = require('./models/stores/file-store');
 const mailStore = require('./models/stores/mail-store');
 const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/files/file-stream-abstract');
+const FileNonceGenerator = require('./models/files/file-nonce-generator');
 const util = require('./util');
 const systemWarnings = require('./models/system-warning');
 const crypto = require('./crypto');
@@ -55,6 +56,7 @@ module.exports = {
     mailStore,
     validation,
     FileStreamAbstract,
+    FileNonceGenerator,
     util,
     systemWarnings,
     legacyMigrator
