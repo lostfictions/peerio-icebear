@@ -20,7 +20,7 @@ class UserProfile extends Keg {
         this.user.createdAt = data.created;
         this.user.locale = data.locale;
         this.user.isDeleted = data.deleted;
-        this.user.primaryAddress = data.primaryAddress;
+        this.user.primaryAddress = data.primaryAddressValue;
         this.user.primaryAddressType = data.primaryAddressType;
         this.user.addresses = data.addresses;
         this.user.isBlacklisted = data.isBlackListed;
