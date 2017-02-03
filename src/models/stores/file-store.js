@@ -1,4 +1,4 @@
-const { observable, action, when, reaction, computed } = require('mobx');
+const { observable, action, when, reaction, computed, autorunAsync } = require('mobx');
 const socket = require('../../network/socket');
 const User = require('../user');
 const File = require('../files/file');
@@ -6,7 +6,6 @@ const systemWarnings = require('../system-warning');
 const tracker = require('../update-tracker');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const fileHelpers = require('../../helpers/file');
 const _ = require('lodash');
 
 class FileStore {
@@ -14,9 +13,14 @@ class FileStore {
     @observable loading = false;
     @observable ongoingUploads = 0;
     @observable currentFilter = '';
+    // file store needs to know when it's considered 'active' meaning that user is looking at the file list.
+    // Currently we need this to mark files as 'read' after a while.
+    @observable active = false;
     loaded = false;
     updating = false;
     knownCollectionVersion = 0;
+
+    @observable unreadFiles = tracker.getDigest('SELF', 'file').newKegsCount;
 
     static isFileSelected(file) {
         return file.selected;
@@ -87,6 +91,7 @@ class FileStore {
      * consumed.
      */
     constructor() {
+        tracker.onKegTypeUpdated('SELF', 'file', this.onFileDigestUpdate);
         reaction(() => this.ongoingUploads, () => {
             if (this.ongoingUploads > 0) {
                 when(() => this.ongoingUploads === 0, () => {
@@ -97,6 +102,10 @@ class FileStore {
             }
         });
     }
+
+    onFileDigestUpdate = () => {
+        this.unreadFiles = tracker.digest.SELF.file.newKegsCount;
+    };
 
     _getFiles(minCollectionVersion = 0) {
         const query = { type: 'file' };
@@ -130,6 +139,10 @@ class FileStore {
                     }
                 }, 3000);
             });
+            autorunAsync(() => {
+                if (this.unreadFiles === 0 || !this.active) return;
+                tracker.seenThis('SELF', 'file', this.knownCollectionVersion);
+            }, 700);
             tracker.onKegTypeUpdated('SELF', 'file', this.updateFiles);
             setTimeout(this.updateFiles);
         }));

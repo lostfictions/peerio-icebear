@@ -10,7 +10,7 @@ const socket = require('../network/socket');
  * 1. Update Tracker interacts with application logic via
  *      a. UpdateTracker.data object - at any time, app logic can read data from that object,
  *          although it's not always guaranteed to be fully up to date, but it is not a problem because:
- *      b. Update events - update events are triggered in an effective manner, see (2.,3.)
+ *      b. Update events - update events are triggered in an optimized(batched) manner
  * 2. Every time connection is authenticated, Update Tracker performs update of relevant data
  *    (cuz we might have missed it while disconnected). We don't do full update info reload because it has
  *    a potential to grow really big.
