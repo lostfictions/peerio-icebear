@@ -8,10 +8,10 @@ class Message extends Keg {
     @observable sendError = false;
 
     /**
-     * @param {ChatStore} chat - chat store owner of this message
+     * @param {ChatStore} db - chat db
      */
-    constructor(chat) {
-        super(null, 'message', chat.db);
+    constructor(db) {
+        super(null, 'message', db);
     }
 
     send(text) {

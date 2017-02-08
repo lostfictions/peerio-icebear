@@ -32,7 +32,7 @@ class ChatStore {
         this.events = new EventEmitter();
     }
 
-    onNewMessages= _.throttle(() => {
+    onNewMessages = _.throttle(() => {
         this.events.emit(this.EVENT_TYPES.messagesReceived);
     }, 1000);
 

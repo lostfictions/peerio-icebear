@@ -5,7 +5,8 @@ const normalize = require('../errors').normalize;
 const User = require('./user');
 const tracker = require('./update-tracker');
 const socket = require('../network/socket');
-const File = require('./files/file');
+const Receipt = require('./receipt');
+const _ = require('lodash');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -26,6 +27,9 @@ class Chat {
     @observable updating = false;
     // currently selected/focused
     @observable active = false;
+
+    // read positions in username:position format
+    @observable receipts = {};
 
     // did chat fail to create/load?
     @observable errorLoadingMeta = false;
@@ -48,9 +52,12 @@ class Chat {
     downloadedUpdateId = 0;
     @observable maxUpdateId = tracker.getDigest(this.id, 'message').maxUpdateId;
 
+    downloadedReceiptId = 0;
+
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
+     * @param {ChatStore} store
      * @summary at least one of two arguments should be set
      */
     constructor(id, participants, store) {
@@ -61,10 +68,14 @@ class Chat {
         this.db = new ChatKegDb(id, participants);
     }
 
-    onMessageDigestUpdate = () => {
+    onMessageDigestUpdate = _.throttle(() => {
         this.unreadCount = tracker.digest[this.id].message.newKegsCount;
         this.maxUpdateId = tracker.digest[this.id].message.maxUpdateId;
-    };
+    }, 500);
+
+    onReceiptDigestUpdate = _.throttle(() => {
+        this._loadReceipts();
+    }, 2000);
 
     loadMetadata() {
         if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
@@ -77,6 +88,8 @@ class Chat {
                 this.loadingMeta = false;
                 this.metaLoaded = true;
                 tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
+                tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
+                this._loadReceipts();
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -107,7 +120,7 @@ class Chat {
         this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
                 if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
-                    const msg = new Message(this).loadFromKeg(keg);
+                    const msg = new Message(this.db).loadFromKeg(keg);
                     if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                 }
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
@@ -119,7 +132,9 @@ class Chat {
             autorunAsync(() => {
                 if (this.unreadCount === 0 || !this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
+                this._sendReceipt(this.downloadedUpdateId);
             }, 700);
+            this._sendReceipt(this.downloadedUpdateId);
         })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
             this.errorLoadingMessages = true;
@@ -136,7 +151,7 @@ class Chat {
             .then(kegs => {
                 for (const keg of kegs) {
                     if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
-                        const msg = new Message(this).loadFromKeg(keg);
+                        const msg = new Message(this.db).loadFromKeg(keg);
                         if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
                     }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
@@ -150,7 +165,7 @@ class Chat {
     }
 
     sendMessage(text, files) {
-        const m = new Message(this);
+        const m = new Message(this.db);
         if (files) m.files = this._shareFiles(files);
         const promise = m.send(text);
         this.msgMap[m.tempId] = this.messages.push(m);
@@ -191,6 +206,66 @@ class Chat {
             if (!this.participants.includes(p)) return false;
         }
         return true;
+    }
+
+    _sendReceipt(position) {
+        this._loadOwnReceipt()
+            .then(r => {
+                if (r.position >= position) return;
+                r.position = position;
+                r.saveToServer()
+                    .catch(err => {
+                        // normally, this is a connection issue or concurrency.
+                        // to resolve concurrency error we reload the cached keg
+                        console.error(err);
+                        this._ownReceipt = null;
+                    });
+            });
+    }
+
+    // loads or creates new receipt keg
+    _loadOwnReceipt() {
+        if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
+
+        return socket.send('/auth/kegs/query', {
+            collectionId: this.id,
+            minCollectionVersion: 0,
+            query: { type: 'receipt', username: User.current.username }
+        }).then(res => {
+            const r = new Receipt(this.db);
+            if (res && res.length) {
+                r.loadFromKeg(res[0]);
+                return r;
+            }
+            r.username = User.current.username;
+            r.position = 0;
+            this._ownReceipt = r;
+            return r.saveToServer().return(r);
+        });
+    }
+
+    _loadReceipts() {
+        return socket.send('/auth/kegs/query', {
+            collectionId: this.id,
+            minCollectionVersion: this.downloadedReceiptId || 0,
+            query: { type: 'receipt' }
+        }).then(res => {
+            if (!res && !res.length) return;
+            const receipts = {};
+            for (let i = 0; i < res.length; i++) {
+                this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
+                try {
+                    const r = new Receipt(this.db);
+                    r.loadFromKeg(res[i]);
+                    receipts[r.username] = r.position;
+                } catch (err) {
+                    // we don't want to break everything for one faulty receipt
+                    // also we don't want to log this, because in case of faulty receipt there will be
+                    // too many logs
+                }
+            }
+            this.receipts = receipts;
+        });
     }
 
 }
