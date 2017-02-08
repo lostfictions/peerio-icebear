@@ -1,5 +1,5 @@
 const socket = require('../network/socket');
-const { observable, action, reaction, when } = require('mobx');
+const { observable, action, when, computed } = require('mobx');
 const { cryptoUtil } = require('../crypto');
 const { getUser } = require('./../helpers/di-current-user');
 const Tofu = require('./tofu');
@@ -10,6 +10,8 @@ const Tofu = require('./tofu');
  * loading === false && notFound === true  - fail due to inexisting contact
  */
 
+const nullFingerprint = '00000-00000-00000-00000-00000-00000';
+
 class Contact {
     // this flag means that we are making attempts to load contact
     // once it's 'false' it means that we are done trying with ether positive (notFound=false) result
@@ -19,8 +21,29 @@ class Contact {
     @observable lastName = '';
     @observable encryptionPublicKey = '';
     @observable signingPublicKey = '';
-    @observable color = '';
 
+    @computed get color() {
+        if (!this.signingPublicKey) return '#9e9e9e';
+        return `#${cryptoUtil.getHexHash(3, this.signingPublicKey)}`;
+    }
+
+    // fingerprint calculation is async, but at the same time we want it to be lazy computed
+    // so we cache computed result here
+    @observable __fingerprint = null;
+    // but we also want to make sure computed will be refreshed on signing key change
+    // so we remember which key was used
+    __fingerprintKey;
+    @computed get fingerprint() {
+        if (!this.signingPublicKey) return nullFingerprint;
+        if (!this.__fingerprint || this.__fingerprintKey !== this.signingPublicKey) {
+            this.__fingerprintKey = this.signingPublicKey;
+            cryptoUtil.getFingerprint(this.username, this.signingPublicKey)
+                .then(f => { this.__fingerprint = f; });
+
+            return nullFingerprint;
+        }
+        return this.__fingerprint;
+    }
     // contact wasn't found on server
     notFound = false;
     // to avoid parallel queries
@@ -29,9 +52,6 @@ class Contact {
     constructor(username) {
         this.username = username;
         if (getUser().username === username) this.isMe = true;
-        reaction(() => this.encryptionPublicKey, () => {
-            this.color = `#${this.signingPublicKey ? cryptoUtil.getHexHash(3, this.signingPublicKey) : '9e9e9e'}`;
-        });
         this.load();
     }
 
@@ -55,7 +75,11 @@ class Contact {
                   // this is server - controlled data, so we don't account for cases when it's invalid
                 this.encryptionPublicKey = new Uint8Array(profile.encryptionPublicKey);
                 this.signingPublicKey = new Uint8Array(profile.signingPublicKey);
-                if (this.username === getUser().username) return;
+                if (this.username === getUser().username) {
+                    this._waitingForResponse = false;
+                    this.loading = false;
+                    return;
+                }
 
                 return Tofu.getByUsername(this.username) // eslint-disable-line consistent-return
                     .then(tofu => {

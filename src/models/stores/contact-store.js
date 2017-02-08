@@ -43,14 +43,6 @@ class ContactStore {
         return null;
     }
 
-    // /**
-    //  * Deletes contacts that were not found on server from store.
-    //  */
-    // @action removeInvalidContacts() {
-    //     for (const c of this.contacts) {
-    //         if (c.notFound) this.contacts.remove(c);
-    //     }
-    // }
 }
 
 const store = new ContactStore();

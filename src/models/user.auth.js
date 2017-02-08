@@ -113,6 +113,7 @@ module.exports = function mixUserAuthModule() {
                 return Promise.reject(new Error('no passcode found'));
             })
             .then((passcodeSecret) => {
+                this.passcodeIsSet = true;
                 if (passcodeSecret) { // will be wiped after first login
                     return this._derivePassphraseFromPasscode(passcodeSecret);
                 }
@@ -159,15 +160,6 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Checks if user has a passcode saved
-     * @returns {Promise}
-     */
-    this.hasPasscode = () => {
-        return TinyDb.system.getValue(`${this.username}:passcode`)
-            .then(result => !!result);
-    };
-
-    /**
      * Given a passcode and a populated User model, gets a passcode-encrypted
      * secret containing the username and passphrase as a JSON string and stores
      * it to the local db.
@@ -187,7 +179,21 @@ module.exports = function mixUserAuthModule() {
                 }), passcodeKey);
             })
             .then(passcodeSecretU8 => {
+                this.passcodeIsSet = true;
                 return TinyDb.system.setValue(`${this.username}:passcode`, cryptoUtil.bytesToB64(passcodeSecretU8));
+            });
+    };
+
+    this.validatePasscode = (passcode) => {
+        if (!this.passcodeIsSet) return Promise.reject(new Error('user.auth.js: passcode is not set'));
+        const u = new this.constructor(); // eslint-disable-line
+        u.passphrase = passcode;
+        u.username = this.username;
+        return u._checkForPasscode()
+            .then(() => {
+                return (u.passphrase && u.passphrase !== passcode)
+                    ? u.passphrase
+                    : Promise.reject(new Error('user.auth.js: passcode is not valid'));
             });
     };
 };

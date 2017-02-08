@@ -6,6 +6,7 @@
  */
 const Buffer = require('buffer/').Buffer;
 const BLAKE2s = require('blake2s-js');
+const scrypt = require('scrypt-async');
 
 const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -236,6 +237,27 @@ function getEncryptedByteHash(length, value) {
     return h.digest();
 }
 
+/**
+ * Returns user fingerprint string
+ * @param {string} username
+ * @param {Uint8Array} publicKey
+ */
+function getFingerprint(username, publicKey) {
+    return new Promise(resolve => {
+        scrypt(publicKey, strToBytes(username),
+                { N: 4096, r: 8, dkLen: 24, interruptStep: 200, encoding: 'binary' }, resolve);
+    }).then(fingerprintToStr);
+}
+
+function fingerprintToStr(h) {
+    const v = new DataView(h.buffer, h.byteOffset, h.byteLength);
+    const c = [];
+    for (let i = 0; i < h.length; i += 4) {
+        c.push((`00000${v.getUint32(i) % 100000}`).slice(-5));
+    }
+    return c.join('-');
+}
+
 module.exports = {
     getRandomBytes,
     getRandomNumber,
@@ -254,5 +276,6 @@ module.exports = {
     concatTypedArrays,
     getHexHash,
     getByteHash,
-    getEncryptedByteHash
+    getEncryptedByteHash,
+    getFingerprint
 };
