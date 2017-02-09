@@ -137,9 +137,7 @@ module.exports = function mixUserAuthModule() {
     this._derivePassphraseFromPasscode = (passcodeSecret) => {
         console.log('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, passcodeSecret)
-            .then(passcodeData => {
-                this.passphrase = passcodeData.passphrase;
-            })
+            .then(this.deserializeAuthData)
             .catch(() => {
                 console.log('Deriving passphrase from passcode failed, ' +
                             'will ignore and retry login with passphrase');
@@ -159,6 +157,47 @@ module.exports = function mixUserAuthModule() {
             .then(authDataJSON => JSON.parse(authDataJSON));
     };
 
+    this.serializeAuthData = () => {
+        const { username, passphrase } = this;
+        const authSalt = cryptoUtil.bytesToB64(this.authSalt);
+        const bootKey = cryptoUtil.bytesToB64(this.bootKey);
+        const secretKey = cryptoUtil.bytesToB64(this.authKeys.secretKey);
+        const publicKey = cryptoUtil.bytesToB64(this.authKeys.publicKey);
+        const data = JSON.stringify({
+            username, passphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
+        });
+        console.log(`user.auth.js: serializeAuthData`);
+        // console.log(data);
+        return data;
+    };
+
+    this.deserializeAuthData = (data) => {
+        console.log(`user.auth.js deserializeAuthData`);
+        // console.log(data);
+        const { username, passphrase, authSalt, bootKey, authKeys } = data;
+        this.username = username;
+        this.passphrase = passphrase;
+        this.authSalt = authSalt && cryptoUtil.b64ToBytes(authSalt);
+        this.bootKey = bootKey && cryptoUtil.b64ToBytes(bootKey);
+        if (authKeys) {
+            let { secretKey, publicKey } = authKeys;
+            secretKey = secretKey && cryptoUtil.b64ToBytes(secretKey);
+            publicKey = publicKey && cryptoUtil.b64ToBytes(publicKey);
+            if (secretKey && publicKey) {
+                this.authKeys = { secretKey, publicKey };
+            }
+        }
+    };
+    
+    /**
+     * Checks if user has a passcode saved		
+     * @returns {Promise}		
+     */		
+    this.hasPasscode = () => {		
+        return TinyDb.system.getValue(`${this.username}:passcode`)		
+            .then(result => !!result);		
+    };
+
     /**
      * Given a passcode and a populated User model, gets a passcode-encrypted
      * secret containing the username and passphrase as a JSON string and stores
@@ -173,10 +212,7 @@ module.exports = function mixUserAuthModule() {
         console.log('Setting passcode');
         return keys.deriveKeyFromPasscode(this.username, passcode)
             .then(passcodeKey => {
-                return secret.encryptString(JSON.stringify({
-                    username: this.username,
-                    passphrase: this.passphrase
-                }), passcodeKey);
+                return secret.encryptString(this.serializeAuthData(), passcodeKey);
             })
             .then(passcodeSecretU8 => {
                 this.passcodeIsSet = true;
