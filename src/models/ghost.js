@@ -19,7 +19,7 @@ class Ghost extends Keg {
     @observable subject = '';
     @observable recipients = observable.shallowArray([]);
     @observable files = observable.shallowArray([]);
-    @observable passphrase = PhraseDictionaryCollection.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
+    @observable passphrase = '';
     @observable timestamp = Date.now();
     @observable sent = false;
 
@@ -52,6 +52,7 @@ class Ghost extends Keg {
         const db = User.current.kegDb;
         super(null, 'ghost', db);
         this.version = 2;
+        this.passphrase = PhraseDictionaryCollection.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
         // encode user-specific ID in hex
         this.ghostId = cryptoUtil.getRandomUserSpecificIdHex(User.current.username);
     }
