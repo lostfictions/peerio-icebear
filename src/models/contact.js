@@ -82,29 +82,33 @@ class Contact {
                 }
 
                 return Tofu.getByUsername(this.username) // eslint-disable-line consistent-return
-                    .then(tofu => {
+                    .then(action(tofu => {
                         this._waitingForResponse = false;
                         this.loading = false;
                         if (!tofu) {
-                            // todo create
                             const newTofu = new Tofu(getUser().kegDb);
                             newTofu.username = this.username;
                             newTofu.firstName = this.firstName;
                             newTofu.lastName = this.lastName;
                             newTofu.encryptionPublicKey = cryptoUtil.bytesToB64(this.encryptionPublicKey);
                             newTofu.signingPublicKey = cryptoUtil.bytesToB64(this.signingPublicKey);
-                            // todo: this has a potential of creating 2+ tofu kegs for same contacts
+                            // todo: this has a potential of creating 2+ tofu kegs for same contact
                             // todo: in case of concurrency, but it's not a problem atm
                             // todo: and tofu is likely to be redesigned
                             newTofu.saveToServer();
                             return;
+                        }
+                        // flagging contact
+                        if (profile.encryptionPublicKey !== cryptoUtil.bytesToB64(this.encryptionPublicKey)
+                            || profile.signingPublicKey !== cryptoUtil.bytesToB64(this.signingPublicKey)) {
+                            this.tofuError = true;
                         }
                         // overriding whatever server returned for contact with our stored keys
                         // so crypto operations will fail in case of difference
                         // todo: this works only until we implement key change feature
                         this.encryptionPublicKey = cryptoUtil.b64ToBytes(profile.encryptionPublicKey);
                         this.signingPublicKey = cryptoUtil.b64ToBytes(profile.signingPublicKey);
-                    });
+                    }));
             }))
             .catch(err => {
                 this._waitingForResponse = false;
