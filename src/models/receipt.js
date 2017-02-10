@@ -25,6 +25,12 @@ class Receipt extends Keg {
     deserializeProps(props) {
         this.username = props.username;
     }
+
+    afterLoad() {
+        if (this.username !== this.owner) {
+            this.receiptError = true;
+        }
+    }
 }
 
 module.exports = Receipt;

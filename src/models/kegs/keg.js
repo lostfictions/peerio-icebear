@@ -20,6 +20,7 @@ class Keg {
 
     @observable signatureError = null;// true/false/null are the valid values
     @observable sharedKegError = null;
+    @observable id;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
@@ -55,14 +56,12 @@ class Keg {
      * @returns {Promise<Keg>}
      */
     saveToServer(cleanShareData) {
-        console.log('save to server');
         if (this.id) return this._internalSave(cleanShareData);
 
         return socket.send('/auth/kegs/create', {
             collectionId: this.db.id,
             type: this.type
         }).then(resp => {
-            console.log('saved to server', resp);
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
@@ -197,6 +196,7 @@ class Keg {
                 this.detectTampering(payload);
             }
             this.deserializeKegPayload(payload);
+            if (this.afterLoad) this.afterLoad();
             return this;
         } catch (err) {
             console.error(err);

@@ -6,7 +6,7 @@ const Keg = require('./kegs/keg');
 class Message extends Keg {
     @observable sending = false;
     @observable sendError = false;
-
+    @observable receipts; // array of usernames
     /**
      * @param {ChatStore} db - chat db
      */
@@ -53,13 +53,7 @@ class Message extends Keg {
 
     deserializeProps(props) {
         if (props.files) {
-            // We temporarily need this try/catch bcs some of the properties ended up contaiging wrong data
-            // during development. Remove 'try' block after db reset.
-            try {
-                this.files = JSON.parse(props.files);
-            } catch (err) {
-                console.log(err);
-            }
+            this.files = JSON.parse(props.files);
         }
     }
 }

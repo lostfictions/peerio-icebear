@@ -28,18 +28,20 @@ class Chat {
     // currently selected/focused
     @observable active = false;
 
-    // read positions in username:position format
-    @observable receipts = {};
-
     // did chat fail to create/load?
     @observable errorLoadingMeta = false;
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
     metaLoaded = false;
     messagesLoaded = false;
-
+    receipts = {};
     /** @type {Array<Contact>} */
     @observable participants=null;
+
+    @computed get participantUsernames() {
+        if (!this.participants) return null;
+        return this.participants.map(p => p.username);
+    }
 
     @computed get chatName() {
         if (!this.participants) return '';
@@ -69,8 +71,9 @@ class Chat {
     }
 
     onMessageDigestUpdate = _.throttle(() => {
-        this.unreadCount = tracker.digest[this.id].message.newKegsCount;
-        this.maxUpdateId = tracker.digest[this.id].message.maxUpdateId;
+        const msgDigest = tracker.digest[this.id].message;
+        this.unreadCount = msgDigest.newKegsCount;
+        this.maxUpdateId = msgDigest.maxUpdateId;
     }, 500);
 
     onReceiptDigestUpdate = _.throttle(() => {
@@ -89,7 +92,6 @@ class Chat {
                 this.metaLoaded = true;
                 tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
                 tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
-                this._loadReceipts();
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -132,9 +134,11 @@ class Chat {
             autorunAsync(() => {
                 if (this.unreadCount === 0 || !this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
-                this._sendReceipt(this.downloadedUpdateId);
+                // todo: this won't work properly with paging
+                if (this.messages.length) this._sendReceipt();
             }, 700);
-            this._sendReceipt(this.downloadedUpdateId);
+            this._sendReceipt();
+            this._loadReceipts();
         })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
             this.errorLoadingMessages = true;
@@ -173,6 +177,7 @@ class Chat {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
             delete this.msgMap[m.tempId];
             this.msgMap[m.id] = m;
+            this._sendReceipt(m.id);
         });
     }
 
@@ -208,10 +213,12 @@ class Chat {
         return true;
     }
 
-    _sendReceipt(position) {
+    _sendReceipt(pos) {
+        const position = +(pos || this.messages[this.messages.length - 1].id);
+        if (!position) return; // in case of pending outgoing message
         this._loadOwnReceipt()
             .then(r => {
-                if (r.position >= position) return;
+                if (+r.position >= position) return;
                 r.position = position;
                 r.saveToServer()
                     .catch(err => {
@@ -251,21 +258,38 @@ class Chat {
             query: { type: 'receipt' }
         }).then(res => {
             if (!res && !res.length) return;
-            const receipts = {};
             for (let i = 0; i < res.length; i++) {
                 this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
                 try {
                     const r = new Receipt(this.db);
                     r.loadFromKeg(res[i]);
-                    receipts[r.username] = r.position;
+                    // todo: warn about signature error?
+                    if (r.receiptError || r.signatureError || !r.username
+                        || r.username === User.current.username || !r.position) continue;
+                    this.receipts[r.username] = r.position;
                 } catch (err) {
                     // we don't want to break everything for one faulty receipt
                     // also we don't want to log this, because in case of faulty receipt there will be
                     // too many logs
+                    console.debug(err);
                 }
             }
-            this.receipts = receipts;
+            this._applyReceipts();
         });
+    }
+
+    @action _applyReceipts() {
+        const users = Object.keys(this.receipts);
+        for (let i = 0; i < this.messages.length; i++) {
+            const msg = this.messages[i];
+            msg.receipts = null;
+            for (let k = 0; k < users.length; k++) {
+                const username = users[k];
+                if (+msg.id !== this.receipts[username]) continue;
+                msg.receipts = msg.receipts || [];
+                msg.receipts.push(username);
+            }
+        }
     }
 
 }
