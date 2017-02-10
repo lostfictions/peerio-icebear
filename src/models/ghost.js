@@ -22,6 +22,7 @@ class Ghost extends Keg {
     @observable passphrase = '';
     @observable timestamp = Date.now();
     @observable sent = false;
+    @observable lifeSpanInSeconds = 0;
 
     get date() {
         return new Date(this.timestamp);
@@ -41,6 +42,10 @@ class Ghost extends Keg {
 
     @computed get fileCounter() {
         return this.files.length;
+    }
+
+    @computed get expired() {
+        return this.timestamp + (this.lifeSpanInSeconds * 1000) < Date.now();
     }
 
     /**
@@ -90,6 +95,7 @@ class Ghost extends Keg {
         this.timestamp = data.timestamp;
         this.recipients = data.recipients;
         this.sent = true;
+        this.lifeSpanInSeconds = data.lifeSpanInSeconds;
     }
 
     /**
@@ -206,8 +212,6 @@ class Ghost extends Keg {
     revoke() {
         return socket.send('/auth/ghost/delete', { ghostId: this.ghostId });
     }
-
-
 }
 
 module.exports = Ghost;
