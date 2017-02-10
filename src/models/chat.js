@@ -123,7 +123,10 @@ class Chat {
             for (const keg of kegs) {
                 if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
                     const msg = new Message(this.db).loadFromKeg(keg);
-                    if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
+                    if (msg) {
+                        this._detectFirstOfTheDayFlag(msg);
+                        this.msgMap[keg.kegId] = this.messages.push(msg);
+                    }
                 }
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
             }
@@ -156,7 +159,11 @@ class Chat {
                 for (const keg of kegs) {
                     if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
                         const msg = new Message(this.db).loadFromKeg(keg);
-                        if (msg) this.msgMap[keg.kegId] = this.messages.push(msg);
+
+                        if (msg) {
+                            this._detectFirstOfTheDayFlag(msg);
+                            this.msgMap[keg.kegId] = this.messages.push(msg);
+                        }
                     }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
                 }
@@ -172,6 +179,7 @@ class Chat {
         const m = new Message(this.db);
         if (files) m.files = this._shareFiles(files);
         const promise = m.send(text);
+        this._detectFirstOfTheDayFlag(m);
         this.msgMap[m.tempId] = this.messages.push(m);
         return promise.then(() => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
@@ -183,6 +191,19 @@ class Chat {
 
     sendAck() {
         return this.sendMessage('👍');// <- this is not a whitespace, it's unicode :thumb_up::
+    }
+
+    _detectFirstOfTheDayFlag(msg) {
+        if (!this.messages.length) {
+            msg.firstOfTheDay = true;
+            return;
+        }
+        const prev = this.messages[this.messages.length - 1];
+        if (prev.timestamp.getDate() !== msg.timestamp.getDate()
+            || prev.timestamp.getMonth() !== msg.timestamp.getMonth()
+            || prev.timestamp.getYear() !== msg.timestamp.getYear()) {
+            msg.firstOfTheDay = true;
+        }
     }
 
     _shareFiles(files) {

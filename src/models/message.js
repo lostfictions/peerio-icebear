@@ -7,6 +7,9 @@ class Message extends Keg {
     @observable sending = false;
     @observable sendError = false;
     @observable receipts; // array of usernames
+    // is this message first in the day it was sent (and loaded message page)
+    // calculated in chat store, used to render date separators
+    @observable firstOfTheDay;
     /**
      * @param {ChatStore} db - chat db
      */
