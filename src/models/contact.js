@@ -21,6 +21,7 @@ class Contact {
     @observable lastName = '';
     @observable encryptionPublicKey = '';
     @observable signingPublicKey = '';
+    @observable tofuError = false;
 
     @computed get color() {
         if (!this.signingPublicKey) return '#9e9e9e';
