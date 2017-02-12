@@ -59,6 +59,7 @@ function getGenericCustomError(name, msg) {
     err.prototype.constructor = err;
     return err;
 }
+module.exports.getGenericCusomError = getGenericCustomError;
 // -- Custom Errors ----------------------------------------------------------------------------------------------
 module.exports.DecryptionError = getGenericCustomError('DecryptionError');
 module.exports.EncryptionError = getGenericCustomError('EncryptionError');
