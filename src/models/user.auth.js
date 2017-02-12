@@ -188,14 +188,14 @@ module.exports = function mixUserAuthModule() {
             }
         }
     };
-    
+
     /**
-     * Checks if user has a passcode saved		
-     * @returns {Promise}		
-     */		
-    this.hasPasscode = () => {		
-        return TinyDb.system.getValue(`${this.username}:passcode`)		
-            .then(result => !!result);		
+     * Checks if user has a passcode saved
+     * @returns {Promise}
+     */
+    this.hasPasscode = () => {
+        return TinyDb.system.getValue(`${this.username}:passcode`)
+            .then(result => !!result);
     };
 
     /**
