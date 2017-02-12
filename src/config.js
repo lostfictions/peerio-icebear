@@ -5,9 +5,6 @@
  * @module config
  */
 
-const NodeFileStream = require('./models/files/node-file-stream');
-const NodeJsonStorage = require('./models/stores/node-json-storage');
-
 class UploadConfig {
     get chunkSizes() {
         return [
@@ -62,9 +59,9 @@ const config = new class {
         maxDecryptBufferSize: 1024 * 1024 * 3  // max amount of bytes to download and queue for decrypt
     };
 
-    // -- client-specific implementations can override default ones
-    FileStream = NodeFileStream;
-    StorageEngine = NodeJsonStorage;
+    // -- client-specific implementations should be provided
+    FileStream = null;
+    StorageEngine = null;
 }();
 
 // ICEBEAR_TEST_ENV is a constant replacement set by webpack
