@@ -109,7 +109,7 @@ class FileStore {
 
     _getFiles(minCollectionVersion = 0) {
         const query = { type: 'file' };
-        if (minCollectionVersion === 0) query.deleted = 'false';
+        if (minCollectionVersion === 0) query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion,
