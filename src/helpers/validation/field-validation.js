@@ -3,7 +3,6 @@
  */
 import { reaction, extendObservable, computed } from 'mobx';
 
-const _ = require('lodash');
 const userValidators = require('./user-validators');
 
 /**
@@ -22,7 +21,7 @@ const userValidators = require('./user-validators');
 function addValidation(store, fName, validatorOrArray, positionInForm) {
     const byName = store.byName || {};
     const byOrder = store.byOrder || {};
-    const focus = store.focus || {};
+    // const focus = store.focus || {};
     byName[fName] = positionInForm;
     byOrder[positionInForm] = fName;
     Object.assign(store, { byName, byOrder });
@@ -71,7 +70,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         }
     };
     // mark the field as dirty when blurred
-    store[fOnBlur] = (val) => {
+    store[fOnBlur] = () => {
         store[fDirty] = true;
     };
 

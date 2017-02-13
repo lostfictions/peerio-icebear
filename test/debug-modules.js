@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Just a list of modules pre-required to access from console
 
 const m = window.modules = {};

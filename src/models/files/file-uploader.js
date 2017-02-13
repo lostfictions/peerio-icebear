@@ -8,9 +8,6 @@ const secret = require('../../crypto/secret');
 const config = require('../../config');
 const FileProcessor = require('./file-processor');
 
-// todo: this is duplication
-const CHUNK_OVERHEAD = 32;
-
 class FileUploader extends FileProcessor {
     // read chunks go here
     encryptQueue = [];

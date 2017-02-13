@@ -1,4 +1,4 @@
-const { observable, computed } = require('mobx');
+const { observable } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
 

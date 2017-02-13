@@ -38,7 +38,7 @@ function getRandomNumber(min, max) {
         throw new Error('Range too big for getRandomNumber().');
     }
     const bytesNeeded = Math.ceil(bitsNeeded / 8);
-    const mask = Math.pow(2, bitsNeeded) - 1;
+    const mask = (2 ** bitsNeeded) - 1;
 
     let rval = 0;
 
@@ -48,7 +48,7 @@ function getRandomNumber(min, max) {
 
         let p = (bytesNeeded - 1) * 8;
         for (let i = 0; i < bytesNeeded; i++) {
-            rval += byteArray[i] * Math.pow(2, p);
+            rval += byteArray[i] * (2 ** p);
             p -= 8;
         }
         rval &= mask;
