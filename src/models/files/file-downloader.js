@@ -64,6 +64,7 @@ class FileDownloader extends FileProcessor {
             .then(dlChunk => {
                 if (dlChunk.byteLength === 0) {
                     this.downloadEof = true;
+                    this.downloading = false;
                     this._tick();
                     return;
                 }
@@ -72,6 +73,9 @@ class FileDownloader extends FileProcessor {
                     const chunk = new Uint8Array(dlChunk, i,
                         Math.min(this.chunkSizeWithOverhead, dlChunk.byteLength - i));
                     this.decryptQueue.push(chunk);
+                }
+                if (this.downloadPos >= this.file.sizeWithOverhead) {
+                    this.downloadEof = true;
                 }
                 this.downloading = false;
                 this._tick();
