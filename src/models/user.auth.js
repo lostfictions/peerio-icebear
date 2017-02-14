@@ -105,6 +105,10 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._checkForPasscode = () => {
+        if (this.authKeys) {
+            console.log('user.auth.js: auth keys already loaded');
+            return Promise.resolve(true);
+        }
         return TinyDb.system.getValue(`${this.username}:passcode`)
             .then((passcodeSecretArray) => {
                 if (passcodeSecretArray) {
