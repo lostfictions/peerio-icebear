@@ -1,4 +1,4 @@
-const { observable } = require('mobx');
+const { observable, when } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
 
@@ -19,6 +19,7 @@ class SystemWarning {
  * Eventually extendable, e.g. with custom action depending on the server warning message.
  */
 class ServerWarning extends SystemWarning {
+
     constructor(object) {
         super(object);
         this.content = object.msg;
@@ -38,6 +39,7 @@ class ServerWarning extends SystemWarning {
  */
 class SystemWarningCollection {
     collection = observable([]);
+    hash = {};
 
     constructor() {
         _.bindAll(this, ['add', 'addServerWarning']);
@@ -48,10 +50,20 @@ class SystemWarningCollection {
     }
 
     addServerWarning(serverData) {
-        this.collection.push(new ServerWarning(serverData));
+        const token = serverData.token;
+        if (token && this.hash[token]) {
+            return;
+        }
+        const warning = new ServerWarning(serverData);
+        this.hash[token] = warning;
+        this.collection.push(warning);
     }
 }
 
 const s = new SystemWarningCollection();
+
+when(() => socket.connected, () => {
+    socket.subscribe(socket.APP_EVENTS.serverWarning, s.addServerWarning);
+});
 
 module.exports = s;
