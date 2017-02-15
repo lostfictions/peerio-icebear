@@ -10,7 +10,7 @@ class TimeStore {
     currentTimestamp;
 
     constructor() {
-        this.atom =    new Atom(
+        this.atom = new Atom(
             'Clock',
             () => this.startTicking(),
             () => this.stopTicking()
@@ -20,9 +20,8 @@ class TimeStore {
     getCurrentTime() {
         if (this.atom.reportObserved()) {
             return this.currentTimestamp;
-        } else {
-            return Date.now();
         }
+        return Date.now();
     }
 
     tick() {
