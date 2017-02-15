@@ -10,6 +10,7 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof global !== 'undefined') {
+    // noinspection JSAnnotator
     global.Promise = Promise;
 }
 
@@ -42,6 +43,8 @@ const systemWarnings = require('./models/system-warning');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
 const legacyMigrator = require('./legacy/account_migrator');
+const defaultClock = require('./helpers/observable-clock').default;
+const Clock = require('./helpers/observable-clock').Clock;
 
 module.exports = {
     errors,
@@ -61,5 +64,7 @@ module.exports = {
     FileNonceGenerator,
     util,
     systemWarnings,
-    legacyMigrator
+    legacyMigrator,
+    defaultClock,
+    Clock
 };

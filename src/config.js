@@ -62,6 +62,7 @@ const config = new class {
     // -- client-specific implementations should be provided
     FileStream = null;
     StorageEngine = null;
+    observableClockEventFrequency = 30; // seconds
 }();
 
 // ICEBEAR_TEST_ENV is a constant replacement set by webpack
