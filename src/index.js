@@ -34,7 +34,6 @@ const contactStore = require('./models/stores/contact-store');
 const chatStore = require('./models/stores/chat-store');
 const fileStore = require('./models/stores/file-store');
 const mailStore = require('./models/stores/mail-store');
-const timeStore = require('./models/stores/time-store');
 const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/files/file-stream-abstract');
 const FileNonceGenerator = require('./models/files/file-nonce-generator');
@@ -58,7 +57,6 @@ module.exports = {
     chatStore,
     fileStore,
     mailStore,
-    timeStore,
     validation,
     FileStreamAbstract,
     FileNonceGenerator,
