@@ -24,6 +24,7 @@ class Ghost extends Keg {
     @observable timestamp = Date.now();
     @observable sent = false;
     @observable lifeSpanInSeconds = 0;
+    @observable revoked = false;
 
     get date() {
         return new Date(this.timestamp);
@@ -57,6 +58,7 @@ class Ghost extends Keg {
     constructor() {
         const db = User.current.kegDb;
         super(null, 'ghost', db);
+        this.revoke = this.revoke.bind(this);
         this.version = 2;
         this.passphrase = PhraseDictionaryCollection.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
         // encode user-specific ID in hex
@@ -97,6 +99,19 @@ class Ghost extends Keg {
         this.recipients = data.recipients;
         this.sent = true;
         this.lifeSpanInSeconds = data.lifeSpanInSeconds;
+    }
+
+    /**
+     * Fetch ghost status properties after rehydrating from keg.
+     *
+     * @returns {Promise}
+     */
+    afterLoad() {
+        return socket.send('/auth/ghost/get', { ghostId: this.ghostId })
+            .then((ghostData) => {
+                this.revoked = ghostData.deleted;
+                // eventually view audit trail...
+            });
     }
 
     /**
@@ -211,7 +226,11 @@ class Ghost extends Keg {
      * @returns {Promise}
      */
     revoke() {
-        return socket.send('/auth/ghost/delete', { ghostId: this.ghostId });
+        return socket.send('/auth/ghost/delete', { ghostId: this.ghostId })
+            .then(() => {
+                this.revoked = true;
+                return this.saveToServer();
+            });
     }
 }
 
