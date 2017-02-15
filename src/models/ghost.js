@@ -9,6 +9,7 @@ const keys = require('../crypto/keys');
 const User = require('./user');
 const PhraseDictionaryCollection = require('./phrase-dictionary');
 const config = require('../config');
+const defaultClock = require('../helpers/observable-clock').default;
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
@@ -46,7 +47,7 @@ class Ghost extends Keg {
     }
 
     @computed get expired() {
-        return this.timestamp + (this.lifeSpanInSeconds * 1000) < Date.now();
+        return this.timestamp + (this.lifeSpanInSeconds * 1000) < defaultClock.now;
     }
 
     /**
