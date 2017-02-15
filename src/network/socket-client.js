@@ -52,8 +52,10 @@ class SocketClient {
     @observable connected = false;
     @observable authenticated = false;
     // for debug (if enabled)
-    @observable bytesReceived = 0;
-    @observable bytesSent = 0;
+    // DON'T MAKE THIS OBSERVABLE
+    // At some conditions it creates cyclic reactions with autorun
+    bytesReceived = 0;
+    bytesSent = 0;
 
     authenticatedEventListeners = [];
     startedEventListeners = [];
