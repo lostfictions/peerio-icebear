@@ -104,8 +104,8 @@ module.exports = function mixUserAuthModule() {
      * @returns {Promise}
      * @private
      */
-    this._checkForPasscode = () => {
-        if (this.authKeys) {
+    this._checkForPasscode = (skipCache) => {
+        if (!skipCache && this.authKeys) {
             console.log('user.auth.js: auth keys already loaded');
             return Promise.resolve(true);
         }
@@ -225,7 +225,6 @@ module.exports = function mixUserAuthModule() {
     };
 
     this.validatePasscode = (passcode) => {
-        if (!this.passcodeIsSet) return Promise.reject(new Error('user.auth.js: passcode is not set'));
         const u = new this.constructor(); // eslint-disable-line
         u.passphrase = passcode;
         u.username = this.username;
