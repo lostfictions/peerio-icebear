@@ -1,5 +1,6 @@
 const { observable, computed, action } = require('mobx');
 const _ = require('lodash');
+const timeStore = require('./stores/time-store');
 const contactStore = require('./stores/contact-store');
 const fileStore = require('./stores/file-store');
 const socket = require('../network/socket');
@@ -45,7 +46,7 @@ class Ghost extends Keg {
     }
 
     @computed get expired() {
-        return this.timestamp + (this.lifeSpanInSeconds * 1000) < Date.now();
+        return this.timestamp + (this.lifeSpanInSeconds * 1000) < timeStore.getCurrentTime();
     }
 
     /**
