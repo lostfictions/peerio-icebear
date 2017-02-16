@@ -96,9 +96,9 @@ function b64ToBytes(str) {
     return new Uint8Array(Buffer.from(str, 'base64').buffer);
 }
 
-/** Converts byte array to Base64 string. */
+/** Converts Uint8Array or ArrayBuffer to Base64 string. */
 function bytesToB64(bytes) {
-    return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('base64');
+    return Buffer.from(bytes.buffer || bytes, bytes.byteOffset, bytes.byteLength).toString('base64');
 }
 
 function bytesToHex(bytes) {

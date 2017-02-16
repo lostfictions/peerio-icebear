@@ -100,8 +100,10 @@ class Contact {
                             return;
                         }
                         // flagging contact
-                        if (profile.encryptionPublicKey !== cryptoUtil.bytesToB64(this.encryptionPublicKey)
-                            || profile.signingPublicKey !== cryptoUtil.bytesToB64(this.signingPublicKey)) {
+                        if (cryptoUtil.bytesToB64(profile.encryptionPublicKey)
+                            !== cryptoUtil.bytesToB64(this.encryptionPublicKey)
+                            || cryptoUtil.bytesToB64(profile.signingPublicKey)
+                            !== cryptoUtil.bytesToB64(this.signingPublicKey)) {
                             this.tofuError = true;
                         }
                         // overriding whatever server returned for contact with our stored keys
