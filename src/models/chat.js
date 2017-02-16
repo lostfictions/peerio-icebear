@@ -1,4 +1,4 @@
-const { observable, computed, action, reaction, autorunAsync } = require('mobx');
+const { observable, computed, action, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
@@ -51,7 +51,7 @@ class Chat {
 
     @observable unreadCount = tracker.getDigest(this.id, 'message').newKegsCount;
 
-    downloadedUpdateId = 0;
+    @observable downloadedUpdateId = 0;
     @observable maxUpdateId = tracker.getDigest(this.id, 'message').maxUpdateId;
 
     downloadedReceiptId = 0;
@@ -71,7 +71,7 @@ class Chat {
     }
 
     onMessageDigestUpdate = _.throttle(() => {
-        const msgDigest = tracker.digest[this.id].message;
+        const msgDigest = tracker.getDigest(this.id, 'message');
         this.unreadCount = msgDigest.newKegsCount;
         this.maxUpdateId = msgDigest.maxUpdateId;
     }, 500);
@@ -91,7 +91,9 @@ class Chat {
                 this.loadingMeta = false;
                 this.metaLoaded = true;
                 tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
+                this.onMessageDigestUpdate();
                 tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
+                this.onReceiptDigestUpdate();
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -134,13 +136,12 @@ class Chat {
             this.errorLoadingMessages = false;
             this.loadingMessages = false;
             reaction(() => this.maxUpdateId, () => this.updateMessages(), false);
-            autorunAsync(() => {
-                if (this.unreadCount === 0 || !this.active) return;
+            reaction(() => this.active || this.downloadedUpdateId, () => {
+                if (!this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
                 // todo: this won't work properly with paging
-                if (this.messages.length) this._sendReceipt();
-            }, 700);
-            this._sendReceipt();
+                if (this.messages.length) this._sendReceipt(this.messages[this.messages.length - 1].id);
+            }, { fireImmediately: true, delay: 2000 });
             this._loadReceipts();
         })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
@@ -234,19 +235,55 @@ class Chat {
         return true;
     }
 
+    // this flag means that something is currently being sent (in not null)
+    // it might equal the actual receipt value being sent,
+    // or a larger number that will be sent right after current one
+    pendingReceipt = null;
     _sendReceipt(pos) {
-        const position = +(pos || this.messages[this.messages.length - 1].id);
-        if (!position) return; // in case of pending outgoing message
+        console.debug('asked to send receipt: ', pos);
+        // if something is currently in progress of sending we just want to adjust max value
+        if (this.pendingReceipt) {
+            this.pendingReceipt = Math.max(pos, this.pendingReceipt);
+            console.debug('receipt was pending. now pending: ', this.pendingReceipt);
+            return; // will be send after current receipt finishes sending
+        }
+        // we don't want to send older receipt if newer one exists already
+        // this shouldn't really happen, but it's safer this way
+        pos = Math.max(pos, this.pendingReceipt); // eslint-disable-line no-param-reassign
+        this.pendingReceipt = pos;
+        // getting it from cache or from server
         this._loadOwnReceipt()
             .then(r => {
-                if (+r.position >= position) return;
-                r.position = position;
-                r.saveToServer()
+                if (r.position >= pos) {
+                    console.debug('receipt keg loaded but it has a higher position: ', pos, r.position);
+                    // ups, keg has a bigger position then we are trying to save
+                    // is our pending position also smaller?
+                    if (r.position >= this.pendingReceipt) {
+                        console.debug('it is higher then pending one too:', this.pendingReceipt);
+                        this.pendingReceipt = null;
+                        return;
+                    }
+                    console.debug('scheduling to save pending receipt instead: ', this.pendingReceipt);
+                    const lastPending = this.pendingReceipt;
+                    this.pendingReceipt = null;
+                    this._sendReceipt(lastPending);
+                }
+                r.position = pos;
+                console.debug('Saving receipt: ', pos);
+                return r.saveToServer() // eslint-disable-line
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
                         console.error(err);
                         this._ownReceipt = null;
+                    })
+                    .finally(() => {
+                        const lastPending = this.pendingReceipt;
+                        this.pendingReceipt = null;
+                        if (r.position < lastPending) {
+                            console.debug('scheduling to save pending receipt instead: ', lastPending);
+                            this._sendReceipt(lastPending);
+                        }
                     });
             });
     }
