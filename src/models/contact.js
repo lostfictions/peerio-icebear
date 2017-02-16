@@ -67,6 +67,8 @@ class Contact {
                   // currently there are old users in the system that don't have encryption public keys
                 if (!resp || !resp.length || !resp[0].profile.encryptionPublicKey) {
                     this.notFound = true;
+                    this._waitingForResponse = false;
+                    this.loading = false;
                     return;
                 }
                 const profile = resp[0].profile;
