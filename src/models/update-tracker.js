@@ -8,7 +8,7 @@ const socket = require('../network/socket');
  * How does update tracking work:
  *
  * 1. Update Tracker interacts with application logic via
- *      a. UpdateTracker.data object - at any time, app logic can read data from that object,
+ *      a. UpdateTracker.digest object - at any time, app logic can read data from that object,
  *          although it's not always guaranteed to be fully up to date, but it is not a problem because:
  *      b. Update events - update events are triggered in an optimized(batched) manner
  * 2. Every time connection is authenticated, Update Tracker performs update of relevant data
@@ -103,8 +103,10 @@ class UpdateTracker {
     activateKegDb(id) {
         if (this.activeKegDbs.includes(id)) return;
         this.activeKegDbs.push(id);
-        // todo when server supports it: load digest for this db
-        //   socket.send('/auth/kegs/updates/digest')
+        // eslint-disable-next-line
+        return socket.send('/auth/kegs/updates/digest', { kegDbIds: [id] })
+            .then(this._processDigestResponse)
+            .then(this._flushAccumulatedEvents);
     }
 
 

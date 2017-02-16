@@ -136,7 +136,7 @@ class Chat {
             this.errorLoadingMessages = false;
             this.loadingMessages = false;
             reaction(() => this.maxUpdateId, () => this.updateMessages(), false);
-            reaction(() => this.active || this.downloadedUpdateId, () => {
+            reaction(() => [this.active, this.downloadedUpdateId], () => {
                 if (!this.active) return;
                 tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
                 // todo: this won't work properly with paging
@@ -170,6 +170,7 @@ class Chat {
                 }
                 this.updating = false;
                 if (kegs.length) this.store.onNewMessages();
+                this._applyReceipts();
             }).catch(err => {
                 console.error('Failed to update messages.', err);
                 this.updating = false;
