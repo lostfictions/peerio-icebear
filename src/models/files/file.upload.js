@@ -127,7 +127,7 @@ function _resetUploadState(stream) {
     this.uploading = false;
     this.uploader && this.uploader.cancel();
     this.uploader = null;
-    this.progress = 0;
+    // this.progress = 0;
     try {
         if (stream) stream.close();
     } catch (ex) {

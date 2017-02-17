@@ -101,7 +101,7 @@ function _resetDownloadState(stream) {
     this.downloader && this.downloader.cancel();
     this.uploader = null;
     this.downloader = null;
-    this.progress = 0;
+   // this.progress = 0;
     try {
         if (stream) stream.close();
     } catch (ex) {

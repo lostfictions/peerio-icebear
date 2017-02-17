@@ -194,6 +194,7 @@ class FileStore {
         when(() => !keg.uploading, () => {
             this.ongoingUploads -= 1;
         });
+        return keg;
     }
 
     remove(file) {

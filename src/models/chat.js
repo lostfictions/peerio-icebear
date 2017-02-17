@@ -1,4 +1,4 @@
-const { observable, computed, action, reaction } = require('mobx');
+const { observable, computed, action, reaction, when } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('./kegs/chat-keg-db');
 const normalize = require('../errors').normalize;
@@ -7,6 +7,7 @@ const tracker = require('./update-tracker');
 const socket = require('../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
+const fileStore = require('./stores/file-store');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -17,7 +18,7 @@ function getTemporaryChatId() {
 class Chat {
     @observable id=null;
     // Message objects
-    @observable messages= [];
+    @observable messages= observable.shallowArray([]);
     msgMap = {};
     // initial metadata loading
     @observable loadingMeta = false;
@@ -32,6 +33,10 @@ class Chat {
     @observable errorLoadingMeta = false;
     // did messages fail to create/load?
     @observable errorLoadingMessages = false;
+
+    // files being uploaded to this chat
+    @observable uploadQueue = observable.shallowArray([]);
+
     metaLoaded = false;
     messagesLoaded = false;
     receipts = {};
@@ -175,6 +180,15 @@ class Chat {
                 console.error('Failed to update messages.', err);
                 this.updating = false;
             }).finally(() => this.updateMessages());
+    }
+
+    uploadAndShare(path) {
+        const file = fileStore.upload(path);
+        this.uploadQueue.push(file);
+        when(() => file.readyForDownload, () => {
+            this.uploadQueue.remove(file);
+            this.sendMessage('', [file]);
+        });
     }
 
     sendMessage(text, files) {
@@ -350,6 +364,19 @@ class Chat {
             }
         }
     }
+
+    getPage(offset, count) {
+        return socket.send('/auth/kegs/collection/list-ext', {
+            collectionId: this.db.id,
+            options: {
+                type: 'message',
+                reverse: true,
+                offset,
+                count
+            }
+        });
+    }
+
 
 }
 
