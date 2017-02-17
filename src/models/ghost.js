@@ -108,9 +108,8 @@ class Ghost extends Keg {
      */
     afterLoad() {
         return socket.send('/auth/ghost/get', { ghostId: this.ghostId })
-            .then((ghostData) => {
-                this.revoked = ghostData.deleted;
-                // eventually view audit trail...
+            .catch(() => {
+                if (!this.expired) this.revoked = true;
             });
     }
 
@@ -128,7 +127,6 @@ class Ghost extends Keg {
 
         return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
             .then((kp) => {
-                console.log('ghost public key', cryptoUtil.bytesToB64(kp.publicKey));
                 this.keypair = kp;
                 return this.encryptForEphemeralRecipient();
             })
