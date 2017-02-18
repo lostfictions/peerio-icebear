@@ -69,7 +69,7 @@ class Chat {
      */
     constructor(id, participants, store) {
         this.id = id;
-        this.store = store;
+        this.dragStore = store;
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
@@ -182,8 +182,8 @@ class Chat {
             }).finally(() => this.updateMessages());
     }
 
-    uploadAndShare(path) {
-        const file = fileStore.upload(path);
+    uploadAndShare(path, name) {
+        const file = fileStore.upload(path, name);
         this.uploadQueue.push(file);
         when(() => file.readyForDownload, () => {
             this.uploadQueue.remove(file);

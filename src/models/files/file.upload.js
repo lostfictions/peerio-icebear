@@ -72,6 +72,7 @@ function upload(filePath, fileName, resume) {
                 console.log(`File read stream open. File size: ${stream.size}`);
                 if (nextChunkId === null) {
                     this.size = stream.size;
+                    if (!this.size) return Promise.reject('Can not upload zero size file.');
                     this.chunkSize = config.upload.getChunkSize(this.size);
                     nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
                     this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
