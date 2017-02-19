@@ -80,7 +80,8 @@ class Ghost extends Keg {
             version: 2,
             files: this.files.slice(),
             body: this.body,
-            timestamp: this.timestamp
+            timestamp: this.timestamp,
+            revoked: this.revoked
         };
     }
 
@@ -99,18 +100,7 @@ class Ghost extends Keg {
         this.recipients = data.recipients;
         this.sent = true;
         this.lifeSpanInSeconds = data.lifeSpanInSeconds;
-    }
-
-    /**
-     * Fetch ghost status properties after rehydrating from keg.
-     *
-     * @returns {Promise}
-     */
-    afterLoad() {
-        return socket.send('/auth/ghost/get', { ghostId: this.ghostId })
-            .catch(() => {
-                if (!this.expired) this.revoked = true;
-            });
+        this.revoked = data.revoked;
     }
 
     /**
