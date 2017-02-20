@@ -33,6 +33,7 @@ function download(filePath, resume) {
         return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
     }
     try {
+        this.progress = 0;
         this._resetDownloadState();
         this.downloading = true;
         this._saveDownloadStartFact(filePath);

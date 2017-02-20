@@ -49,6 +49,7 @@ function upload(filePath, fileName, resume) {
     }
     try {
         this.selected = false;
+        this.progress = 0;
         this._resetUploadState();
         this.uploading = true;
         let p = Promise.resolve(null);
