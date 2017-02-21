@@ -8,6 +8,7 @@ const socket = require('../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
 const fileStore = require('./stores/file-store');
+const config = require('../config');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -206,7 +207,9 @@ class Chat {
     }
 
     sendAck() {
-        return this.sendMessage('👍');// <- this is not a whitespace, it's unicode :thumb_up::
+        // !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!
+        // Know that it's not a whitespace, it's unicode :thumb_up: emoji
+        return this.sendMessage('👍');
     }
 
     _detectFirstOfTheDayFlag(msg) {
@@ -255,11 +258,11 @@ class Chat {
     // or a larger number that will be sent right after current one
     pendingReceipt = null;
     _sendReceipt(pos) {
-        console.debug('asked to send receipt: ', pos);
+        // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
         if (this.pendingReceipt) {
             this.pendingReceipt = Math.max(pos, this.pendingReceipt);
-            console.debug('receipt was pending. now pending: ', this.pendingReceipt);
+            // console.debug('receipt was pending. now pending: ', this.pendingReceipt);
             return; // will be send after current receipt finishes sending
         }
         // we don't want to send older receipt if newer one exists already
@@ -270,21 +273,21 @@ class Chat {
         this._loadOwnReceipt()
             .then(r => {
                 if (r.position >= pos) {
-                    console.debug('receipt keg loaded but it has a higher position: ', pos, r.position);
+                    // console.debug('receipt keg loaded but it has a higher position: ', pos, r.position);
                     // ups, keg has a bigger position then we are trying to save
                     // is our pending position also smaller?
                     if (r.position >= this.pendingReceipt) {
-                        console.debug('it is higher then pending one too:', this.pendingReceipt);
+                        // console.debug('it is higher then pending one too:', this.pendingReceipt);
                         this.pendingReceipt = null;
                         return;
                     }
-                    console.debug('scheduling to save pending receipt instead: ', this.pendingReceipt);
+                    // console.debug('scheduling to save pending receipt instead: ', this.pendingReceipt);
                     const lastPending = this.pendingReceipt;
                     this.pendingReceipt = null;
                     this._sendReceipt(lastPending);
                 }
                 r.position = pos;
-                console.debug('Saving receipt: ', pos);
+                // console.debug('Saving receipt: ', pos);
                 return r.saveToServer() // eslint-disable-line
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
@@ -296,7 +299,7 @@ class Chat {
                         const lastPending = this.pendingReceipt;
                         this.pendingReceipt = null;
                         if (r.position < lastPending) {
-                            console.debug('scheduling to save pending receipt instead: ', lastPending);
+                            // console.debug('scheduling to save pending receipt instead: ', lastPending);
                             this._sendReceipt(lastPending);
                         }
                     });
