@@ -41,7 +41,7 @@ class ChatStore {
         if (id === 'SELF' || !!this.chatMap[id]) return Promise.resolve();
         const c = new Chat(id, undefined, this);
         return c.loadMetadata().then(() => {
-            if (c.errorLoadingMeta || this.chatMap[id]) return;
+            if (this.chatMap[id]) return;
             this.chatMap[id] = c;
             this.chats.push(c);
         });
@@ -66,7 +66,6 @@ class ChatStore {
                 return Promise.all(promises).then(action(() => {
                     for (let i = 0; i < lChats.length; i++) {
                         const c = lChats[i];
-                        if (c.errorLoadingMeta) continue;
                         this.chatMap[c.id] = c;
                         this.chats.push(c);
                     }
