@@ -1,8 +1,8 @@
 //
 //  Crypto keys module testing
 //
-const crypto = require('../../src/crypto/keys');
-const util = require('../../src/crypto/util');
+const crypto = require('../../build/crypto/keys');
+const util = require('../../build/crypto/util');
 
 describe('Crypto Keys module', function() {
     this.timeout(15000);
@@ -54,7 +54,7 @@ describe('Crypto Keys module', function() {
 
     describe('ghost/ephemeral keys', () => {
         before(() => {
-            this.ghostID = new Uint8Array(Buffer.from('CvfX223vsFuVerNrGS1n1sz4AYfpERb8JbeBeWUYMqdo', 'utf-8').buffer);
+            this.ghostID = util.strToBytes('CvfX223vsFuVerNrGS1n1sz4AYfpERb8JbeBeWUYMqdo');
             this.passphrase = 'latch floats varied harper vast';
 
             this.expected = {
@@ -72,7 +72,7 @@ describe('Crypto Keys module', function() {
         });
 
         it('cannot be derived from a bad id', () => {
-            return crypto.deriveEphemeralKeys('CvfX223vsFuVerNrGS1n1sz4AYfpERb8JbeBeWUY1234', this.passphrase)
+            return crypto.deriveEphemeralKeys('not the real ghost id heheheheh', this.passphrase)
                 .then((kp) => {
                     expect(kp.secretKey).not.to.deep.equal(this.expected.secretKey);
                     expect(kp.publicKey).not.to.deep.equal(this.expected.publicKey);

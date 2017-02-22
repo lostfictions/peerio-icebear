@@ -16,7 +16,6 @@ module.exports = {
         crypto: false,
         window: false,
         xdescribe: false,
-        ICEBEAR_TEST_ENV: false,
         WebSocket: false,
         XMLHttpRequest: false
     }

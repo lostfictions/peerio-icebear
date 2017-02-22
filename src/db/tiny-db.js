@@ -97,7 +97,7 @@ class TinyDb {
      */
     setValue(key, value) {
         if (!key) return Promise.reject(new Error('Invalid tinydb key'));
-        let val = JSON.stringify(value);
+        let val = JSON.stringify(value == null ? null : value);
         val = this._encrypt(val);
         return this.engine.setValue(key, val);
     }
@@ -111,6 +111,9 @@ class TinyDb {
         return this.engine.getAllKeys();
     }
 
+    clear() {
+        this.engine.clear();
+    }
 }
 
 module.exports = TinyDb;

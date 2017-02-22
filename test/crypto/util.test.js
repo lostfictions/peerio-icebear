@@ -1,7 +1,7 @@
 //
 //  Crypto utilities module testing
 //
-const util = require('../../src/crypto/util');
+const util = require('../../build/crypto/util');
 
 describe('Crypto Utilities module', () => {
     [

@@ -12,21 +12,32 @@ const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDec
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
 const textDecoder = HAS_TEXT_ENCODER ? new TextDecoder('utf-8') : null;
 
-/**
- * Universal access to secure PRNG
- * browser version
- */
-let getRandomBytes = function(num) {
-    return crypto.getRandomValues(new Uint8Array(num));
-};
+// <PRNG> --------------------------------------------------------------------------------------------------------
+let getRandomBytes;
 
-// node version.
-// todo: maybe this is not the best way to detect node runtime :-D
-if (global && !global.crypto) {
-    const crypto = global.cryptoShim;
-    console.log(`cryptoShim: ${crypto}`);
+// do we have crypto shim?
+if (global && global.cryptoShim) {
     getRandomBytes = function(num) {
-        return crypto.randomBytes(num);
+        return global.cryptoShim.randomBytes(num);
+    };
+}
+
+// node crypto?
+if (!getRandomBytes && global) {
+    try {
+        const crypto = require('crypto');
+        getRandomBytes = function(num) {
+            return crypto.randomBytes(num);
+        };
+    } catch (err) {
+        // we don't care, this is a way to detect if module exists
+    }
+}
+
+// browser crypto?
+if (!getRandomBytes && window) {
+    getRandomBytes = function(num) {
+        return window.crypto.getRandomValues(new Uint8Array(num));
     };
 }
 
@@ -56,6 +67,7 @@ function getRandomNumber(min, max) {
 
     return min + rval;
 }
+// </PRNG> -------------------------------------------------------------------------------------------------------
 
 /**
  * Concatenates two Uint8Arrays.

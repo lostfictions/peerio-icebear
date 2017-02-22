@@ -49,6 +49,7 @@ const config = new class {
     supportUrl = 'https://peerio.zendesk.com';
 
     socketServerUrl = 'wss://';
+    ghostFrontendUrl = 'https://';
 
     upload = new UploadConfig();
     // Numbers below are an approximate maximum, download logic will detect the exact number based on
@@ -65,10 +66,5 @@ const config = new class {
     observableClockEventFrequency = 30; // seconds
 }();
 
-// ICEBEAR_TEST_ENV is a constant replacement set by webpack
-// this is only for running icebear unit tests
-if (typeof (ICEBEAR_TEST_ENV) !== 'undefined') {
-    config.socketServerUrl = ICEBEAR_TEST_ENV;
-}
 
 module.exports = config;
