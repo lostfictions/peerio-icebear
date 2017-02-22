@@ -70,7 +70,7 @@ class Chat {
      */
     constructor(id, participants, store) {
         this.id = id;
-        this.dragStore = store;
+        this.store = store;
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
