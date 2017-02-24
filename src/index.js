@@ -44,6 +44,7 @@ const TinyDb = require('./db/tiny-db');
 const legacyMigrator = require('./legacy/account_migrator');
 const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
+const fileHelpers = require('./helpers/file');
 
 module.exports = {
     errors,
@@ -64,5 +65,6 @@ module.exports = {
     systemWarnings,
     legacyMigrator,
     defaultClock,
-    Clock
+    Clock,
+    fileHelpers
 };
