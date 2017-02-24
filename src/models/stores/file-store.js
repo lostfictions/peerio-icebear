@@ -188,7 +188,7 @@ class FileStore {
     upload(filePath, fileName) {
         this.ongoingUploads += 1;
         const keg = new File(User.current.kegDb);
-        keg.upload(filePath, fileName);
+        keg.upload(filePath, fileName).catch(e => console.log(e));
         this.files.unshift(keg);
 
         when(() => !keg.uploading, () => {
