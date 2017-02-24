@@ -147,6 +147,7 @@ class Chat {
             this.uploadQueue.remove(file);
             this.sendMessage('', [file]);
         });
+        return file;
     }
 
     sendMessage(text, files) {
