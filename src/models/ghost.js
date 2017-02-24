@@ -31,7 +31,8 @@ class Ghost extends Keg {
     }
 
     @computed get preview() {
-        return this.body && this.body.length > 0 ? this.body.substring(0, 20) : '...';
+        return this.body && this.body.length > 0 ?
+            this.body.substring(0, 120).replace(/^[\r\n]*/g, '').replace(/\r*\n/g, ' ') : '...';
     }
 
     @computed get url() {
