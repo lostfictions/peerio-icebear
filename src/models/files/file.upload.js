@@ -99,6 +99,7 @@ function upload(filePath, fileName, resume) {
                     }
                 });
                 this._resetUploadState();
+                console.log('file.upload.js: cancelling upload');
                 return Promise.reject(new Error(err));
             });
     } catch (ex) {
@@ -111,6 +112,10 @@ function upload(filePath, fileName, resume) {
 function cancelUpload() {
     this._saveUploadEndFact();
     this._resetUploadState();
+    if (this.uploadQueue) {
+        this.uploadQueue.remove(this);
+        this.uploadQueue = null;
+    }
 }
 
 

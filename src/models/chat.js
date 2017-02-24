@@ -185,6 +185,7 @@ class Chat {
 
     uploadAndShare(path, name) {
         const file = fileStore.upload(path, name);
+        file.uploadQueue = this.uploadQueue;
         this.uploadQueue.push(file);
         when(() => file.readyForDownload, () => {
             this.uploadQueue.remove(file);
