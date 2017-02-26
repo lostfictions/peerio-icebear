@@ -57,7 +57,7 @@ class MailStore {
         })).then(() => {
             // TODO allow other kinds of sort
             _.sortBy(this.ghosts, (g) => -g.timestamp);
-            this.selectedId = this.ghosts[0].ghostId;
+            if (this.ghosts.length) this.selectedId = this.ghosts[0].ghostId;
         });
     }
 
