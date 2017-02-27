@@ -9,7 +9,6 @@ const Receipt = require('./receipt');
 const _ = require('lodash');
 const fileStore = require('../stores/file-store');
 const config = require('../../config');
-const ChatFiles = require('./chat.files');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -184,9 +183,20 @@ class Chat {
             }).finally(() => this.updateMessages());
     }
 
+    uploadAndShare(path, name) {
+        const file = fileStore.upload(path, name);
+        file.uploadQueue = this.uploadQueue;
+        this.uploadQueue.push(file);
+        when(() => file.readyForDownload, () => {
+            this.uploadQueue.remove(file);
+            this.sendMessage('', [file]);
+        });
+        return file;
+    }
+
     sendMessage(text, files) {
         const m = new Message(this.db);
-        if (files) m.files = ChatFiles.share(this, files);
+        if (files) m.files = this._shareFiles(files);
         const promise = m.send(text);
         this._detectFirstOfTheDayFlag(m);
         this.msgMap[m.tempId] = this.messages.push(m);
@@ -215,6 +225,21 @@ class Chat {
             || prev.timestamp.getYear() !== msg.timestamp.getYear()) {
             msg.firstOfTheDay = true;
         }
+    }
+
+    _shareFiles(files) {
+        if (!files || !files.length) return null;
+        const ids = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            this.participants.forEach(p => {
+                if (p.isMe) return;
+                // todo: handle failure
+                file.share(p);
+            });
+            ids.push(file.fileId);
+        }
+        return ids;
     }
 
     /**

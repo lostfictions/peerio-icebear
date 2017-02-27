@@ -31,7 +31,7 @@ const PhraseDictionaryCollection = require('./models/phrase-dictionary');
 const config = require('./config');
 const errors = require('./errors');
 const contactStore = require('./models/stores/contact-store');
-const chatStore = require('./models/stores/chat-store');
+const chatStore = require('./models/chats/chat-store');
 const fileStore = require('./models/stores/file-store');
 const mailStore = require('./models/stores/mail-store');
 const validation = require('./helpers/validation/field-validation');
@@ -45,6 +45,7 @@ const legacyMigrator = require('./legacy/account_migrator');
 const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
+const ChatFiles = require('./models/chats/chat.files');
 
 module.exports = {
     errors,
@@ -66,5 +67,6 @@ module.exports = {
     legacyMigrator,
     defaultClock,
     Clock,
-    fileHelpers
+    fileHelpers,
+    ChatFiles
 };

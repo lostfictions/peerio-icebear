@@ -6,6 +6,8 @@
     "globals":{
         "beforeEach": false,
         "afterEach": false,
+        "before": false,
+        "after": false,
         "setupTimeout": false
     }
 }
