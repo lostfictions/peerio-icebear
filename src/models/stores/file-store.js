@@ -12,6 +12,7 @@ class FileStore {
     @observable files = observable.shallowArray([]);
     @observable loading = false;
     @observable ongoingUploads = 0;
+    @observable completedUploads = 0;
     @observable currentFilter = '';
     // file store needs to know when it's considered 'active' meaning that user is looking at the file list.
     // Currently we need this to mark files as 'read' after a while.
@@ -94,8 +95,9 @@ class FileStore {
         tracker.onKegTypeUpdated('SELF', 'file', this.onFileDigestUpdate);
         reaction(() => this.ongoingUploads, () => {
             if (this.ongoingUploads > 0) {
+                const currentCompletedUploads = this.completedUploads;
                 when(() => this.ongoingUploads === 0, () => {
-                    systemWarnings.add({
+                    (this.completedUploads > currentCompletedUploads) && systemWarnings.add({
                         content: 'file_uploadComplete'
                     });
                 });
@@ -193,6 +195,7 @@ class FileStore {
 
         when(() => !keg.uploading, () => {
             this.ongoingUploads -= 1;
+            if (!keg.uploadCancelled) this.completedUploads += 1;
         });
         return keg;
     }
@@ -203,8 +206,8 @@ class FileStore {
     }
 
     cancelUpload(file) {
-        this.remove(file);
         file.cancelUpload();
+        this.remove(file);
     }
 
     cancelDownload(file) {

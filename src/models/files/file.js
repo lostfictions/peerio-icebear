@@ -38,6 +38,8 @@ class File extends Keg {
     @observable selected = false;
     // is this file visible or filtered by search
     @observable show = true;
+    // is upload cancel is initiated by user
+    uploadCancelled = false;
 
     // -- computed properties ------------------------------------------------------------------------------------
     // file extension

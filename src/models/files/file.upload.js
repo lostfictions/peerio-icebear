@@ -86,13 +86,13 @@ function upload(filePath, fileName, resume) {
                 this.uploader = new FileUploader(this, stream, nonceGen, nextChunkId);
                 return this.uploader.start();
             })
-                .then(() => {
-                    this._saveUploadEndFact();
-                    this._resetUploadState(stream);
-                })
+            .then(() => {
+                this._saveUploadEndFact();
+                this._resetUploadState(stream);
+            })
             .catch(err => {
                 console.error(err);
-                systemWarnings.add({
+                !this.uploadCancelled && systemWarnings.add({
                     content: 'file_uploadFailed',
                     data: {
                         fileName: this.name
@@ -110,6 +110,8 @@ function upload(filePath, fileName, resume) {
 }
 
 function cancelUpload() {
+    console.log(`file.uploads.js: upload cancelled`);
+    this.uploadCancelled = true;
     this._saveUploadEndFact();
     this._resetUploadState();
     if (this.uploadQueue) {
