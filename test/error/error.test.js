@@ -1,4 +1,4 @@
-const errors = require('../../build/errors');
+const errors = require('../../src/errors');
 
 describe('Peerio errors module', () => {
     it('should normalize errors', () => {

@@ -17,10 +17,21 @@ function uploadAndShare(chat, path, name) {
     chat.uploadQueue.push(file);
     when(() => file.readyForDownload, () => {
         chat.uploadQueue.remove(file);
-        chat.sendMessage('', [file]);
+        share(chat, [file]);
     });
     return file;
 }
+
+/**
+ * Shares files to chat
+ * @param {Chat} chat
+ * @param {Array<File>} files
+ */
+function share(chat, files) {
+    const ids = shareFileKegs(chat, files);
+    chat.sendMessage('', ids);
+}
+
 
 /**
  * Shares existing Peerio files with a chat.
@@ -29,8 +40,9 @@ function uploadAndShare(chat, path, name) {
  * @param {Chat} chat
  * @param {Array<File>} files
  * @return {Array<string>} - fileId list
+ * @private
  */
-function share(chat, files) {
+function shareFileKegs(chat, files) {
     if (!files || !files.length) return null;
     const ids = [];
     for (let i = 0; i < files.length; i++) {

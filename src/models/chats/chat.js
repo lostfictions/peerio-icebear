@@ -9,7 +9,7 @@ const Receipt = require('./receipt');
 const _ = require('lodash');
 const fileStore = require('../stores/file-store');
 const config = require('../../config');
-const ChatFiles = require('./chat.files');
+const chatFiles = require('./chat.files');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -186,7 +186,7 @@ class Chat {
 
     sendMessage(text, files) {
         const m = new Message(this.db);
-        if (files) m.files = ChatFiles.share(this, files);
+        m.files = files;
         const promise = m.send(text);
         this._detectFirstOfTheDayFlag(m);
         this.msgMap[m.tempId] = this.messages.push(m);
@@ -358,6 +358,13 @@ class Chat {
         });
     }
 
+    uploadAndShareFile(path, name) {
+        return chatFiles.uploadAndShare(this, path, name);
+    }
+
+    shareFiles(files) {
+        return chatFiles.share(this, files);
+    }
 
 }
 

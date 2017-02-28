@@ -45,7 +45,6 @@ const legacyMigrator = require('./legacy/account_migrator');
 const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
-const ChatFiles = require('./models/chats/chat.files');
 
 module.exports = {
     errors,
@@ -67,6 +66,5 @@ module.exports = {
     legacyMigrator,
     defaultClock,
     Clock,
-    fileHelpers,
-    ChatFiles
+    fileHelpers
 };

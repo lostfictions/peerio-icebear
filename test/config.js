@@ -1,8 +1,8 @@
 // todo: conditional (DEV/PROD) configuration
 
-const cfg = require('../build/config');
-const FileStream = require('../build/models/files/node-file-stream');
-const StorageEngine = require('../build/models/stores/node-json-storage');
+const cfg = require('../src/config');
+const FileStream = require('../src/models/files/node-file-stream');
+const StorageEngine = require('../src/models/stores/node-json-storage');
 const os = require('os');
 const path = require('path');
 

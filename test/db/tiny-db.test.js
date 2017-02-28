@@ -3,10 +3,10 @@
 // Local storage module tests
 //
 
-const db = require('../../build/db/tiny-db');
-const keys = require('../../build/crypto/keys');
+const db = require('../../src/db/tiny-db');
+const keys = require('../../src/crypto/keys');
 const helpers = require('../helpers');
-const errors = require('../../build/errors');
+const errors = require('../../src/errors');
 
 // this is a sequenced test suite
 describe('TinyDB', () => {
