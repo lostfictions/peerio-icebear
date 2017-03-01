@@ -1,8 +1,8 @@
 //
 // Test helpers
 //
-const clearRequire = require('clear-require');
 const mockSocket = require('./mocks/socket.mock');
+const mockCurrentUser = require('./mocks/user.mock');
 
 const usernameChars = '0123456789abcdefghijklmnopqrstuvwxyz';
 // generates 16-character random usernames
@@ -15,12 +15,21 @@ function getRandomUsername() {
 }
 
 function resetApp() {
-    for (const key in Object.keys(require.cache)) {
+    for (const key of Object.keys(require.cache)) {
         if (require.cache[key].exports.dispose) require.cache[key].exports.dispose();
     }
-    clearRequire.match(/'\/src\/'/);
+    const srcDir = `${process.cwd()}/src`;
+
+    Object.keys(require.cache).forEach(module => {
+        if (module.startsWith(srcDir)) {
+            delete require.cache[module];
+        }
+    });
+
+    require('./test-config')();
     mockSocket();
-    require('./init-icebear'); // eslint-disable-line
+    mockCurrentUser();
+    require('../src/').socket.start();
 }
 
 

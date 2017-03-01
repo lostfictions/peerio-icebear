@@ -4,6 +4,9 @@
 const { when } = require('mobx');
 const fileStore = require('../stores/file-store');
 
+// don't change the way it is exported, we require this object for testablity (stubs)
+const chatFiles = {};
+
 /**
  * Initiates file upload and shares it to the chat afterwards
  * @param {Chat} chat
@@ -11,26 +14,27 @@ const fileStore = require('../stores/file-store');
  * @param {[string]} name - override file name, specify to store the file in Peerio with this name
  * @return {File}
  */
-function uploadAndShare(chat, path, name) {
+chatFiles.uploadAndShare = function(chat, path, name) {
     const file = fileStore.upload(path, name);
     file.uploadQueue = chat.uploadQueue;
     chat.uploadQueue.push(file);
     when(() => file.readyForDownload, () => {
         chat.uploadQueue.remove(file);
-        share(chat, [file]);
+        chatFiles.share(chat, [file]);
     });
     return file;
-}
+};
+
 
 /**
  * Shares files to chat
  * @param {Chat} chat
  * @param {Array<File>} files
  */
-function share(chat, files) {
+chatFiles.share = function(chat, files) {
     const ids = shareFileKegs(chat, files);
     chat.sendMessage('', ids);
-}
+};
 
 
 /**
@@ -57,4 +61,4 @@ function shareFileKegs(chat, files) {
     return ids;
 }
 
-module.exports = { share, uploadAndShare };
+module.exports = chatFiles;

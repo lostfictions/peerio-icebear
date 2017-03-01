@@ -1,4 +1,4 @@
-const { observable, computed, action, reaction, when } = require('mobx');
+const { observable, computed, action, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
 const normalize = require('../../errors').normalize;
@@ -7,8 +7,6 @@ const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
-const fileStore = require('../stores/file-store');
-const config = require('../../config');
 const chatFiles = require('./chat.files');
 
 // to assign when sending a message and don't have an id yet
