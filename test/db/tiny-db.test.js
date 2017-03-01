@@ -1,17 +1,16 @@
-/* eslint-disable */
 //
 // Local storage module tests
 //
-
-const db = require('../../build/db/tiny-db');
-const keys = require('../../build/crypto/keys');
 const helpers = require('../helpers');
-const errors = require('../../build/errors');
 
 // this is a sequenced test suite
 describe('TinyDB', () => {
     let key, username;
+
     before(() => {
+        helpers.resetApp();
+        const db = require('../../src/db/tiny-db');
+        const keys = require('../../src/crypto/keys');
         key = keys.generateEncryptionKey();
         username = helpers.getRandomUsername();
         // system db is expected to open without explicit call
@@ -19,10 +18,12 @@ describe('TinyDB', () => {
     });
 
     function execForEachDb(testFn) {
+        const db = require('../../src/db/tiny-db');
         return Promise.all([db.system, db.user].map(testFn));
     }
 
     beforeEach(() => {
+        const db = require('../../src/db/tiny-db');
         db.openSystemDb();
         db.openUserDb(username, key);
         return execForEachDb(d => d.clear())
@@ -33,43 +34,43 @@ describe('TinyDB', () => {
     });
 
     it('Create and read a value', () => {
-        const key = 'test';
+        const vkey = 'test';
         const expected = 10;
         return execForEachDb(d =>
-            d.setValue(key, expected)
-                .then(() => d.getValue(key))
+            d.setValue(vkey, expected)
+                .then(() => d.getValue(vkey))
                 .then(actual => expected.should.equal(actual))
         );
     });
 
     it('Read inexisting value', () => {
-        const key = 'this_key_does_not_exist';
-        return execForEachDb(d => d.getValue(key).then(actual => expect(actual).to.be.null));
+        const vkey = 'this_key_does_not_exist';
+        return execForEachDb(d => d.getValue(vkey).then(actual => expect(actual).to.be.null));
     });
 
     it('Edit a value', () => {
-        const key = 'test';
+        const vkey = 'test';
         const expected = 10;
         const expected2 = 20;
         return execForEachDb(d =>
-            d.setValue(key, expected)
-                .then(() => d.getValue(key))
+            d.setValue(vkey, expected)
+                .then(() => d.getValue(vkey))
                 .then(actual => expected.should.equal(actual))
-                .then(() => d.setValue(key, expected2))
-                .then(() => d.getValue(key))
+                .then(() => d.setValue(vkey, expected2))
+                .then(() => d.getValue(vkey))
                 .then(actual => expected2.should.equal(actual))
         );
     });
 
     it('Remove a value', () => {
-        const key = 'test';
+        const vkey = 'test';
         const expected = 10;
         return execForEachDb(d =>
-            d.setValue(key, expected)
-                .then(() => d.getValue(key))
+            d.setValue(vkey, expected)
+                .then(() => d.getValue(vkey))
                 .then(actual => expected.should.equal(actual))
-                .then(() => d.removeValue(key))
-                .then(() => d.getValue(key))
+                .then(() => d.removeValue(vkey))
+                .then(() => d.getValue(vkey))
                 .then(actual => expect(actual).to.be.null)
         );
     });
@@ -84,11 +85,11 @@ describe('TinyDB', () => {
     });
 
     it('Delete database', () => {
-        const key = 'test';
+        const vkey = 'test';
         const expected = 10;
         return execForEachDb(d =>
-            d.setValue(key, expected)
-                .then(() => d.getValue(key))
+            d.setValue(vkey, expected)
+                .then(() => d.getValue(vkey))
                 .then(actual => expected.should.equal(actual))
                 .then(() => d.clear())
                 .then(() => d.getAllKeys())
@@ -97,25 +98,29 @@ describe('TinyDB', () => {
     });
 
     it('User and System databases are truly independent', () => {
-        const key = 'test';
+        const db = require('../../src/db/tiny-db');
+        const vkey = 'test';
         const userValue = 'user';
         const systemValue = 'system';
-        return db.user.setValue(key, userValue)
-            .then(() => db.system.setValue(key, systemValue))
-            .then(() => db.user.getValue(key))
+        return db.user.setValue(vkey, userValue)
+            .then(() => db.system.setValue(vkey, systemValue))
+            .then(() => db.user.getValue(vkey))
             .then(actual => userValue.should.equal(actual))
-            .then(() => db.system.getValue(key))
+            .then(() => db.system.getValue(vkey))
             .then(actual => systemValue.should.equal(actual));
     });
 
     it('User db always encrypts values', () => {
-        const key = 'test';
+        const db = require('../../src/db/tiny-db');
+        const keys = require('../../src/crypto/keys');
+        const errors = require('../../src/errors');
+        const vkey = 'test';
         const expected = 'encrypted value';
-        return db.user.setValue(key, expected)
-            .then(() => db.user.getValue(key))
+        return db.user.setValue(vkey, expected)
+            .then(() => db.user.getValue(vkey))
             .then(actual => expected.should.equal(actual))
             .then(() => db.openUserDb(username, keys.generateEncryptionKey()))
-            .then(() => db.user.getValue(key))
+            .then(() => db.user.getValue(vkey))
             .then(() => Promise.reject('test failed'))
             .catch(err => err.should.be.instanceOf(errors.DecryptionError));
     });
@@ -139,14 +144,11 @@ describe('TinyDB', () => {
     });
 
     it('Undefined value should be stored as null', () => {
-        const key = 'test';
+        const vkey = 'test';
         return execForEachDb(d =>
-            d.setValue(key)
-                .then(() => d.getValue(key))
+            d.setValue(vkey)
+                .then(() => d.getValue(vkey))
                 .then(actual => expect(actual).to.be.null)
         );
-
     });
-
-
 });

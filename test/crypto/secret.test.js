@@ -1,9 +1,9 @@
 //
 //  Secret key encryption module testing
 //
-const crypto = require('../../build/crypto/secret');
+const crypto = require('../../src/crypto/secret');
 const nacl = require('tweetnacl');
-const util = require('../../build/crypto/util');
+const util = require('../../src/crypto/util');
 
 describe('Secret key encryption module', () => {
     const key = new Uint8Array([127, 216, 168, 148, 177, 189, 134, 245, 107, 28, 100, 181, 50, 32, 94,

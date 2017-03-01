@@ -50,10 +50,14 @@ class Contact {
     // to avoid parallel queries
     _waitingForResponse = false;
 
-    constructor(username) {
+    /**
+     * @param username
+     * @param {[bool]} noAutoLoad - don't automatically call this.load() in constructor (needed for tests)
+     */
+    constructor(username, noAutoLoad) {
         this.username = username;
         if (getUser().username === username) this.isMe = true;
-        this.load();
+        if (!noAutoLoad) this.load();
     }
 
     load() {

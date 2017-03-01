@@ -1,7 +1,7 @@
 const { observable } = require('mobx');
-const contactStore = require('./stores/contact-store');
-const User = require('./user');
-const Keg = require('./kegs/keg');
+const contactStore = require('./../stores/contact-store');
+const User = require('./../user');
+const Keg = require('./../kegs/keg');
 
 class Message extends Keg {
     @observable sending = false;

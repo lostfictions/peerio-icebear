@@ -1,14 +1,14 @@
 const { observable, computed, action, reaction, when } = require('mobx');
 const Message = require('./message');
-const ChatKegDb = require('./kegs/chat-keg-db');
-const normalize = require('../errors').normalize;
-const User = require('./user');
-const tracker = require('./update-tracker');
-const socket = require('../network/socket');
+const ChatKegDb = require('../kegs/chat-keg-db');
+const normalize = require('../../errors').normalize;
+const User = require('../user');
+const tracker = require('../update-tracker');
+const socket = require('../../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
-const fileStore = require('./stores/file-store');
-const config = require('../config');
+const fileStore = require('../stores/file-store');
+const config = require('../../config');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -17,32 +17,40 @@ function getTemporaryChatId() {
 }
 
 class Chat {
-    @observable id=null;
+
+    @observable id = null;
+
     // Message objects
-    @observable messages= observable.shallowArray([]);
+    @observable messages = observable.shallowArray([]);
+    // performance helper, to lookup messages by id and avoid duplicates
     msgMap = {};
+
+    /** @type {Array<Contact>} */
+    @observable participants = null;
+
     // initial metadata loading
     @observable loadingMeta = false;
+    metaLoaded = false;
+
     // initial messages loading
     @observable loadingMessages = false;
-    // updating messages
-    @observable updating = false;
-    // currently selected/focused
+    messagesLoaded = false;
+    @observable updatingMessages = false;
+
+    // currently selected/focused in UI
     @observable active = false;
 
-    // did chat fail to create/load?
-    @observable errorLoadingMeta = false;
-    // did messages fail to create/load?
-    @observable errorLoadingMessages = false;
-
-    // files being uploaded to this chat
+    // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
 
-    metaLoaded = false;
-    messagesLoaded = false;
+    @observable unreadCount = 0;
+    @observable downloadedUpdateId = 0;
+    @observable maxUpdateId = 0;
+
+    downloadedReceiptId = 0;
+    // receipts cache {username: position}
     receipts = {};
-    /** @type {Array<Contact>} */
-    @observable participants=null;
+
 
     @computed get participantUsernames() {
         if (!this.participants) return null;
@@ -51,16 +59,10 @@ class Chat {
 
     @computed get chatName() {
         if (!this.participants) return '';
-        return this.participants.length === 0 ? User.current.username
-                                              : this.participants.map(p => p.username).join(', ');
+        return this.participants.length === 0
+            ? User.current.username
+            : this.participants.map(p => p.username).join(', ');
     }
-
-    @observable unreadCount = tracker.getDigest(this.id, 'message').newKegsCount;
-
-    @observable downloadedUpdateId = 0;
-    @observable maxUpdateId = tracker.getDigest(this.id, 'message').maxUpdateId;
-
-    downloadedReceiptId = 0;
 
     /**
      * @param {string} id - chat id
@@ -92,8 +94,7 @@ class Chat {
         return this.db.loadMeta()
             .then(action(() => {
                 this.id = this.db.id;
-                this.participants = this.db.participants;
-                this.errorLoadingMeta = false;
+                this.participants = this.db.participants;// todo computed
                 this.loadingMeta = false;
                 this.metaLoaded = true;
                 tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
@@ -103,7 +104,6 @@ class Chat {
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
-                this.errorLoadingMeta = true;
                 this.loadingMeta = false;
             });
     }
@@ -157,10 +157,10 @@ class Chat {
     }
 
     updateMessages() {
-        if (!this.messagesLoaded || this.updating || this.loadingMessages
+        if (!this.messagesLoaded || this.updatingMessages || this.loadingMessages
             || this.downloadedUpdateId >= this.maxUpdateId) return;
         console.log(`Updating messages for ${this.id} known: ${this.downloadedUpdateId}, max: ${this.maxUpdateId}`);
-        this.updating = true;
+        this.updatingMessages = true;
         this._getMessages(this.downloadedUpdateId + 1)
             .then(kegs => {
                 for (const keg of kegs) {
@@ -174,12 +174,12 @@ class Chat {
                     }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
                 }
-                this.updating = false;
+                this.updatingMessages = false;
                 if (kegs.length) this.store.onNewMessages();
                 this._applyReceipts();
             }).catch(err => {
                 console.error('Failed to update messages.', err);
-                this.updating = false;
+                this.updatingMessages = false;
             }).finally(() => this.updateMessages());
     }
 
@@ -259,6 +259,7 @@ class Chat {
     // it might equal the actual receipt value being sent,
     // or a larger number that will be sent right after current one
     pendingReceipt = null;
+
     _sendReceipt(pos) {
         // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
