@@ -1,4 +1,5 @@
 const { observable, when } = require('mobx');
+const socket = require('../../network/socket');
 const Contact = require('../contact');
 const { setContactStore } = require('../../helpers/di-contact-store');
 /**
@@ -43,6 +44,18 @@ class ContactStore {
         return null;
     }
 
+    _merge(usernames) {
+        usernames.forEach(u => this.getContact(u));
+    }
+
+    loadLegacyContacts() {
+        return socket.send('/auth/legacy/contacts/get')
+            .then(list => {
+                console.log(`contact-store.js: load legacy contacts`);
+                // console.log(list);
+                list && list.length && this._merge(list);
+            });
+    }
 }
 
 const store = new ContactStore();
