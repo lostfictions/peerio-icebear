@@ -28,6 +28,11 @@ class Contact {
         return `#${cryptoUtil.getHexHash(3, this.signingPublicKey)}`;
     }
 
+    @computed get letter() {
+        const { username, firstName } = this;
+        return (firstName || username || ' ')[0].toUpperCase();
+    }
+
     // fingerprint calculation is async, but at the same time we want it to be lazy computed
     // so we cache computed result here
     @observable __fingerprint = null;
