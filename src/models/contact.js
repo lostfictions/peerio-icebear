@@ -60,7 +60,6 @@ class Contact {
             .match(/.{1,4}/g)
             .join(' ')
             .replace(/ /g, () => (i++ === 3 ? '\n' : ' '));
-
     }
 
     // contact wasn't found on server
