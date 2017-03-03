@@ -45,6 +45,18 @@ class Contact {
         }
         return this.__fingerprint;
     }
+
+    // converts 12345-12345-12345-12345-12345 to
+    //          1234 5123 4512\n3451 2345 1234 5123 45
+    @computed get fingerprintSkylarFormatted() {
+        let i = 0;
+        return this.fingerprint
+            .replace(/-/g, '')
+            .match(/.{1,4}/g)
+            .join(' ')
+            .replace(/ /g, () => (i++ === 3 ? '\n' : ' '));
+    }
+
     // contact wasn't found on server
     notFound = false;
     // to avoid parallel queries
