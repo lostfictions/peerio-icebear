@@ -18,7 +18,7 @@ const { DecryptionError } = require('../errors');
  */
 function decryptCompat(cipher, nonce, theirPublicKey, mySecretKey) {
     const decrypted = nacl.box.open(cipher, nonce, theirPublicKey, mySecretKey);
-    if (decrypted === false) throw new DecryptionError();
+    if (decrypted === null) throw new DecryptionError();
     // underlying buffer is > then ciphertext, this can lead to numerous bugs, so we slice it
     return decrypted.slice();
 }
