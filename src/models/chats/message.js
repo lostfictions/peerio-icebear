@@ -37,14 +37,13 @@ class Message extends Keg {
 
     serializeKegPayload() {
         return {
-            sender: this.sender.username,
             text: this.text,
             timestamp: this.timestamp.valueOf()
         };
     }
 
     deserializeKegPayload(payload) {
-        this.sender = contactStore.getContact(payload.sender);
+        this.sender = contactStore.getContact(this.owner);
         this.text = payload.text;
         this.timestamp = new Date(payload.timestamp);
     }
