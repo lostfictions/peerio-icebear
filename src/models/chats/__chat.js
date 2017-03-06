@@ -33,7 +33,7 @@ class Chat {
     metaLoaded = false;
 
     // initial messages loading
-    @observable loadingMessages = false;
+    @observable loadingPage = false;
     messagesLoaded = false;
     @observable updatingMessages = false;
 
@@ -97,7 +97,7 @@ class Chat {
                 this.participants = this.db.participants;// todo computed
                 this.loadingMeta = false;
                 this.metaLoaded = true;
-                tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
+
                 this.onMessageDigestUpdate();
                 tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
                 this.onReceiptDigestUpdate();
@@ -121,12 +121,12 @@ class Chat {
     }
 
     loadMessages() {
-        if (this.messagesLoaded || this.loadingMessages) return;
+        if (this.messagesLoaded || this.loadingPage) return;
         if (!this.metaLoaded) {
             this.loadMetadata().then(() => this.loadMessages());
         }
         console.log(`Initial message load for ${this.id}`);
-        this.loadingMessages = true;
+        this.loadingPage = true;
         this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
                 if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
@@ -139,8 +139,8 @@ class Chat {
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
             }
             this.messagesLoaded = true;
-            this.errorLoadingMessages = false;
-            this.loadingMessages = false;
+            this.errorloadingPage = false;
+            this.loadingPage = false;
             reaction(() => this.maxUpdateId, () => this.updateMessages(), false);
             reaction(() => [this.active, this.downloadedUpdateId], () => {
                 if (!this.active) return;
@@ -151,13 +151,13 @@ class Chat {
             this._loadReceipts();
         })).catch(err => {
             console.log(normalize(err, 'Error loading messages.'));
-            this.errorLoadingMessages = true;
-            this.loadingMessages = false;
+            this.errorloadingPage = true;
+            this.loadingPage = false;
         }).finally(() => this.updateMessages());
     }
 
     updateMessages() {
-        if (!this.messagesLoaded || this.updatingMessages || this.loadingMessages
+        if (!this.messagesLoaded || this.updatingMessages || this.loadingPage
             || this.downloadedUpdateId >= this.maxUpdateId) return;
         console.log(`Updating messages for ${this.id} known: ${this.downloadedUpdateId}, max: ${this.maxUpdateId}`);
         this.updatingMessages = true;

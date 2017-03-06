@@ -65,9 +65,11 @@ const config = new class {
     StorageEngine = null;
     observableClockEventFrequency = 30; // seconds
 
-    chatInitialMessages = 40; // amount of messages to load to a newly opened chat
-    chatPageSize = 20; // when next/prev pages is requested, chat will load this amount of messages
-    chatMaxLoadedMessages = 60; // chat will remove excess of messages if paging resulted in larger count
+    chat = {
+        initialPageSize: 40, // amount of messages to load to a newly opened chat
+        pageSize: 20, // when next/prev pages is requested, chat will load this amount of messages
+        maxLoadedMessages: 60 // chat will remove excess of messages if paging resulted in larger count
+    };
 }();
 
 
