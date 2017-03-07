@@ -1,5 +1,6 @@
 const { observable, computed, action } = require('mobx');
 const _ = require('lodash');
+const moment = require('moment');
 const contactStore = require('./stores/contact-store');
 const fileStore = require('./stores/file-store');
 const socket = require('../network/socket');
@@ -26,8 +27,8 @@ class Ghost extends Keg {
     @observable lifeSpanInSeconds = 0;
     @observable revoked = false;
 
-    get date() {
-        return new Date(this.timestamp);
+    @computed get date() {
+        return moment(this.timestamp);
     }
 
     @computed get preview() {
