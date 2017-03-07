@@ -68,13 +68,22 @@ class Ghost extends Keg {
     }
 
     /**
+     * ghost id
+     * @returns {{ghostId: (String|*)}}
+     */
+    serializeProps() {
+        return {
+            ghostId: this.ghostId
+        };
+    }
+
+    /**
      * To be saved to kegs.
      *
      * @returns {Object}
      */
     serializeKegPayload() {
         return {
-            ghostId: this.ghostId,
             subject: this.subject,
             passphrase: this.passphrase,
             recipients: this.recipients.slice(),
@@ -87,6 +96,10 @@ class Ghost extends Keg {
         };
     }
 
+    @action deserializeProps(props) {
+        this.ghostId = props.ghostId;
+    }
+
     /**
      * Load existing (sent) ghost from keg storage.
      *
@@ -95,7 +108,6 @@ class Ghost extends Keg {
     @action deserializeKegPayload(data) {
         this.body = data.body;
         this.subject = data.subject;
-        this.ghostId = data.ghostId;
         this.passphrase = data.passphrase;
         this.files = data.files;
         this.timestamp = data.timestamp;

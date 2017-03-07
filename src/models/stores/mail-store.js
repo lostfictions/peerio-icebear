@@ -6,16 +6,19 @@ const User = require('../user');
 const tracker = require('../update-tracker');
 
 class MailStore {
-    @observable ghosts = observable.shallowArray([]);
+    @observable ghosts = observable.shallowArray([]); // sorted array
+    @observable ghostMap = observable.shallowMap({});
     @observable loading = false;
     @observable loaded = false;
-    @observable selectedId = null;
+    @observable updating = false;
+    @observable selectedId = null; // ghostId
 
     @computed get selectedGhost() {
-        return _.find(this.ghosts, { ghostId: this.selectedId });
+        return this.ghostMap.get(this.selectedId);
     }
 
     constructor() {
+        this.updateGhosts = this.updateGhosts.bind(this);
         this.loadAllGhosts = this.loadAllGhosts.bind(this);
     }
 
@@ -43,22 +46,45 @@ class MailStore {
         if (this.loading || this.loaded) return;
         this.loading = true;
         this._getGhosts().then(action(kegs => {
+            console.log('there are mail kegs', kegs.length);
             for (const keg of kegs) {
                 const ghost = new Ghost(User.current.kegDb);
                 this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                 if (ghost.loadFromKeg(keg)) {
-                    this.ghosts.push(ghost);
-                    console.log('loaded ghost', ghost.body);
+                    console.log('loading ghost', ghost.ghostId);
+                    this.ghostMap.set(ghost.ghostId, ghost);
                 }
             }
+            this.sortByDate();
             this.loading = false;
             this.loaded = true;
-            tracker.onKegTypeUpdated('SELF', 'ghost', this.loadAllGhosts);
-        })).then(() => {
-            // TODO allow other kinds of sort
-            _.sortBy(this.ghosts, (g) => -g.timestamp);
-            if (this.ghosts.length) this.selectedId = this.ghosts[0].ghostId;
-        });
+            tracker.onKegTypeUpdated('SELF', 'ghost', this.updateGhosts);
+        }));
+    }
+
+    /**
+     * Update when server sends an update to the collection.
+     * @returns {Promise}
+     */
+    updateGhosts() {
+        console.log('coll updated');
+        if (this.updating || this.loading) return;
+        this.updating = true;
+        this._getGhosts()
+            .then(action((kegs) => {
+                for (const keg of kegs) {
+                    const inCollection = this.getById(keg.props.ghostId);
+                    console.log('in collection?', inCollection);
+                    const g = inCollection || new Ghost(User.current.kegDb);
+                    this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                    if (keg.isEmpty || !g.loadFromKeg(keg)) continue;
+                    if (!g.deleted && !inCollection) this.ghostMap.set(g.ghostId, g);
+                    if (g.deleted && inCollection) delete this.ghostMap.delete(keg.ghostId);
+                }
+                console.log('ghost map', this.ghostMap);
+                this.sortByDate(); // FIXME will draft die if receiving update?
+                this.updating = false;
+            }));
     }
 
     /**
@@ -68,13 +94,11 @@ class MailStore {
      */
     createGhost() {
         const g = new Ghost();
-
+        this.ghostMap.set(g.ghostId, g);
         this.ghosts.unshift(g);
+        this.selectedId = g.ghostId;
+        // FIXME is it added to colleciton when saved?
         return g;
-
-        // when(() => !g.sending, () => {
-        //
-        // });
     }
 
     /**
@@ -86,6 +110,24 @@ class MailStore {
         return ghost.remove();
     }
 
+    /**
+     *
+     * @param ghostId
+     * @returns {*}
+     */
+    getById(ghostId) {
+        return this.ghostMap.get(ghostId);
+    }
+
+    /**
+     *
+     */
+    sortByDate() {
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => -g.timestamp);
+        if (this.ghosts.length === 0) return;
+        console.log('most recent is', this.ghosts[0]);
+        this.selectedId = this.ghosts[0].ghostId;
+    }
 
 }
 
