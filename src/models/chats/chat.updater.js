@@ -45,7 +45,7 @@ class ChatUpdater {
                 minCollectionVersion: this.chat.downloadedUpdateId
             }
         }).then(resp => {
-            if (resp.hasMore) this.chat.historyMode = true;
+            this.chat.historyMode = resp.hasMore;
             console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
             this.chat.addMessages(resp.kegs);
         });

@@ -10,6 +10,8 @@ const _ = require('lodash');
 const chatFiles = require('./chat.files');
 const ChatUpdater = require('./chat.updater');
 const chatPager = require('./chat.pager');
+const config = require('../../config');
+
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
 function getTemporaryChatId() {
@@ -33,10 +35,13 @@ class Chat {
     metaLoaded = false;
 
     // initial messages loading
-    @observable loadingPage = false;
-    messagesLoaded = false;
+    @observable loadingInitialPage = false;
+    @observable loadingTopPage = false;
+    @observable loadingBottomPage = false;
     @observable updatingMessages = false;
 
+    @observable canGoBack = false; // can we go back in history from where we are? (load older messages)
+    // @observable canGoForward = false; // can we go forward in history or we have the most recent data loaded
     // currently selected/focused in UI
     @observable active = false;
 
@@ -51,6 +56,7 @@ class Chat {
     // receipts cache {username: position}
     receipts = {};
     updater;
+    historyMode = false;
 
     @computed get participantUsernames() {
         if (!this.participants) return null;
@@ -116,7 +122,22 @@ class Chat {
         }
         this.sortMessages();
         // todo: post processing / calculations
-        // todo: remove message excess
+        const excess = this.messages.length - config.chat.maxLoadedMessages;
+        if (excess > 0) {
+            if (prepend) {
+                for (let i = this.messages.length - excess; i < this.messages.length; i++) {
+                    delete this.msgMap[this.messages[i].id];
+                }
+                this.messages.splice(-excess);
+                this.historyMode = true;
+            } else {
+                for (let i = 0; i < excess; i++) {
+                    delete this.msgMap[this.messages[i].id];
+                }
+                this.messages.splice(0, excess);
+                this.canGoBack = true;
+            }
+        }
     }
 
     // sorts messages in-place
@@ -137,20 +158,12 @@ class Chat {
         if (+a.id > +b.id) {
             return 1;
         }
-        // commented out because current sort function only cares about a>b or not
-        // if (+a.id < +b.id) {
-        //     return -1;
-        // }
+        // in our case we only care if return value is 1 or not. So we skip value 0
         return -1;
     }
 
-    removeMessages(count, fromTop = false) {
-        if (!count) return;
-        this.messages.splice(fromTop ? count : -count);
-        // todo: post process ?
-    }
-
     sendMessage(text, files) {
+        // todo, stop history mode, jump to most recent
         const m = new Message(this.db);
         m.files = files;
         const promise = m.send(text);
@@ -205,6 +218,13 @@ class Chat {
             this.loadMetadata().then(() => this.loadMessages());
         }
         chatPager.getInitialPage(this);
+    }
+    loadPreviousPage() {
+        chatPager.getPage(this, true);
+    }
+    loadNextPage() {
+        if (!this.historyMode) return;
+        chatPager.getPage(this, false);
     }
 
 }

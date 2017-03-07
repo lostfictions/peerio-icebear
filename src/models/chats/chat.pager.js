@@ -13,8 +13,10 @@ const config = require('../../config');
 const chatPager = {};
 
 chatPager.getInitialPage = function(chat) {
-    if (chat.initialPageLoaded || this.loadingPage) return Promise.resolve();
-    chat.loadingPage = true;
+    if (chat.initialPageLoaded || this.loadingInitialPage) {
+        return Promise.resolve();
+    }
+    chat.loadingInitialPage = true;
     console.log('loading initial page for chat', chat.id);
     return socket.send('/auth/kegs/collection/list-ext', {
         collectionId: chat.id,
@@ -26,16 +28,25 @@ chatPager.getInitialPage = function(chat) {
         }
     })
         .then(resp => {
+            chat.canGoBack = resp.hasMore;
             chat.initialPageLoaded = true;
-            chat.loadingPage = false;
+            chat.loadingInitialPage = false;
             console.log(`got initial ${resp.kegs.length} for chat`, chat.id);
             return chat.addMessages(resp.kegs);
         });
 };
 
-function getPage(chat, pagingUp = true) {
-    if (!chat.initialPageLoaded || this.loadingPage) return Promise.resolve();
-    chat.loadingPage = true;
+chatPager.getPage = function(chat, pagingUp = true) {
+    if (!chat.initialPageLoaded || (pagingUp && this.loadingTopPage) || (!pagingUp && this.loadingBottomPage)) {
+        return Promise.resolve();
+    }
+    if (pagingUp) {
+        chat.loadingTopPage = true;
+        if (chat.loadingBottomPage) chat._cancelBottomPageLoad = true;
+    } else {
+        chat.loadingBottomPage = true;
+        if (chat.loadingTopPage) chat._cancelTopPageLoad = true;
+    }
     return socket.send('/auth/kegs/collection/list-ext', {
         collectionId: chat.id,
         options: {
@@ -46,16 +57,22 @@ function getPage(chat, pagingUp = true) {
         }
     })
         .then(resp => {
-            chat.loadingPage = false;
-            return chat.addMessages(resp.kegs, pagingUp);
+            if (pagingUp) {
+                chat.loadingTopPage = false;
+                if (chat._cancelTopPageLoad) return;
+                chat.canGoBack = resp.hasMore;
+            } else {
+                chat.loadingBottomPage = false;
+                if (chat._cancelBottomPageLoad) return;
+                chat.historyMode = resp.hasMore;
+            }
+            chat.addMessages(resp.kegs, pagingUp);
+        })
+        .finally(() => {
+            if (pagingUp) chat._cancelTopPageLoad = false;
+            else chat._cancelBottomPageLoad = false;
         });
-}
+};
 
-chatPager.loadPreviousPage = function(chat) {
-    return getPage(chat, true);
-};
-chatPager.loadNextPage = function(chat) {
-    return getPage(chat, false);
-};
 
 module.exports = chatPager;
