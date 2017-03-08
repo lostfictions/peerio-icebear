@@ -25,7 +25,7 @@ class Chat {
     // Message objects
     @observable messages = observable.shallowArray([]);
     // performance helper, to lookup messages by id and avoid duplicates
-    msgMap = {};
+    messageMap = {};
 
     /** @type {Array<Contact>} */
     @observable participants = null;
@@ -38,10 +38,9 @@ class Chat {
     @observable loadingInitialPage = false;
     @observable loadingTopPage = false;
     @observable loadingBottomPage = false;
-    @observable updatingMessages = false;
 
-    @observable canGoBack = false; // can we go back in history from where we are? (load older messages)
-    // @observable canGoForward = false; // can we go forward in history or we have the most recent data loaded
+    @observable canGoUp = false; // can we go back in history from where we are? (load older messages)
+    @observable canGoDown= false; // can we go forward in history or we have the most recent data loaded
     // currently selected/focused in UI
     @observable active = false;
 
@@ -56,7 +55,7 @@ class Chat {
     // receipts cache {username: position}
     receipts = {};
     updater;
-    historyMode = false;
+
 
     @computed get participantUsernames() {
         if (!this.participants) return null;
@@ -107,7 +106,7 @@ class Chat {
         if (!kegs || !kegs.length) return;
         for (let i = 0; i < kegs.length; i++) { // todo: check order, maybe iterate from last to first
             const keg = kegs[i];
-            if (keg.deleted || this.msgMap[keg.kegId]) continue; // todo: update data of existing one?
+            if (keg.deleted || this.messageMap[keg.kegId]) continue; // todo: update data of existing one?
 
             const msg = new Message(this.db).loadFromKeg(keg);
             // no payload for some reason. probably because of connection break after keg creation
@@ -118,7 +117,7 @@ class Chat {
                 this.messages.push(msg);
             }
             // id is not there for
-            if (msg.id) this.msgMap[msg.id] = msg;
+            if (msg.id) this.messageMap[msg.id] = msg;
         }
         this.sortMessages();
         // todo: post processing / calculations
@@ -126,16 +125,16 @@ class Chat {
         if (excess > 0) {
             if (prepend) {
                 for (let i = this.messages.length - excess; i < this.messages.length; i++) {
-                    delete this.msgMap[this.messages[i].id];
+                    delete this.messageMap[this.messages[i].id];
                 }
                 this.messages.splice(-excess);
-                this.historyMode = true;
+                this.canGoDown = true;
             } else {
                 for (let i = 0; i < excess; i++) {
-                    delete this.msgMap[this.messages[i].id];
+                    delete this.messageMap[this.messages[i].id];
                 }
                 this.messages.splice(0, excess);
-                this.canGoBack = true;
+                this.canGoUp = true;
             }
         }
     }
@@ -163,15 +162,16 @@ class Chat {
     }
 
     sendMessage(text, files) {
-        // todo, stop history mode, jump to most recent
+        if (this.canGoDown) this.reset();
         const m = new Message(this.db);
         m.files = files;
         const promise = m.send(text);
         when(() => !!m.id, () => {
-            if (!this.msgMap[m.id]) {
+            if (!this.messageMap[m.id]) {
                 // message wasn't added to map yet, so we are sure there's just one copy in the array
-                this.msgMap[m.id] = m;
-            } else if (this.msgMap[m.id] !== m) {
+                this.messageMap[m.id] = m;
+                this.sortMessages();
+            } else if (this.messageMap[m.id] !== m) {
                 // ups, it might have already been added via update process, we need to remove self
                 this.messages.remove(m);
             }
@@ -223,8 +223,22 @@ class Chat {
         chatPager.getPage(this, true);
     }
     loadNextPage() {
-        if (!this.historyMode) return;
+        if (!this.canGoDown) return;
         chatPager.getPage(this, false);
+    }
+
+    reset() {
+        this.loadingInitialPage = false;
+        this.initialPageLoaded = false;
+        this.loadingTopPage = false;
+        this.loadingBottomPage = false;
+        this.canGoUp = false;
+        this.canGoDown = false;
+        this.messageMap = {};
+        this.messages.clear();
+        this._cancelTopPageLoad = false;
+        this._cancelBottomPageLoad = false;
+        this.loadMessages();
     }
 
 }

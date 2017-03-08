@@ -23,7 +23,7 @@ class Chat {
     // Message objects
     @observable messages = observable.shallowArray([]);
     // performance helper, to lookup messages by id and avoid duplicates
-    msgMap = {};
+    messageMap = {};
 
     /** @type {Array<Contact>} */
     @observable participants = null;
@@ -129,11 +129,11 @@ class Chat {
         this.loadingPage = true;
         this._getMessages().then(action(kegs => {
             for (const keg of kegs) {
-                if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
+                if (!keg.isEmpty && !this.messageMap[keg.kegId]) {
                     const msg = new Message(this.db).loadFromKeg(keg);
                     if (msg) {
                         this._detectFirstOfTheDayFlag(msg);
-                        this.msgMap[keg.kegId] = this.messages.push(msg);
+                        this.messageMap[keg.kegId] = this.messages.push(msg);
                     }
                 }
                 this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
@@ -164,12 +164,12 @@ class Chat {
         this._getMessages(this.downloadedUpdateId + 1)
             .then(kegs => {
                 for (const keg of kegs) {
-                    if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
+                    if (!keg.isEmpty && !this.messageMap[keg.kegId]) {
                         const msg = new Message(this.db).loadFromKeg(keg);
 
                         if (msg) {
                             this._detectFirstOfTheDayFlag(msg);
-                            this.msgMap[keg.kegId] = this.messages.push(msg);
+                            this.messageMap[keg.kegId] = this.messages.push(msg);
                         }
                     }
                     this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
@@ -199,11 +199,11 @@ class Chat {
         if (files) m.files = this._shareFiles(files);
         const promise = m.send(text);
         this._detectFirstOfTheDayFlag(m);
-        this.msgMap[m.tempId] = this.messages.push(m);
+        this.messageMap[m.tempId] = this.messages.push(m);
         return promise.then(() => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
-            delete this.msgMap[m.tempId];
-            this.msgMap[m.id] = m;
+            delete this.messageMap[m.tempId];
+            this.messageMap[m.id] = m;
             this._sendReceipt(m.id);
         });
     }

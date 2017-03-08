@@ -31,7 +31,7 @@ class ChatUpdater {
     }, 500);
 
     loadUpdates() {
-        if (this.chat.historyMode || !this.chat.initialPageLoaded
+        if (this.chat.canGoDown || !this.chat.initialPageLoaded
             || this.chat.downloadedUpdateId >= this.chat.maxUpdateId) return;
         console.log('Getting updates for chat', this.chat.id);
         socket.send('/auth/kegs/collection/list-ext', {
@@ -45,7 +45,7 @@ class ChatUpdater {
                 minCollectionVersion: this.chat.downloadedUpdateId
             }
         }).then(resp => {
-            this.chat.historyMode = resp.hasMore;
+            this.chat.canGoDown = resp.hasMore;
             console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
             this.chat.addMessages(resp.kegs);
         });

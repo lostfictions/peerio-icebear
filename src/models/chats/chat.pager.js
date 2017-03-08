@@ -13,7 +13,7 @@ const config = require('../../config');
 const chatPager = {};
 
 chatPager.getInitialPage = function(chat) {
-    if (chat.initialPageLoaded || this.loadingInitialPage) {
+    if (chat.initialPageLoaded || chat.loadingInitialPage) {
         return Promise.resolve();
     }
     chat.loadingInitialPage = true;
@@ -28,16 +28,18 @@ chatPager.getInitialPage = function(chat) {
         }
     })
         .then(resp => {
-            chat.canGoBack = resp.hasMore;
+            chat.canGoUp = resp.hasMore;
             chat.initialPageLoaded = true;
             chat.loadingInitialPage = false;
+            chat._cancelTopPageLoad = false;
+            chat._cancelBottomPageLoad = false;
             console.log(`got initial ${resp.kegs.length} for chat`, chat.id);
             return chat.addMessages(resp.kegs);
         });
 };
 
 chatPager.getPage = function(chat, pagingUp = true) {
-    if (!chat.initialPageLoaded || (pagingUp && this.loadingTopPage) || (!pagingUp && this.loadingBottomPage)) {
+    if (!chat.initialPageLoaded || (pagingUp && chat.loadingTopPage) || (!pagingUp && chat.loadingBottomPage)) {
         return Promise.resolve();
     }
     if (pagingUp) {
@@ -60,11 +62,11 @@ chatPager.getPage = function(chat, pagingUp = true) {
             if (pagingUp) {
                 chat.loadingTopPage = false;
                 if (chat._cancelTopPageLoad) return;
-                chat.canGoBack = resp.hasMore;
+                chat.canGoUp = resp.hasMore;
             } else {
                 chat.loadingBottomPage = false;
                 if (chat._cancelBottomPageLoad) return;
-                chat.historyMode = resp.hasMore;
+                chat.canGoDown = resp.hasMore;
             }
             chat.addMessages(resp.kegs, pagingUp);
         })
