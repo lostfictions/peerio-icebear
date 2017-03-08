@@ -106,6 +106,7 @@ class Chat {
         if (!kegs || !kegs.length) return;
         for (let i = 0; i < kegs.length; i++) { // todo: check order, maybe iterate from last to first
             const keg = kegs[i];
+            this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
             if (keg.deleted || this.messageMap[keg.kegId]) continue; // todo: update data of existing one?
 
             const msg = new Message(this.db).loadFromKeg(keg);
@@ -217,9 +218,11 @@ class Chat {
         if (!this.metaLoaded) {
             this.loadMetadata().then(() => this.loadMessages());
         }
-        chatPager.getInitialPage(this);
+        chatPager.getInitialPage(this).then(() => this.updater.onMessageDigestUpdate());
     }
+
     loadPreviousPage() {
+        if (!this.canGoUp) return;
         chatPager.getPage(this, true);
     }
     loadNextPage() {

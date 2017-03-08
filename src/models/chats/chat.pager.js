@@ -34,7 +34,8 @@ chatPager.getInitialPage = function(chat) {
             chat._cancelTopPageLoad = false;
             chat._cancelBottomPageLoad = false;
             console.log(`got initial ${resp.kegs.length} for chat`, chat.id);
-            return chat.addMessages(resp.kegs);
+            chat.addMessages(resp.kegs);
+            if (!chat.canGoDown) chat.updater.markAllAsSeen();
         });
 };
 
@@ -42,12 +43,19 @@ chatPager.getPage = function(chat, pagingUp = true) {
     if (!chat.initialPageLoaded || (pagingUp && chat.loadingTopPage) || (!pagingUp && chat.loadingBottomPage)) {
         return Promise.resolve();
     }
+    console.debug('Loading page', pagingUp ? 'UP' : 'DOWN');
     if (pagingUp) {
         chat.loadingTopPage = true;
-        if (chat.loadingBottomPage) chat._cancelBottomPageLoad = true;
+        if (chat.loadingBottomPage) {
+            chat._cancelBottomPageLoad = true;
+            console.debug('Bottom page load cancelled');
+        }
     } else {
         chat.loadingBottomPage = true;
-        if (chat.loadingTopPage) chat._cancelTopPageLoad = true;
+        if (chat.loadingTopPage) {
+            chat._cancelTopPageLoad = true;
+            console.debug('Top page load cancelled');
+        }
     }
     return socket.send('/auth/kegs/collection/list-ext', {
         collectionId: chat.id,
@@ -59,6 +67,8 @@ chatPager.getPage = function(chat, pagingUp = true) {
         }
     })
         .then(resp => {
+            console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
+            pagingUp && chat._cancelTopPageLoad || !pagingUp && chat._cancelBottomPageLoad ? 'and discarded' : '');
             if (pagingUp) {
                 chat.loadingTopPage = false;
                 if (chat._cancelTopPageLoad) return;
@@ -69,6 +79,7 @@ chatPager.getPage = function(chat, pagingUp = true) {
                 chat.canGoDown = resp.hasMore;
             }
             chat.addMessages(resp.kegs, pagingUp);
+            if (!chat.canGoDown) chat.updater.markAllAsSeen();
         })
         .finally(() => {
             if (pagingUp) chat._cancelTopPageLoad = false;

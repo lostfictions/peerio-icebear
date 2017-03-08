@@ -13,7 +13,7 @@ const _ = require('lodash');
 const fileStore = require('../stores/file-store');
 const config = require('../../config');
 
-
+const noop = () => {};
 class ChatUpdater {
 
     constructor(chat) {
@@ -33,6 +33,7 @@ class ChatUpdater {
     loadUpdates() {
         if (this.chat.canGoDown || !this.chat.initialPageLoaded
             || this.chat.downloadedUpdateId >= this.chat.maxUpdateId) return;
+
         console.log('Getting updates for chat', this.chat.id);
         socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
@@ -48,7 +49,12 @@ class ChatUpdater {
             this.chat.canGoDown = resp.hasMore;
             console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
             this.chat.addMessages(resp.kegs);
+            this.markAllAsSeen();
         });
+    }
+
+    markAllAsSeen() {
+        tracker.seenThis(this.chat.id, 'message', this.chat.downloadedUpdateId);
     }
 
 }
