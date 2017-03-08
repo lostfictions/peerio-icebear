@@ -30,6 +30,7 @@ class User {
     @observable email = '';
     @observable locale = 'en';
     @observable passcodeIsSet = false;
+    @observable quotas = observable.map({});
     createdAt = null;
     deleted = false;
     blacklisted = false;
