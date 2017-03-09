@@ -36,11 +36,12 @@ class Chat {
 
     // initial messages loading
     @observable loadingInitialPage = false;
+    @observable initialPageLoaded = false;
     @observable loadingTopPage = false;
     @observable loadingBottomPage = false;
 
     @observable canGoUp = false; // can we go back in history from where we are? (load older messages)
-    @observable canGoDown= false; // can we go forward in history or we have the most recent data loaded
+    @observable canGoDown = false; // can we go forward in history or we have the most recent data loaded
     // currently selected/focused in UI
     @observable active = false;
 
