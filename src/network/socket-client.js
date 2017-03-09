@@ -45,7 +45,7 @@ const APP_EVENTS = {
 
 /** Create an instance of Socket per connection. */
 class SocketClient {
-    socket;
+    socket = null;
     started = false;
     url = null;
     @observable connected = false;

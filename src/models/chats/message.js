@@ -31,7 +31,6 @@ class Message extends Keg {
             })
             .finally(() => {
                 this.sending = false;
-                // todo: remove tempId ?
             });
     }
 

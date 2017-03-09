@@ -21,6 +21,7 @@ class Keg {
     @observable signatureError = null;// true/false/null are the valid values
     @observable sharedKegError = null;
     @observable id;
+    @observable tempId;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type

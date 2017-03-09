@@ -1,4 +1,4 @@
-const { observable, computed, action, reaction } = require('mobx');
+const { observable, computed, action, when } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
 const normalize = require('../../errors').normalize;
@@ -8,6 +8,9 @@ const socket = require('../../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
 const chatFiles = require('./chat.files');
+const ChatUpdater = require('./chat.updater');
+const chatPager = require('./chat.pager');
+const config = require('../../config');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -22,7 +25,7 @@ class Chat {
     // Message objects
     @observable messages = observable.shallowArray([]);
     // performance helper, to lookup messages by id and avoid duplicates
-    msgMap = {};
+    messageMap = {};
 
     /** @type {Array<Contact>} */
     @observable participants = null;
@@ -32,10 +35,13 @@ class Chat {
     metaLoaded = false;
 
     // initial messages loading
-    @observable loadingMessages = false;
-    messagesLoaded = false;
-    @observable updatingMessages = false;
+    @observable loadingInitialPage = false;
+    @observable initialPageLoaded = false;
+    @observable loadingTopPage = false;
+    @observable loadingBottomPage = false;
 
+    @observable canGoUp = false; // can we go back in history from where we are? (load older messages)
+    @observable canGoDown = false; // can we go forward in history or we have the most recent data loaded
     // currently selected/focused in UI
     @observable active = false;
 
@@ -49,6 +55,7 @@ class Chat {
     downloadedReceiptId = 0;
     // receipts cache {username: position}
     receipts = {};
+    updater;
 
 
     @computed get participantUsernames() {
@@ -77,16 +84,6 @@ class Chat {
         this.db = new ChatKegDb(id, participants);
     }
 
-    onMessageDigestUpdate = _.throttle(() => {
-        const msgDigest = tracker.getDigest(this.id, 'message');
-        this.unreadCount = msgDigest.newKegsCount;
-        this.maxUpdateId = msgDigest.maxUpdateId;
-    }, 500);
-
-    onReceiptDigestUpdate = _.throttle(() => {
-        this._loadReceipts();
-    }, 2000);
-
     loadMetadata() {
         if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
         this.loadingMeta = true;
@@ -96,10 +93,9 @@ class Chat {
                 this.participants = this.db.participants;// todo computed
                 this.loadingMeta = false;
                 this.metaLoaded = true;
-                tracker.onKegTypeUpdated(this.id, 'message', this.onMessageDigestUpdate);
-                this.onMessageDigestUpdate();
-                tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
-                this.onReceiptDigestUpdate();
+                this.updater = new ChatUpdater(this);
+                // tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
+                // this.onReceiptDigestUpdate();
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -107,92 +103,87 @@ class Chat {
             });
     }
 
-    /**
-     * Returns  list of message kegs in this database starting from collection version
-     * @returns {Promise<Array<MessageKeg>>}
-     */
-    _getMessages(min) {
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
-            minCollectionVersion: min || 0,
-            query: { type: 'message' }
-        });
-    }
+    @action addMessages(kegs, prepend = false) {
+        if (!kegs || !kegs.length) return;
+        for (let i = 0; i < kegs.length; i++) { // todo: check order, maybe iterate from last to first
+            const keg = kegs[i];
+            this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
+            if (keg.deleted || this.messageMap[keg.kegId]) continue; // todo: update data of existing one?
 
-    loadMessages() {
-        if (this.messagesLoaded || this.loadingMessages) return;
-        if (!this.metaLoaded) {
-            this.loadMetadata().then(() => this.loadMessages());
-        }
-        console.log(`Initial message load for ${this.id}`);
-        this.loadingMessages = true;
-        this._getMessages().then(action(kegs => {
-            for (const keg of kegs) {
-                if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
-                    const msg = new Message(this.db).loadFromKeg(keg);
-                    if (msg) {
-                        this._detectFirstOfTheDayFlag(msg);
-                        this.msgMap[keg.kegId] = this.messages.push(msg);
-                    }
-                }
-                this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
+            const msg = new Message(this.db).loadFromKeg(keg);
+            // no payload for some reason. probably because of connection break after keg creation
+            if (msg.isEmpty) continue;
+            if (prepend) {
+                this.messages.unshift(msg);
+            } else {
+                this.messages.push(msg);
             }
-            this.messagesLoaded = true;
-            this.errorLoadingMessages = false;
-            this.loadingMessages = false;
-            reaction(() => this.maxUpdateId, () => this.updateMessages(), false);
-            reaction(() => [this.active, this.downloadedUpdateId], () => {
-                if (!this.active) return;
-                tracker.seenThis(this.id, 'message', this.downloadedUpdateId);
-                // todo: this won't work properly with paging
-                if (this.messages.length) this._sendReceipt(this.messages[this.messages.length - 1].id);
-            }, { fireImmediately: true, delay: 2000 });
-            this._loadReceipts();
-        })).catch(err => {
-            console.log(normalize(err, 'Error loading messages.'));
-            this.errorLoadingMessages = true;
-            this.loadingMessages = false;
-        }).finally(() => this.updateMessages());
+            // id is not there for
+            if (msg.id) this.messageMap[msg.id] = msg;
+        }
+        this.sortMessages();
+        // todo: post processing / calculations
+        const excess = this.messages.length - config.chat.maxLoadedMessages;
+        if (excess > 0) {
+            if (prepend) {
+                for (let i = this.messages.length - excess; i < this.messages.length; i++) {
+                    delete this.messageMap[this.messages[i].id];
+                }
+                this.messages.splice(-excess);
+                this.canGoDown = true;
+            } else {
+                for (let i = 0; i < excess; i++) {
+                    delete this.messageMap[this.messages[i].id];
+                }
+                this.messages.splice(0, excess);
+                this.canGoUp = true;
+            }
+        }
     }
 
-    updateMessages() {
-        if (!this.messagesLoaded || this.updatingMessages || this.loadingMessages
-            || this.downloadedUpdateId >= this.maxUpdateId) return;
-        console.log(`Updating messages for ${this.id} known: ${this.downloadedUpdateId}, max: ${this.maxUpdateId}`);
-        this.updatingMessages = true;
-        this._getMessages(this.downloadedUpdateId + 1)
-            .then(kegs => {
-                for (const keg of kegs) {
-                    if (!keg.isEmpty && !this.msgMap[keg.kegId]) {
-                        const msg = new Message(this.db).loadFromKeg(keg);
+    // sorts messages in-place
+    // we use insertion sorting because it's optimal for our mostly always sorted small array
+    sortMessages() {
+        const array = this.messages;
+        for (let i = 1; i < array.length; i++) {
+            const item = array[i];
+            let indexHole = i;
+            while (indexHole > 0 && Chat.compareMessages(array[indexHole - 1], item) > 0) {
+                array[indexHole] = array[--indexHole];
+            }
+            array[indexHole] = item;
+        }
+    }
 
-                        if (msg) {
-                            this._detectFirstOfTheDayFlag(msg);
-                            this.msgMap[keg.kegId] = this.messages.push(msg);
-                        }
-                    }
-                    this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
-                }
-                this.updatingMessages = false;
-                if (kegs.length) this.store.onNewMessages();
-                this._applyReceipts();
-            }).catch(err => {
-                console.error('Failed to update messages.', err);
-                this.updatingMessages = false;
-            }).finally(() => this.updateMessages());
+    static compareMessages(a, b) {
+        if (+a.id > +b.id) {
+            return 1;
+        }
+        // in our case we only care if return value is 1 or not. So we skip value 0
+        return -1;
     }
 
     sendMessage(text, files) {
+        if (this.canGoDown) this.reset();
         const m = new Message(this.db);
         m.files = files;
         const promise = m.send(text);
-        this._detectFirstOfTheDayFlag(m);
-        this.msgMap[m.tempId] = this.messages.push(m);
+        when(() => !!m.id, () => {
+            if (!this.messageMap[m.id]) {
+                // message wasn't added to map yet, so we are sure there's just one copy in the array
+                this.messageMap[m.id] = m;
+                this.sortMessages();
+            } else if (this.messageMap[m.id] !== m) {
+                // ups, it might have already been added via update process, we need to remove self
+                this.messages.remove(m);
+            }
+            m.tempId = null;
+        });
+        // this._detectFirstOfTheDayFlag(m);
+        this.messages.push(m);
         return promise.then(() => {
             this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
-            delete this.msgMap[m.tempId];
-            this.msgMap[m.id] = m;
-            this._sendReceipt(m.id);
+          //  this._sendReceipt(m.id);
         });
     }
 
@@ -200,19 +191,6 @@ class Chat {
         // !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!
         // Know that it's not a whitespace, it's unicode :thumb_up: emoji
         return this.sendMessage('👍');
-    }
-
-    _detectFirstOfTheDayFlag(msg) {
-        if (!this.messages.length) {
-            msg.firstOfTheDay = true;
-            return;
-        }
-        const prev = this.messages[this.messages.length - 1];
-        if (prev.timestamp.getDate() !== msg.timestamp.getDate()
-            || prev.timestamp.getMonth() !== msg.timestamp.getMonth()
-            || prev.timestamp.getYear() !== msg.timestamp.getYear()) {
-            msg.firstOfTheDay = true;
-        }
     }
 
     /**
@@ -228,133 +206,6 @@ class Chat {
         return true;
     }
 
-    // this flag means that something is currently being sent (in not null)
-    // it might equal the actual receipt value being sent,
-    // or a larger number that will be sent right after current one
-    pendingReceipt = null;
-
-    _sendReceipt(pos) {
-        // console.debug('asked to send receipt: ', pos);
-        // if something is currently in progress of sending we just want to adjust max value
-        if (this.pendingReceipt) {
-            this.pendingReceipt = Math.max(pos, this.pendingReceipt);
-            // console.debug('receipt was pending. now pending: ', this.pendingReceipt);
-            return; // will be send after current receipt finishes sending
-        }
-        // we don't want to send older receipt if newer one exists already
-        // this shouldn't really happen, but it's safer this way
-        pos = Math.max(pos, this.pendingReceipt); // eslint-disable-line no-param-reassign
-        this.pendingReceipt = pos;
-        // getting it from cache or from server
-        this._loadOwnReceipt()
-            .then(r => {
-                if (r.position >= pos) {
-                    // console.debug('receipt keg loaded but it has a higher position: ', pos, r.position);
-                    // ups, keg has a bigger position then we are trying to save
-                    // is our pending position also smaller?
-                    if (r.position >= this.pendingReceipt) {
-                        // console.debug('it is higher then pending one too:', this.pendingReceipt);
-                        this.pendingReceipt = null;
-                        return;
-                    }
-                    // console.debug('scheduling to save pending receipt instead: ', this.pendingReceipt);
-                    const lastPending = this.pendingReceipt;
-                    this.pendingReceipt = null;
-                    this._sendReceipt(lastPending);
-                }
-                r.position = pos;
-                // console.debug('Saving receipt: ', pos);
-                return r.saveToServer() // eslint-disable-line
-                    .catch(err => {
-                        // normally, this is a connection issue or concurrency.
-                        // to resolve concurrency error we reload the cached keg
-                        console.error(err);
-                        this._ownReceipt = null;
-                    })
-                    .finally(() => {
-                        const lastPending = this.pendingReceipt;
-                        this.pendingReceipt = null;
-                        if (r.position < lastPending) {
-                            // console.debug('scheduling to save pending receipt instead: ', lastPending);
-                            this._sendReceipt(lastPending);
-                        }
-                    });
-            });
-    }
-
-    // loads or creates new receipt keg
-    _loadOwnReceipt() {
-        if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
-
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
-            minCollectionVersion: 0,
-            query: { type: 'receipt', username: User.current.username }
-        }).then(res => {
-            const r = new Receipt(this.db);
-            if (res && res.length) {
-                r.loadFromKeg(res[0]);
-                return r;
-            }
-            r.username = User.current.username;
-            r.position = 0;
-            this._ownReceipt = r;
-            return r.saveToServer().return(r);
-        });
-    }
-
-    _loadReceipts() {
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
-            minCollectionVersion: this.downloadedReceiptId || 0,
-            query: { type: 'receipt' }
-        }).then(res => {
-            if (!res && !res.length) return;
-            for (let i = 0; i < res.length; i++) {
-                this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
-                try {
-                    const r = new Receipt(this.db);
-                    r.loadFromKeg(res[i]);
-                    // todo: warn about signature error?
-                    if (r.receiptError || r.signatureError || !r.username
-                        || r.username === User.current.username || !r.position) continue;
-                    this.receipts[r.username] = r.position;
-                } catch (err) {
-                    // we don't want to break everything for one faulty receipt
-                    // also we don't want to log this, because in case of faulty receipt there will be
-                    // too many logs
-                    console.debug(err);
-                }
-            }
-            this._applyReceipts();
-        });
-    }
-
-    @action _applyReceipts() {
-        const users = Object.keys(this.receipts);
-        for (let i = 0; i < this.messages.length; i++) {
-            const msg = this.messages[i];
-            msg.receipts = null;
-            for (let k = 0; k < users.length; k++) {
-                const username = users[k];
-                if (+msg.id !== this.receipts[username]) continue;
-                msg.receipts = msg.receipts || [];
-                msg.receipts.push(username);
-            }
-        }
-    }
-
-    getPage(offset, count) {
-        return socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.db.id,
-            options: {
-                type: 'message',
-                reverse: true,
-                offset,
-                count
-            }
-        });
-    }
 
     uploadAndShareFile(path, name) {
         return chatFiles.uploadAndShare(this, path, name);
@@ -362,6 +213,36 @@ class Chat {
 
     shareFiles(files) {
         return chatFiles.share(this, files);
+    }
+
+    loadMessages() {
+        if (!this.metaLoaded) {
+            this.loadMetadata().then(() => this.loadMessages());
+        }
+        chatPager.getInitialPage(this).then(() => this.updater.onMessageDigestUpdate());
+    }
+
+    loadPreviousPage() {
+        if (!this.canGoUp) return;
+        chatPager.getPage(this, true);
+    }
+    loadNextPage() {
+        if (!this.canGoDown) return;
+        chatPager.getPage(this, false);
+    }
+
+    reset() {
+        this.loadingInitialPage = false;
+        this.initialPageLoaded = false;
+        this.loadingTopPage = false;
+        this.loadingBottomPage = false;
+        this.canGoUp = false;
+        this.canGoDown = false;
+        this.messageMap = {};
+        this.messages.clear();
+        this._cancelTopPageLoad = false;
+        this._cancelBottomPageLoad = false;
+        this.loadMessages();
     }
 
 }
