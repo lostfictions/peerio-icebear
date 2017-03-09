@@ -102,6 +102,12 @@ function isValidLoginUsername(name) {
 }
 
 function areEqualValues(value, additionalArguments) {
+    if (additionalArguments.required !== false && (!value || value.length === 0)) {
+        return Promise.resolve({
+            result: false,
+            message: 'error_fieldRequired'
+        });
+    }
     if (value === additionalArguments.equalsValue) return Promise.resolve(true);
     return Promise.resolve({
         result: false,
