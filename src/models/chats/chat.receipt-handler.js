@@ -7,8 +7,12 @@ const _ = require('lodash');
 
 class ChatReceiptHandler {
     // receipts cache {username: position}
-    _receipts = {};
+    receipts = {};
     downloadedReceiptId = 0;
+    loadingReceipts = false;
+    scheduleReceiptsLoad = false;
+    // this value means that something is scheduled to send
+    pendingReceipt = null;
 
     constructor(chat) {
         this.chat = chat;
@@ -18,59 +22,47 @@ class ChatReceiptHandler {
 
     onReceiptDigestUpdate = _.throttle(() => {
         this.loadReceipts();
-    }, 2000);
+    }, 1000);
 
-
-    // this flag means that something is currently being sent (in not null)
-    // it might equal the actual receipt value being sent,
-    // or a larger number that will be sent right after current one
-    pendingReceipt = null;
 
     sendReceipt(pos) {
+        console.debug(`sendReceipt(${pos})`);
+        if (typeof pos !== 'number') throw new Error(`Attempt to send invalid receipt position ${pos}`);
         // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
         if (this.pendingReceipt) {
+            console.debug('Pending receipt exists ', this.pendingReceipt);
+            // we don't want to send older receipt if newer one exists already
             this.pendingReceipt = Math.max(pos, this.pendingReceipt);
             // console.debug('receipt was pending. now pending: ', this.pendingReceipt);
             return; // will be send after current receipt finishes sending
         }
-        // we don't want to send older receipt if newer one exists already
-        // this shouldn't really happen, but it's safer this way
-        pos = Math.max(pos, this.pendingReceipt); // eslint-disable-line no-param-reassign
         this.pendingReceipt = pos;
         // getting it from cache or from server
         this.loadOwnReceipt()
             .then(r => {
-                if (r.position >= pos) {
-                    // console.debug('receipt keg loaded but it has a higher position: ', pos, r.position);
-                    // ups, keg has a bigger position then we are trying to save
-                    // is our pending position also smaller?
-                    if (r.position >= this.pendingReceipt) {
+                console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
+                if (r.position >= this.pendingReceipt) {
+                        // ups, keg has a bigger position then we are trying to save
                         // console.debug('it is higher then pending one too:', this.pendingReceipt);
-                        this.pendingReceipt = null;
-                        return;
-                    }
-                    // console.debug('scheduling to save pending receipt instead: ', this.pendingReceipt);
-                    const lastPending = this.pendingReceipt;
                     this.pendingReceipt = null;
-                    this.sendReceipt(lastPending);
+                    return;
                 }
-                r.position = pos;
+                r.position = this.pendingReceipt;
                 // console.debug('Saving receipt: ', pos);
                 return r.saveToServer() // eslint-disable-line
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
                         console.error(err);
-                        this.ownReceipt = null;
+                        this._ownReceipt = null;
                     })
                     .finally(() => {
-                        const lastPending = this.pendingReceipt;
-                        this.pendingReceipt = null;
-                        if (r.position < lastPending) {
-                            // console.debug('scheduling to save pending receipt instead: ', lastPending);
-                            this.sendReceipt(lastPending);
-                        }
+                        if (socket.authenticated && this.pendingReceipt && r.position < this.pendingReceipt) {
+                            pos = this.pendingReceipt;// eslint-disable-line
+                            this.pendingReceipt = null;
+                            this.sendReceipt(pos);
+                        } else this.pendingReceipt = null;
                     });
             });
     }
@@ -80,11 +72,11 @@ class ChatReceiptHandler {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
 
         return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
+            collectionId: this.chat.id,
             minCollectionVersion: 0,
             query: { type: 'receipt', username: User.current.username }
         }).then(res => {
-            const r = new Receipt(this.db);
+            const r = new Receipt(this.chat.db);
             if (res && res.length) {
                 r.loadFromKeg(res[0]);
                 return r;
@@ -97,8 +89,14 @@ class ChatReceiptHandler {
     }
 
     loadReceipts() {
-        return socket.send('/auth/kegs/query', {
-            collectionId: this.id,
+        if (this.loadingReceipts) {
+            this.scheduleReceiptsLoad = true;
+            return;
+        }
+        this.loadingReceipts = true;
+        this.scheduleReceiptsLoad = false;
+        socket.send('/auth/kegs/query', {
+            collectionId: this.chat.id,
             minCollectionVersion: this.downloadedReceiptId || 0,
             query: { type: 'receipt' }
         }).then(res => {
@@ -106,12 +104,13 @@ class ChatReceiptHandler {
             for (let i = 0; i < res.length; i++) {
                 this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
                 try {
-                    const r = new Receipt(this.db);
+                    // todo filter by keg name
+                    const r = new Receipt(this.chat.db);
                     r.loadFromKeg(res[i]);
-                    // todo: warn about signature error?
+                    // todo: warn about error?
                     if (r.receiptError || r.signatureError || !r.username
                         || r.username === User.current.username || !r.position) continue;
-                    this._receipts[r.username] = r.position;
+                    this.receipts[r.username] = r.position;
                 } catch (err) {
                     // we don't want to break everything for one faulty receipt
                     // also we don't want to log this, because in case of faulty receipt there will be
@@ -119,18 +118,25 @@ class ChatReceiptHandler {
                     // console.debug(err);
                 }
             }
-            this._applyReceipts();
+            this.applyReceipts();
+        }).finally(() => {
+            this.loadingReceipts = false;
+            // if there were updates while we were loading receipts - this call will catch up with them
+            if (this.scheduleReceiptsLoad && socket.authenticated) {
+                this.loadReceipts();
+            }
         });
     }
 
+    // todo: can be faster
     @action applyReceipts() {
-        const users = Object.keys(this._receipts);
-        for (let i = 0; i < this.messages.length; i++) {
-            const msg = this.messages[i];
+        const users = Object.keys(this.receipts);
+        for (let i = 0; i < this.chat.messages.length; i++) {
+            const msg = this.chat.messages[i];
             msg.receipts = null;
             for (let k = 0; k < users.length; k++) {
                 const username = users[k];
-                if (+msg.id !== this._receipts[username]) continue;
+                if (+msg.id !== this.receipts[username]) continue;
                 msg.receipts = msg.receipts || [];
                 msg.receipts.push(username);
             }

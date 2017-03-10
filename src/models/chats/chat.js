@@ -88,7 +88,7 @@ class Chat {
                 this.metaLoaded = true;
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
-                // this.receiptHandler = new ChatReceiptHandler(this);
+                this._receiptHandler = new ChatReceiptHandler(this);
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -141,6 +141,8 @@ class Chat {
         }
 
         this._detectFirstOfTheDayFlag();
+        this._sendReceipt();
+        this._receiptHandler.applyReceipts();
     }
 
     // sorts messages in-place
@@ -255,6 +257,12 @@ class Chat {
                 current.firstOfTheDay = false;
             }
         }
+    }
+
+    _sendReceipt() {
+        // messages are sorted at this point ;)
+        if (!this.messages.length) return;
+        this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
     }
 
 }
