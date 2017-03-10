@@ -10,7 +10,7 @@
     "precommit": "npm run lint && npm run ctags",
     "postcommit": "npm run ctags",
     "commitmsg": "validate-commit-msg",
-    "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --check-leaks",
+    "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --check-leaks --timeout 5000",
     "start": "npm run mocha -- -w",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
     "validate": "npm-run-all --serial lint",

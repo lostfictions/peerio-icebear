@@ -1,4 +1,4 @@
-const { observable } = require('mobx');
+const { observable, computed } = require('mobx');
 const contactStore = require('./../stores/contact-store');
 const User = require('./../user');
 const Keg = require('./../kegs/keg');
@@ -10,6 +10,14 @@ class Message extends Keg {
     // is this message first in the day it was sent (and loaded message page)
     // calculated in chat store, used to render date separators
     @observable firstOfTheDay;
+
+    // used to compare calendar days
+    @computed get dayFingerprint() {
+        if (!this.timestamp) return null;
+        return this.timestamp.getDate().toString() +
+                this.timestamp.getMonth().toString() +
+                this.timestamp.getFullYear().toString();
+    }
     /**
      * @param {ChatStore} db - chat db
      */
@@ -23,6 +31,7 @@ class Message extends Keg {
         this.sender = contactStore.getContact(User.current.username);
         this.text = text;
         this.timestamp = new Date();
+
         return this.saveToServer()
             .catch(err => {
                 this.sendError = true;

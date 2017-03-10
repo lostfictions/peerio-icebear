@@ -3,13 +3,9 @@ const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
 const normalize = require('../../errors').normalize;
 const User = require('../user');
-const tracker = require('../update-tracker');
-const socket = require('../../network/socket');
-const Receipt = require('./receipt');
-const _ = require('lodash');
-const chatFiles = require('./chat.files');
-const ChatUpdater = require('./chat.updater');
-const chatPager = require('./chat.pager');
+const ChatFileHandler = require('./chat.file-handler');
+const ChatMessageHandler = require('./chat.message-handler');
+const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
 
 // to assign when sending a message and don't have an id yet
@@ -24,8 +20,10 @@ class Chat {
 
     // Message objects
     @observable messages = observable.shallowArray([]);
+    // Messages that do not have Id yet
+    @observable limboMessages = observable.shallowArray([]);
     // performance helper, to lookup messages by id and avoid duplicates
-    messageMap = {};
+    _messageMap = {};
 
     /** @type {Array<Contact>} */
     @observable participants = null;
@@ -47,16 +45,11 @@ class Chat {
 
     // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
-
     @observable unreadCount = 0;
-    @observable downloadedUpdateId = 0;
-    @observable maxUpdateId = 0;
 
-    downloadedReceiptId = 0;
-    // receipts cache {username: position}
-    receipts = {};
-    updater;
-
+    _messageHandler = null;
+    _receiptHandler = null;
+    _fileHandler = null;
 
     @computed get participantUsernames() {
         if (!this.participants) return null;
@@ -93,9 +86,9 @@ class Chat {
                 this.participants = this.db.participants;// todo computed
                 this.loadingMeta = false;
                 this.metaLoaded = true;
-                this.updater = new ChatUpdater(this);
-                // tracker.onKegTypeUpdated(this.id, 'receipt', this.onReceiptDigestUpdate);
-                // this.onReceiptDigestUpdate();
+                this._messageHandler = new ChatMessageHandler(this);
+                this._fileHandler = new ChatFileHandler(this);
+                // this.receiptHandler = new ChatReceiptHandler(this);
             }))
             .catch(err => {
                 console.error(normalize(err, 'Error loading chat keg db metadata.'));
@@ -103,42 +96,51 @@ class Chat {
             });
     }
 
-    @action addMessages(kegs, prepend = false) {
+    /**
+     * Adds messages to current message list.
+     * @param {Array<Object|Message>} kegs - list of messages to add
+     * @param prepend - add message to top of bottom
+     * @param sent - if true - array contains single item of Message type. This is a way to add sent messages.
+     */
+    @action addMessages(kegs, prepend = false, sent = false) {
         if (!kegs || !kegs.length) return;
-        for (let i = 0; i < kegs.length; i++) { // todo: check order, maybe iterate from last to first
-            const keg = kegs[i];
-            this.downloadedUpdateId = Math.max(this.downloadedUpdateId, keg.collectionVersion);
-            if (keg.deleted || this.messageMap[keg.kegId]) continue; // todo: update data of existing one?
 
-            const msg = new Message(this.db).loadFromKeg(keg);
+        for (let i = 0; i < kegs.length; i++) {
+            const keg = kegs[i];
+            if (keg.deleted || this._messageMap[keg.kegId]) continue;
+
+            const msg = sent ? keg : new Message(this.db).loadFromKeg(keg);
             // no payload for some reason. probably because of connection break after keg creation
-            if (msg.isEmpty) continue;
+            if (!sent && msg.isEmpty) continue;
+            // array is gonna be sorted anyway, but just for the order or things
             if (prepend) {
                 this.messages.unshift(msg);
             } else {
                 this.messages.push(msg);
             }
-            // id is not there for
-            if (msg.id) this.messageMap[msg.id] = msg;
+            this._messageMap[msg.id] = msg;
         }
+
         this.sortMessages();
-        // todo: post processing / calculations
+
         const excess = this.messages.length - config.chat.maxLoadedMessages;
         if (excess > 0) {
             if (prepend) {
                 for (let i = this.messages.length - excess; i < this.messages.length; i++) {
-                    delete this.messageMap[this.messages[i].id];
+                    delete this._messageMap[this.messages[i].id];
                 }
                 this.messages.splice(-excess);
                 this.canGoDown = true;
             } else {
                 for (let i = 0; i < excess; i++) {
-                    delete this.messageMap[this.messages[i].id];
+                    delete this._messageMap[this.messages[i].id];
                 }
                 this.messages.splice(0, excess);
                 this.canGoUp = true;
             }
         }
+
+        this._detectFirstOfTheDayFlag();
     }
 
     // sorts messages in-place
@@ -167,25 +169,18 @@ class Chat {
         if (this.canGoDown) this.reset();
         const m = new Message(this.db);
         m.files = files;
+        // send() will fill message with data required for rendering
         const promise = m.send(text);
-        when(() => !!m.id, () => {
-            if (!this.messageMap[m.id]) {
-                // message wasn't added to map yet, so we are sure there's just one copy in the array
-                this.messageMap[m.id] = m;
-                this.sortMessages();
-            } else if (this.messageMap[m.id] !== m) {
-                // ups, it might have already been added via update process, we need to remove self
-                this.messages.remove(m);
-            }
+        this.limboMessages.push(m);
+        when(() => !!m.id, action(() => {
+            this.limboMessages.remove(m);
             m.tempId = null;
-        });
-        // this._detectFirstOfTheDayFlag(m);
-        this.messages.push(m);
-        return promise.then(() => {
-            this.downloadedUpdateId = Math.max(this.downloadedUpdateId, m.collectionVersion);
-          //  this._sendReceipt(m.id);
-        });
+            // unless user already scrolled to high up, we add the message
+            if (!this.canGoDown) this.addMessages([m], false, true);
+        }));
+        return promise;
     }
+
 
     sendAck() {
         // !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!
@@ -208,27 +203,28 @@ class Chat {
 
 
     uploadAndShareFile(path, name) {
-        return chatFiles.uploadAndShare(this, path, name);
+        return this._fileHandler.uploadAndShare(path, name);
     }
 
     shareFiles(files) {
-        return chatFiles.share(this, files);
+        return this._fileHandler.share(files);
     }
 
     loadMessages() {
         if (!this.metaLoaded) {
             this.loadMetadata().then(() => this.loadMessages());
         }
-        chatPager.getInitialPage(this).then(() => this.updater.onMessageDigestUpdate());
+        this._messageHandler.getInitialPage()
+            .then(() => this._messageHandler.onMessageDigestUpdate());
     }
 
     loadPreviousPage() {
         if (!this.canGoUp) return;
-        chatPager.getPage(this, true);
+        this._messageHandler.getPage(true);
     }
     loadNextPage() {
         if (!this.canGoDown) return;
-        chatPager.getPage(this, false);
+        this._messageHandler.getPage(false);
     }
 
     reset() {
@@ -238,11 +234,27 @@ class Chat {
         this.loadingBottomPage = false;
         this.canGoUp = false;
         this.canGoDown = false;
-        this.messageMap = {};
+        this._messageMap = {};
         this.messages.clear();
         this._cancelTopPageLoad = false;
         this._cancelBottomPageLoad = false;
         this.loadMessages();
+    }
+
+    /**
+     * Detects and sets firstOfTheDay flag for all loaded messages
+     * @private
+     */
+    _detectFirstOfTheDayFlag() {
+        for (let i = 0; i < this.messages.length; i++) {
+            const current = this.messages[i];
+            const prev = i > 0 ? this.messages[i - 1] : null;
+            if (prev === null || prev.dayFingerprint !== current.dayFingerprint) {
+                current.firstOfTheDay = true;
+            } else {
+                current.firstOfTheDay = false;
+            }
+        }
     }
 
 }

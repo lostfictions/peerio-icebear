@@ -36,10 +36,10 @@ describe('Chat files module', () => {
 
     it('should upload and share file', () => {
         // sharing is tested in previous test case, here we stub it
-        const chatFiles = require('../../src/models/chats/chat.files');
-        sinon.stub(chatFiles, 'share');
+       // const chatFiles = require('../../src/models/chats/chat.files');
 
         const chat = createFakeChat();
+        sinon.stub(chat._fileHandler, 'share');
         const fileStore = require('../../src/models/stores/file-store');
         const file = createFakeFile();
         // imitating new file
@@ -53,9 +53,8 @@ describe('Chat files module', () => {
         // imitating finished upload
         file.readyForDownload = true;
         chat.uploadQueue.length.should.equal(0);
-        chatFiles.share.calledOnce.should.be.true;
-        chatFiles.share.firstCall.args[0].should.equal(chat);
-        chatFiles.share.firstCall.args[1][0].should.equal(file);
-        chatFiles.share.firstCall.args[1].length.should.equal(1);
+        chat._fileHandler.share.calledOnce.should.be.true;
+        chat._fileHandler.share.firstCall.args[0][0].should.equal(file);
+        chat._fileHandler.share.firstCall.args[0].length.should.equal(1);
     });
 });
