@@ -1,4 +1,4 @@
-const { observable, computed, action, reaction, when } = require('mobx');
+const { action } = require('mobx');
 const User = require('../user');
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
@@ -79,8 +79,15 @@ class ChatReceiptHandler {
             const r = new Receipt(this.chat.db);
             if (res && res.length) {
                 r.loadFromKeg(res[0]);
+                // if for some reason, duplicate kegs were created, remove them
+                for (let i = 1; i < res.length; i++) {
+                    const toRemove = new Receipt(this.chat.db);
+                    toRemove.id = res[i].kegId;
+                    toRemove.remove();
+                }
                 return r;
             }
+
             r.username = User.current.username;
             r.position = 0;
             this._ownReceipt = r;
@@ -104,7 +111,6 @@ class ChatReceiptHandler {
             for (let i = 0; i < res.length; i++) {
                 this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
                 try {
-                    // todo filter by keg name
                     const r = new Receipt(this.chat.db);
                     r.loadFromKeg(res[i]);
                     // todo: warn about error?
