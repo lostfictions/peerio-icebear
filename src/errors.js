@@ -66,6 +66,8 @@ module.exports.EncryptionError = getGenericCustomError('EncryptionError');
 module.exports.AntiTamperError = getGenericCustomError('AntiTamperError');
 module.exports.AbstractCallError = getGenericCustomError('AbstractCallError',
                                                          'Abstract function call. Override this function.');
+module.exports.NoPasscodeFoundError = getGenericCustomError('NoPasscodeFoundError',
+                                                         'No passcode found.');
 // -- Server Errors ----------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,

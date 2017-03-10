@@ -113,7 +113,7 @@ module.exports = function mixUserAuthModule() {
                 if (passcodeSecretArray) {
                     return cryptoUtil.b64ToBytes(passcodeSecretArray);
                 }
-                return Promise.reject(new Error('no passcode found'));
+                return Promise.reject(new errors.NoPasscodeFoundError());
             })
             .then((passcodeSecret) => {
                 this.passcodeIsSet = true;
@@ -123,6 +123,10 @@ module.exports = function mixUserAuthModule() {
                 return false;
             })
             .catch(err => {
+                if (err && err.name === 'NoPasscodeFoundError') {
+                    console.log(err.message);
+                    return;
+                }
                 console.log(errors.normalize(err));
             });
     };
