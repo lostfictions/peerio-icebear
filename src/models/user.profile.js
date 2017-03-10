@@ -1,4 +1,3 @@
-const { observable } = require('mobx');
 const Keg = require('./kegs/keg');
 
 class UserQuotas extends Keg {

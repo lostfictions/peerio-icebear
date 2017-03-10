@@ -8,7 +8,6 @@ const mixUserAuthModule = require('./user.auth');
 const KegDb = require('./kegs/keg-db');
 const TinyDb = require('../db/tiny-db');
 const { observable } = require('mobx');
-const systemWarnings = require('./system-warning');
 const currentUserHelper = require('./../helpers/di-current-user');
 const { publicCrypto } = require('../crypto');
 
