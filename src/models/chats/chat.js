@@ -141,6 +141,7 @@ class Chat {
         }
 
         this._detectFirstOfTheDayFlag();
+        this._detectGrouping();
         this._sendReceipt();
         this._receiptHandler.applyReceipts();
     }
@@ -248,16 +249,35 @@ class Chat {
      * @private
      */
     _detectFirstOfTheDayFlag() {
-        for (let i = 0; i < this.messages.length; i++) {
+        if (!this.messages.length) return;
+        this.messages[0].firstOfTheDay = true;
+
+        for (let i = 1; i < this.messages.length; i++) {
             const current = this.messages[i];
-            const prev = i > 0 ? this.messages[i - 1] : null;
-            if (prev === null || prev.dayFingerprint !== current.dayFingerprint) {
+            if (this.messages[i - 1].dayFingerprint !== current.dayFingerprint) {
                 current.firstOfTheDay = true;
             } else {
                 current.firstOfTheDay = false;
             }
         }
     }
+
+    _detectGrouping() {
+        if (!this.messages.length) return;
+        this.messages[0].groupWithPrevious = false;
+
+        for (let i = 1; i < this.messages.length; i++) {
+            const current = this.messages[i];
+            const prev = this.messages[i - 1];
+            if (prev.sender.username === current.sender.username
+                && prev.dayFingerprint === current.dayFingerprint) {
+                current.groupWithPrevious = true;
+            } else {
+                current.groupWithPrevious = false;
+            }
+        }
+    }
+
 
     _sendReceipt() {
         // messages are sorted at this point ;)
