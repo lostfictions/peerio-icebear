@@ -28,7 +28,7 @@ class ServerWarning extends SystemWarning {
     }
 
     action() {
-        return socket.send('/auth/clearWarning', { token: this.token });
+        return socket.send('/auth/warning/clear', { token: this.token });
     }
 }
 

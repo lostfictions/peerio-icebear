@@ -97,7 +97,7 @@ class FileUploader extends FileProcessor {
         const chunk = this.uploadQueue.shift();
         this.chunksWaitingForResponse++;
         // console.log(`sending chunk ${chunk.id}`);
-        socket.send('/auth/dev/file/upload-chunk', {
+        socket.send('/auth/file/chunk/upload', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
             chunk: chunk.buffer.buffer,

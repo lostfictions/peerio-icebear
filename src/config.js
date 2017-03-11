@@ -50,6 +50,8 @@ const config = new class {
 
     socketServerUrl = 'wss://';
     ghostFrontendUrl = 'https://';
+    appVersion = '';
+    platform = '';
 
     upload = new UploadConfig();
     // Numbers below are an approximate maximum, download logic will detect the exact number based on
