@@ -51,7 +51,7 @@ function _callServer(context, name, value) {
     const pending = serverValidationStore.request[key];
     if (pending) {
         clearTimeout(pending.timeout);
-        pending.resolve(false);
+        pending.resolve(undefined);
     }
     return new Promise(resolve => {
         const timeout = setTimeout(() => {

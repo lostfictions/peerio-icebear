@@ -89,15 +89,13 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
                 if (validatorResult === true) {
                     return true;
                 }
-                const error = new Error();
+                let m = validatorResult;
                 if (validatorResult === false) {
-                    error.message = message;
-                } else if (validatorResult.message) {
-                    error.message = validatorResult.message;
-                } else {
-                    error.message = validatorResult;
+                    m = message;
+                } else if (validatorResult && validatorResult.message) {
+                    m = validatorResult.message;
                 }
-                return Promise.reject(error);
+                return Promise.reject(new Error(m));
             });
         });
         valid = valid.then(() => {
