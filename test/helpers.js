@@ -3,6 +3,7 @@
 //
 const mockSocket = require('./mocks/socket.mock');
 const mockCurrentUser = require('./mocks/user.mock');
+const mockPhraseDictionary = require('./mocks/phraseDictionary.mock');
 
 const usernameChars = '0123456789abcdefghijklmnopqrstuvwxyz';
 // generates 16-character random usernames
@@ -29,6 +30,7 @@ function resetApp() {
     require('./test-config')();
     mockSocket();
     mockCurrentUser();
+    mockPhraseDictionary();
     require('../src/').socket.start();
 }
 
