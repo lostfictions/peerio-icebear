@@ -36,7 +36,7 @@ const emailRegex = /^[^ ]+@[^ ]+/i;
 const phoneRegex =
     /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
 
-const serverValidationStore = { pendingRequest: null, cachedResult: true };
+const serverValidationStore = { request: {} };
 /**
  * Throttled & promisified call to validation API.
  *
@@ -47,29 +47,24 @@ const serverValidationStore = { pendingRequest: null, cachedResult: true };
  * @private
  */
 function _callServer(context, name, value) {
-    serverValidationStore.pendingRequest = { context, name, value };
-
-    const callThrottled = () => {
-        if (serverValidationStore.pendingRequest) {
-            const pending = _.clone(serverValidationStore.pendingRequest);
-            serverValidationStore.pendingRequest = undefined;
-            return socket.send('/noauth/validate', pending)
+    const key = `${context}::${name}`;
+    const pending = serverValidationStore.request[key];
+    if (pending) {
+        clearTimeout(pending.timeout);
+        pending.resolve(false);
+    }
+    return new Promise(resolve => {
+        const timeout = setTimeout(() => {
+            socket.send('/noauth/validate', { context, name, value })
                 .then(resp => {
-                    serverValidationStore.cachedResult = !!resp && resp.valid;
-                    return Promise.resolve(serverValidationStore.cachedResult);
+                    resolve(!!resp && resp.valid);
                 })
-                .catch(() => {
-                    serverValidationStore.cachedResult = false;
-                    return Promise.resolve(false);
+                .catch(e => {
+                    resolve(false);
                 });
-        }
-        // avoid leaving an unresolved promise
-        return Promise.resolve(serverValidationStore.cachedResult);
-    };
-
-    return Promise
-        .delay(VALIDATION_THROTTLING_PERIOD_MS)
-        .then(callThrottled);
+        }, VALIDATION_THROTTLING_PERIOD_MS);
+        serverValidationStore.request[key] = { timeout, resolve };
+    });
 }
 
 function isValidUsername(name) {
