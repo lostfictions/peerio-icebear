@@ -75,7 +75,7 @@ module.exports = function mixUserAuthModule() {
             authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
             // deviceToken: todo
             platform: config.platform,
-            clientVersion: config.version
+            clientVersion: config.appVersion
         })
         .then(resp => util.convertBuffers(resp));
     };
@@ -95,9 +95,7 @@ module.exports = function mixUserAuthModule() {
             return Promise.reject(new Error('Auth token plaintext is of invalid format.'));
         }
         return socket.send('/noauth/authenticate', {
-            decryptedAuthToken: decrypted.buffer,
-            platform: 'browser', // todo: set platform
-            clientVersion: '1.0.0' // todo: set version
+            decryptedAuthToken: decrypted.buffer
         }).then(resp => {
             // todo: save resp.deviceToken
         });
