@@ -83,7 +83,7 @@ class Contact {
         this.loading = true;
         this._waitingForResponse = true;
 
-        socket.send('/auth/lookupUser', { string: this.username })
+        socket.send('/auth/user/lookup', { string: this.username })
             .then(action(resp => {
                   // currently there are old users in the system that don't have encryption public keys
                 if (!resp || !resp.length || !resp[0].profile.encryptionPublicKey) {

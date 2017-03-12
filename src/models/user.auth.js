@@ -11,6 +11,7 @@ const { keys, publicCrypto, secret, cryptoUtil } = require('../crypto');
 const util = require('../util');
 const errors = require('../errors');
 const TinyDb = require('../db/tiny-db');
+const config = require('../config');
 
 module.exports = function mixUserAuthModule() {
     /**
@@ -54,7 +55,7 @@ module.exports = function mixUserAuthModule() {
     this._loadAuthSalt = () => {
         console.log('Loading auth salt');
         if (this.authSalt) return Promise.resolve();
-        return socket.send('/noauth/getAuthSalt', { username: this.username })
+        return socket.send('/noauth/auth-salt/get', { username: this.username })
                      .then((response) => {
                          this.authSalt = new Uint8Array(response.authSalt);
                      });
@@ -68,10 +69,13 @@ module.exports = function mixUserAuthModule() {
      */
     this._getAuthToken = () => {
         console.log('Requesting auth token.');
-        return socket.send('/noauth/getAuthToken', {
+        return socket.send('/noauth/auth-token/get', {
             username: this.username,
             authSalt: this.authSalt.buffer,
-            authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer
+            authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
+            // deviceToken: todo
+            platform: config.platform,
+            clientVersion: config.version
         })
         .then(resp => util.convertBuffers(resp));
     };
@@ -94,6 +98,8 @@ module.exports = function mixUserAuthModule() {
             decryptedAuthToken: decrypted.buffer,
             platform: 'browser', // todo: set platform
             clientVersion: '1.0.0' // todo: set version
+        }).then(resp => {
+            // todo: save resp.deviceToken
         });
     };
 
