@@ -74,11 +74,12 @@
     "husky": "0.13.2",
     "mocha": "3.2.0",
     "mock-require": "2.0.1",
-    "moment":"2.17.1",
+    "moment": "2.17.1",
     "npm-run-all": "4.0.2",
     "nyc": "10.1.2",
     "rimraf": "2.6.1",
     "sinon": "2.0.0-pre.6",
+    "sinon-chai": "2.8.0",
     "standard-version": "4.0.0",
     "validate-commit-msg": "2.11.2"
   },
