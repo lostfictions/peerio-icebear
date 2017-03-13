@@ -88,7 +88,7 @@ class MailStore {
     }
 
     /**
-     * Send a new ghost.
+     * Create a new ghost.
      *
      * @returns {*}
      */
@@ -102,12 +102,31 @@ class MailStore {
     }
 
     /**
+     * Send a new ghost
+     */
+    send(g, text) {
+        return g.send(text)
+            .catch(e => {
+                // TODO: global error handling
+                return Promise.reject(e);
+            })
+            .finally(() => g.sendError && this.remove(g));
+    }
+
+    /**
      * Just remove from kegs.
      *
      * @param {Ghost} ghost
      */
-    remove(ghost) {
-        return ghost.remove();
+    remove(g) {
+        // if the ghost weren't successfully saved to server (quota exceeded)
+        if (!g.id) {
+            this.ghostMap.delete(g.ghostId);
+            const i = this.ghosts.indexOf(g);
+            (i !== -1) && this.ghosts.splice(i, 1);
+            return Promise.resolve();
+        }
+        return g.remove();
     }
 
     /**
