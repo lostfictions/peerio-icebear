@@ -50,6 +50,7 @@ class SocketClient {
     url = null;
     @observable connected = false;
     @observable authenticated = false;
+    @observable throttled = false;
     // for debug (if enabled)
     // DON'T MAKE THIS OBSERVABLE
     // At some conditions it creates cyclic reactions with autorun
@@ -203,6 +204,7 @@ class SocketClient {
             this.awaitingRequests[id] = reject;
             function handler(resp) {
                 if (resp && resp.error) {
+                    this.throttled = this.throttled || (resp.error === 425);
                     reject(new ServerError(resp.error, resp.message));
                     return;
                 }
