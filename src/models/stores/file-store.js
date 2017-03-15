@@ -98,7 +98,7 @@ class FileStore {
                 const currentCompletedUploads = this.completedUploads;
                 when(() => this.ongoingUploads === 0, () => {
                     (this.completedUploads > currentCompletedUploads) && systemWarnings.add({
-                        content: 'file_uploadComplete'
+                        content: 'snackbar_uploadComplete'
                     });
                 });
             }

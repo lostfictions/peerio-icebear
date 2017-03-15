@@ -110,7 +110,7 @@ class MailStore {
             .catch(e => {
                 // TODO: global error handling
                 systemWarnings.addLocalWarningSevere(
-                    'ghosts_quotaExceeded', 'ghosts_sendingError', ['upgrade', 'ok']);
+                    'error_mailQuotaExceeded', 'error_sendingMail', ['button_upgrade', 'button_ok']);
             })
             .finally(() => g.sendError && this.remove(g));
     }

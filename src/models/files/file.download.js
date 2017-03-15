@@ -66,7 +66,7 @@ function download(filePath, resume) {
             .catch(err => {
                 console.error(err);
                 systemWarnings.add({
-                    content: 'file_downloadFailed',
+                    content: 'error_downloadFailed',
                     data: {
                         fileName: this.name
                     }

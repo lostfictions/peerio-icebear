@@ -17,7 +17,7 @@ function _getUlResumeParams(path) {
         .then(stat => {
             if (stat.size !== this.size) {
                 systemWarnings.add({
-                    content: 'file_sizeChangedUploadStop',
+                    content: 'error_fileSizeChanged',
                     data: {
                         fileName: this.name
                     }
@@ -93,7 +93,7 @@ function upload(filePath, fileName, resume) {
             .catch(err => {
                 console.error(err);
                 !this.uploadCancelled && systemWarnings.add({
-                    content: 'file_uploadFailed',
+                    content: 'error_uploadFailed',
                     data: {
                         fileName: this.name
                     }
