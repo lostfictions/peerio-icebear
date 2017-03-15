@@ -10,6 +10,14 @@ class SystemWarning {
         this.content = object.content;
         this.data = object.data;
         this.label = 'ok';
+        // severity level: [medium, severe]
+        // severe warnings should be displayed via dialog
+        this.level = object.level;
+        // title for message
+        this.title = object.title;
+        // buttons - array of strings
+        // for example ['upgrade', 'ok']
+        this.buttons = object.buttons;
     }
 }
 
@@ -47,6 +55,14 @@ class SystemWarningCollection {
 
     add(data) {
         this.collection.push(new SystemWarning(data));
+    }
+
+    /**
+     * Add a severe local warning helper
+     * Used as a global error handler
+     */
+    addLocalWarningSevere(content, title, buttons) {
+        this.add({ content, title, buttons, level: 'severe' });
     }
 
     addServerWarning(serverData) {
