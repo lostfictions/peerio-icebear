@@ -4,6 +4,7 @@ const socket = require('../../network/socket');
 const Ghost = require('../ghost');
 const User = require('../user');
 const tracker = require('../update-tracker');
+const systemWarnings = require('../system-warning');
 
 class MailStore {
     @observable ghosts = observable.shallowArray([]); // sorted array
@@ -108,7 +109,8 @@ class MailStore {
         return g.send(text)
             .catch(e => {
                 // TODO: global error handling
-                return Promise.reject(e);
+                systemWarnings.addLocalWarningSevere(
+                    'ghosts_quotaExceeded', 'ghosts_sendingError', ['upgrade', 'ok']);
             })
             .finally(() => g.sendError && this.remove(g));
     }
