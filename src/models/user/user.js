@@ -29,7 +29,7 @@ class User {
     @observable email = '';
     @observable locale = 'en';
     @observable passcodeIsSet = false;
-    @observable quotas = observable.map({});
+    @observable quota;
     createdAt = null;
     deleted = false;
     blacklisted = false;

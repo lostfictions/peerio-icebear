@@ -7,7 +7,7 @@ class Quota extends Keg {
     }
 
     deserializeKegPayload(data) {
-        this.user.quotas = data;
+        this.user.quota = data;
     }
 }
 
