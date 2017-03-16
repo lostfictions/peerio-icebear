@@ -46,6 +46,7 @@ const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
 
+// MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
     errors,
     config,
