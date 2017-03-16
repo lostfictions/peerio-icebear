@@ -171,9 +171,9 @@ class Keg {
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion;
-            this.deserializeProps(keg.props);
+            if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
-            if (!keg.payload) return this;
+            if (!keg.payload) return false;
             let payload = keg.payload;
             let sharedKey = null;
             // should we decrypt?

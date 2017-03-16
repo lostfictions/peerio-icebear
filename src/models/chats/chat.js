@@ -111,7 +111,10 @@ class Chat {
 
             const msg = sent ? keg : new Message(this.db).loadFromKeg(keg);
             // no payload for some reason. probably because of connection break after keg creation
-            if (!sent && msg.isEmpty) continue;
+            if (!msg && msg.isEmpty) {
+                console.debug('empty message keg', keg);
+                continue;
+            }
             // array is gonna be sorted anyway, but just for the order or things
             if (prepend) {
                 this.messages.unshift(msg);
