@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');
-const Ghost = require('../ghost');
-const User = require('../user');
+const Ghost = require('./ghost');
+const User = require('../user/user');
 const tracker = require('../update-tracker');
 const systemWarnings = require('../system-warning');
 
@@ -107,7 +107,7 @@ class MailStore {
      */
     send(g, text) {
         return g.send(text)
-            .catch(e => {
+            .catch(() => {
                 // TODO: global error handling
                 systemWarnings.addLocalWarningSevere(
                     'error_mailQuotaExceeded', 'error_sendingMail', ['button_upgrade', 'button_ok']);

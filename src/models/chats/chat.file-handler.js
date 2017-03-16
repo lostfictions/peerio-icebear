@@ -2,7 +2,7 @@
  * Chat files handling module
  */
 const { when } = require('mobx');
-const fileStore = require('../stores/file-store');
+const fileStore = require('../files/file-store');
 
 class ChatFileHandler {
 

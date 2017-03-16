@@ -1,7 +1,7 @@
-const Keg = require('./kegs/keg');
-const { AntiTamperError } = require('../errors');
-const socket = require('../network/socket');
-const { getUser } = require('../helpers/di-current-user');
+const Keg = require('./../kegs/keg');
+const { AntiTamperError } = require('../../errors');
+const socket = require('../../network/socket');
+const { getUser } = require('../../helpers/di-current-user');
 
 class Tofu extends Keg {
     username;

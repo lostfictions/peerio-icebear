@@ -3,7 +3,7 @@
 function applyConfig() {
     const cfg = require('../src/config');
     const FileStream = require('../src/models/files/node-file-stream');
-    const StorageEngine = require('../src/models/stores/node-json-storage');
+    const StorageEngine = require('../src/models/storage/node-json-storage');
     const os = require('os');
     const path = require('path');
 

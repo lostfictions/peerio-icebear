@@ -10,7 +10,7 @@ const keys = require('../../crypto/keys');
 const fileHelper = require('../../helpers/file');
 const FileNonceGenerator = require('./file-nonce-generator');
 const TinyDb = require('../../db/tiny-db');
-const User = require('../user');
+const User = require('../user/user');
 
 function _getUlResumeParams(path) {
     return config.FileStream.getStat(path)

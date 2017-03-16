@@ -1,6 +1,6 @@
 const { observable, computed } = require('mobx');
-const contactStore = require('./../stores/contact-store');
-const User = require('./../user');
+const contactStore = require('./../contacts/contact-store');
+const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
 
 class Message extends Keg {

@@ -1,5 +1,5 @@
 const { action } = require('mobx');
-const User = require('../user');
+const User = require('../user/user');
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const Receipt = require('./receipt');

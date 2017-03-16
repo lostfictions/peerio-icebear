@@ -139,7 +139,7 @@ describe('TinyDB', () => {
                 d.removeValue(undefined)
             ])
                 .then(() => Promise.reject('test failed')) // fail test if any of promises resolves
-                .catch(Promise.AggregateError, err => Promise.resolve());
+                .catch(Promise.AggregateError, () => Promise.resolve());
         });
     });
 

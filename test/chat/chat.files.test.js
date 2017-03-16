@@ -40,7 +40,7 @@ describe('Chat files module', () => {
 
         const chat = createFakeChat();
         sinon.stub(chat._fileHandler, 'share');
-        const fileStore = require('../../src/models/stores/file-store');
+        const fileStore = require('../../src/models/files/file-store');
         const file = createFakeFile();
         // imitating new file
         file.readyForDownload = false;

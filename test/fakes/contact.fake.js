@@ -8,7 +8,7 @@ function nextUsername() {
 }
 
 function createFakeContact() {
-    const Contact = require('../../src/models/contact');
+    const Contact = require('../../src/models/contacts/contact');
     const contact = new Contact(nextUsername(), true);
     contact.loading = false;
     return contact;

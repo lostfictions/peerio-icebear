@@ -6,12 +6,12 @@
  * @module models/user
  */
 
-const socket = require('../network/socket');
-const { keys, publicCrypto, secret, cryptoUtil } = require('../crypto');
-const util = require('../util');
-const errors = require('../errors');
-const TinyDb = require('../db/tiny-db');
-const config = require('../config');
+const socket = require('../../network/socket');
+const { keys, publicCrypto, secret, cryptoUtil } = require('../../crypto/index');
+const util = require('../../util');
+const errors = require('../../errors');
+const TinyDb = require('../../db/tiny-db');
+const config = require('../../config');
 
 module.exports = function mixUserAuthModule() {
     /**

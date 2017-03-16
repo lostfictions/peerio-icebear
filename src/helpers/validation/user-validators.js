@@ -28,13 +28,12 @@
  *  validator will be used.
  */
 const socket = require('../../network/socket');
-const _ = require('lodash');
 
 const VALIDATION_THROTTLING_PERIOD_MS = 400;
 const usernameRegex = /^\w{1,16}$/;
 const emailRegex = /^[^ ]+@[^ ]+/i;
-const phoneRegex =
-    /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
+// const phoneRegex =
+//     /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/i;
 
 const serverValidationStore = { request: {} };
 /**
@@ -59,7 +58,7 @@ function _callServer(context, name, value) {
                 .then(resp => {
                     resolve(!!resp && resp.valid);
                 })
-                .catch(e => {
+                .catch(() => {
                     resolve(false);
                 });
         }, VALIDATION_THROTTLING_PERIOD_MS);
@@ -87,9 +86,9 @@ function isNonEmptyString(name) {
     return Promise.resolve(name.length > 0);
 }
 
-function isValidPhone(val) {
-    return Promise.resolve(phoneRegex.test(val));
-}
+// function isValidPhone(val) {
+//     return Promise.resolve(phoneRegex.test(val));
+// }
 
 function isValidLoginUsername(name) {
     return isValid('signup', 'username')(name)

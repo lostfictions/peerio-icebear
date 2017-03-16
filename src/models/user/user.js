@@ -1,15 +1,15 @@
 /**
  * @module models/user
  */
-const socket = require('../network/socket');
-const mixUserProfileModule = require('./user.profile');
-const mixUserRegisterModule = require('./user.register');
-const mixUserAuthModule = require('./user.auth');
-const KegDb = require('./kegs/keg-db');
-const TinyDb = require('../db/tiny-db');
+const socket = require('../../network/socket');
+const mixUserProfileModule = require('./user.profile.js');
+const mixUserRegisterModule = require('./user.register.js');
+const mixUserAuthModule = require('./user.auth.js');
+const KegDb = require('./../kegs/keg-db');
+const TinyDb = require('../../db/tiny-db');
 const { observable } = require('mobx');
-const currentUserHelper = require('./../helpers/di-current-user');
-const { publicCrypto } = require('../crypto');
+const currentUserHelper = require('./../../helpers/di-current-user');
+const { publicCrypto } = require('../../crypto/index');
 
 let currentUser;
 

@@ -3,8 +3,8 @@
  */
 const ChatBootKeg = require('./chat-boot-keg');
 const socket = require('../../network/socket');
-const User = require('../user');
-const contactStore = require('../stores/contact-store');
+const User = require('../user/user');
+const contactStore = require('../contacts/contact-store');
 const _ = require('lodash');
 
 class ChatKegDb {

@@ -1,6 +1,6 @@
 const { observable, when } = require('mobx');
 const socket = require('../../network/socket');
-const Contact = require('../contact');
+const Contact = require('./contact');
 const { setContactStore } = require('../../helpers/di-contact-store');
 /**
  * Contact(Peerio user) information store.

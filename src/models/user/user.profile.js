@@ -1,4 +1,4 @@
-const Keg = require('./kegs/keg');
+const Keg = require('./../kegs/keg');
 
 class UserQuotas extends Keg {
     constructor(db, user) {
