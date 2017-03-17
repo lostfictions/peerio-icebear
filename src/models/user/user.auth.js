@@ -75,6 +75,7 @@ module.exports = function mixUserAuthModule() {
             authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
             // deviceToken: todo
             platform: config.platform,
+            arch: config.arch,
             clientVersion: config.appVersion
         })
         .then(resp => util.convertBuffers(resp));
