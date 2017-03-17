@@ -1,16 +1,13 @@
 const { observable, computed, action } = require('mobx');
-const _ = require('lodash');
 const moment = require('moment');
-const contactStore = require('./../contacts/contact-store');
-const fileStore = require('./../files/file-store');
-const socket = require('../../network/socket');
-const Keg = require('./../kegs/keg');
-const { cryptoUtil, sign, secret } = require('../../crypto/index');
+const Keg = require('../kegs/keg');
+const { cryptoUtil } = require('../../crypto/index');
 const keys = require('../../crypto/keys');
-const User = require('./../user/user');
-const PhraseDictionaryCollection = require('./../phrase-dictionary');
+const User = require('../user/user');
+const PhraseDictionaryCollection = require('../phrase-dictionary');
 const config = require('../../config');
 const defaultClock = require('../../helpers/observable-clock').default;
+const ghostAPI = require('./ghost.api'); // most of the ghost-specific logic is in here
 
 class Ghost extends Keg {
     DEFAULT_GHOST_LIFESPAN = 259200; // 3 days
@@ -50,6 +47,14 @@ class Ghost extends Keg {
 
     @computed get expired() {
         return this.timestamp + (this.lifeSpanInSeconds * 1000) < defaultClock.now;
+    }
+
+    get ephemeralKeypair() {
+        return this.keypair;
+    }
+
+    set ephemeralKeypair(kp) {
+        this.keypair = kp;
     }
 
     /**
@@ -124,17 +129,14 @@ class Ghost extends Keg {
      */
     send(text) {
         this.sending = true;
-        this.sender = contactStore.getContact(User.current.username);
         this.body = text;
         this.timestamp = Date.now();
         this.lifeSpanInSeconds = this.DEFAULT_GHOST_LIFESPAN;
 
-        return keys.deriveEphemeralKeys(cryptoUtil.hexToBytes(this.ghostId), this.passphrase)
-            .then((kp) => {
-                this.keypair = kp;
-                return this.encryptForEphemeralRecipient();
-            })
-            .then(() => this.sendGhost())
+        return ghostAPI.deriveKeys(this)
+            .then(() => ghostAPI.serialize(this, User.current))
+            .then((serializedGhost) => ghostAPI.encrypt(this, User.current, serializedGhost))
+            .then((res) => ghostAPI.send(this, res))
             .then(() => this.saveToServer())
             .then(() => {
                 this.sent = true;
@@ -147,66 +149,6 @@ class Ghost extends Keg {
             .finally(() => {
                 this.sending = false;
             });
-    }
-
-    /**
-     * Use ghost API to send ghost to external/ephemeral recipients.
-     *
-     * @returns {Promise}
-     */
-    sendGhost() {
-        return socket.send('/auth/ghost/send', {
-            ghostId: this.ghostId,
-            signature: this.ghostSignature,
-            ghostPublicKey: this.keypair.publicKey.buffer,
-            recipients: this.recipients.slice(),
-            lifeSpanInSeconds: this.lifeSpanInSeconds,
-            version: this.version,
-            files: this.files.slice(),
-            body: this.asymEncryptedGhostBody.buffer
-        });
-    }
-
-    /**
-     * to be sent to ephemeral recipient, encrypted asymmetrically
-     */
-    serializeGhostPayload() {
-        return {
-            subject: this.subject,
-            username: User.current.username,
-            firstName: User.current.firstName,
-            lastName: User.current.lastName,
-            ghostId: this.ghostId,
-            lifeSpanInSeconds: this.lifeSpanInSeconds,
-            signingPublicKey: cryptoUtil.bytesToB64(User.current.signKeys.publicKey),
-            version: 2,
-            body: this.body,
-            files: _.map(this.files, (fileId) => {
-                const file = fileStore.getById(fileId);
-                return _.assign({}, file.serializeProps(), file.serializeKegPayload());
-            }),
-            timestamp: this.timestamp
-        };
-    }
-
-    /**
-     * Encrypt for the ephemeral keypair and signs the ciphertext.
-     *
-     * @returns {*}
-     */
-    encryptForEphemeralRecipient() {
-        try {
-            const body = JSON.stringify(this.serializeGhostPayload());
-            this.asymEncryptedGhostBody = secret.encryptString(
-                body,
-                User.current.getSharedKey(this.keypair.publicKey)
-            );
-            const s = sign.signDetached(this.asymEncryptedGhostBody, User.current.signKeys.secretKey);
-            this.ghostSignature = cryptoUtil.bytesToB64(s);
-            return Promise.resolve();
-        } catch (e) {
-            return Promise.reject(e);
-        }
     }
 
     /**
@@ -228,11 +170,8 @@ class Ghost extends Keg {
      * @returns {Promise}
      */
     revoke() {
-        return socket.send('/auth/ghost/delete', { ghostId: this.ghostId })
-            .then(() => {
-                this.revoked = true;
-                return this.saveToServer();
-            });
+        return ghostAPI.revoke(this)
+            .then(() => this.saveToServer());
     }
 }
 
