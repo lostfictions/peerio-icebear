@@ -23,6 +23,7 @@ class Ghost extends Keg {
     @observable sent = false;
     @observable lifeSpanInSeconds = 0;
     @observable revoked = false;
+    @observable body = '';
 
     @computed get date() {
         return moment(this.timestamp);
