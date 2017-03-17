@@ -29,9 +29,9 @@ function resetApp() {
 
     require('./test-config')();
     mockSocket();
+    require('../src/').socket.start();
     mockCurrentUser();
     mockPhraseDictionary();
-    require('../src/').socket.start();
 }
 
 

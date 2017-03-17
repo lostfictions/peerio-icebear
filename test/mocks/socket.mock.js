@@ -19,9 +19,10 @@ function mockSocket() {
     if (socket.__mocked) throw new Error('Tests error: Socket already mocked.');
     socket.__mocked = true;
     socket.__mockListeners = [];
+    socket.__responseMocks = {};
     socket.__reset = function() {
         socket.__mockListeners = [];
-        socket.__responseMocks = null;
+        socket.__responseMocks = {};
     };
     socket.start = function() {
         this.started = true;
@@ -61,6 +62,7 @@ function mockSocket() {
 
         };
     };
+    return socket;
 }
 
 module.exports = mockSocket;
