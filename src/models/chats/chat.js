@@ -146,7 +146,7 @@ class Chat {
         this._detectFirstOfTheDayFlag();
         this._detectGrouping();
         this._detectLimboGrouping();
-        this._sendReceipt();
+        if (!prepend) this._sendReceipt();// no sense in sending receipts when paging back
         this._receiptHandler.applyReceipts();
     }
 
