@@ -145,6 +145,7 @@ class Chat {
 
         this._detectFirstOfTheDayFlag();
         this._detectGrouping();
+        this._detectLimboGrouping();
         this._sendReceipt();
         this._receiptHandler.applyReceipts();
     }
@@ -178,11 +179,16 @@ class Chat {
         // send() will fill message with data required for rendering
         const promise = m.send(text);
         this.limboMessages.push(m);
+        this._detectLimboGrouping();
         when(() => !!m.id, action(() => {
             this.limboMessages.remove(m);
             m.tempId = null;
             // unless user already scrolled to high up, we add the message
-            if (!this.canGoDown) this.addMessages([m], false, true);
+            if (!this.canGoDown) {
+                this.addMessages([m], false, true);
+            } else {
+                this._detectLimboGrouping();
+            }
         }));
         return promise;
     }
@@ -278,6 +284,16 @@ class Chat {
             } else {
                 current.groupWithPrevious = false;
             }
+        }
+    }
+
+    _detectLimboGrouping() {
+        if (!this.limboMessages.length) return;
+        const prev = this.messages.length ? this.messages[this.messages.length - 1] : null;
+        const current = this.limboMessages[0];
+        current.groupWithPrevious = !!(prev && prev.sender.username === current.sender.username);
+        for (let i = 1; i < this.limboMessages.length; i++) {
+            this.limboMessages[i].groupWithPrevious = true;
         }
     }
 
