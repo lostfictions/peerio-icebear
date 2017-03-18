@@ -7,7 +7,7 @@
  */
 
 const io = require('socket.io-client/dist/socket.io');
-const { ServerError } = require('../errors');
+const { ServerError, DisconnectedError } = require('../errors');
 const { observable } = require('mobx');
 const config = require('../config');
 const util = require('../util');
@@ -217,8 +217,9 @@ class SocketClient {
     }
 
     cancelAwaitingRequests() {
+        const err = new DisconnectedError();
         for (const id in this.awaitingRequests) {
-            this.awaitingRequests[id]();
+            this.awaitingRequests[id](err);
         }
         this.awaitingRequests = {};
     }

@@ -68,6 +68,7 @@ module.exports.AbstractCallError = getGenericCustomError('AbstractCallError',
                                                          'Abstract function call. Override this function.');
 module.exports.NoPasscodeFoundError = getGenericCustomError('NoPasscodeFoundError',
                                                          'No passcode found.');
+module.exports.DisconnectedError = getGenericCustomError('DisconnectedError');
 // -- Server Errors ----------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,
