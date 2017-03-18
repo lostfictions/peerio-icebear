@@ -56,6 +56,9 @@ class SocketClient {
     bytesReceived = 0;
     bytesSent = 0;
 
+    requestId = 0;
+    awaitingRequests = {}; // {number: function}
+
     authenticatedEventListeners = [];
     startedEventListeners = [];
     // following properties are not static for access convenience
@@ -120,6 +123,7 @@ class SocketClient {
             this.authenticated = false;
             this.connected = false;
             clearBuffers();
+            this.cancelAwaitingRequests();
         });
 
         socket.open();
@@ -194,7 +198,9 @@ class SocketClient {
 
     /** Send a message to server */
     send(name, data) {
+        const id = this.requestId++;
         return new Promise((resolve, reject) => {
+            this.awaitingRequests[id] = reject;
             function handler(resp) {
                 if (resp && resp.error) {
                     reject(new ServerError(resp.error, resp.message));
@@ -203,7 +209,18 @@ class SocketClient {
                 resolve(resp);
             }
             this.socket.emit(name, data, handler);
-        });
+        })
+            .timeout(60000)
+            .finally(() => {
+                delete this.awaitingRequests[id];
+            });
+    }
+
+    cancelAwaitingRequests() {
+        for (const id in this.awaitingRequests) {
+            this.awaitingRequests[id]();
+        }
+        this.awaitingRequests = {};
     }
 
     /** Executes a callback only once when socket will connect, or immediately if socket is connected already */
