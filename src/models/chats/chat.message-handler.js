@@ -8,8 +8,8 @@ const config = require('../../config');
 
 class ChatMessageHandler {
 
-    maxUpdateId = 0;
-    downloadedUpdateId = 0;
+    maxUpdateId = null;
+    downloadedUpdateId = null;
 
     constructor(chat) {
         this.chat = chat;

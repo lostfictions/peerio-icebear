@@ -30,9 +30,9 @@ class MailStore {
      * @returns {Socket|*}
      * @private
      */
-    _getGhosts(minCollectionVersion = '') {
+    _getGhosts(minCollectionVersion = null) {
         const query = { type: 'ghost' };
-        if (minCollectionVersion === '') query.deleted = false;
+        if (minCollectionVersion === null) query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion,

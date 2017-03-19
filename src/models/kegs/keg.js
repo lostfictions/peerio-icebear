@@ -36,7 +36,7 @@ class Keg {
         this.keyId = 0; // @type {string} reserved for future keys change feature
         this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
-        this.collectionVersion = ''; // @type {number} kegType-wide last update id for this keg
+        this.collectionVersion = null; // @type {number} kegType-wide last update id for this keg
         this.props = {};
     }
 
