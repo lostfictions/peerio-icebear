@@ -73,7 +73,7 @@ class ChatReceiptHandler {
 
         return socket.send('/auth/kegs/query', {
             collectionId: this.chat.id,
-            minCollectionVersion: 0,
+            minCollectionVersion: null,
             query: { type: 'receipt', username: User.current.username }
         }).then(res => {
             const r = new Receipt(this.chat.db);
@@ -104,12 +104,14 @@ class ChatReceiptHandler {
         this.scheduleReceiptsLoad = false;
         socket.send('/auth/kegs/query', {
             collectionId: this.chat.id,
-            minCollectionVersion: this.downloadedReceiptId || 0,
+            minCollectionVersion: this.downloadedReceiptId || null,
             query: { type: 'receipt' }
         }).then(res => {
             if (!res && !res.length) return;
             for (let i = 0; i < res.length; i++) {
-                this.downloadedReceiptId = Math.max(this.downloadedReceiptId, res[i].collectionVersion);
+                if (res[i].collectionVersion > this.downloadedReceiptId) {
+                    this.downloadedReceiptId = res[i].collectionVersion;
+                }
                 try {
                     const r = new Receipt(this.chat.db);
                     r.loadFromKeg(res[i]);

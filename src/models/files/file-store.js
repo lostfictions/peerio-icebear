@@ -19,7 +19,7 @@ class FileStore {
     @observable active = false;
     loaded = false;
     updating = false;
-    knownCollectionVersion = 0;
+    knownCollectionVersion = null;
 
     @observable unreadFiles = tracker.getDigest('SELF', 'file').newKegsCount;
 
@@ -109,9 +109,9 @@ class FileStore {
         this.unreadFiles = tracker.digest.SELF.file.newKegsCount;
     };
 
-    _getFiles(minCollectionVersion = 0) {
+    _getFiles(minCollectionVersion = null) {
         const query = { type: 'file' };
-        if (minCollectionVersion === 0) query.deleted = false;
+        if (minCollectionVersion === null) query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion,
@@ -125,7 +125,9 @@ class FileStore {
         this._getFiles().then(action(kegs => {
             for (const keg of kegs) {
                 const file = new File(User.current.kegDb);
-                this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                if (keg.collectionVersion > this.knownCollectionVersion) {
+                    this.knownCollectionVersion = keg.collectionVersion;
+                }
                 if (file.loadFromKeg(keg)) this.files.push(file);
             }
             this.loading = false;
@@ -157,12 +159,14 @@ class FileStore {
         if (this.updating) return;
         console.log(`Proceeding to file update. Known collection version: ${this.knownCollectionVersion}`);
         this.updating = true;
-        this._getFiles(this.knownCollectionVersion + 1)
+        this._getFiles(this.knownCollectionVersion)
             .then(action(kegs => {
                 for (const keg of kegs) {
+                    if (keg.collectionVersion > this.knownCollectionVersion) {
+                        this.knownCollectionVersion = keg.collectionVersion;
+                    } else continue;
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
-                    this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
                     if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
                     if (!file.deleted && !existing) this.files.push(file);
                     if (file.deleted && existing) this.files.remove(file);

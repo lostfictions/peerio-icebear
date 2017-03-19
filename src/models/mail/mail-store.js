@@ -30,9 +30,9 @@ class MailStore {
      * @returns {Socket|*}
      * @private
      */
-    _getGhosts(minCollectionVersion = 0) {
+    _getGhosts(minCollectionVersion = null) {
         const query = { type: 'ghost' };
-        if (minCollectionVersion === 0) query.deleted = false;
+        if (minCollectionVersion === null) query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion,
@@ -50,7 +50,9 @@ class MailStore {
             console.log('there are mail kegs', kegs.length);
             for (const keg of kegs) {
                 const ghost = new Ghost(User.current.kegDb);
-                this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                if (keg.collectionVersion > this.knownCollectionVersion) {
+                    this.knownCollectionVersion = keg.collectionVersion;
+                }
                 if (ghost.loadFromKeg(keg)) {
                     console.log('loading ghost', ghost.ghostId);
                     this.ghostMap.set(ghost.ghostId, ghost);
@@ -77,7 +79,9 @@ class MailStore {
                     const inCollection = this.getById(keg.props.ghostId);
                     console.log('in collection?', inCollection);
                     const g = inCollection || new Ghost(User.current.kegDb);
-                    this.knownCollectionVersion = Math.max(this.knownCollectionVersion, keg.collectionVersion);
+                    if (keg.collectionVersion > this.knownCollectionVersion) {
+                        this.knownCollectionVersion = keg.collectionVersion;
+                    }
                     if (keg.isEmpty || !g.loadFromKeg(keg)) continue;
                     if (!g.deleted && !inCollection) this.ghostMap.set(g.ghostId, g);
                     if (g.deleted && inCollection) delete this.ghostMap.delete(keg.ghostId);
