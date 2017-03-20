@@ -13,6 +13,7 @@ class MailStore {
     @observable loaded = false;
     @observable updating = false;
     @observable selectedId = null; // ghostId
+    @observable selectedSort = 'date';
 
     @computed get selectedGhost() {
         return this.ghostMap.get(this.selectedId);
@@ -58,7 +59,7 @@ class MailStore {
                     this.ghostMap.set(ghost.ghostId, ghost);
                 }
             }
-            this.sortByDate();
+            this.sort();
             this.loading = false;
             this.loaded = true;
             tracker.onKegTypeUpdated('SELF', 'ghost', this.updateGhosts);
@@ -136,22 +137,58 @@ class MailStore {
     }
 
     /**
+     * Get a ghost by its ghostId.
      *
-     * @param ghostId
-     * @returns {*}
+     * @param {String} ghostId
+     * @returns {Ghost}
      */
     getById(ghostId) {
         return this.ghostMap.get(ghostId);
     }
 
     /**
+     * Apply a sort
      *
+     * @param {String} value ['date']
+     */
+    @action sort(value) {
+        switch (value) {
+            case 'attachment':
+                this.sortByAttachments();
+                break;
+            case 'recipient':
+                this.sortByRecipient();
+                break;
+            default:
+                this.sortByDate();
+        }
+        if (this.ghosts.length === 0) return;
+        this.selectedId = this.ghosts[0].ghostId;
+    }
+
+    /**
+     * Sort by sent date, descending.
      */
     sortByDate() {
         this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => -g.timestamp);
-        if (this.ghosts.length === 0) return;
-        console.log('most recent is', this.ghosts[0]);
-        this.selectedId = this.ghosts[0].ghostId;
+        this.selectedSort = 'date';
+    }
+
+    /**
+     * Sort by whether files have attachments.
+     */
+    sortByAttachments() {
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => g.files.length === 0);
+        this.selectedSort = 'attachment';
+    }
+
+    /**
+     * Sort by the first recipient.
+     * @fixme this doesn't make much sense?
+     */
+    sortByRecipient() {
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => g.recipients[0]);
+        this.selectedSort = 'recipient';
     }
 
 }
