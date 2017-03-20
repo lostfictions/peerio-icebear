@@ -109,9 +109,9 @@ class Chat {
             const keg = kegs[i];
             if (keg.deleted || this._messageMap[keg.kegId]) continue;
 
-            const msg = sent ? keg : new Message(this.db).loadFromKeg(keg);
+            const msg = sent ? keg : new Message(this.db);
             // no payload for some reason. probably because of connection break after keg creation
-            if (!msg && msg.isEmpty) {
+            if (msg.isEmpty || !msg.loadFromKeg(keg)) {
                 console.debug('empty message keg', keg);
                 continue;
             }
