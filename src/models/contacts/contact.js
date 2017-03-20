@@ -30,7 +30,7 @@ class Contact {
 
     @computed get letter() {
         const { username, firstName } = this;
-        return (firstName || username || ' ')[0].toUpperCase();
+        return String.fromCodePoint((firstName || username || ' ').codePointAt(0)).toUpperCase();
     }
 
     // fingerprint calculation is async, but at the same time we want it to be lazy computed
