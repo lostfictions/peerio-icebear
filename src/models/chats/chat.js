@@ -7,6 +7,7 @@ const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
+const Queue = require('../../helpers/queue');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -50,6 +51,8 @@ class Chat {
     _messageHandler = null;
     _receiptHandler = null;
     _fileHandler = null;
+
+    _addMessageQueue = new Queue(1, 0);
 
     @computed get participantUsernames() {
         if (!this.participants) return null;
@@ -100,30 +103,35 @@ class Chat {
      * Adds messages to current message list.
      * @param {Array<Object|Message>} kegs - list of messages to add
      * @param prepend - add message to top of bottom
-     * @param sent - if true - array contains single item of Message type. This is a way to add sent messages.
+     * @param isSentMessage - if true - array contains single item of Message type. This is a way to add sent messages.
      */
-    @action addMessages(kegs, prepend = false, sent = false) {
-        if (!kegs || !kegs.length) return;
+    @action addMessages(kegs, prepend = false, isSentMessage = false) {
+        if (!kegs || !kegs.length) return Promise.resolve();
+        return new Promise((resolve) => {
+            // we need this because we don't want to add messages one by one causing too many renders
+            const accumulator = [];
+            for (let i = 0; i < kegs.length; i++) {
+                this._addMessageQueue.addTask(this._addSingleMessage, this, [kegs[i], isSentMessage, accumulator]);
+            }
+            this._addMessageQueue.addTask(this._postAdd, this, [accumulator, prepend], resolve);
+        });
+    }
 
-        for (let i = 0; i < kegs.length; i++) {
-            const keg = kegs[i];
-            if (keg.deleted || this._messageMap[keg.kegId]) continue;
+    _addSingleMessage(keg, isSentMessage, accumulator) {
+        if (keg.deleted || this._messageMap[keg.kegId]) return;
 
-            const msg = sent ? keg : new Message(this.db);
+        const msg = isSentMessage ? keg : new Message(this.db);
             // no payload for some reason. probably because of connection break after keg creation
-            if (msg.isEmpty || !msg.loadFromKeg(keg)) {
-                console.debug('empty message keg', keg);
-                continue;
-            }
-            // array is gonna be sorted anyway, but just for the order or things
-            if (prepend) {
-                this.messages.unshift(msg);
-            } else {
-                this.messages.push(msg);
-            }
-            this._messageMap[msg.id] = msg;
+        if (!isSentMessage && (msg.isEmpty || !msg.loadFromKeg(keg))) {
+            console.debug('empty message keg', keg);
+            return;
         }
+        accumulator.push(msg);
+        this._messageMap[msg.id] = msg;
+    }
 
+    @action _postAdd(accumulator, prepend) {
+        this.messages.push(...accumulator);
         this.sortMessages();
 
         const excess = this.messages.length - config.chat.maxLoadedMessages;

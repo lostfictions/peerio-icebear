@@ -51,7 +51,7 @@ class Tofu extends Keg {
     static getByUsername(username) {
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
-            minCollectionVersion: null,
+            minCollectionVersion: '',
             query: { type: 'tofu', username }
         }).then(res => {
             if (!res.length) return null;

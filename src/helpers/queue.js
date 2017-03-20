@@ -15,8 +15,8 @@ class Queue {
         this.onTaskComplete = this.onTaskComplete.bind(this);
     }
 
-    @action addTask(task, context, args) {
-        this.tasks.push({ task, context, args });
+    @action addTask(task, context, args, onFinish) {
+        this.tasks.push({ task, context, args, onFinish });
         setTimeout(this.runTask, this.throttle);
     }
     // runs next task if it is possible
@@ -26,16 +26,18 @@ class Queue {
         this.runningTasks++;
         try {
             const t = this.tasks.shift();
-            const ret = t.task.call(t.context, t.args);
+            const ret = t.task.apply(t.context, t.args);
             if (ret instanceof Promise || ret instanceof BPromise) {
                 // task is considered done when promise is complete
+                if (t.onFinish) ret.finally(t.onFinish);
                 ret.finally(this.onTaskComplete);
                 return;
             }
             // otherwise we assume the task was synchronous
+            if (t.onFinish) t.onFinish();
             this.onTaskComplete();
         } catch (ex) {
-            // in case smth went wrong we schedule next task
+            // in case something went wrong we schedule next task
             console.error(ex);
             this.onTaskComplete();
         }

@@ -19,7 +19,7 @@ class FileStore {
     @observable active = false;
     loaded = false;
     updating = false;
-    knownCollectionVersion = null;
+    knownCollectionVersion = '';
 
     @observable unreadFiles = tracker.getDigest('SELF', 'file').newKegsCount;
 
@@ -109,9 +109,9 @@ class FileStore {
         this.unreadFiles = tracker.digest.SELF.file.newKegsCount;
     };
 
-    _getFiles(minCollectionVersion = null) {
+    _getFiles(minCollectionVersion = '') {
         const query = { type: 'file' };
-        if (minCollectionVersion === null) query.deleted = false;
+        if (minCollectionVersion === '') query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
             minCollectionVersion,

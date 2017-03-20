@@ -48,7 +48,7 @@ class UpdateTracker {
     }
 
     // to return from getDigest()
-    zeroDigest = { maxUpdateId: null, knownUpdateId: null, newKegsCount: 0 };
+    zeroDigest = { maxUpdateId: '', knownUpdateId: '', newKegsCount: 0 };
 
     /**
      * Wrapper around this.digest to safely retrieve data that might be not retrieved yet,
@@ -233,7 +233,9 @@ class UpdateTracker {
      * @param {string} updateId - max known update id
      */
     seenThis(id, type, updateId) {
-        if (updateId === null) return;
+        if (!updateId) return;
+        const digest = this.getDigest(id, type);
+        if (digest.knownUpdateId >= updateId) return;
         socket.send('/auth/kegs/updates/last-known-version', {
             collectionId: id,
             type,
