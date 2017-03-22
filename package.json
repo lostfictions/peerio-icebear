@@ -41,7 +41,7 @@
     "nacl-stream": "0.3.3",
     "scrypt-async": "1.3.1",
     "socket.io-client": "1.7.3",
-    "moment": "2.18.0",
+    "moment": "2.18.1",
     "tweetnacl": "1.0.0-rc.1"
   },
   "dependencies": {
@@ -54,12 +54,12 @@
     "nacl-stream": "0.3.3",
     "scrypt-async": "1.3.1",
     "socket.io-client": "1.7.3",
-    "moment": "2.18.0",
+    "moment": "2.18.1",
     "tweetnacl": "1.0.0-rc.1"
   },
   "devDependencies": {
     "babel-cli": "6.24.0",
-    "babel-eslint": "7.1.1",
+    "babel-eslint": "7.2.0",
     "babel-plugin-transform-class-properties": "6.23.0",
     "babel-plugin-transform-decorators-legacy": "1.3.4",
     "babel-plugin-transform-es2015-modules-commonjs": "6.24.0",
@@ -72,15 +72,15 @@
     "documentation": "4.0.0-beta.18",
     "eslint": "3.18.0",
     "eslint-config-peerio": "*",
-    "eslint-plugin-react": "6.10.2",
+    "eslint-plugin-react": "6.10.3",
     "husky": "0.13.2",
     "mocha": "3.2.0",
     "mock-require": "2.0.1",
     "npm-run-all": "4.0.2",
     "nyc": "10.1.2",
     "rimraf": "2.6.1",
-    "sinon": "2.0.0",
-    "sinon-chai": "2.8.0",
+    "sinon": "2.1.0",
+    "sinon-chai": "2.9.0",
     "source-map-support": "0.4.14",
     "standard-version": "4.0.0",
     "validate-commit-msg": "2.11.2"
