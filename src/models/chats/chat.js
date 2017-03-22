@@ -180,7 +180,7 @@ class Chat {
         return -1;
     }
 
-    sendMessage(text, files) {
+    @action sendMessage(text, files) {
         if (this.canGoDown) this.reset();
         const m = new Message(this.db);
         m.files = files;
