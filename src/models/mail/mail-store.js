@@ -71,14 +71,12 @@ class MailStore {
      * @returns {Promise}
      */
     updateGhosts() {
-        console.log('coll updated');
         if (this.updating || this.loading) return;
         this.updating = true;
         this._getGhosts()
             .then(action((kegs) => {
                 for (const keg of kegs) {
                     const inCollection = this.getById(keg.props.ghostId);
-                    console.log('in collection?', inCollection);
                     const g = inCollection || new Ghost(User.current.kegDb);
                     if (keg.collectionVersion > this.knownCollectionVersion) {
                         this.knownCollectionVersion = keg.collectionVersion;
@@ -87,8 +85,7 @@ class MailStore {
                     if (!g.deleted && !inCollection) this.ghostMap.set(g.ghostId, g);
                     if (g.deleted && inCollection) delete this.ghostMap.delete(keg.ghostId);
                 }
-                console.log('ghost map', this.ghostMap);
-                this.sortByDate(); // FIXME will draft die if receiving update?
+                this.sortByDate();
                 this.updating = false;
             }));
     }
@@ -103,7 +100,6 @@ class MailStore {
         this.ghostMap.set(g.ghostId, g);
         this.ghosts.unshift(g);
         this.selectedId = g.ghostId;
-        // FIXME is it added to colleciton when saved?
         return g;
     }
 
