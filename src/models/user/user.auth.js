@@ -12,6 +12,9 @@ const util = require('../../util');
 const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
+const systemWarnings = require('../system-warning');
+
+const { ServerError } = errors;
 
 module.exports = function mixUserAuthModule() {
     /**
@@ -24,7 +27,14 @@ module.exports = function mixUserAuthModule() {
         return this._loadAuthSalt()
                     .then(this._deriveKeys)
                     .then(this._getAuthToken)
-                    .then(this._authenticateAuthToken);
+                    .then(this._authenticateAuthToken)
+                    .catch(e => {
+                        e && (e.code === ServerError.codes.accountMigrationRequired)
+                        && systemWarnings.addLocalWarningSevere(
+                            'error_cannotMigrate', 'error_loginFailed'
+                        );
+                        return Promise.reject(e);
+                    });
     };
 
     /**
@@ -56,9 +66,9 @@ module.exports = function mixUserAuthModule() {
         console.log('Loading auth salt');
         if (this.authSalt) return Promise.resolve();
         return socket.send('/noauth/auth-salt/get', { username: this.username })
-                     .then((response) => {
-                         this.authSalt = new Uint8Array(response.authSalt);
-                     });
+            .then((response) => {
+                this.authSalt = new Uint8Array(response.authSalt);
+            });
     };
 
     /**
