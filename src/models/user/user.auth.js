@@ -212,12 +212,31 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Checks if user has a passcode saved
-     * @returns {Promise}
+     * Removes passcode for a user if it exists, and disables using passcodes.
+     *
+     * @returns {Promise<Boolean>}
      */
-    this.hasPasscode = () => {
-        return TinyDb.system.getValue(`${this.username}:passcode`)
-            .then(result => !!result);
+    this.disablePasscode = () => {
+        return TinyDb.system.setValue(`${this.username}:passcode:disabled`, true)
+            .then(() => {
+                return TinyDb.system.removeValue(`${this.username}:passcode`)
+                    .catch(err => {
+                        if (err.message === 'Invalid tinydb key') {
+                            return true;
+                        }
+                        return Promise.reject(err);
+                    });
+            });
+    };
+
+    /**
+     * Checks if user disabled passcode.
+     *
+     * @returns {Promise<Boolean>}
+     */
+    this.passcodeIsDisabled = () => {
+        return TinyDb.system.getValue(`${this.username}:passcode:disabled`)
+            .catch(err => false);
     };
 
     /**
@@ -239,9 +258,25 @@ module.exports = function mixUserAuthModule() {
             .then(passcodeSecretU8 => {
                 this.passcodeIsSet = true;
                 return TinyDb.system.setValue(`${this.username}:passcode`, cryptoUtil.bytesToB64(passcodeSecretU8));
+            })
+            .then(() => {
+                // if the user had previously disabled passcodes, remove the pref
+                return TinyDb.system.removeValue(`${this.username}:passcode:disabled`)
+                    .catch(err => {
+                        if (err.message === 'Invalid tinydb key') {
+                            return true;
+                        }
+                        return Promise.reject(err);
+                    });
             });
     };
 
+    /**
+     * Checks for passcode.
+     *
+     * @param {String} passcode
+     * @returns {Promise<Boolean>}
+     */
     this.validatePasscode = (passcode) => {
         const u = new this.constructor(); // eslint-disable-line
         u.passphrase = passcode;
