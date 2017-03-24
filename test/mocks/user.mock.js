@@ -21,11 +21,12 @@ function mockCurrentUser() {
     const User = require('../../src/models/user/user');
     const user = new User();
     user.username = 'currenttestuser';
+    user.passphrase = 'this is a passphrase';
     user.authSalt = keys.generateAuthSalt();
     user.signKeys = keys.generateSigningKeyPair();
     user.encryptionKeys = keys.generateEncryptionKeyPair();
     user.overrideKey = keys.generateEncryptionKey();
-    user.bootKey = keys.generateEncryptionKeyPair();
+    user.bootKey = keys.generateEncryptionKey();
     user.authKeys = keys.generateEncryptionKeyPair();
     User.current = user;
     user.kegDb.createBootKeg(user.bootKey, user.signKeys,
