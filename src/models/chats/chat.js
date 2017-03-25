@@ -103,35 +103,53 @@ class Chat {
      * Adds messages to current message list.
      * @param {Array<Object|Message>} kegs - list of messages to add
      * @param prepend - add message to top of bottom
-     * @param isSentMessage - if true - array contains single item of Message type. This is a way to add sent messages.
      */
-    @action addMessages(kegs, prepend = false, isSentMessage = false) {
+    @action addMessages(kegs, prepend = false) {
         if (!kegs || !kegs.length) return Promise.resolve();
         return new Promise((resolve) => {
             // we need this because we don't want to add messages one by one causing too many renders
             const accumulator = [];
             for (let i = 0; i < kegs.length; i++) {
-                this._addMessageQueue.addTask(this._addSingleMessage, this, [kegs[i], isSentMessage, accumulator]);
+                this._addMessageQueue.addTask(this._parseMessageKeg, this, [kegs[i], accumulator]);
             }
-            this._addMessageQueue.addTask(this._postAdd, this, [accumulator, prepend], resolve);
+            this._addMessageQueue.addTask(this._finishAddMessages, this, [accumulator, prepend], resolve);
         });
     }
 
-    _addSingleMessage(keg, isSentMessage, accumulator) {
-        if (keg.deleted || this._messageMap[keg.kegId]) return;
-
-        const msg = isSentMessage ? keg : new Message(this.db);
-            // no payload for some reason. probably because of connection break after keg creation
-        if (!isSentMessage && (msg.isEmpty || !msg.loadFromKeg(keg))) {
+    // decrypting a bunch of kegs in one call is tough on mobile, so we do it asynchronously one by one
+    _parseMessageKeg(keg, accumulator) {
+        const msg = new Message(this.db);
+        // no payload for some reason. probably because of connection break after keg creation
+        if (msg.isEmpty || !msg.loadFromKeg(keg)) {
             console.debug('empty message keg', keg);
             return;
         }
         accumulator.push(msg);
-        this._messageMap[msg.id] = msg;
     }
 
-    @action _postAdd(accumulator, prepend) {
-        this.messages.push(...accumulator);
+    // all kegs are decrypted and parsend, now we just push them to the observable array
+    @action _finishAddMessages(accumulator, prepend) {
+        for (let i = 0; i < accumulator.length; i++) {
+            const msg = accumulator[i];
+            // deleted message case
+            if (msg.deleted) {
+                delete this._messageMap[i];
+                this.messages.remove(msg);
+                continue;
+            }
+            // todo: maybe compare collection vesions? Although sending message's collection version is not confirmed
+            // changed message case
+            const existing = this._messageMap[msg.id];
+            if (existing) {
+                this.messages.remove(existing);
+                this.messages.push(msg);
+                continue;
+            }
+            // new message case
+            this._messageMap[msg.id] = msg;
+            this.messages.push(msg);
+        }
+
         this.sortMessages();
 
         const excess = this.messages.length - config.chat.maxLoadedMessages;
@@ -193,7 +211,7 @@ class Chat {
             m.tempId = null;
             // unless user already scrolled to high up, we add the message
             if (!this.canGoDown) {
-                this.addMessages([m], false, true);
+                this._finishAddMessages([m], false);
             } else {
                 this._detectLimboGrouping();
             }
