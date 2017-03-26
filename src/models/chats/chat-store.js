@@ -47,7 +47,7 @@ class ChatStore {
     };
 
     // initial fill chats list
-    @action loadAllChats() {
+    @action loadAllChats(max) {
         if (this.loaded || this.loading) return;
         this.loading = true;
         // server api returns all keg databases this user has access to
@@ -55,11 +55,14 @@ class ChatStore {
             .then(action(list => {
                 const promises = [];
                 const lChats = [];
+                let k = 0;
                 for (const id of list) {
                     if (id === 'SELF') continue;
+                    k++;
                     const c = new Chat(id, undefined, this);
                     lChats.push(c);
                     promises.push(c.loadMetadata());
+                    if (max && k === max) break;
                 }
                 // loadMetadata() promises never reject
                 return Promise.all(promises).then(action(() => {
