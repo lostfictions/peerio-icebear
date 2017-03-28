@@ -19,7 +19,8 @@ class FileStore {
     @observable active = false;
     loaded = false;
     updating = false;
-    knownCollectionVersion = '';
+    maxUpdateId = '';
+    knownUpdateId = '';
 
     @observable unreadFiles = tracker.getDigest('SELF', 'file').newKegsCount;
 
@@ -94,27 +95,30 @@ class FileStore {
     constructor() {
         tracker.onKegTypeUpdated('SELF', 'file', this.onFileDigestUpdate);
         reaction(() => this.ongoingUploads, () => {
-            if (this.ongoingUploads > 0) {
-                const currentCompletedUploads = this.completedUploads;
-                when(() => this.ongoingUploads === 0, () => {
-                    (this.completedUploads > currentCompletedUploads) && systemWarnings.add({
-                        content: 'snackbar_uploadComplete'
-                    });
+            if (this.ongoingUploads === 0) return;
+            const currentCompletedUploads = this.completedUploads;
+            when(() => this.ongoingUploads === 0, () => {
+                (this.completedUploads > currentCompletedUploads) && systemWarnings.add({
+                    content: 'snackbar_uploadComplete'
                 });
-            }
+            });
         });
     }
 
     onFileDigestUpdate = () => {
-        this.unreadFiles = tracker.digest.SELF.file.newKegsCount;
+        const digest = tracker.getDigest('SELF', 'file');
+        this.unreadFiles = digest.newKegsCount;
+        if (digest.maxUpdateId === this.maxUpdateId) return;
+        this.maxUpdateId = digest.maxUpdateId;
+        this.updateFiles();
     };
 
-    _getFiles(minCollectionVersion = '') {
+    _getFiles() {
         const query = { type: 'file' };
-        if (minCollectionVersion === '') query.deleted = false;
+        if (this.knownUpdateId === '') query.deleted = false;
         return socket.send('/auth/kegs/query', {
             collectionId: 'SELF',
-            minCollectionVersion,
+            minCollectionVersion: this.knownUpdateId,
             query
         });
     }
@@ -125,8 +129,8 @@ class FileStore {
         this._getFiles().then(action(kegs => {
             for (const keg of kegs) {
                 const file = new File(User.current.kegDb);
-                if (keg.collectionVersion > this.knownCollectionVersion) {
-                    this.knownCollectionVersion = keg.collectionVersion;
+                if (keg.collectionVersion > this.maxUpdateId) {
+                    this.maxUpdateId = keg.collectionVersion;
                 }
                 if (file.loadFromKeg(keg)) this.files.push(file);
             }
@@ -145,9 +149,8 @@ class FileStore {
             });
             autorunAsync(() => {
                 if (this.unreadFiles === 0 || !this.active) return;
-                tracker.seenThis('SELF', 'file', this.knownCollectionVersion);
+                tracker.seenThis('SELF', 'file', this.knownUpdateId);
             }, 700);
-            tracker.onKegTypeUpdated('SELF', 'file', this.updateFiles);
             setTimeout(this.updateFiles);
         }));
     }
@@ -156,14 +159,14 @@ class FileStore {
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
     updateFiles = () => {
         console.log(`Files update event received ${JSON.stringify(tracker.digest.SELF.file)}`);
-        if (this.updating) return;
-        console.log(`Proceeding to file update. Known collection version: ${this.knownCollectionVersion}`);
+        if (!this.loaded || this.updating) return;
+        console.log(`Proceeding to file update. Known collection version: ${this.maxUpdateId}`);
         this.updating = true;
-        this._getFiles(this.knownCollectionVersion)
+        this._getFiles(this.maxUpdateId)
             .then(action(kegs => {
                 for (const keg of kegs) {
-                    if (keg.collectionVersion > this.knownCollectionVersion) {
-                        this.knownCollectionVersion = keg.collectionVersion;
+                    if (keg.collectionVersion > this.knownUpdateId) {
+                        this.knownUpdateId = keg.collectionVersion;
                     } else continue;
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
@@ -173,7 +176,7 @@ class FileStore {
                 }
                 this.updating = false;
                 // in case we missed another event while updating
-                if (kegs.length) setTimeout(this.updateFiles);
+                if (kegs.length) setTimeout(this.onFileDigestUpdate);
             }));
     };
 
