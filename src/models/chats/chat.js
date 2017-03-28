@@ -142,8 +142,6 @@ class Chat {
             const existing = this._messageMap[msg.id];
             if (existing) {
                 this.messages.remove(existing);
-                this.messages.push(msg);
-                continue;
             }
             // new message case
             this._messageMap[msg.id] = msg;
