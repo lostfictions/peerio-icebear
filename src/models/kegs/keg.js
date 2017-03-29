@@ -145,7 +145,11 @@ class Keg {
         return socket.send('/auth/kegs/get', {
             collectionId: this.db.id,
             kegId: this.id
-        }).then(keg => this.loadFromKeg(keg));
+        }).then(keg => {
+            const ret = this.loadFromKeg(keg);
+            if (ret === false) return Promise.reject();
+            return ret;
+        });
     }
 
     remove() {
@@ -250,7 +254,7 @@ class Keg {
      * Override in child classes to convert raw keg data into object properties.
      */
     //eslint-disable-next-line
-    deserializeKegPayload(payload) {}
+    deserializeKegPayload(payload) { }
 
     /**
      * Generic version that uses this.props object as-is
