@@ -288,4 +288,13 @@ module.exports = function mixUserAuthModule() {
                     : Promise.reject(new Error('user.auth.js: passcode is not valid'));
             });
     };
+
+    /**
+     * Checks if user has a passcode saved
+     * USED BY MOBILE PLEASE DO NOT REMOVE
+     * @returns {Promise}
+     */
+    this.hasPasscode = () => {
+        return TinyDb.system.getValue(`${this.username}:passcode`).then(result => !!result);
+    };
 };
