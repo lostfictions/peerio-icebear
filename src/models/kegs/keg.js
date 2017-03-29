@@ -147,7 +147,11 @@ class Keg {
             kegId: this.id
         }).then(keg => {
             const ret = this.loadFromKeg(keg);
-            if (ret === false) return Promise.reject();
+            if (ret === false) {
+                return Promise.reject(new Error(
+                    `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
+                ));
+            }
             return ret;
         });
     }

@@ -274,6 +274,11 @@ class SocketClient {
     open() {
         this.socket.open();
     }
+
+    reset() {
+        setTimeout(() => this.close());
+        setTimeout(() => this.open());
+    }
 }
 
 module.exports = SocketClient;

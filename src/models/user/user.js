@@ -102,7 +102,11 @@ class User {
                 this.encryptionKeys = this.kegDb.boot.encryptionKeys;
                 this.signKeys = this.kegDb.boot.signKeys;
             })
-            .then(() => this._postAuth());
+            .then(() => this._postAuth())
+            .catch(err => {
+                socket.reset();
+                return Promise.reject(err);
+            });
     }
 
     /**
