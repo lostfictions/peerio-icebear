@@ -1,4 +1,3 @@
-const BPromise = require('bluebird');
 const { computed, observable, action } = require('mobx');
 
 class Queue {
@@ -27,7 +26,7 @@ class Queue {
         try {
             const t = this.tasks.shift();
             const ret = t.task.apply(t.context, t.args);
-            if (ret instanceof Promise || ret instanceof BPromise) {
+            if (ret instanceof Promise) {
                 // task is considered done when promise is complete
                 if (t.onFinish) ret.finally(t.onFinish);
                 ret.finally(this.onTaskComplete);
