@@ -89,7 +89,7 @@ class SocketClient {
             };
             setInterval(() => {
                 console.log('SENT:', util.formatBytes(self.bytesSent),
-                              'RECEIVED:', util.formatBytes(self.bytesReceived));
+                    'RECEIVED:', util.formatBytes(self.bytesReceived));
             }, config.debug.trafficReportInterval);
         }
         // </DEBUG>
@@ -240,7 +240,7 @@ class SocketClient {
     }
 
     onceAuthenticated(callback) {
-        if (this.socket.authenticated) {
+        if (this.authenticated) {
             setTimeout(callback, 0);
             return;
         }
