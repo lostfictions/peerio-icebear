@@ -1,18 +1,27 @@
 const Profile = require('./profile');
 const Quota = require('./quota');
 const tracker = require('../update-tracker');
+const { retryUntilSuccess } = require('../../helpers/retry.js');
 
 module.exports = function mixUserRegisterModule() {
     const _profileKeg = new Profile(this.kegDb, this);
     const _quotaKeg = new Quota(this.kegDb, this);
 
-    tracker.onKegTypeUpdated('SELF', 'profile', () => _profileKeg.load());
-    tracker.onKegTypeUpdated('SELF', 'quotas', () => _quotaKeg.load());
-
-    this.loadProfile = function() {
-        console.log('Loading user profile.');
-        return Promise.all([_profileKeg.load(), _quotaKeg.load()]);
+    this.loadProfile = (force) => {
+        const digest = tracker.getDigest('SELF', 'profile');
+        if (!force && digest.maxUpdateId <= _profileKeg.collectionVersion) return;
+        retryUntilSuccess(() => _profileKeg.load().then(this.loadProfile), 'Profile Load');
     };
+
+    this.loadQuota = (force) => {
+        const digest = tracker.getDigest('SELF', 'quota');
+        if (!force && digest.maxUpdateId <= _quotaKeg.collectionVersion) return;
+        retryUntilSuccess(() => _quotaKeg.load().then(this.loadQuota), 'Quota Load');
+    };
+
+    // will be triggered first time after login
+    tracker.onKegTypeUpdated('SELF', 'profile', this.loadProfile);
+    tracker.onKegTypeUpdated('SELF', 'quotas', this.loadQuota);
 
     this.saveProfile = function() {
         return _profileKeg.saveToServer();

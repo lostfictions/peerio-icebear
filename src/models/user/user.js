@@ -7,7 +7,7 @@ const mixUserRegisterModule = require('./user.register.js');
 const mixUserAuthModule = require('./user.auth.js');
 const KegDb = require('./../kegs/keg-db');
 const TinyDb = require('../../db/tiny-db');
-const { observable } = require('mobx');
+const { observable, when } = require('mobx');
 const currentUserHelper = require('./../../helpers/di-current-user');
 const { publicCrypto } = require('../../crypto/index');
 
@@ -15,7 +15,7 @@ let currentUser;
 
 class User {
 
-    _username='';
+    _username = '';
     get username() {
         return this._username;
     }
@@ -30,6 +30,8 @@ class User {
     @observable locale = 'en';
     @observable passcodeIsSet = false;
     @observable quota;
+    @observable profileLoaded = false;
+
     createdAt = null;
     deleted = false;
     blacklisted = false;
@@ -65,13 +67,13 @@ class User {
     createAccountAndLogin() {
         console.log('Starting account registration sequence.');
         return this._createAccount()
-                   .then(() => this._authenticateConnection())
-                   .then(() => {
-                       console.log('Creating boot keg.');
-                       return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
-                           this.encryptionKeys, this.overrideKey);
-                   })
-                    .then(() => this._postAuth());
+            .then(() => this._authenticateConnection())
+            .then(() => {
+                console.log('Creating boot keg.');
+                return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
+                    this.encryptionKeys, this.overrideKey);
+            })
+            .then(() => this._postAuth());
     }
 
     /**
@@ -104,7 +106,7 @@ class User {
     }
 
     /**
-     * Subscribe on events after auth
+     * Subscribe to events after auth
      *
      * @returns {Promise}
      */
@@ -114,10 +116,13 @@ class User {
             this._firstLoginInSession = false;
             TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
-            return this.loadProfile()
-                       .then(() => this.setAsLastAuthenticated().catch(err => console.error(err)));
+            this.loadProfile(true);
+            this.loadQuota(true);
+            when(() => this.profileLoaded, () => {
+                this.setAsLastAuthenticated()
+                    .catch(err => console.error(err)); // not critical, we can ignore this error
+            });
         }
-        return Promise.resolve();
     }
 
     setReauthOnReconnect() {
