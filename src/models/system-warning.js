@@ -1,4 +1,4 @@
-const { observable, when } = require('mobx');
+const { observable, when, action } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
 
@@ -43,7 +43,7 @@ class ServerWarning extends SystemWarning {
 /**
  * Simple observable queue of server warnings.
  *
- * Used in desktop app by SnackbarControl.
+ * Used in desktop app by WarningController.
  */
 class SystemWarningCollection {
     collection = observable([]);
@@ -53,19 +53,27 @@ class SystemWarningCollection {
         _.bindAll(this, ['add', 'addServerWarning']);
     }
 
-    add(data) {
+    @action add(data) {
         this.collection.push(new SystemWarning(data));
+    }
+
+    @action shift() {
+        this.collection.shift();
     }
 
     /**
      * Add a severe local warning helper
      * Used as a global error handler
      */
-    addLocalWarningSevere(content, title, buttons) {
+    @action addLocalWarningSevere(content, title, buttons) {
         this.add({ content, title, buttons, level: 'severe' });
     }
 
-    addServerWarning(serverData) {
+    /**
+     *
+     * @param serverData
+     */
+    @action addServerWarning(serverData) {
         const token = serverData.token;
         if (token && this.hash[token]) {
             return;
