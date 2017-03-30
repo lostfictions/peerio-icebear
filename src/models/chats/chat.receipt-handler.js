@@ -71,23 +71,32 @@ class ChatReceiptHandler {
     loadOwnReceipt() {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
 
-        return socket.send('/auth/kegs/query', {
+        return socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
-            minCollectionVersion: '',
-            query: { type: 'receipt', username: User.current.username, deleted: false }
+            filter: {
+                minCollectionVersion: '',
+                username: User.current.username,
+                deleted: false
+
+            },
+            options: {
+                type: 'receipt'
+            }
         }).then(res => {
             const r = new Receipt(this.chat.db);
-            if (res && res.length) {
-                r.loadFromKeg(res[0]);
+            if (res && res.kegs && res.kegs.length) {
+                r.loadFromKeg(res.kegs[0]);
                 // if for some reason, duplicate kegs were created, remove them
-                for (let i = 1; i < res.length; i++) {
+                for (let i = 1; i < res.kegs.length; i++) {
                     const toRemove = new Receipt(this.chat.db);
-                    toRemove.id = res[i].kegId;
+                    toRemove.id = res.kegs[i].kegId;
+                    console.debug(`Deleting receipt keg ${toRemove.id}`);
                     toRemove.remove();
                 }
+                this._ownReceipt = r;
                 return r;
             }
-
+            console.debug(`Creating receipt keg`);
             r.username = User.current.username;
             r.position = 0;
             this._ownReceipt = r;
