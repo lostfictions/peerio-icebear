@@ -25,12 +25,12 @@ function mockCurrentUser() {
     user.authSalt = keys.generateAuthSalt();
     user.signKeys = keys.generateSigningKeyPair();
     user.encryptionKeys = keys.generateEncryptionKeyPair();
-    user.overrideKey = keys.generateEncryptionKey();
+    user.kegKey = keys.generateEncryptionKey();
     user.bootKey = keys.generateEncryptionKey();
     user.authKeys = keys.generateEncryptionKeyPair();
     User.current = user;
     user.kegDb.createBootKeg(user.bootKey, user.signKeys,
-        user.encryptionKeys, user.overrideKey);
+        user.encryptionKeys, user.kegKey);
 }
 
 module.exports = mockCurrentUser;

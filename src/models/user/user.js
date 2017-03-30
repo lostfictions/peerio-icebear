@@ -71,7 +71,7 @@ class User {
             .then(() => {
                 console.log('Creating boot keg.');
                 return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
-                    this.encryptionKeys, this.overrideKey);
+                    this.encryptionKeys, this.kegKey);
             })
             .then(() => this._postAuth());
     }
