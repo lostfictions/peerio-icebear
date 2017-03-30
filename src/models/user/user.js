@@ -7,9 +7,10 @@ const mixUserRegisterModule = require('./user.register.js');
 const mixUserAuthModule = require('./user.auth.js');
 const KegDb = require('./../kegs/keg-db');
 const TinyDb = require('../../db/tiny-db');
-const { observable, when } = require('mobx');
+const { observable, when, computed } = require('mobx');
 const currentUserHelper = require('./../../helpers/di-current-user');
 const { publicCrypto } = require('../../crypto/index');
+const { formatBytes } = require('../../util');
 
 let currentUser;
 
@@ -29,7 +30,7 @@ class User {
     @observable email = '';
     @observable locale = 'en';
     @observable passcodeIsSet = false;
-    @observable quota;
+    @observable quota = null;
     @observable profileLoaded = false;
 
     createdAt = null;
@@ -58,6 +59,50 @@ class User {
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
     }
+
+    @computed get fileQuotaTotal() {
+        if (this.quota == null || !this.quota.resultingQuotas
+            || !this.quota.resultingQuotas.file || !this.quota.resultingQuotas.file.length) return 0;
+
+        const found = this.quota.resultingQuotas.file.find(
+            item => item.period === 'total' && item.metric === 'storage');
+        if (!found) return 0;
+        // we are unlikely to have real-life unlimited accounts, but for test accounts it's fine
+        if (found.limit == null) return Number.MAX_SAFE_INTEGER;
+        return found.limit;
+    }
+
+    @computed get fileQuotaTotalFmt() {
+        return formatBytes(this.fileQuotaTotal);
+    }
+
+    @computed get fileQuotaLeft() {
+        if (this.quota == null || !this.quota.quotasLeft
+            || !this.quota.quotasLeft.file || !this.quota.quotasLeft.file.length) return 0;
+
+        const found = this.quota.quotasLeft.file.find(item => item.period === 'total' && item.metric === 'storage');
+        if (!found) return 0;
+        // we are unlikely to have real-life unlimited accounts, but for test accounts it's fine
+        if (found.limit == null) return Number.MAX_SAFE_INTEGER;
+        return found.limit;
+    }
+
+    @computed get fileQuotaLeftFmt() {
+        return formatBytes(this.fileQuotaLeft);
+    }
+
+    @computed get fileQuotaUsed() {
+        return this.fileQuotaTotal - this.fileQuotaLeft;
+    }
+
+    @computed get fileQuotaUsedFmt() {
+        return formatBytes(this.fileQuotaUsed);
+    }
+
+    @computed get fileQuotaUsedPercent() {
+        return this.fileQuotaTotal === 0 ? 0 : `${Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100))}%`;
+    }
+
 
     /**
      * Full registration process.
@@ -98,7 +143,6 @@ class User {
             .then(() => this._authenticateConnection())
             .then(() => this.kegDb.loadBootKeg(this.bootKey))
             .then(() => {
-                // todo: doesn't look very good
                 this.encryptionKeys = this.kegDb.boot.encryptionKeys;
                 this.signKeys = this.kegDb.boot.signKeys;
             })
