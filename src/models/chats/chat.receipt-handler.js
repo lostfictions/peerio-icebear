@@ -43,8 +43,8 @@ class ChatReceiptHandler {
             .then(r => {
                 console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
                 if (r.position >= this.pendingReceipt) {
-                        // ups, keg has a bigger position then we are trying to save
-                        // console.debug('it is higher then pending one too:', this.pendingReceipt);
+                    // ups, keg has a bigger position then we are trying to save
+                    // console.debug('it is higher then pending one too:', this.pendingReceipt);
                     this.pendingReceipt = null;
                     return;
                 }
@@ -74,7 +74,7 @@ class ChatReceiptHandler {
         return socket.send('/auth/kegs/query', {
             collectionId: this.chat.id,
             minCollectionVersion: '',
-            query: { type: 'receipt', username: User.current.username }
+            query: { type: 'receipt', username: User.current.username, deleted: false }
         }).then(res => {
             const r = new Receipt(this.chat.db);
             if (res && res.length) {

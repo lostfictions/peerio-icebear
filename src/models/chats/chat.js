@@ -27,7 +27,7 @@ class Chat {
     _messageMap = {};
 
     /** @type {Array<Contact>} */
-    @observable participants = null;
+    @observable participants = [];
 
     // initial metadata loading
     @observable loadingMeta = false;
