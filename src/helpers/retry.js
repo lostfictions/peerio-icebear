@@ -9,24 +9,31 @@ const callsInProgress = {};
  * @param {function} fn - function to execute
  * @param {[string]} id - unique id for this action, to prevent multiple parallel attempts
  */
-function retryUntilSuccess(fn, id, thisIsRetry) {
+function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
     // don't make parallel calls
-    if (!thisIsRetry && id && callsInProgress[id]) return;
-    if (id) {
-        callsInProgress[id] = { retryCount: 0 };
-    }
+    if (!thisIsRetry && callsInProgress[id]) return callsInProgress[id].promise;
+
+    const callInfo = { retryCount: 0 };
+    callInfo.promise = new Promise(resolve => {
+        callInfo.resolve = resolve;
+    });
+    callsInProgress[id] = callInfo;
+
     fn().tap(() => {
+        callsInProgress[id].resolve();
         delete callsInProgress[id];
     }).catch(err => {
         scheduleRetry(fn, id);
         console.debug(err);
     });
+
+    return callInfo.promise;
 }
 
 function scheduleRetry(fn, id) {
     console.debug(`Retrying ${id} in 1 second`);
     // todo: detect 2fa and pause retries
-    if (id) callsInProgress[id].retryCount++;
+    callsInProgress[id].retryCount++;
     setTimeout(() => socket.onceAuthenticated(() => retryUntilSuccess(fn, id, true)), 1000);
 }
 

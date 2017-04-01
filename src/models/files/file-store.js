@@ -107,6 +107,7 @@ class FileStore {
 
     onFileDigestUpdate = () => {
         const digest = tracker.getDigest('SELF', 'file');
+        console.log(`Files update event received ${JSON.stringify(digest)}`);
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
@@ -158,7 +159,6 @@ class FileStore {
     // this essentially does the same as loadAllFiles but with filter,
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
     updateFiles = () => {
-        console.log(`Files update event received ${JSON.stringify(tracker.digest.SELF.file)}`);
         if (!this.loaded || this.updating) return;
         console.log(`Proceeding to file update. Known collection version: ${this.maxUpdateId}`);
         this.updating = true;

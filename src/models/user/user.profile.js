@@ -38,7 +38,7 @@ module.exports = function mixUserRegisterModule() {
         return true;
     };
 
-    // todo: move to quota keg
+    // todo move to quota keg
     // todo: take chunk overhead into account
     this.canUploadFileSize = function(size) {
         const q = this.quota;

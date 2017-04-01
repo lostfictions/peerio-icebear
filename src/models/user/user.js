@@ -49,8 +49,6 @@ class User {
 
 
     constructor() {
-        this.createAccountAndLogin = this.createAccountAndLogin.bind(this);
-        this.setReauthOnReconnect = this.setReauthOnReconnect.bind(this);
         this.login = this.login.bind(this);
         this.kegDb = new KegDb('SELF');
         // this is not really extending prototype, but we don't care because User is almost a singleton
@@ -109,17 +107,19 @@ class User {
      * Initial login after registration differs a little.
      * @returns {Promise}
      */
-    createAccountAndLogin() {
+    createAccountAndLogin = () => {
         console.log('Starting account registration sequence.');
         return this._createAccount()
             .then(() => this._authenticateConnection())
             .then(() => {
                 console.log('Creating boot keg.');
+                // todo: retry
                 return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
                     this.encryptionKeys, this.kegKey);
             })
-            .then(() => this._postAuth());
-    }
+            .then(() => this._postAuth())
+            .tapCatch(socket.reset);
+    };
 
     /**
      * Before login.
@@ -173,11 +173,11 @@ class User {
         }
     }
 
-    setReauthOnReconnect() {
+    setReauthOnReconnect = () => {
         // only need to set reauth listener once
         if (this.stopReauthenticator) return;
         this.stopReauthenticator = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
-    }
+    };
 
     static validateUsername(username) {
         if (typeof (username) === 'string' && username.trim().length === 0) return Promise.resolve(false);

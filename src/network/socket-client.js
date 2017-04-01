@@ -267,18 +267,18 @@ class SocketClient {
     }
 
     /** Closes currentDict connection and disables reconnects. */
-    close() {
+    close = () => {
         this.socket.close();
-    }
+    };
 
-    open() {
+    open = () => {
         this.socket.open();
-    }
+    };
 
-    reset() {
-        setTimeout(() => this.close());
-        setTimeout(() => this.open());
-    }
+    reset = () => {
+        setTimeout(this.close);
+        setTimeout(this.open);
+    };
 }
 
 module.exports = SocketClient;
