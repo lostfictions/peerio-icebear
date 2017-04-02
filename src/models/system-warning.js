@@ -1,7 +1,7 @@
 const { observable, when, action } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
-
+const { retryUntilSuccess } = require('../helpers/retry');
 /**
  * Warnings that come from the icebear lib, not the server.
  */
@@ -9,16 +9,19 @@ class SystemWarning {
     constructor(object) {
         this.content = object.content;
         this.data = object.data;
-        this.label = 'ok';
+        this.label = ''; // if you must put anyhting in here - it should be a locale string key
         // severity level: [medium, severe]
         // severe warnings should be displayed via dialog
         this.level = object.level;
         // title for message
         this.title = object.title;
-        // buttons - array of strings
-        // for example ['upgrade', 'ok']
+        // buttons - array of locale string keys
+        // for example ['button_upgrade', 'button_ok']
         this.buttons = object.buttons;
     }
+
+    // contract assumes action, override in child class if needed
+    action() { }
 }
 
 /**
@@ -32,11 +35,10 @@ class ServerWarning extends SystemWarning {
         super(object);
         this.content = object.msg;
         this.token = object.token;
-        this.action = this.action.bind(this);
     }
 
     action() {
-        return socket.send('/auth/warning/clear', { token: this.token });
+        return retryUntilSuccess(socket.send('/auth/warning/clear', { token: this.token }));
     }
 }
 
@@ -48,10 +50,6 @@ class ServerWarning extends SystemWarning {
 class SystemWarningCollection {
     collection = observable([]);
     hash = {};
-
-    constructor() {
-        _.bindAll(this, ['add', 'addServerWarning']);
-    }
 
     @action add(data) {
         this.collection.push(new SystemWarning(data));
