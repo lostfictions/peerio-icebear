@@ -2,9 +2,8 @@ const { observable, computed, action } = require('mobx');
 const moment = require('moment');
 const Keg = require('../kegs/keg');
 const { cryptoUtil } = require('../../crypto/index');
-const keys = require('../../crypto/keys');
 const User = require('../user/user');
-const PhraseDictionaryCollection = require('../phrase-dictionary');
+const PhraseDictionary = require('../phrase-dictionary');
 const config = require('../../config');
 const defaultClock = require('../../helpers/observable-clock').default;
 const ghostAPI = require('./ghost.api'); // most of the ghost-specific logic is in here
@@ -68,7 +67,7 @@ class Ghost extends Keg {
         super(null, 'ghost', db);
         this.revoke = this.revoke.bind(this);
         this.version = 2;
-        this.passphrase = PhraseDictionaryCollection.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
+        this.passphrase = PhraseDictionary.current.getPassphrase(this.DEFAULT_GHOST_PASSPHRASE_LENGTH);
         // encode user-specific ID in hex
         this.ghostId = cryptoUtil.getRandomUserSpecificIdHex(User.current.username);
     }

@@ -148,7 +148,9 @@ class User {
             })
             .then(() => this._postAuth())
             .catch(err => {
-                socket.reset();
+                if (socket.connected && !socket.authenticated) {
+                    socket.reset();
+                }
                 return Promise.reject(err);
             });
     }

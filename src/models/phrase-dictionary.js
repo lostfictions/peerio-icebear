@@ -7,14 +7,16 @@
 const util = require('../crypto/util');
 
 class PhraseDictionary {
-
+    locale;
     dict;
 
     /**
      * Creates new PhraseDictionaryCollection
-     * @param dictString - '\n' separated word list
+     * @param {string} locale - locale code for dict
+     * @param {string} dictString - '\n' separated word list
      */
-    constructor(dictString) {
+    constructor(locale, dictString) {
+        this.locale = locale;
         this._buildDict(dictString);
     }
 
@@ -26,7 +28,8 @@ class PhraseDictionary {
         if (!this.dict) throw new Error('no dictionary available');
         let ret = '';
         for (let i = 0; i < length; i++) {
-            ret += `${this.dict[util.getRandomNumber(0, this.dict.length)]} `;
+            ret += this.dict[util.getRandomNumber(0, this.dict.length)];
+            ret += ' ';
         }
         return ret.trim(' ');
     }
@@ -49,32 +52,14 @@ class PhraseDictionary {
             }
         }
     }
-}
 
-/**
- * Singleton.
- */
-class PhraseDictionaryCollection {
-    dicts = {};
-    currentDict = undefined;
-    currentLocale = undefined;
+    static current;
 
-    addDictionary(localeCode, dict) {
-        if (!this.dicts[localeCode]) {
-            this.dicts[localeCode] = new PhraseDictionary(dict);
-        }
-    }
-
-    selectDictionary(localeCode) {
-        if (!this.dicts[localeCode]) throw new Error('dictionary unavailable');
-        this.currentDict = this.dicts[localeCode];
-        this.currentLocale = localeCode;
-    }
-
-    get current() {
-        return this.currentDict;
+    static setDictionary(localeCode, rawData) {
+        if (PhraseDictionary.current) PhraseDictionary.current.dispose();
+        PhraseDictionary.current = new PhraseDictionary(localeCode, rawData);
     }
 }
 
 
-module.exports = new PhraseDictionaryCollection();
+module.exports = PhraseDictionary;

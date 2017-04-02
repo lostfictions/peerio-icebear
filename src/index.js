@@ -27,7 +27,7 @@ require('./extensions/uint8array');
 // exporting Icebear Library Interface
 const socket = require('./network/socket');
 const User = require('./models/user/user');
-const PhraseDictionaryCollection = require('./models/phrase-dictionary');
+const PhraseDictionary = require('./models/phrase-dictionary');
 const config = require('./config');
 const errors = require('./errors');
 const contactStore = require('./models/contacts/contact-store');
@@ -53,7 +53,7 @@ module.exports = {
     socket,
     crypto,
     User,
-    PhraseDictionaryCollection,
+    PhraseDictionary,
     TinyDb,
     contactStore,
     chatStore,

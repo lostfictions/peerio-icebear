@@ -25,16 +25,15 @@ module.exports = function mixUserAuthModule() {
     this._authenticateConnection = () => {
         console.log('Starting connection auth sequence.');
         return this._loadAuthSalt()
-                    .then(this._deriveKeys)
-                    .then(this._getAuthToken)
-                    .then(this._authenticateAuthToken)
-                    .catch(e => {
-                        e && (e.code === ServerError.codes.accountMigrationRequired)
-                        && systemWarnings.addLocalWarningSevere(
-                            'error_cannotMigrate', 'error_loginFailed'
-                        );
-                        return Promise.reject(e);
-                    });
+            .then(this._deriveKeys)
+            .then(this._getAuthToken)
+            .then(this._authenticateAuthToken)
+            .tapCatch(e => {
+                e && (e.code === ServerError.codes.accountMigrationRequired)
+                    && systemWarnings.addLocalWarningSevere(
+                        'error_cannotMigrate', 'error_loginFailed'
+                    );
+            });
     };
 
     /**
@@ -88,7 +87,7 @@ module.exports = function mixUserAuthModule() {
             arch: config.arch,
             clientVersion: config.appVersion
         })
-        .then(resp => util.convertBuffers(resp));
+            .then(resp => util.convertBuffers(resp));
     };
 
     /**
@@ -100,7 +99,7 @@ module.exports = function mixUserAuthModule() {
     this._authenticateAuthToken = data => {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decryptCompat(data.token, data.nonce,
-                                                            data.ephemeralServerPK, this.authKeys.secretKey);
+            data.ephemeralServerPK, this.authKeys.secretKey);
         // 65 84 = 'AT' (access token)
         if (decrypted[0] !== 65 || decrypted[1] !== 84 || decrypted.length !== 32) {
             return Promise.reject(new Error('Auth token plaintext is of invalid format.'));
@@ -162,7 +161,7 @@ module.exports = function mixUserAuthModule() {
             .then(this.deserializeAuthData)
             .catch(() => {
                 console.log('Deriving passphrase from passcode failed, ' +
-                            'will ignore and retry login with passphrase');
+                    'will ignore and retry login with passphrase');
             });
     };
 
@@ -188,13 +187,10 @@ module.exports = function mixUserAuthModule() {
         const data = JSON.stringify({
             username, passphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
         });
-        console.log(`user.auth.js: serializeAuthData`);
-        // console.log(data);
         return data;
     };
 
     this.deserializeAuthData = (data) => {
-        console.log(`user.auth.js deserializeAuthData`);
         // console.log(data);
         const { username, passphrase, authSalt, bootKey, authKeys } = data;
         this.username = username;
