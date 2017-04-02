@@ -183,14 +183,22 @@ class UpdateTracker {
 
     emitKegDbAddedEvent(id) {
         this.dbAddedHandlers.forEach(handler => {
-            handler(id);
+            try {
+                handler(id);
+            } catch (err) {
+                console.error(err);
+            }
         });
     }
 
     emitKegTypeUpdatedEvent(id, type) {
         if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return;
         this.updateHandlers[id][type].forEach(handler => {
-            handler();
+            try {
+                handler();
+            } catch (err) {
+                console.error(err);
+            }
         });
     }
 
