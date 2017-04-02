@@ -78,7 +78,7 @@ class Keg {
      * @private
      */
     _internalSave(cleanShareData) {
-        let payload, props;
+        let payload, props, lastVersion;
         try {
             payload = this.serializeKegPayload();
             props = this.serializeProps();
@@ -109,6 +109,7 @@ class Keg {
             console.error('Fail preparing keg to save.', err);
             return Promise.reject(err);
         }
+        lastVersion = this.version; // eslint-disable-line prefer-const
         return socket.send('/auth/kegs/update', {
             collectionId: this.db.id,
             update: {
@@ -117,11 +118,12 @@ class Keg {
                 type: this.type,
                 payload,
                 props,
-                // todo: this should be done smarter when we have save retry, keg edit and reconcile
-                version: ++this.version
+                version: lastVersion + 1
             }
         }).then(resp => {
             this.collectionVersion = resp.collectionVersion;
+            // in case this keg was already updated through other code paths we change version in a smart way
+            this.version = Math.max(lastVersion + 1, this.version);
         });
     }
 

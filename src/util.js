@@ -7,7 +7,7 @@
 /** Wraps all ArrayBuffer type properties with Uint8Array recursively */
 function convertBuffers(obj) {
     if (typeof (obj) !== 'object') return obj;
-/* eslint-disable guard-for-in */
+    /* eslint-disable guard-for-in */
     for (const prop in obj) {
         const type = typeof (obj[prop]);
         if (type !== 'object') {
@@ -20,7 +20,7 @@ function convertBuffers(obj) {
         }
     }
     return obj;
-/* eslint-enable */
+    /* eslint-enable */
 }
 
 /**

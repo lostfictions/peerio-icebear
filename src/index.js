@@ -14,8 +14,8 @@ if (typeof global !== 'undefined') {
     global.Promise = Promise;
 }
 
+// Enables all warnings except forgotten return statements.
 Promise.config({
-    // Enables all warnings except forgotten return statements.
     warnings: {
         wForgottenReturn: false
     }
