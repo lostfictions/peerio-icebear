@@ -26,8 +26,8 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
     });
     callsInProgress[id] = callInfo;
 
-    fn().tap(() => {
-        callInfo.resolve();
+    fn().tap((res) => {
+        callInfo.resolve(res);
         delete callsInProgress[id];
     }).catch(err => {
         callInfo.lastError = err;

@@ -7,6 +7,7 @@ const tracker = require('../update-tracker');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 const _ = require('lodash');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 class FileStore {
     @observable files = observable.shallowArray([]);
@@ -93,7 +94,10 @@ class FileStore {
      * consumed.
      */
     constructor() {
-        tracker.onKegTypeUpdated('SELF', 'file', this.onFileDigestUpdate);
+        tracker.onKegTypeUpdated('SELF', 'file', () => {
+            console.log('Files update event received');
+            this.onFileDigestUpdate();
+        });
         reaction(() => this.ongoingUploads, () => {
             if (this.ongoingUploads === 0) return;
             const currentCompletedUploads = this.completedUploads;
@@ -107,7 +111,7 @@ class FileStore {
 
     onFileDigestUpdate = () => {
         const digest = tracker.getDigest('SELF', 'file');
-        console.log(`Files update event received ${JSON.stringify(digest)}`);
+        console.log(`Files digest: ${JSON.stringify(digest)}`);
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
@@ -127,33 +131,35 @@ class FileStore {
     loadAllFiles() {
         if (this.loading || this.loaded) return;
         this.loading = true;
-        this._getFiles().then(action(kegs => {
-            for (const keg of kegs) {
-                const file = new File(User.current.kegDb);
-                if (keg.collectionVersion > this.maxUpdateId) {
-                    this.maxUpdateId = keg.collectionVersion;
-                }
-                if (file.loadFromKeg(keg)) this.files.push(file);
-            }
-            this.loading = false;
-            this.loaded = true;
-            this.resumeBrokenDownloads();
-            this.resumeBrokenUploads();
-            this.detectCachedFiles();
-            socket.onAuthenticated(() => {
-                setTimeout(() => {
-                    if (socket.authenticated) {
-                        this.resumeBrokenDownloads();
-                        this.resumeBrokenUploads();
+        retryUntilSuccess(() => this._getFiles(), 'Initial file list loading')
+            .then(action(kegs => {
+                for (const keg of kegs) {
+                    const file = new File(User.current.kegDb);
+                    if (keg.collectionVersion > this.maxUpdateId) {
+                        this.maxUpdateId = keg.collectionVersion;
                     }
-                }, 3000);
-            });
-            autorunAsync(() => {
-                if (this.unreadFiles === 0 || !this.active) return;
-                tracker.seenThis('SELF', 'file', this.knownUpdateId);
-            }, 700);
-            setTimeout(this.updateFiles);
-        }));
+                    if (file.loadFromKeg(keg)) this.files.push(file);
+                }
+                this.loading = false;
+                this.loaded = true;
+                this.resumeBrokenDownloads();
+                this.resumeBrokenUploads();
+                this.detectCachedFiles();
+                socket.onAuthenticated(() => {
+                    this.onFileDigestUpdate();
+                    setTimeout(() => {
+                        if (socket.authenticated) {
+                            this.resumeBrokenDownloads();
+                            this.resumeBrokenUploads();
+                        }
+                    }, 3000);
+                });
+                autorunAsync(() => {
+                    if (this.unreadFiles === 0 || !this.active) return;
+                    tracker.seenThis('SELF', 'file', this.knownUpdateId);
+                }, 700);
+                setTimeout(this.updateFiles);
+            }));
     }
 
     // this essentially does the same as loadAllFiles but with filter,
@@ -162,7 +168,7 @@ class FileStore {
         if (!this.loaded || this.updating) return;
         console.log(`Proceeding to file update. Known collection version: ${this.maxUpdateId}`);
         this.updating = true;
-        this._getFiles(this.maxUpdateId)
+        retryUntilSuccess(() => this._getFiles(this.maxUpdateId), 'Updating file list')
             .then(action(kegs => {
                 for (const keg of kegs) {
                     if (keg.collectionVersion > this.knownUpdateId) {
