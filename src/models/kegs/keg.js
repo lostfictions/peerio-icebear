@@ -73,7 +73,6 @@ class Keg {
     /**
      * Updates existing server keg with new data.
      * This function assumes keg id exists so always use 'saveToServer()' to be safe.
-     * todo: reconcile optimistic concurrency failures
      * @returns {Promise}
      * @private
      */
