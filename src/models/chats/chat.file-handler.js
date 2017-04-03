@@ -38,7 +38,8 @@ class ChatFileHandler {
      */
     share(files) {
         const ids = this.shareFileKegs(files);
-        return this.chat.sendMessage('', ids);
+        // DO NOT return promise here, it might trigger unwanted retry attempts
+        this.chat.sendMessage('', ids);
     }
 
 

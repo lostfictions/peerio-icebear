@@ -202,6 +202,10 @@ class SocketClient {
         const id = this.requestId++;
         return new Promise((resolve, reject) => {
             this.awaitingRequests[id] = reject;
+            if (!this.connected) {
+                reject(new DisconnectedError());
+                return;
+            }
             function handler(resp) {
                 if (resp && resp.error) {
                     this.throttled = this.throttled || (resp.error === 425);

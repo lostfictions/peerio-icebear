@@ -218,6 +218,13 @@ class Chat {
         return promise;
     }
 
+    // todo: this is temporary, for failed messages. When we have message delete - it should be unified process.
+    @action removeMessage(message) {
+        this.limboMessages.remove(message);
+        this.messages.remove(message);
+        delete this._messageMap[message.id];
+    }
+
 
     sendAck() {
         // !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!

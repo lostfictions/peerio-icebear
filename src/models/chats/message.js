@@ -46,6 +46,10 @@ class Message extends Keg {
             });
     }
 
+    resend() {
+        return this.send(this.text);
+    }
+
     serializeKegPayload() {
         return {
             text: this.text,
