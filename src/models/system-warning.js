@@ -38,7 +38,7 @@ class ServerWarning extends SystemWarning {
     }
 
     action() {
-        return retryUntilSuccess(socket.send('/auth/warning/clear', { token: this.token }));
+        return retryUntilSuccess(() => socket.send('/auth/warning/clear', { token: this.token }));
     }
 }
 

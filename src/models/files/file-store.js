@@ -195,30 +195,21 @@ class FileStore {
      * @param {string} fileName
      */
     upload(filePath, fileName) {
-        this.ongoingUploads += 1;
+        this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
         const keg = new File(User.current.kegDb);
-        keg.upload(filePath, fileName).catch(e => console.log(e));
+        keg.upload(filePath, fileName);
         this.files.unshift(keg);
 
-        when(() => !keg.uploading, () => {
-            this.ongoingUploads -= 1;
-            if (!keg.uploadCancelled) this.completedUploads += 1;
+        const disposer = when(() => keg.deleted, () => {
+            this.ongoingUploads--;
+            this.files.remove(keg);
         });
+        when(() => keg.readyForDownload, () => {
+            this.ongoingUploads--;
+            disposer();
+        });
+
         return keg;
-    }
-
-    remove(file) {
-        // todo: mark file as 'deleting' and render accordingly
-        file.remove();
-    }
-
-    cancelUpload(file) {
-        file.cancelUpload();
-        this.remove(file);
-    }
-
-    cancelDownload(file) {
-        file.cancelDownload();
     }
 
     resumeBrokenDownloads() {

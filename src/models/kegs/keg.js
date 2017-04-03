@@ -22,6 +22,7 @@ class Keg {
     @observable sharedKegError = null;
     @observable id;
     @observable tempId;
+    @observable deleted = false;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type

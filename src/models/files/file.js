@@ -8,6 +8,7 @@ const socket = require('../../network/socket');
 const uploadModule = require('./file.upload');
 const downloadModule = require('./file.download');
 const { getUser } = require('../../helpers/di-current-user');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 // todo: this is duplication
 const CHUNK_OVERHEAD = 32;
@@ -125,7 +126,7 @@ class File extends Keg {
         // reserved for future key change feature support
         data.keg.props.sharedKegRecipientPK = cryptoUtil.bytesToB64(contact.encryptionPublicKey);
 
-        return socket.send('/auth/kegs/share', data);
+        return retryUntilSuccess(() => socket.send('/auth/kegs/share', data));
     }
 
     // Open file with system's default file type handler app
@@ -141,7 +142,8 @@ class File extends Keg {
     remove() {
         this._resetUploadState();
         this._resetDownloadState();
-        super.remove();
+        if (!this.id) return Promise.resolve();
+        return retryUntilSuccess(() => super.remove(), `remove file ${this.id}`).then(() => { this.deleted = true; });
     }
 }
 

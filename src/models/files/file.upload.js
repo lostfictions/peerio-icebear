@@ -24,7 +24,7 @@ function _getUlResumeParams(path) {
                 });
                 throw new Error(`Upload file size mismatch. Was ${this.size} now ${stat.size}`);
             }
-                // check file state on server
+            // check file state on server
             return socket.send('/auth/file/state', { fileId: this.fileId });
         })
         .then(state => {
@@ -59,7 +59,7 @@ function upload(filePath, fileName, resume) {
         let stream, nextChunkId, nonceGen;
         return p.then(nextChunk => {
             nextChunkId = nextChunk;
-                // no need to set values when it's a resume
+            // no need to set values when it's a resume
             if (nextChunkId === null) {
                 this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
                 this.name = fileName || this.name || fileHelper.getFileName(filePath);
@@ -77,7 +77,11 @@ function upload(filePath, fileName, resume) {
                     this.chunkSize = config.upload.getChunkSize(this.size);
                     nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
                     this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
-                    return this.saveToServer();
+                    return this.saveToServer().catch(err => {
+                        console.error(err);
+                        this.remove();
+                        return Promise.reject(err);
+                    });
                 }
                 nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
             })
@@ -99,7 +103,7 @@ function upload(filePath, fileName, resume) {
                     }
                 });
                 this._resetUploadState();
-                console.log('file.upload.js: cancelling upload');
+                console.log('file.upload.js: stopped uploading');
                 return Promise.reject(new Error(err));
             });
     } catch (ex) {
@@ -114,10 +118,7 @@ function cancelUpload() {
     this.uploadCancelled = true;
     this._saveUploadEndFact();
     this._resetUploadState();
-    if (this.uploadQueue) {
-        this.uploadQueue.remove(this);
-        this.uploadQueue = null;
-    }
+    return this.remove();
 }
 
 

@@ -113,7 +113,6 @@ class User {
             .then(() => this._authenticateConnection())
             .then(() => {
                 console.log('Creating boot keg.');
-                // todo: retry
                 return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
                     this.encryptionKeys, this.kegKey);
             })

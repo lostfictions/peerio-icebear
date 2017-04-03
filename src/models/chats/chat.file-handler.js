@@ -20,9 +20,13 @@ class ChatFileHandler {
         const file = fileStore.upload(path, name);
         file.uploadQueue = this.chat.uploadQueue; // todo: change, this is dirty
         this.chat.uploadQueue.push(file);
+        const deletedDisposer = when(() => file.deleted, () => {
+            this.chat.uploadQueue.remove(file);
+        });
         when(() => file.readyForDownload, () => {
             this.chat.uploadQueue.remove(file);
             this.share([file]);
+            deletedDisposer();
         });
         return file;
     }
