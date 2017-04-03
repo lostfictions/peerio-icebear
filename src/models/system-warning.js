@@ -71,7 +71,7 @@ class SystemWarningCollection {
      *
      * @param serverData
      */
-    @action addServerWarning(serverData) {
+    @action.bound addServerWarning(serverData) {
         const token = serverData.token;
         if (token && this.hash[token]) {
             return;
