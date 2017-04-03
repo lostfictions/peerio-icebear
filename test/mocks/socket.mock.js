@@ -25,8 +25,6 @@ function mockSocket() {
         socket.__responseMocks = {};
     };
     socket.start = function() {
-        this.started = true;
-        this.authenticated = false;
         this.socket = {
             // engine.io object mock
             io: {
@@ -61,6 +59,9 @@ function mockSocket() {
             }
 
         };
+        this.started = true;
+        this.connected = true;
+        this.authenticated = false;
     };
     return socket;
 }
