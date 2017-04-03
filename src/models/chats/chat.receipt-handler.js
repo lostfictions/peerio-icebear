@@ -1,4 +1,4 @@
-const { action } = require('mobx');
+const { action, reaction } = require('mobx');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
@@ -18,6 +18,12 @@ class ChatReceiptHandler {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'receipt', this.onReceiptDigestUpdate);
         this.onReceiptDigestUpdate();
+        reaction(() => socket.authenticated, authenticated => {
+            if (!authenticated || !this.pendingReceipt) return;
+            const pos = this.pendingReceipt;
+            this.pendingReceipt = null;
+            this.sendReceipt(pos);
+        });
     }
 
     onReceiptDigestUpdate = _.throttle(() => {
@@ -51,6 +57,11 @@ class ChatReceiptHandler {
                 r.position = this.pendingReceipt;
                 // console.debug('Saving receipt: ', pos);
                 return r.saveToServer() // eslint-disable-line
+                    .then(() => {
+                        if (r.position >= this.pendingReceipt) {
+                            this.pendingReceipt = null;
+                        }
+                    })
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
@@ -62,7 +73,7 @@ class ChatReceiptHandler {
                             pos = this.pendingReceipt;// eslint-disable-line
                             this.pendingReceipt = null;
                             this.sendReceipt(pos);
-                        } else this.pendingReceipt = null;
+                        }
                     });
             });
     }
@@ -70,7 +81,6 @@ class ChatReceiptHandler {
     // loads or creates new receipt keg
     loadOwnReceipt() {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
-
         return socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
             filter: {

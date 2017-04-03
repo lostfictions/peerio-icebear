@@ -37,11 +37,10 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
 
     return callInfo.promise;
 }
-
+// todo: don't retry if throttled
 function scheduleRetry(fn, id) {
     console.debug(`Retrying ${id} in 1 second`);
     const callInfo = callsInProgress[id];
-    // todo: detect 2fa and pause retries
     if (callInfo.retryCount++ > maxRetryCount) {
         console.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
         console.debug(fn);

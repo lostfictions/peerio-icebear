@@ -4,6 +4,7 @@
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const config = require('../../config');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 class ChatMessageHandler {
 
@@ -37,7 +38,7 @@ class ChatMessageHandler {
         this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
-        socket.send('/auth/kegs/collection/list-ext', {
+        retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
             options: {
                 count: config.chat.maxLoadedMessages,
@@ -47,7 +48,7 @@ class ChatMessageHandler {
             filter: {
                 minCollectionVersion: this.downloadedUpdateId
             }
-        }).then(resp => {
+        })).then(resp => {
             this._loadingUpdates = false;
             // there's way more updates then we are allowed to load
             // so we jump to most recent messages
@@ -80,7 +81,7 @@ class ChatMessageHandler {
         }
         this.chat.loadingInitialPage = true;
         console.log('loading initial page for this.chat', this.chat.id);
-        return socket.send('/auth/kegs/collection/list-ext', {
+        return retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
             options: {
                 type: 'message',
@@ -88,18 +89,18 @@ class ChatMessageHandler {
                 offset: 0,
                 count: config.chat.initialPageSize
             }
-        })
-        .then(resp => {
-            this.chat.canGoUp = resp.hasMore;
-            this.chat.initialPageLoaded = true;
-            this.chat.loadingInitialPage = false;
-            this.chat._cancelTopPageLoad = false;
-            this.chat._cancelBottomPageLoad = false;
-            this.setDownloadedUpdateId(resp.kegs);
-            if (!this.chat.canGoDown) this.markAllAsSeen();
-            console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
-            return this.chat.addMessages(resp.kegs);
-        });
+        }))
+            .then(resp => {
+                this.chat.canGoUp = resp.hasMore;
+                this.chat.initialPageLoaded = true;
+                this.chat.loadingInitialPage = false;
+                this.chat._cancelTopPageLoad = false;
+                this.chat._cancelBottomPageLoad = false;
+                this.setDownloadedUpdateId(resp.kegs);
+                if (!this.chat.canGoDown) this.markAllAsSeen();
+                console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
+                return this.chat.addMessages(resp.kegs);
+            });
     }
 
     getPage(pagingUp = true) {
@@ -122,7 +123,8 @@ class ChatMessageHandler {
                 console.debug('Top page load cancelled');
             }
         }
-        socket.send('/auth/kegs/collection/list-ext', {
+        // todo: cancel retries if navigated away from chat?
+        retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
             options: {
                 type: 'message',
@@ -130,10 +132,10 @@ class ChatMessageHandler {
                 fromKegId: this.chat.messages[pagingUp ? 0 : this.chat.messages.length - 1].id,
                 count: config.chat.pageSize
             }
-        }).then(resp => {
+        })).then(resp => {
             console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
                 pagingUp && this.chat._cancelTopPageLoad
-                || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
+                    || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
             if (pagingUp) {
                 if (this.chat._cancelTopPageLoad) return;
                 this.chat.canGoUp = resp.hasMore;

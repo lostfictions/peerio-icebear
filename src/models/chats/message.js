@@ -17,8 +17,8 @@ class Message extends Keg {
     @computed get dayFingerprint() {
         if (!this.timestamp) return null;
         return this.timestamp.getDate().toString() +
-                this.timestamp.getMonth().toString() +
-                this.timestamp.getFullYear().toString();
+            this.timestamp.getMonth().toString() +
+            this.timestamp.getFullYear().toString();
     }
     /**
      * @param {ChatStore} db - chat db
@@ -29,6 +29,7 @@ class Message extends Keg {
 
     send(text) {
         this.sending = true;
+        this.sendError = false;
         this.assignTemporaryId();
         this.sender = contactStore.getContact(User.current.username);
         this.text = text;

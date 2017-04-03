@@ -83,6 +83,7 @@ class Chat {
     loadMetadata() {
         if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
         this.loadingMeta = true;
+        // retry is handled inside loadMeta()
         return this.db.loadMeta()
             .then(action(() => {
                 this.id = this.db.id;
@@ -258,6 +259,7 @@ class Chat {
         if (!this.canGoUp) return;
         this._messageHandler.getPage(true);
     }
+
     loadNextPage() {
         if (!this.canGoDown) return;
         this._messageHandler.getPage(false);
