@@ -3,7 +3,7 @@ const secret = require('../../crypto/secret');
 const config = require('../../config');
 const FileProcessor = require('./file-processor');
 
-const CHUNK_OVERHEAD = 32;
+const CHUNK_OVERHEAD = config.CHUNK_OVERHEAD;
 
 class FileDownloader extends FileProcessor {
     // chunks as they were uploaded
@@ -30,7 +30,7 @@ class FileDownloader extends FileProcessor {
         this.getUrlParams = { fileId: file.fileId };
         this.chunkSizeWithOverhead = file.chunkSize + CHUNK_OVERHEAD;
         this.downloadChunkSize = Math.floor(config.download.maxDownloadChunkSize / this.chunkSizeWithOverhead)
-                                    * this.chunkSizeWithOverhead;
+            * this.chunkSizeWithOverhead;
         if (resumeParams) {
             this.partialChunkSize = resumeParams.partialChunkSize;
             nonceGenerator.chunkId = resumeParams.wholeChunks;
@@ -42,7 +42,7 @@ class FileDownloader extends FileProcessor {
 
     get _isDecryptQueueFull() {
         return (this.decryptQueue.length * (this.chunkSizeWithOverhead + 1))
-                    > config.download.maxDecryptBufferSize;
+            > config.download.maxDecryptBufferSize;
     }
 
     _abortXhr = () => {

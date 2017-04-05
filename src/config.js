@@ -53,6 +53,9 @@ const config = new class {
     appVersion = '';
     platform = '';
 
+    // DO NOT change this value unless you really know what you're doing
+    CHUNK_OVERHEAD = 32;
+
     upload = new UploadConfig();
     // Numbers below are an approximate maximum, download logic will detect the exact number based on
     // chunk size and will make sure it does not exceed this number. Same is applied to upload buffers.

@@ -11,6 +11,7 @@ const { observable, when, computed } = require('mobx');
 const currentUserHelper = require('./../../helpers/di-current-user');
 const { publicCrypto } = require('../../crypto/index');
 const { formatBytes } = require('../../util');
+const config = require('../../config');
 
 let currentUser;
 
@@ -101,6 +102,11 @@ class User {
         return this.fileQuotaTotal === 0 ? 0 : `${Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100))}%`;
     }
 
+    canUploadFileSize = function(size) {
+        const chunkSize = config.upload.getChunkSize(size);
+        const chunkCount = Math.ceil(size / chunkSize);
+        return this.fileQuotaLeft >= (size + chunkCount * chunkSize);
+    };
 
     /**
      * Full registration process.

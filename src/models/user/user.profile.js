@@ -37,16 +37,4 @@ module.exports = function mixUserRegisterModule() {
         }
         return true;
     };
-
-    // todo move to quota keg
-    // todo: take chunk overhead into account
-    this.canUploadFileSize = function(size) {
-        const q = this.quota;
-        if (q && q.quotasLeft && q.quotasLeft.file) {
-            const qTotal = q.quotasLeft.file.find(i => i.period === 'total');
-            if (!qTotal) return true;
-            return qTotal.limit > size;
-        }
-        return true;
-    };
 };

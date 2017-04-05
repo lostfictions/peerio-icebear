@@ -201,18 +201,26 @@ class FileStore {
      * @param {string} fileName
      */
     upload(filePath, fileName) {
-        this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
         const keg = new File(User.current.kegDb);
-        keg.upload(filePath, fileName);
-        this.files.unshift(keg);
+        config.FileStream.getStat(filePath).then(stat => {
+            if (!User.current.canUploadFileSize(stat.size)) {
+                keg.deleted = true;
+                systemWarnings.addLocalWarningSevere(
+                    'error_fileQuotaExceeded', 'error', ['button_upgrade', 'button_ok']);
+                return;
+            }
+            this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
+            keg.upload(filePath, fileName);
+            this.files.unshift(keg);
 
-        const disposer = when(() => keg.deleted, () => {
-            this.ongoingUploads--;
-            this.files.remove(keg);
-        });
-        when(() => keg.readyForDownload, () => {
-            this.ongoingUploads--;
-            disposer();
+            const disposer = when(() => keg.deleted, () => {
+                this.ongoingUploads--;
+                this.files.remove(keg);
+            });
+            when(() => keg.readyForDownload, () => {
+                this.ongoingUploads--;
+                disposer();
+            });
         });
 
         return keg;

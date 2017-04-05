@@ -10,8 +10,7 @@ const downloadModule = require('./file.download');
 const { getUser } = require('../../helpers/di-current-user');
 const { retryUntilSuccess } = require('../../helpers/retry');
 
-// todo: this is duplication
-const CHUNK_OVERHEAD = 32;
+const CHUNK_OVERHEAD = config.CHUNK_OVERHEAD;
 
 class File extends Keg {
 
