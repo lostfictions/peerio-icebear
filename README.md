@@ -53,3 +53,11 @@ CustomError.prototype = Object.create(Error.prototype);
 CustomError.prototype.constructor = CustomError;
 
 ```
+
+
+#### Create fail-safe api
+
+- If it makes sense in the global application flow - make api call retry/repeat itself in case of failure.
+For this purpose use `helpers/retry.js`.
+- Some of api calls are expected to return promise rejection or falsy return value in case of failure so that user may
+decide if they want to repeat an action.
