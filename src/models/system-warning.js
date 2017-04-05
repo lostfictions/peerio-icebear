@@ -24,8 +24,8 @@ class SystemWarning {
         this.buttons = object.buttons;
     }
 
-    // contract assumes action, override in child class if needed
-    action() { }
+    // override in child class if needed
+    dispose() { }
 }
 
 /**
@@ -41,7 +41,7 @@ class ServerWarning extends SystemWarning {
         this.token = object.token;
     }
 
-    action() {
+    dispose() {
         return retryUntilSuccess(() => socket.send('/auth/warning/clear', { token: this.token }));
     }
 }
@@ -60,7 +60,14 @@ class SystemWarningCollection {
     }
 
     @action shift() {
-        this.collection.shift();
+        const last = this.collection.shift();
+        if (last) {
+            try {
+                last.dispose();
+            } catch (err) {
+                console.log(err);
+            }
+        }
     }
 
     /**
