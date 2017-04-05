@@ -88,7 +88,6 @@ class File extends Keg {
             size: this.size,
             ext: this.ext, // don't really need to store, since it's computed, but we want to search by extension
             uploadedAt: this.uploadedAt.valueOf(),
-            fileOwner: this.fileOwner || this.sharedBy,
             chunkSize: this.chunkSize
         };
     }
@@ -98,7 +97,8 @@ class File extends Keg {
         this.readyForDownload = props.fileProcessingState === 'ready' || !!props.sharedBy;
         this.size = +props.size;
         this.uploadedAt = new Date(+props.uploadedAt);
-        this.fileOwner = props.fileOwner;
+        this.fileOwner = props.owner;
+        this.sharedBy = props.sharedBy;
         this.chunkSize = +props.chunkSize;
     }
 
