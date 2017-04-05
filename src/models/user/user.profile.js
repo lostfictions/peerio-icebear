@@ -14,7 +14,7 @@ module.exports = function mixUserRegisterModule() {
     };
 
     this.loadQuota = (force) => {
-        const digest = tracker.getDigest('SELF', 'quota');
+        const digest = tracker.getDigest('SELF', 'quotas');
         if (!force && digest.maxUpdateId <= _quotaKeg.collectionVersion) return;
         retryUntilSuccess(() => _quotaKeg.load().then(this.loadQuota), 'Quota Load');
     };
