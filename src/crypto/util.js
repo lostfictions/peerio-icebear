@@ -6,7 +6,7 @@
  */
 const Buffer = require('buffer/').Buffer;
 const BLAKE2s = require('blake2s-js');
-const scrypt = require('scrypt-async');
+const getScrypt = require('./scrypt-proxy').getScrypt;
 
 const HAS_TEXT_ENCODER = (typeof TextEncoder !== 'undefined') && (typeof TextDecoder !== 'undefined');
 const textEncoder = HAS_TEXT_ENCODER ? new TextEncoder('utf-8') : null;
@@ -256,8 +256,8 @@ function getEncryptedByteHash(length, value) {
  */
 function getFingerprint(username, publicKey) {
     return new Promise(resolve => {
-        scrypt(publicKey, strToBytes(username),
-                { N: 4096, r: 8, dkLen: 24, interruptStep: 200, encoding: 'binary' }, resolve);
+        getScrypt()(publicKey, strToBytes(username),
+            { N: 4096, r: 8, dkLen: 24, interruptStep: 200, encoding: 'binary' }, resolve);
     }).then(fingerprintToStr);
 }
 

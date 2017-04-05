@@ -2,7 +2,7 @@
  * Peerio Crypto module for key handling.
  * @module crypto/keys
  */
-const scrypt = require('scrypt-async');
+const getScrypt = require('./scrypt-proxy').getScrypt;
 const BLAKE2s = require('blake2s-js');
 const nacl = require('tweetnacl');
 const util = require('./util');
@@ -23,7 +23,7 @@ const errors = require('../errors');
 /** Promisified scrypt call */
 function scryptPromise(passphrase, salt, options) {
     return new Promise(resolve => {
-        scrypt(passphrase, salt, options, resolve);
+        getScrypt()(passphrase, salt, options, resolve);
     });
 }
 
