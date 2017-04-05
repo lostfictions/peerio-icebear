@@ -5,18 +5,22 @@ const { retryUntilSuccess } = require('../helpers/retry');
 /**
  * Warnings that come from the icebear lib, not the server.
  */
+// -------------------------------------------------------------
+// Known actions:
+//
+// * UPGRADE - send user somewhere he can upgrade his account pan
+// -------------------------------------------------------------
 class SystemWarning {
     constructor(object) {
         this.content = object.content;
         this.data = object.data;
-        this.label = ''; // if you must put anyhting in here - it should be a locale string key
         // severity level: [medium, severe]
         // severe warnings should be displayed via dialog
         this.level = object.level;
         // title for message
         this.title = object.title;
-        // buttons - array of locale string keys
-        // for example ['button_upgrade', 'button_ok']
+        // buttons - array of locale string keys or objects with locale string keys and action names
+        // for example [{label: 'button_upgrade', action:'UPGRADE'}, 'button_ok']
         this.buttons = object.buttons;
     }
 

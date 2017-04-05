@@ -111,7 +111,7 @@ class MailStore {
             .catch(() => {
                 // TODO: global error handling
                 systemWarnings.addLocalWarningSevere(
-                    'error_mailQuotaExceeded', 'error_sendingMail', ['button_upgrade', 'button_ok']);
+                    'error_mailQuotaExceeded', 'error_sendingMail', [{ label: 'button_upgrade', action: 'UPGRADE' }, 'button_ok']);
             })
             .finally(() => g.sendError && this.remove(g));
     }

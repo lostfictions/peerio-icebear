@@ -206,7 +206,7 @@ class FileStore {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;
                 systemWarnings.addLocalWarningSevere(
-                    'error_fileQuotaExceeded', 'error', ['button_upgrade', 'button_ok']);
+                    'error_fileQuotaExceeded', 'error', [{ label: 'button_upgrade', action: 'UPGRADE' }, 'button_ok']);
                 return;
             }
             this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
