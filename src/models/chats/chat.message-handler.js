@@ -5,6 +5,7 @@ const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const config = require('../../config');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const { reaction } = require('mobx');
 
 class ChatMessageHandler {
 
@@ -17,18 +18,27 @@ class ChatMessageHandler {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'message', this.onMessageDigestUpdate);
         this.onMessageDigestUpdate();
+        reaction(() => this.chat.active, (active) => {
+            if (active) {
+                this.onMessageDigestUpdate();
+            }
+        });
+        reaction(() => socket.authenticated, (authenticated) => {
+            if (authenticated) {
+                this.onMessageDigestUpdate();
+            }
+        });
     }
 
     onMessageDigestUpdate = () => {
         const msgDigest = tracker.getDigest(this.chat.id, 'message');
         this.chat.unreadCount = msgDigest.newKegsCount;
-        if (msgDigest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = msgDigest.maxUpdateId;
         this.loadUpdates();
     };
 
     loadUpdates() {
-        if (this.chat.canGoDown || !this.chat.initialPageLoaded
+        if (!this.chat.active || this.chat.canGoDown || !this.chat.initialPageLoaded
             || this.downloadedUpdateId >= this.maxUpdateId) return;
         if (this._loadingUpdates) {
             this._reCheckUpdates = true;
@@ -38,7 +48,7 @@ class ChatMessageHandler {
         this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
-        retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
+        socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
             options: {
                 count: config.chat.maxLoadedMessages,
@@ -48,19 +58,21 @@ class ChatMessageHandler {
             filter: {
                 minCollectionVersion: this.downloadedUpdateId
             }
-        })).then(resp => {
-            this._loadingUpdates = false;
-            // there's way more updates then we are allowed to load
-            // so we jump to most recent messages
-            if (resp.hasMore) {
-                this.chat.reset();
-                return;
-            }
-            this.setDownloadedUpdateId(resp.kegs);
-            this.markAllAsSeen();
-            console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
-            this.chat.addMessages(resp.kegs);
-        }).finally(this.onMessageDigestUpdate);
+        })
+            .tapCatch(() => { this._loadingUpdates = false; })
+            .then(resp => {
+                this._loadingUpdates = false;
+                // there's way more updates then we are allowed to load
+                // so we jump to most recent messages
+                if (resp.hasMore) {
+                    this.chat.reset();
+                    return;
+                }
+                this.setDownloadedUpdateId(resp.kegs);
+                this.markAllAsSeen();
+                console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
+                this.chat.addMessages(resp.kegs);
+            }).finally(this.onMessageDigestUpdate);
     }
 
     markAllAsSeen() {
