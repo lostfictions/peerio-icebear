@@ -34,7 +34,7 @@
   "peerDependencies": {
     "blake2s-js": "1.2.2",
     "bluebird": "3.5.0",
-    "buffer": "5.0.5",
+    "buffer": "5.0.6",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
     "mobx": "3.1.8",
@@ -47,7 +47,7 @@
   "dependencies": {
     "blake2s-js": "1.2.2",
     "bluebird": "3.5.0",
-    "buffer": "5.0.5",
+    "buffer": "5.0.6",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
     "mobx": "3.1.8",
@@ -76,7 +76,7 @@
     "eslint-plugin-react": "6.10.3",
     "husky": "0.13.3",
     "mocha": "3.2.0",
-    "mock-require": "2.0.1",
+    "mock-require": "2.0.2",
     "npm-run-all": "4.0.2",
     "nyc": "10.2.0",
     "rimraf": "2.6.1",
@@ -84,7 +84,7 @@
     "sinon-chai": "2.9.0",
     "source-map-support": "0.4.14",
     "standard-version": "4.0.0",
-    "validate-commit-msg": "2.12.0"
+    "validate-commit-msg": "2.12.1"
   },
   "config": {
     "commitizen": {
