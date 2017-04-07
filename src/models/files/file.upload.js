@@ -114,7 +114,8 @@ function upload(filePath, fileName, resume) {
 }
 
 function cancelUpload() {
-    console.log(`file.uploads.js: upload cancelled`);
+    if (this.readyForDownload) return Promise.reject();
+    console.log('file.uploads.js: upload cancelled');
     this.uploadCancelled = true;
     this._saveUploadEndFact();
     this._resetUploadState();

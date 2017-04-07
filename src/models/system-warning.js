@@ -2,6 +2,7 @@ const { observable, when, action } = require('mobx');
 const socket = require('../network/socket');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../helpers/retry');
+const isKnownKey = require('peerio-translator').has;
 /**
  * Warnings that come from the icebear lib, not the server.
  */
@@ -53,7 +54,6 @@ class ServerWarning extends SystemWarning {
  */
 class SystemWarningCollection {
     collection = observable([]);
-    hash = {};
 
     @action add(data) {
         this.collection.push(new SystemWarning(data));
@@ -83,12 +83,11 @@ class SystemWarningCollection {
      * @param serverData
      */
     @action.bound addServerWarning(serverData) {
-        const token = serverData.token;
-        if (token && this.hash[token]) {
+        if (!isKnownKey(serverData.msg)) {
+            console.warn('Received unknown server warning key', serverData);
             return;
         }
         const warning = new ServerWarning(serverData);
-        this.hash[token] = warning;
         this.collection.push(warning);
     }
 }
