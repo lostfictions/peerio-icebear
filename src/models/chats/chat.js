@@ -1,4 +1,4 @@
-const { observable, computed, action, when } = require('mobx');
+const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
 const normalize = require('../../errors').normalize;
@@ -44,6 +44,7 @@ class Chat {
     // currently selected/focused in UI
     @observable active = false;
 
+
     // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
     @observable unreadCount = 0;
@@ -78,6 +79,9 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
+        reaction(() => this.active && User.current.isLooking, shouldSendReceipt => {
+            if (shouldSendReceipt) this._sendReceipt();
+        });
     }
 
     loadMetadata() {
@@ -334,6 +338,8 @@ class Chat {
     _sendReceipt() {
         // messages are sorted at this point ;)
         if (!this.messages.length) return;
+        if (!User.current.isLooking || !this.active) return;
+
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
     }
 

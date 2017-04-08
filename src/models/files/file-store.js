@@ -155,7 +155,7 @@ class FileStore {
                     }, 3000);
                 });
                 autorunAsync(() => {
-                    if (this.unreadFiles === 0 || !this.active) return;
+                    if (this.unreadFiles === 0 || !this.active || !User.current.isLooking) return;
                     tracker.seenThis('SELF', 'file', this.knownUpdateId);
                 }, 700);
                 setTimeout(this.updateFiles);

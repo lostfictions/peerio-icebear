@@ -6,6 +6,7 @@ const socket = require('../../network/socket');
 const config = require('../../config');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const { reaction } = require('mobx');
+const User = require('../user/user');
 
 class ChatMessageHandler {
 
@@ -27,6 +28,9 @@ class ChatMessageHandler {
             if (authenticated) {
                 this.onMessageDigestUpdate();
             }
+        });
+        reaction(() => User.current.isLooking, (isLooking) => {
+            if (isLooking) this.markAllAsSeen();
         });
     }
 
@@ -76,6 +80,7 @@ class ChatMessageHandler {
     }
 
     markAllAsSeen() {
+        if (!User.current.isLooking) return;
         tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
     }
 

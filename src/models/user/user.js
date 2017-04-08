@@ -33,6 +33,9 @@ class User {
     @observable passcodeIsSet = false;
     @observable quota = null;
     @observable profileLoaded = false;
+    // Applications can set this to false when on background/not focused to prevent making incoming data as 'seen'
+    // during that time
+    @observable isLooking = true;
 
     createdAt = null;
     deleted = false;
