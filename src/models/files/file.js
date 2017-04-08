@@ -96,7 +96,7 @@ class File extends Keg {
         this.readyForDownload = props.fileProcessingState === 'ready' || !!props.sharedBy;
         this.size = +props.size;
         this.uploadedAt = new Date(+props.uploadedAt);
-        this.fileOwner = props.owner;
+        this.fileOwner = props.owner || this.owner;
         this.sharedBy = props.sharedBy;
         this.chunkSize = +props.chunkSize;
     }
