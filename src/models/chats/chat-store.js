@@ -5,6 +5,7 @@ const normalize = require('../../errors').normalize;
 const tracker = require('../update-tracker');
 const EventEmitter = require('eventemitter3');
 const _ = require('lodash');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 class ChatStore {
     EVENT_TYPES = {
@@ -13,10 +14,10 @@ class ChatStore {
     @observable chats = observable.shallowArray([]);
     // to prevent duplicates
     chatMap = {};
+    // to detect new chats created while we were offline
+    _knownChats = {};
     /** when chat list loading is in progress */
     @observable loading = false;
-    /** did chat list fail to load? */
-    @observable loadError = false;
     // currently selected/focused chat
     @observable activeChat = null;
     // loadAllChats() was called and finished once already
@@ -29,6 +30,7 @@ class ChatStore {
 
     constructor() {
         this.events = new EventEmitter();
+        socket.onAuthenticated(this.checkForNewChats);
     }
 
     onNewMessages = _.throttle(() => {
@@ -37,61 +39,58 @@ class ChatStore {
 
     addChat = id => {
         if (!id) throw new Error(`Invalid chat id. ${id}`);
-        if (id === 'SELF' || !!this.chatMap[id]) return Promise.resolve();
+        if (id === 'SELF' || !!this.chatMap[id]) return;
         const c = new Chat(id, undefined, this);
-        return c.loadMetadata().then(() => {
-            if (this.chatMap[id]) return;
-            this.chatMap[id] = c;
-            this.chats.push(c);
-        });
+        this.chatMap[id] = c;
+        this._knownChats[id] = true;
+        this.chats.push(c);
+        // loadMetadata() promises never reject
+        c.loadMetadata();
     };
+
+    // after reconnect we want to check if there was something added
+    @action.bound checkForNewChats() {
+        retryUntilSuccess(() =>
+            socket.send('/auth/kegs/user/collections')
+                .then(action(list => {
+                    const k = 0;
+                    for (const id of list) {
+                        if (id === 'SELF') continue;
+                        if (!this._knownChats[id]) this.addChat(id);
+                    }
+                })), 'CheckForNewChats');
+    }
 
     // initial fill chats list
     @action loadAllChats(max) {
         if (this.loaded || this.loading) return;
         this.loading = true;
-        // server api returns all keg databases this user has access to
-        socket.send('/auth/kegs/user/collections')
-            .then(action(list => {
-                const promises = [];
-                const lChats = [];
-                let k = 0;
-                for (const id of list) {
-                    if (id === 'SELF') continue;
-                    k++;
-                    const c = new Chat(id, undefined, this);
-                    lChats.push(c);
-                    promises.push(c.loadMetadata());
-                    if (max && k === max) break;
-                }
-                // loadMetadata() promises never reject
-                return Promise.all(promises).then(action(() => {
-                    for (let i = 0; i < lChats.length; i++) {
-                        const c = lChats[i];
-                        this.chatMap[c.id] = c;
-                        this.chats.push(c);
+        retryUntilSuccess(() =>
+            socket.send('/auth/kegs/user/collections')
+                .then(action(list => {
+                    let k = 0;
+                    for (const id of list) {
+                        if (id === 'SELF') continue;
+                        if (max && k++ >= max) break;
+                        this.addChat(id);
                     }
-                    this.loadError = false;
                     this.loading = false;
                     this.loaded = true;
                     if (this.chats.length) this.activate(this.chats[0].id);
-                }));
-            }))
-            .then(() => {
-                // subscribe to future chats that will be created
-                tracker.onKegDbAdded(id => {
-                    console.log(`New incoming chat: ${id}`);
-                    this.addChat(id);
-                });
-                // check if chats were created while we were loading chat list
-                // unlikely but possible
-                Object.keys(tracker.digest).forEach(this.addChat);
-            })
-            .catch(err => {
-                console.error(normalize(err, 'Fail loading chat list.'));
-                this.loadError = true;
-                this.loading = false;
-            });
+                }))
+                .then(() => {
+                    // subscribe to future chats that will be created
+                    tracker.onKegDbAdded(id => {
+                        console.log(`New incoming chat: ${id}`);
+                        this.addChat(id);
+                    });
+                    // check if chats were created while we were loading chat list
+                    // unlikely, but possible
+                    Object.keys(tracker.digest).forEach(this.addChat);
+                })
+                .tapCatch(err => {
+                    console.error(normalize(err, 'Error loading chat list.'));
+                }), 'LoadAllChats');
     }
 
     getSelflessParticipants(participants) {
@@ -127,11 +126,9 @@ class ChatStore {
         const chat = new Chat(null, this.getSelflessParticipants(participants), this);
         chat.loadMetadata()
             .then(() => {
-                if (this.chatMap[chat.id]) return;
-                this.chatMap[chat.id] = chat;
-                this.chats.push(chat);
-            })
-            .then(() => this.activate(chat.id));
+                this.addChat(chat.id);
+                this.activate(chat.id);
+            });
         return chat;
     }
 

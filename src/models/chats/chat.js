@@ -83,25 +83,23 @@ class Chat {
             if (shouldSendReceipt) this._sendReceipt();
         });
     }
-
+    _metaPromise = null;
     loadMetadata() {
-        if (this.metaLoaded || this.loadingMeta) return Promise.resolve();
+        if (this.metaLoaded || this.loadingMeta) return this._metaPromise;
         this.loadingMeta = true;
         // retry is handled inside loadMeta()
-        return this.db.loadMeta()
+        this._metaPromise = this.db.loadMeta()
             .then(action(() => {
                 this.id = this.db.id;
                 this.participants = this.db.participants;// todo computed
-                this.loadingMeta = false;
-                this.metaLoaded = true;
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);
-            }))
-            .catch(err => {
-                console.error(normalize(err, 'Error loading chat keg db metadata.'));
                 this.loadingMeta = false;
-            });
+                this.metaLoaded = true;
+                setTimeout(() => this._messageHandler.onMessageDigestUpdate(), 2000);
+            }));
+        return this._metaPromise;
     }
 
     /**
@@ -258,13 +256,12 @@ class Chat {
         return this._fileHandler.share(files);
     }
 
-    loadMessages() {
-        if (!this.metaLoaded) {
-            this.loadMetadata().then(() => this.loadMessages());
-        }
+    async loadMessages() {
+        if (!this.metaLoaded) await this.loadMetadata();
         this._messageHandler.getInitialPage()
             .then(() => this._messageHandler.onMessageDigestUpdate());
     }
+
 
     loadPreviousPage() {
         if (!this.canGoUp) return;
