@@ -48,6 +48,9 @@ class Chat {
     // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
     @observable unreadCount = 0;
+    // when user is not looking but chat is active and recieving updates,
+    // chat briefly sets this value to the id of last seen message so client can render separator marker
+    @observable newMessagesMarkerPos = '';
 
     _messageHandler = null;
     _receiptHandler = null;

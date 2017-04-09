@@ -30,7 +30,19 @@ class ChatMessageHandler {
             }
         });
         reaction(() => User.current.isLooking, (isLooking) => {
-            if (isLooking) this.markAllAsSeen();
+            if (isLooking) {
+                this.markAllAsSeen();
+                console.log('scheduling to remove marker');
+                setTimeout(() => {
+                    if (!User.current.isLooking) return;
+                    this.chat.newMessagesMarkerPos = null;
+                    console.log('removed marker');
+                }, 7000);
+            } else if (!this.chat.newMessagesMarkerPos && this.chat.messages.length) {
+                const lastId = this.chat.messages[this.chat.messages.length - 1].id;
+                this.chat.newMessagesMarkerPos = lastId;
+                console.log('set marker to', lastId);
+            }
         });
     }
 
