@@ -15,6 +15,10 @@ function getTemporaryChatId() {
     return `creating_chat:${temporaryChatId++}`;
 }
 
+// !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!
+// Know that it's not a whitespace, it's unicode :thumb_up: emoji
+const ACK_MSG = '👍';
+
 class Chat {
 
     @observable id = null;
@@ -68,6 +72,21 @@ class Chat {
         return this.participants.length === 0
             ? User.current.username
             : this.participants.map(p => p.username).join(', ');
+    }
+
+    @computed get canSendAck() {
+        if (this.limboMessages.length) {
+            for (let i = 0; i < this.limboMessages.length; i++) {
+                if (this.limboMessages[i].text === ACK_MSG) return false;
+            }
+        }
+        if (!this.initialPageLoaded) return false;
+        if (this.canGoDown) return true;
+        if (!this.messages.length) return true;
+        const lastmsg = this.messages[this.messages.length - 1];
+        if (lastmsg.sender.username !== User.current.username) return true;
+        if (lastmsg.text === ACK_MSG) return false;
+        return true;
     }
 
     /**
@@ -232,9 +251,7 @@ class Chat {
 
 
     sendAck() {
-        // !! IN CASE YOUR EDITOR SHOWS THE STRING BELOW AS WHITESPACE !!
-        // Know that it's not a whitespace, it's unicode :thumb_up: emoji
-        return this.sendMessage('👍');
+        return this.sendMessage(ACK_MSG);
     }
 
     /**
