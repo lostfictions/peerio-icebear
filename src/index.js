@@ -45,6 +45,7 @@ const legacyMigrator = require('./legacy/account_migrator');
 const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
+const MRUList = require('./helpers/mru-list');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
@@ -67,5 +68,6 @@ module.exports = {
     legacyMigrator,
     defaultClock,
     Clock,
-    fileHelpers
+    fileHelpers,
+    MRUList
 };

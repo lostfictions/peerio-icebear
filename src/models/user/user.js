@@ -12,6 +12,7 @@ const currentUserHelper = require('./../../helpers/di-current-user');
 const { publicCrypto } = require('../../crypto/index');
 const { formatBytes } = require('../../util');
 const config = require('../../config');
+const MRUList = require('../../helpers/mru-list');
 
 let currentUser;
 
@@ -51,6 +52,7 @@ class User {
     // -- flags
     _firstLoginInSession = true;
 
+    emojiMRU = new MRUList('emojiPicker', 30);
 
     constructor() {
         this.login = this.login.bind(this);
@@ -176,6 +178,7 @@ class User {
             this.setReauthOnReconnect();
             this.loadProfile(true);
             this.loadQuota(true);
+            this.emojiMRU.loadCache();
             when(() => this.profileLoaded, () => {
                 this.setAsLastAuthenticated()
                     .catch(err => console.error(err)); // not critical, we can ignore this error

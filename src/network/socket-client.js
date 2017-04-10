@@ -151,10 +151,13 @@ class SocketClient {
     }
 
     setAuthenticatedState() {
-        if (this.state !== STATES.open) return;
-        this.authenticated = true;
-        this.authenticatedEventListeners.forEach(listener => {
-            setTimeout(listener);
+        // timeout to make sure code that call this does what it needs to before mobx reaction triggers
+        setTimeout(() => {
+            if (this.state !== STATES.open) return;
+            this.authenticated = true;
+            this.authenticatedEventListeners.forEach(listener => {
+                setTimeout(listener);
+            });
         });
     }
 
