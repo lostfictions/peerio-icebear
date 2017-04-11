@@ -104,7 +104,7 @@ class User {
     }
 
     @computed get fileQuotaUsedPercent() {
-        return this.fileQuotaTotal === 0 ? 0 : `${Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100))}%`;
+        return this.fileQuotaTotal === 0 ? 0 : Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100));
     }
 
     canUploadFileSize = function(size) {
