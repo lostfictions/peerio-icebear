@@ -121,19 +121,25 @@ class ChatReceiptHandler {
         }
         this.loadingReceipts = true;
         this.scheduleReceiptsLoad = false;
-        socket.send('/auth/kegs/query', {
+        socket.send('/auth/kegs/collection/list-ext', {
             collectionId: this.chat.id,
-            minCollectionVersion: this.downloadedReceiptId || '',
-            query: { type: 'receipt' }
+            options: {
+                type: 'receipt',
+                reverse: false
+            },
+            filter: {
+                minCollectionVersion: this.downloadedReceiptId || ''
+            }
         }).then(res => {
-            if (!res && !res.length) return;
-            for (let i = 0; i < res.length; i++) {
-                if (res[i].collectionVersion > this.downloadedReceiptId) {
-                    this.downloadedReceiptId = res[i].collectionVersion;
+            const kegs = res.kegs;
+            if (!kegs || !kegs.length) return;
+            for (let i = 0; i < kegs.length; i++) {
+                if (kegs[i].collectionVersion > this.downloadedReceiptId) {
+                    this.downloadedReceiptId = kegs[i].collectionVersion;
                 }
                 try {
                     const r = new Receipt(this.chat.db);
-                    r.loadFromKeg(res[i]);
+                    r.loadFromKeg(kegs[i]);
                     // todo: warn about error?
                     if (r.receiptError || r.signatureError || !r.username
                         || r.username === User.current.username || !r.position) continue;

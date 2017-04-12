@@ -34,7 +34,7 @@ class MailStore {
     _getGhosts(minCollectionVersion = '') {
         const query = { type: 'ghost' };
         if (minCollectionVersion === '') query.deleted = false;
-        return socket.send('/auth/kegs/query', {
+        return socket.send('/auth/kegs/query', { // TODO: SWITCH TO LIST-EXT API
             collectionId: 'SELF',
             minCollectionVersion,
             query

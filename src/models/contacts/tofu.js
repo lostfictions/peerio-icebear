@@ -49,14 +49,20 @@ class Tofu extends Keg {
         }
     }
     static getByUsername(username) {
-        return socket.send('/auth/kegs/query', {
+        return socket.send('/auth/kegs/collection/list-ext', {
             collectionId: 'SELF',
-            minCollectionVersion: '',
-            query: { type: 'tofu', username }
+            options: {
+                type: 'tofu',
+                reverse: false
+            },
+            filter: {
+                minCollectionVersion: '',
+                username
+            }
         }).then(res => {
-            if (!res.length) return null;
+            if (!res.kegs || !res.kegs.length) return null;
             const keg = new Tofu(getUser().kegDb);
-            keg.loadFromKeg(res[0]);
+            keg.loadFromKeg(res.kegs[0]); // TODO: detect and delete excess? shouldn't really happen though
             return keg;
         });
     }
