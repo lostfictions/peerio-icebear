@@ -22,6 +22,10 @@ class ChatMessageHandler {
         reaction(() => this.chat.active, (active) => {
             if (active) {
                 this.onMessageDigestUpdate();
+                this.markAllAsSeen();
+                this.removeMaker();
+            } else {
+                this.cancelTimers();
             }
         });
         reaction(() => socket.authenticated, (authenticated) => {
@@ -32,18 +36,31 @@ class ChatMessageHandler {
         reaction(() => User.current.isLooking, (isLooking) => {
             if (isLooking) {
                 this.markAllAsSeen();
-                console.log('scheduling to remove marker');
-                setTimeout(() => {
-                    if (!User.current.isLooking) return;
-                    this.chat.newMessagesMarkerPos = null;
-                    console.log('removed marker');
-                }, 7000);
+                this.removeMaker();
             } else if (!this.chat.newMessagesMarkerPos && this.chat.messages.length) {
+                this.cancelTimers();
                 const lastId = this.chat.messages[this.chat.messages.length - 1].id;
                 this.chat.newMessagesMarkerPos = lastId;
-                console.log('set marker to', lastId);
             }
         });
+    }
+
+    cancelTimers() {
+        if (this._markAsSeenTimer !== null) {
+            clearTimeout(this._markAsSeenTimer);
+        }
+        if (this._removeMarkerTimer !== null) {
+            clearTimeout(this._removeMarkerTimer);
+        }
+    }
+
+    removeMaker() {
+        if (!User.current.isLooking || !this.chat.active) return;
+        this._removeMarkerTimer = setTimeout(() => {
+            this._removeMarkerTimer = null;
+            if (!User.current.isLooking || !this.chat.active) return;
+            this.chat.newMessagesMarkerPos = null;
+        }, 7000);
     }
 
     onMessageDigestUpdate = () => {
@@ -92,8 +109,12 @@ class ChatMessageHandler {
     }
 
     markAllAsSeen() {
-        if (!User.current.isLooking) return;
-        tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
+        if (!User.current.isLooking || !this.chat.active) return;
+        this._markAsSeenTimer = setTimeout(() => {
+            this._markAsSeenTimer = null;
+            if (!User.current.isLooking || !this.chat.active) return;
+            tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
+        }, 3000);
     }
 
     setDownloadedUpdateId(kegs) {
