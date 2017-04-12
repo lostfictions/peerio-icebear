@@ -89,6 +89,13 @@ class Chat {
         return true;
     }
 
+    @computed get showNewMessagesMarker() {
+        if (!this.newMessagesMarkerPos) return false;
+        for (let i = this.messages.length - 1; i >= 0 && this.messages[i].id !== this.newMessagesMarkerPos; i--) {
+            if (this.messages[i].sender.username !== User.current.username) return true;
+        }
+        return false;
+    }
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
