@@ -119,12 +119,16 @@ class FileStore {
     };
 
     _getFiles() {
-        const query = { type: 'file' };
-        if (this.knownUpdateId === '') query.deleted = false;
-        return socket.send('/auth/kegs/query', {
+        const filter = { minCollectionVersion: this.knownUpdateId };
+        if (this.knownUpdateId === '') filter.deleted = false;
+
+        return socket.send('/auth/kegs/collection/list-ext', {
             collectionId: 'SELF',
-            minCollectionVersion: this.knownUpdateId,
-            query
+            options: {
+                type: 'file',
+                reverse: false
+            },
+            filter
         });
     }
 
@@ -133,7 +137,7 @@ class FileStore {
         this.loading = true;
         retryUntilSuccess(() => this._getFiles(), 'Initial file list loading')
             .then(action(kegs => {
-                for (const keg of kegs) {
+                for (const keg of kegs.kegs) {
                     const file = new File(User.current.kegDb);
                     if (keg.collectionVersion > this.maxUpdateId) {
                         this.maxUpdateId = keg.collectionVersion;
@@ -170,7 +174,7 @@ class FileStore {
         this.updating = true;
         retryUntilSuccess(() => this._getFiles(this.maxUpdateId), 'Updating file list')
             .then(action(kegs => {
-                for (const keg of kegs) {
+                for (const keg of kegs.kegs) {
                     if (keg.collectionVersion > this.knownUpdateId) {
                         this.knownUpdateId = keg.collectionVersion;
                     } else continue;
