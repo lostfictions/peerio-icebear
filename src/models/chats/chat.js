@@ -61,6 +61,8 @@ class Chat {
 
     _addMessageQueue = new Queue(1, 0);
 
+    _reactionsToDispose = [];
+
     @computed get participantUsernames() {
         if (!this.participants) return null;
         return this.participants.map(p => p.username);
@@ -107,9 +109,9 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
-        reaction(() => this.active && User.current.isLooking, shouldSendReceipt => {
+        this._reactionsToDispose.push(reaction(() => this.active && User.current.isLooking, shouldSendReceipt => {
             if (shouldSendReceipt) this._sendReceipt();
-        });
+        }));
     }
     _metaPromise = null;
     loadMetadata() {
@@ -369,6 +371,16 @@ class Chat {
         if (!User.current.isLooking || !this.active) return;
 
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
+    }
+
+    dispose() {
+        try {
+            this._reactionsToDispose.forEach(d => d());
+            if (this._messageHandler) this._messageHandler.dispose();
+            if (this._receiptHandler) this._receiptHandler.dispose();
+        } catch (err) {
+            console.error(err);
+        }
     }
 
 }

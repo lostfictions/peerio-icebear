@@ -13,17 +13,18 @@ class ChatReceiptHandler {
     scheduleReceiptsLoad = false;
     // this value means that something is scheduled to send
     pendingReceipt = null;
+    _reactionsToDispose = [];
 
     constructor(chat) {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'receipt', this.onReceiptDigestUpdate);
         this.onReceiptDigestUpdate();
-        reaction(() => socket.authenticated, authenticated => {
+        this._reactionsToDispose.push(reaction(() => socket.authenticated, authenticated => {
             if (!authenticated || !this.pendingReceipt) return;
             const pos = this.pendingReceipt;
             this.pendingReceipt = null;
             this.sendReceipt(pos);
-        });
+        }));
     }
 
     onReceiptDigestUpdate = _.throttle(() => {
@@ -176,6 +177,11 @@ class ChatReceiptHandler {
         }
     }
 
+    dispose() {
+        this._reactionsToDispose.forEach(d => d());
+        tracker.unsubscribe(this.onReceiptDigestUpdate);
+        this.receipts = {};
+    }
 
 }
 

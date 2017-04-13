@@ -123,12 +123,17 @@ class UpdateTracker {
     unsubscribe(handler) {
         let ind = this.dbAddedHandlers.indexOf(handler);
         if (ind >= 0) this.dbAddedHandlers.splice(ind, 1);
+
         for (const db in this.updateHandlers) {
             for (const type in this.updateHandlers[db]) {
                 ind = this.updateHandlers[db][type].indexOf(handler);
                 if (ind >= 0) this.updateHandlers[db][type].splice(ind, 1);
             }
         }
+    }
+
+    removeDbDigest(id) {
+        delete this.digest[id];
     }
 
     //  {"kegDbId":"SELF","type":"profile","maxUpdateId":3, knownUpdateId: 0, newKegsCount: 1},

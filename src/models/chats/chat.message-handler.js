@@ -15,11 +15,13 @@ class ChatMessageHandler {
     _loadingUpdates = false; // todo: make this observable in Chat
     _reCheckUpdates = false;
 
+    _reactionsToDispose = [];
+
     constructor(chat) {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'message', this.onMessageDigestUpdate);
         this.onMessageDigestUpdate();
-        reaction(() => this.chat.active, (active) => {
+        this._reactionsToDispose.push(reaction(() => this.chat.active, (active) => {
             if (active) {
                 this.onMessageDigestUpdate();
                 this.markAllAsSeen();
@@ -27,13 +29,13 @@ class ChatMessageHandler {
             } else {
                 this.cancelTimers();
             }
-        });
-        reaction(() => socket.authenticated, (authenticated) => {
+        }));
+        this._reactionsToDispose.push(reaction(() => socket.authenticated, (authenticated) => {
             if (authenticated) {
                 this.onMessageDigestUpdate();
             }
-        });
-        reaction(() => User.current.isLooking, (isLooking) => {
+        }));
+        this._reactionsToDispose.push(reaction(() => User.current.isLooking, (isLooking) => {
             if (isLooking) {
                 this.markAllAsSeen();
                 this.removeMaker();
@@ -42,7 +44,7 @@ class ChatMessageHandler {
                 const lastId = this.chat.messages[this.chat.messages.length - 1].id;
                 this.chat.newMessagesMarkerPos = lastId;
             }
-        });
+        }));
     }
 
     cancelTimers() {
@@ -210,6 +212,10 @@ class ChatMessageHandler {
         });
     }
 
+    dispose() {
+        this._reactionsToDispose.forEach(d => d());
+        tracker.unsubscribe(this.onMessageDigestUpdate);
+    }
 
 }
 

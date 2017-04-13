@@ -144,6 +144,21 @@ class ChatStore {
         chat.active = true;
         this.activeChat = chat;
     }
+
+    @action unloadChat(chat) {
+        chat.dispose();
+        if (chat.active) {
+            ChatStore.activeChat = null;
+        }
+        chat.active = false;
+        tracker.deactivateKegDb(chat.id);
+        tracker.removeDbDigest(chat.id);
+
+        delete this.chatMap[chat.id];
+        delete this._knownChats[chat.id];
+        this.chats.remove(chat);
+    }
+
 }
 
 module.exports = new ChatStore();
