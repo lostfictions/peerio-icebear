@@ -62,6 +62,10 @@ class File extends Keg {
         return Math.ceil(this.size / this.chunkSize);
     }
 
+    @computed get canShare() {
+        return getUser().username === this.fileOwner;
+    }
+
     get sizeWithOverhead() {
         return this.size + this.chunksCount * CHUNK_OVERHEAD;
     }
