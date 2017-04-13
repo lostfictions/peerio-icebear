@@ -8,7 +8,7 @@ class BootKeg extends Keg {
      */
     constructor(db, bootKey) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super('boot', 'system', db);
+        super('boot', 'boot', db);
         this.overrideKey = bootKey;
         this.version = 1; // pre-created named keg
     }

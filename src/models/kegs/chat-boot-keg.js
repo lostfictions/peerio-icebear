@@ -22,7 +22,7 @@ class ChatBootKeg extends Keg {
      */
     constructor(db, user, participantPublicKeys) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super('boot', 'system', db, true);
+        super('boot', 'boot', db, true);
         this.user = user;
         this.version = 1; // pre-created named keg
         this.participantPublicKeys = participantPublicKeys;

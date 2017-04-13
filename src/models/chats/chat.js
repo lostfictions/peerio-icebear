@@ -1,7 +1,6 @@
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
-const normalize = require('../../errors').normalize;
 const User = require('../user/user');
 const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
@@ -119,6 +118,11 @@ class Chat {
         // retry is handled inside loadMeta()
         this._metaPromise = this.db.loadMeta()
             .then(action(() => {
+                if (this.db.dbIsBroken) {
+                    const errmsg = `Detected broken database. id ${this.db.id}`;
+                    console.error(errmsg);
+                    throw new Error(errmsg);
+                }
                 this.id = this.db.id;
                 this.participants = this.db.participants;// todo computed
                 this._messageHandler = new ChatMessageHandler(this);

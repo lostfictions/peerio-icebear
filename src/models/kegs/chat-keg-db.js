@@ -7,8 +7,40 @@ const User = require('../user/user');
 const contactStore = require('../contacts/contact-store');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const Contact = require('../contacts/contact');
+
+/**
+ * Chat loading logic
+ * retryUntilSuccess(
+ * 1. Do we have ID for the chat?
+ * - 1.1 NO:
+ *      - create-chat
+ *      - if resolved: now we have chat meta data, GOTO (2.)
+ *      - if rejected: retry is triggered
+ * - 1.2 YES:
+ *      - get metadata
+ *      - if resolved: now we have chat meta data, GOTO (2.)
+ *      - if rejected: retry is triggered
+ * 2. Parse chat metadata
+ * 3. Does boot keg exist? (load it and check if keg version > 1)
+ * - 3.1 YES:
+ *      - load boot keg
+ *      - resolved: is it valid ?
+ *          - YES: FINISH. Promise.resolve(true)
+ *          - NO: FINISH. Promise.resolve(false) for retry to not trigger
+ *      - rejected: retry is triggered
+ * - 3.2 NO:
+ *      - create boot keg.
+ *          - resolved: FINISH. Promise.resolve(true)
+ *          - rejected: retry is triggered
+ * - 3.3 load failed: retry is triggered
+ * , 'Unique retry id')
+ */
 
 class ChatKegDb {
+
+    // if true -  something is wrong with bootkeg, most likely it was maliciously created and can't be used
+    dbIsBroken = false;
     /**
      * Creates new database instance.
      * At least one of 2 parameters should be passed
@@ -18,7 +50,8 @@ class ChatKegDb {
     constructor(id, participants) {
         this.id = id;
         this.participants = participants;
-        this._fillFromMeta = this._fillFromMeta.bind(this);
+        // just to prevent parallel load routines, we can't use chat id bcs we don't always have it
+        this._retryId = Math.random();
     }
 
     /**
@@ -27,13 +60,20 @@ class ChatKegDb {
      * @returns {Promise}
      */
     loadMeta() {
-        // this chat already exists, loading meta by id
-        if (this.id) {
-            return retryUntilSuccess(
-                () => socket.send('/auth/kegs/collection/meta', { collectionId: this.id }).then(this._fillFromMeta),
-                `load chat meta: ${this.id}`
-            );
-        }
+        return retryUntilSuccess(() => {
+            if (this.id) {
+                return this._loadExistingChatMeta();
+            }
+            return this._createChatMeta();
+        }, this._retryId);
+    }
+
+    _loadExistingChatMeta() {
+        return socket.send('/auth/kegs/collection/meta', { collectionId: this.id })
+            .then(this._parseMeta);
+    }
+
+    _createChatMeta() {
         // creating chat (or loading it by participant list in case we don't have chat id for some weird reason)
         this.participants = this.participants || [];
         // duplicate absence should be handled level higher but just to be safe.
@@ -44,26 +84,35 @@ class ChatKegDb {
         }
         // server will return existing chat if it does already exist
         // the logic below takes care of rare collision cases, like when users create chat or boot keg at the same time
-        return retryUntilSuccess(() => {
-            return socket.send('/auth/kegs/collection/create-chat', arg)
-                .then(this._fillFromMeta);
-        }, `create chat for: ${arg.participants.join(',')}`);
+        return socket.send('/auth/kegs/collection/create-chat', arg)
+            .then(this._parseMeta);
     }
 
 
-    _fillFromMeta(meta) {
+    // fills current object propertis from raw keg metadata
+    _parseMeta = (meta) => {
         this.id = meta.id;
-        // A little explanation on contactStore.getContact here
-        // Yes, it is reactive and does not return promise.
-        // And might not be done by the time next lines of code execute.
-        // But there are 2 cases why are we here
-        // 1 - we are creating a new chat, so all this contacts are already in cache (validator made them load)
-        // 2 - we are loading existing chat, so we don't really care about those contact details being loaded here
-        this.participants = Object.keys(meta.permissions.users)
-            .filter(username => username !== User.current.username)
-            .map(username => contactStore.getContact(username));
-        // if there are no system kegs yet (version === 0) this means boot keg wasn't created yet
-        return meta.collectionVersions.system ? this._loadBootKeg() : this._createBootKeg();
+        if (!this.participants) {
+            this.participants = Object.keys(meta.permissions.users)
+                .filter(username => username !== User.current.username)
+                .map(username => contactStore.getContact(username));
+        }
+    }
+
+    // figures out if we need to load/create boot keg and does it
+    _resolveBootKeg() {
+        return this._loadBootKeg()
+            .then(boot => {
+                if (boot.version > 1) return boot;
+                return this._createBootKeg();
+            })
+            .then(boot => {
+                this.boot = boot;
+                this.key = boot.kegKey;
+                if (!this.key) this.dbIsBroken = true;
+                return this;
+            })
+            .tapCatch(err => console.error(err));
     }
 
     /**
@@ -72,25 +121,22 @@ class ChatKegDb {
     _createBootKeg() {
         console.log(`Creating chat boot keg for ${this.id}`);
         const publicKeys = {};
-        // other users
-        this.participants.forEach(p => {
-            // yes, we assume user can't proceed to creating chat without loading contact keys first
-            // which is a fair assumption atm, see comments in '_fillFromMeta'
-            publicKeys[p.username] = p.encryptionPublicKey;
-        });
-        // ourselves
-        publicKeys[User.current.username] = User.current.encryptionKeys.publicKey;
-        // keg key for this db
-        const boot = new ChatBootKeg(this, User.current, publicKeys);
-        // saving bootkeg
-        return boot.saveToServer()
+
+        return Contact.ensureAllLoaded(this.participants)
             .then(() => {
-                this.boot = boot;
+                // other users
+                this.participants.forEach(p => {
+                    // yes, we assume user can't proceed to creating chat without loading contact keys first
+                    // which is a fair assumption atm, see comments in '_fillFromMeta'
+                    publicKeys[p.username] = p.encryptionPublicKey;
+                });
+                // ourselves
+                publicKeys[User.current.username] = User.current.encryptionKeys.publicKey;
                 // keg key for this db
-                this.key = boot.kegKey;
-                return this;
-            })
-            .tapCatch(err => console.error(err));
+                const boot = new ChatBootKeg(this, User.current, publicKeys);
+                // saving bootkeg
+                return boot.saveToServer().return(boot);
+            });
     }
 
     /**
@@ -99,11 +145,7 @@ class ChatKegDb {
     _loadBootKeg() {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
-        return boot.load().then(() => {
-            this.boot = boot;
-            this.key = boot.kegKey;
-            return this;
-        }).tapCatch(err => console.error(err));
+        return boot.load().returh(boot);
     }
 }
 

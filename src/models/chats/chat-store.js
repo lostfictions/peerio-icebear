@@ -44,7 +44,6 @@ class ChatStore {
         this.chatMap[id] = c;
         this._knownChats[id] = true;
         this.chats.push(c);
-        // loadMetadata() promises never reject
         c.loadMetadata();
     };
 
@@ -53,7 +52,6 @@ class ChatStore {
         retryUntilSuccess(() =>
             socket.send('/auth/kegs/user/collections')
                 .then(action(list => {
-                    const k = 0;
                     for (const id of list) {
                         if (id === 'SELF') continue;
                         if (!this._knownChats[id]) this.addChat(id);
@@ -82,7 +80,10 @@ class ChatStore {
                     // subscribe to future chats that will be created
                     tracker.onKegDbAdded(id => {
                         console.log(`New incoming chat: ${id}`);
-                        this.addChat(id);
+                        // we do this with delay, because there's possibily of receiving this event
+                        // as a reaction to our own process of creating a chat, and while it's not an issue
+                        // and is not going to break anything, we still want to avoid running useless routine
+                        setTimeout(() => this.addChat(id), 3000);
                     });
                     // check if chats were created while we were loading chat list
                     // unlikely, but possible
