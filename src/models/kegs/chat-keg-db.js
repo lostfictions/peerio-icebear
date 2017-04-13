@@ -70,7 +70,8 @@ class ChatKegDb {
 
     _loadExistingChatMeta() {
         return socket.send('/auth/kegs/db/meta', { kegDbId: this.id })
-            .then(this._parseMeta);
+            .then(this._parseMeta)
+            .then(this._resolveBootKeg);
     }
 
     _createChatMeta() {
@@ -85,22 +86,21 @@ class ChatKegDb {
         // server will return existing chat if it does already exist
         // the logic below takes care of rare collision cases, like when users create chat or boot keg at the same time
         return socket.send('/auth/kegs/db/create-chat', arg)
-            .then(this._parseMeta);
+            .then(this._parseMeta)
+            .then(this._resolveBootKeg);
     }
 
 
     // fills current object propertis from raw keg metadata
     _parseMeta = (meta) => {
         this.id = meta.id;
-        if (!this.participants) {
-            this.participants = Object.keys(meta.permissions.users)
-                .filter(username => username !== User.current.username)
-                .map(username => contactStore.getContact(username));
-        }
+        this.participants = Object.keys(meta.permissions.users)
+            .filter(username => username !== User.current.username)
+            .map(username => contactStore.getContact(username));
     }
 
     // figures out if we need to load/create boot keg and does it
-    _resolveBootKeg() {
+    _resolveBootKeg = () => {
         return this._loadBootKeg()
             .then(boot => {
                 if (boot.version > 1) return boot;
@@ -145,7 +145,7 @@ class ChatKegDb {
     _loadBootKeg() {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
-        return boot.load().returh(boot);
+        return boot.load(true).return(boot);
     }
 }
 

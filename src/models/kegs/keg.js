@@ -141,14 +141,15 @@ class Keg {
 
     /**
      * Populates this keg instance with data from server
+     * @param {[bool]} allowEmpty - do not fail on empty keg data
      * @returns {Promise.<Keg>}
      */
-    load() {
+    load(allowEmpty = false) {
         return socket.send('/auth/kegs/get', {
             kegDbId: this.db.id,
             kegId: this.id
         }).then(keg => {
-            const ret = this.loadFromKeg(keg);
+            const ret = this.loadFromKeg(keg, allowEmpty);
             if (ret === false) {
                 return Promise.reject(new Error(
                     `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
@@ -168,9 +169,10 @@ class Keg {
     /**
      * Synchronous function to rehydrate current Keg instance with data from server.
      * @param {Object} keg as stored on server
+     * @param {[bool]} allowEmpty - do not fail if keg payload is empty
      * @returns {Keg|Boolean}
      */
-    loadFromKeg(keg) {
+    loadFromKeg(keg, allowEmpty = false) {
         try {
             if (this.id && this.id !== keg.kegId) {
                 console.error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
@@ -183,7 +185,7 @@ class Keg {
             this.collectionVersion = keg.collectionVersion;
             if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
-            if (!keg.payload) return false;
+            if (!keg.payload) return allowEmpty ? this : false;
             let payload = keg.payload;
             let sharedKey = null;
             // should we decrypt?
