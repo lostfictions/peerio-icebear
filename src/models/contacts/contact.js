@@ -19,8 +19,8 @@ class Contact {
     @observable loading = true; // default state, bcs that's what we do from the moment contact is created
     @observable firstName = '';
     @observable lastName = '';
-    @observable encryptionPublicKey = '';
-    @observable signingPublicKey = '';
+    @observable encryptionPublicKey = null;
+    @observable signingPublicKey = null;
     @observable tofuError = false;
 
     @computed get color() {
@@ -147,6 +147,16 @@ class Contact {
     whenLoaded(callback) {
         // it is important for this to be async
         when(() => !this.loading, () => callback(this));
+    }
+
+    ensureLoaded() {
+        return new Promise(resolve => {
+            this.whenLoaded(resolve);
+        });
+    }
+
+    static ensureAllLoaded(contacts) {
+        return Promise.map(contacts, contact => contact.ensureLoaded());
     }
 }
 
