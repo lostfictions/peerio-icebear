@@ -180,9 +180,12 @@ class FileStore {
                     } else continue;
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
+                    if (file.deleted && existing) {
+                        this.files.remove(file);
+                        continue;
+                    }
                     if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
                     if (!file.deleted && !existing) this.files.push(file);
-                    if (file.deleted && existing) this.files.remove(file);
                 }
                 this.updating = false;
                 // in case we missed another event while updating
