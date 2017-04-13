@@ -1,6 +1,5 @@
 const { observable, when, action } = require('mobx');
 const socket = require('../network/socket');
-const _ = require('lodash');
 const { retryUntilSuccess } = require('../helpers/retry');
 const isKnownKey = require('peerio-translator').has;
 /**

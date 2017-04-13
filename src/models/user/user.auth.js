@@ -106,9 +106,10 @@ module.exports = function mixUserAuthModule() {
         }
         return socket.send('/noauth/authenticate', {
             decryptedAuthToken: decrypted.buffer
-        }).then(resp => {
-            // todo: save resp.deviceToken
         });
+        // .then(resp => {
+        // todo: save resp.deviceToken
+        // });
     };
 
     /**
@@ -232,7 +233,7 @@ module.exports = function mixUserAuthModule() {
      */
     this.passcodeIsDisabled = () => {
         return TinyDb.system.getValue(`${this.username}:passcode:disabled`)
-            .catch(err => false);
+            .catch(() => false);
     };
 
     /**
