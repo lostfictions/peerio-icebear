@@ -20,6 +20,13 @@ function authenticate(username, passphrase) {
         });
 }
 
+function derivePublicKeyString(username, passphrase) {
+    return deriveKeys(username, passphrase)
+        .then(keys => {
+            return getPublicKeyString(keys.publicKey);
+        });
+}
+
 function getAuthToken(username, publicKeyString) {
     return socket.send('/noauth/legacy/auth-token/get', { username, publicKeyString });
 }
@@ -61,4 +68,4 @@ function getPublicKeyString(publicKeyBytes) {
     return Base58.encode(key);
 }
 
-module.exports = { authenticate };
+module.exports = { authenticate, derivePublicKeyString };
