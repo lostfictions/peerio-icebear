@@ -245,7 +245,7 @@ class UpdateTracker {
         const digest = this.getDigest(id, type);
         if (digest.knownUpdateId >= updateId) return;
         socket.send('/auth/kegs/updates/last-known-version', {
-            collectionId: id,
+            kegDbId: id,
             type,
             lastKnownVersion: updateId
         });

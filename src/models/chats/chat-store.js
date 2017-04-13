@@ -50,7 +50,7 @@ class ChatStore {
     // after reconnect we want to check if there was something added
     @action.bound checkForNewChats() {
         retryUntilSuccess(() =>
-            socket.send('/auth/kegs/user/collections')
+            socket.send('/auth/kegs/user/dbs')
                 .then(action(list => {
                     for (const id of list) {
                         if (id === 'SELF') continue;
@@ -64,7 +64,7 @@ class ChatStore {
         if (this.loaded || this.loading) return;
         this.loading = true;
         retryUntilSuccess(() =>
-            socket.send('/auth/kegs/user/collections')
+            socket.send('/auth/kegs/user/dbs')
                 .then(action(list => {
                     let k = 0;
                     for (const id of list) {

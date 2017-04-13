@@ -81,8 +81,8 @@ class ChatReceiptHandler {
     // loads or creates new receipt keg
     loadOwnReceipt() {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
-        return socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.chat.id,
+        return socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
             filter: {
                 minCollectionVersion: '',
                 username: User.current.username,
@@ -121,8 +121,8 @@ class ChatReceiptHandler {
         }
         this.loadingReceipts = true;
         this.scheduleReceiptsLoad = false;
-        socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.chat.id,
+        socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
             options: {
                 type: 'receipt',
                 reverse: false

@@ -81,8 +81,8 @@ class ChatMessageHandler {
         this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
-        socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.chat.id,
+        socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
             options: {
                 count: config.chat.maxLoadedMessages,
                 type: 'message',
@@ -131,8 +131,8 @@ class ChatMessageHandler {
         }
         this.chat.loadingInitialPage = true;
         console.log('loading initial page for this.chat', this.chat.id);
-        return retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.chat.id,
+        return retryUntilSuccess(() => socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
             options: {
                 type: 'message',
                 reverse: true,
@@ -174,8 +174,8 @@ class ChatMessageHandler {
             }
         }
         // todo: cancel retries if navigated away from chat?
-        retryUntilSuccess(() => socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: this.chat.id,
+        retryUntilSuccess(() => socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
             options: {
                 type: 'message',
                 reverse: pagingUp,

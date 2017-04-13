@@ -61,7 +61,7 @@ class Keg {
         if (this.id) return this._internalSave(cleanShareData);
 
         return socket.send('/auth/kegs/create', {
-            collectionId: this.db.id,
+            kegDbId: this.db.id,
             type: this.type
         }).then(resp => {
             this.id = resp.kegId;
@@ -111,7 +111,7 @@ class Keg {
         }
         lastVersion = this.version; // eslint-disable-line prefer-const
         return socket.send('/auth/kegs/update', {
-            collectionId: this.db.id,
+            kegDbId: this.db.id,
             update: {
                 kegId: this.id,
                 keyId: '0',
@@ -145,7 +145,7 @@ class Keg {
      */
     load() {
         return socket.send('/auth/kegs/get', {
-            collectionId: this.db.id,
+            kegDbId: this.db.id,
             kegId: this.id
         }).then(keg => {
             const ret = this.loadFromKeg(keg);
@@ -160,7 +160,7 @@ class Keg {
 
     remove() {
         return socket.send('/auth/kegs/delete', {
-            collectionId: this.db.id,
+            kegDbId: this.db.id,
             kegId: this.id
         });
     }

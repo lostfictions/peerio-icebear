@@ -35,7 +35,7 @@ class MailStore {
         const query = { type: 'ghost' };
         if (minCollectionVersion === '') query.deleted = false;
         return socket.send('/auth/kegs/query', { // TODO: SWITCH TO LIST-EXT API
-            collectionId: 'SELF',
+            kegDbId: 'SELF',
             minCollectionVersion,
             query
         });

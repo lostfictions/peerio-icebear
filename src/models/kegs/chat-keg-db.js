@@ -69,7 +69,7 @@ class ChatKegDb {
     }
 
     _loadExistingChatMeta() {
-        return socket.send('/auth/kegs/collection/meta', { collectionId: this.id })
+        return socket.send('/auth/kegs/db/meta', { kegDbId: this.id })
             .then(this._parseMeta);
     }
 
@@ -84,7 +84,7 @@ class ChatKegDb {
         }
         // server will return existing chat if it does already exist
         // the logic below takes care of rare collision cases, like when users create chat or boot keg at the same time
-        return socket.send('/auth/kegs/collection/create-chat', arg)
+        return socket.send('/auth/kegs/db/create-chat', arg)
             .then(this._parseMeta);
     }
 

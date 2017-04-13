@@ -122,8 +122,8 @@ class FileStore {
         const filter = { minCollectionVersion: this.knownUpdateId };
         if (this.knownUpdateId === '') filter.deleted = false;
 
-        return socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: 'SELF',
+        return socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: 'SELF',
             options: {
                 type: 'file',
                 reverse: false

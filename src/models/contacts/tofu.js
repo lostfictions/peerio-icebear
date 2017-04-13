@@ -49,8 +49,8 @@ class Tofu extends Keg {
         }
     }
     static getByUsername(username) {
-        return socket.send('/auth/kegs/collection/list-ext', {
-            collectionId: 'SELF',
+        return socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: 'SELF',
             options: {
                 type: 'tofu',
                 reverse: false
