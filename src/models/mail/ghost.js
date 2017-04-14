@@ -34,7 +34,7 @@ class Ghost extends Keg {
     }
 
     @computed get url() {
-        return `${config.ghostFrontendUrl}?${this.ghostId}`;
+        return `${config.ghostFrontendUrl}/?${this.ghostId}`;
     }
 
     @computed get expiryDate() {
