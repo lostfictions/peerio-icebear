@@ -1,9 +1,15 @@
 /**
  * Base/local class for warnings. Server warnings class inherits from it.
  */
+const { observable } = require('mobx');
 
 class SystemWarning {
 
+    static STATES = {
+        QUEUED: 0, /* WILL_SHOW: 1,*/ SHOWING: 2, WILL_DISMISS: 3, DISMISSED: 4
+    };
+
+    @observable state = SystemWarning.STATES.QUEUED;
     /**
      * @param {string} content - localisation string key
      * @param {string} [title] - localisation string key
@@ -17,7 +23,41 @@ class SystemWarning {
         this.level = level;
     }
 
-    // override in child class if needed
+    show() {
+        if (this.state !== SystemWarning.STATES.QUEUED) return;
+        // this.state = SystemWarning.STATES.WILL_SHOW;
+        // setTimeout(() => {
+        this.state = SystemWarning.STATES.SHOWING;
+        // }, 1000);
+    }
+
+    dismiss() {
+        if (this.state > SystemWarning.STATES.SHOWING) return;
+        this.state = SystemWarning.STATES.WILL_DISMISS;
+        setTimeout(() => {
+            this.dispose();
+            this.state = SystemWarning.STATES.DISMISSED;
+        }, 1000);
+    }
+
+    autoDismiss() {
+        if (this.state >= SystemWarning.STATES.SHOWING) return;
+        if (this.timer) return;
+        this.timer = setTimeout(() => {
+            this.dismiss();
+            this.timer = null;
+        }, 4000);
+    }
+
+    cancelAutoDismiss() {
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+    }
+    /**
+     *  Override in child class if needed.
+     *  Will get called on warning dismiss.
+     */
     dispose() { }
 }
 

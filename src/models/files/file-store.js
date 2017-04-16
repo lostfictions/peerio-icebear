@@ -8,6 +8,7 @@ const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const clientApp = require('../client-app');
 
 class FileStore {
     @observable files = observable.shallowArray([]);
@@ -157,7 +158,7 @@ class FileStore {
                     }, 3000);
                 });
                 autorunAsync(() => {
-                    if (this.unreadFiles === 0 || !this.active || !User.current.isLooking) return;
+                    if (this.unreadFiles === 0 || !this.active || !clientApp.isFocused) return;
                     tracker.seenThis('SELF', 'file', this.knownUpdateId);
                 }, 700);
                 setTimeout(this.updateFiles);

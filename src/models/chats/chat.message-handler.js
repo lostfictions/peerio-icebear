@@ -6,7 +6,7 @@ const socket = require('../../network/socket');
 const config = require('../../config');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const { reaction } = require('mobx');
-const User = require('../user/user');
+const clientApp = require('../client-app');
 
 class ChatMessageHandler {
 
@@ -35,8 +35,8 @@ class ChatMessageHandler {
                 this.onMessageDigestUpdate();
             }
         }));
-        this._reactionsToDispose.push(reaction(() => User.current.isLooking, (isLooking) => {
-            if (isLooking) {
+        this._reactionsToDispose.push(reaction(() => clientApp.isFocused, (isFocused) => {
+            if (isFocused) {
                 this.markAllAsSeen();
                 this.removeMaker();
             } else if (!this.chat.newMessagesMarkerPos && this.chat.messages.length) {
@@ -57,10 +57,10 @@ class ChatMessageHandler {
     }
 
     removeMaker() {
-        if (!User.current.isLooking || !this.chat.active) return;
+        if (!clientApp.isFocused || !this.chat.active) return;
         this._removeMarkerTimer = setTimeout(() => {
             this._removeMarkerTimer = null;
-            if (!User.current.isLooking || !this.chat.active) return;
+            if (!clientApp.isFocused || !this.chat.active) return;
             this.chat.newMessagesMarkerPos = null;
         }, 7000);
     }
@@ -111,10 +111,10 @@ class ChatMessageHandler {
     }
 
     markAllAsSeen() {
-        if (!User.current.isLooking || !this.chat.active) return;
+        if (!clientApp.isFocused || !this.chat.active) return;
         this._markAsSeenTimer = setTimeout(() => {
             this._markAsSeenTimer = null;
-            if (!User.current.isLooking || !this.chat.active) return;
+            if (!clientApp.isFocused || !this.chat.active) return;
             tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
         }, 3000);
     }

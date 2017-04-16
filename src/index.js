@@ -46,6 +46,8 @@ const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
 const MRUList = require('./helpers/mru-list');
+const warningStates = require('./models/warnings/system-warning').STATES;
+const clientApp = require('./models/client-app');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
@@ -65,9 +67,11 @@ module.exports = {
     FileNonceGenerator,
     util,
     warnings,
+    warningStates,
     legacyMigrator,
     defaultClock,
     Clock,
     fileHelpers,
-    MRUList
+    MRUList,
+    clientApp
 };

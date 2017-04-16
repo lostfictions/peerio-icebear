@@ -7,6 +7,7 @@ const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
+const clientApp = require('../client-app');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -109,7 +110,7 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
-        this._reactionsToDispose.push(reaction(() => this.active && User.current.isLooking, shouldSendReceipt => {
+        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused, shouldSendReceipt => {
             if (shouldSendReceipt) this._sendReceipt();
         }));
     }
@@ -368,7 +369,7 @@ class Chat {
     _sendReceipt() {
         // messages are sorted at this point ;)
         if (!this.messages.length) return;
-        if (!User.current.isLooking || !this.active) return;
+        if (!clientApp.isFocused || !this.active) return;
 
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
     }
