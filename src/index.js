@@ -38,7 +38,7 @@ const validation = require('./helpers/validation/field-validation');
 const FileStreamAbstract = require('./models/files/file-stream-abstract');
 const FileNonceGenerator = require('./models/files/file-nonce-generator');
 const util = require('./util');
-const systemWarnings = require('./models/system-warning');
+const warnings = require('./models/warnings/warnings');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
 const legacyMigrator = require('./legacy/account_migrator');
@@ -64,7 +64,7 @@ module.exports = {
     FileStreamAbstract,
     FileNonceGenerator,
     util,
-    systemWarnings,
+    warnings,
     legacyMigrator,
     defaultClock,
     Clock,

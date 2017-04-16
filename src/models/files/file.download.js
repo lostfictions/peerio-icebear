@@ -2,7 +2,7 @@
  * Download module for File model, for code file length sake
  */
 const config = require('../../config');
-const systemWarnings = require('./../system-warning');
+const warnings = require('./../warnings/warnings');
 const FileDownloader = require('./file-downloader');
 const cryptoUtil = require('../../crypto/util');
 const FileNonceGenerator = require('./file-nonce-generator');
@@ -65,12 +65,7 @@ function download(filePath, resume) {
             })
             .catch(err => {
                 console.error(err);
-                systemWarnings.add({
-                    content: 'error_downloadFailed',
-                    data: {
-                        fileName: this.name
-                    }
-                });
+                warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
                 this._resetDownloadState();
             });
     } catch (ex) {
@@ -102,7 +97,7 @@ function _resetDownloadState(stream) {
     this.downloader && this.downloader.cancel();
     this.uploader = null;
     this.downloader = null;
-   // this.progress = 0;
+    // this.progress = 0;
     try {
         if (stream) stream.close();
     } catch (ex) {

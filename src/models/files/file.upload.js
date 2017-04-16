@@ -2,7 +2,7 @@
  * Upload module for File model, for code file length sake
  */
 const config = require('../../config');
-const systemWarnings = require('./../system-warning');
+const warnings = require('./../warnings/warnings');
 const FileUploader = require('./file-uploader');
 const socket = require('../../network/socket');
 const cryptoUtil = require('../../crypto/util');
@@ -16,12 +16,7 @@ function _getUlResumeParams(path) {
     return config.FileStream.getStat(path)
         .then(stat => {
             if (stat.size !== this.size) {
-                systemWarnings.add({
-                    content: 'error_fileSizeChanged',
-                    data: {
-                        fileName: this.name
-                    }
-                });
+                warnings.addSevere('error_fileSizeChanged', 'error', { fileName: this.name });
                 throw new Error(`Upload file size mismatch. Was ${this.size} now ${stat.size}`);
             }
             // check file state on server
@@ -96,12 +91,7 @@ function upload(filePath, fileName, resume) {
             })
             .catch(err => {
                 console.error(err);
-                !this.uploadCancelled && systemWarnings.add({
-                    content: 'error_uploadFailed',
-                    data: {
-                        fileName: this.name
-                    }
-                });
+                !this.uploadCancelled && warnings.addSevere('error_uploadFailed', 'error', { fileName: this.name });
                 this._resetUploadState();
                 console.log('file.upload.js: stopped uploading');
                 return Promise.reject(new Error(err));

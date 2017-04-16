@@ -4,7 +4,7 @@ const socket = require('../../network/socket');
 const Ghost = require('./ghost');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
-const systemWarnings = require('../system-warning');
+const warnings = require('../warnings/warnings');
 
 class MailStore {
     @observable ghosts = observable.shallowArray([]); // sorted array
@@ -110,9 +110,7 @@ class MailStore {
         return g.send(text)
             .catch(() => {
                 // TODO: global error handling
-                systemWarnings.addLocalWarningSevere(
-                    'error_mailQuotaExceeded', 'error_sendingMail',
-                    [{ label: 'button_upgrade', action: 'UPGRADE' }, 'button_ok']);
+                warnings.addSevere('error_mailQuotaExceeded', 'error_sendingMail');
             })
             .finally(() => g.sendError && this.remove(g));
     }

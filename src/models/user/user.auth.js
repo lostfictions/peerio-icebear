@@ -12,7 +12,7 @@ const util = require('../../util');
 const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const systemWarnings = require('../system-warning');
+const warnings = require('../warnings/warnings');
 
 const { ServerError } = errors;
 
@@ -30,9 +30,7 @@ module.exports = function mixUserAuthModule() {
             .then(this._authenticateAuthToken)
             .tapCatch(e => {
                 e && (e.code === ServerError.codes.accountMigrationRequired)
-                    && systemWarnings.addLocalWarningSevere(
-                        'error_cannotMigrate', 'error_loginFailed'
-                    );
+                    && warnings.addSevere('error_cannotMigrate', 'error_loginFailed');
             });
     };
 

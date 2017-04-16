@@ -2,7 +2,7 @@ const { observable, action, when, reaction, computed, autorunAsync } = require('
 const socket = require('../../network/socket');
 const User = require('../user/user');
 const File = require('./file');
-const systemWarnings = require('../system-warning');
+const warnings = require('../warnings/warnings');
 const tracker = require('../update-tracker');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
@@ -102,9 +102,7 @@ class FileStore {
             if (this.ongoingUploads === 0) return;
             const currentCompletedUploads = this.completedUploads;
             when(() => this.ongoingUploads === 0, () => {
-                (this.completedUploads > currentCompletedUploads) && systemWarnings.add({
-                    content: 'snackbar_uploadComplete'
-                });
+                (this.completedUploads > currentCompletedUploads) && warnings.add('snackbar_uploadComplete');
             });
         });
     }
@@ -212,8 +210,7 @@ class FileStore {
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;
-                systemWarnings.addLocalWarningSevere(
-                    'error_fileQuotaExceeded', 'error', [{ label: 'button_upgrade', action: 'UPGRADE' }, 'button_ok']);
+                warnings.addSevere('error_fileQuotaExceeded', 'error');
                 return;
             }
             this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
