@@ -16,7 +16,8 @@ class Warnings {
 
     constructor() {
         reaction(() => clientApp.isFocused, isFocused => {
-            if (isFocused && this.current && this.current.level === 'medium') {
+            if (!this.current || this.current.level !== 'medium') return;
+            if (isFocused) {
                 this.current.autoDismiss();
             } else {
                 this.current.cancelAutoDismiss();

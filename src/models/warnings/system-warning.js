@@ -41,7 +41,7 @@ class SystemWarning {
     }
 
     autoDismiss() {
-        if (this.state >= SystemWarning.STATES.SHOWING) return;
+        if (this.state > SystemWarning.STATES.SHOWING) return;
         if (this.timer) return;
         this.timer = setTimeout(() => {
             this.dismiss();
@@ -52,6 +52,7 @@ class SystemWarning {
     cancelAutoDismiss() {
         if (this.timer) {
             clearTimeout(this.timer);
+            this.timer = null;
         }
     }
     /**
