@@ -141,6 +141,9 @@ class FileStore {
                     if (keg.collectionVersion > this.maxUpdateId) {
                         this.maxUpdateId = keg.collectionVersion;
                     }
+                    if (keg.collectionVersion > this.knownUpdateId) {
+                        this.knownUpdateId = keg.collectionVersion;
+                    }
                     if (file.loadFromKeg(keg)) this.files.push(file);
                 }
                 this.loading = false;

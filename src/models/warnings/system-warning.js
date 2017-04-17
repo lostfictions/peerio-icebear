@@ -37,7 +37,7 @@ class SystemWarning {
         setTimeout(() => {
             this.dispose();
             this.state = SystemWarning.STATES.DISMISSED;
-        }, 1000);
+        }, 700);
     }
 
     autoDismiss() {

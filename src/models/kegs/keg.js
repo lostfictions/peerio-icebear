@@ -225,6 +225,9 @@ class Keg {
                 this.sharedKegError = true;
                 return;
             }
+            // todo: technically speaking we should retry this action until success.
+            // todo: but only for not verison-conflict related issues
+            // todo: and currently it's not actually an issue to have it re-encrypted later/next time it loads
             this.saveToServer(true);
         });
     }
