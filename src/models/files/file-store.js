@@ -29,9 +29,16 @@ class FileStore {
     static isFileSelected(file) {
         return file.selected;
     }
+    static isFileSelectedAndShareable(file) {
+        return file.selected && file.canShare;
+    }
 
     @computed get hasSelectedFiles() {
         return this.files.some(FileStore.isFileSelected);
+    }
+
+    @computed get hasSelectedShareableFiles() {
+        return this.files.some(FileStore.isFileSelectedAndShareable);
     }
     @computed get allVisibleSelected() {
         for (let i = 0; i < this.files.length; i++) {
@@ -56,6 +63,10 @@ class FileStore {
         return this.files.filter(FileStore.isFileSelected);
     }
 
+    getShareableSelectedFiles() {
+        return this.files.filter(FileStore.isFileSelectedAndShareable);
+    }
+
     /**
      * Deselects all files
      */
@@ -70,6 +81,14 @@ class FileStore {
             const file = this.files[i];
             if (!file.show || !file.readyForDownload) continue;
             this.files[i].selected = true;
+        }
+    }
+
+    @action deselectUnshareableFiles() {
+        for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i];
+            if (file.canShare) continue;
+            if (file.selected) file.selected = false;
         }
     }
 
