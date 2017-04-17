@@ -85,7 +85,6 @@ class Keg {
             if (cleanShareData) {
                 props.sharedKegSenderPK = null;
                 props.sharedKegRecipientPK = null;
-                props.sharedKegReencrypted = 'true';
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
             if (!this.plaintext) {
@@ -196,7 +195,11 @@ class Keg {
                     this._verifyKegSignature(payload, keg.props.signature);
                 }
                 // is this keg shared with us and needs re-encryption?
-                if (keg.props.sharedBy && !keg.props.sharedKegReencrypted) {
+                // todo: sharedKegSenderPK is used here to detect keg that still needs re-encryption
+                // todo: the property will get deleted after re-encryption
+                // todo: we can't introduce additional flag bcs props are not being deleted on keg delete
+                // todo: to allow re-sharing of the same file keg
+                if (keg.props.sharedBy && keg.props.sharedKegSenderPK) {
                     // async call, changes state of the keg in case of issues
                     this._validateAndReEncryptSharedKeg(keg.props);
                     // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
@@ -205,7 +208,7 @@ class Keg {
                 payload = secret.decryptString(payload, sharedKey || this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
-            if (!(this.plaintext || (keg.props.sharedBy && !keg.props.sharedKegReencrypted))) {
+            if (!(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {
                 this.detectTampering(payload);
             }
             this.deserializeKegPayload(payload);

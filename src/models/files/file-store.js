@@ -201,8 +201,8 @@ class FileStore {
                     } else continue;
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
-                    if (file.deleted && existing) {
-                        this.files.remove(file);
+                    if (keg.deleted && existing) {
+                        this.files.remove(existing);
                         continue;
                     }
                     if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
