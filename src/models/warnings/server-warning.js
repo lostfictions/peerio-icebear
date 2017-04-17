@@ -12,7 +12,7 @@ class ServerWarning extends SystemWarning {
             console.debug(obj);
             throw new Error('Invalid/unknown warning key received from server.');
         }
-        super(obj.msg, obj.title, obj.level, null);
+        super(obj.msg, obj.title, null, obj.level);
         this.token = obj.token; // to use when dismissing/acknowleging server message
     }
 
