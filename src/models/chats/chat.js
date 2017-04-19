@@ -60,7 +60,7 @@ class Chat {
     _receiptHandler = null;
     _fileHandler = null;
 
-    _addMessageQueue = new Queue(1, 0);
+    _addMessageQueue = new Queue(1, 10);
 
     _reactionsToDispose = [];
 
