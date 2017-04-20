@@ -192,7 +192,7 @@ class Keg {
                 payload = new Uint8Array(keg.payload);
                 // SELF kegs do not require signing
                 if (this.db.id !== 'SELF') {
-                    this._verifyKegSignature(payload, keg.props.signature);
+                    // this._verifyKegSignature(payload, keg.props.signature);
                 }
                 // is this keg shared with us and needs re-encryption?
                 // todo: sharedKegSenderPK is used here to detect keg that still needs re-encryption
