@@ -78,7 +78,7 @@ class Keg {
      * @private
      */
     _internalSave(cleanShareData) {
-        let payload, props, lastVersion;
+        let payload, props, lastVersion, signingPromise = Promise.resolve(true);
         try {
             payload = this.serializeKegPayload();
             props = this.serializeProps();
@@ -99,8 +99,15 @@ class Keg {
             if (!this.plaintext) {
                 payload = secret.encryptString(payload, this.overrideKey || this.db.key);
                 if (this.db.id !== 'SELF') {
-                    props.signature = this._signKegPayload(payload); // here we need Uint8Array
-                    this.signatureError = false;
+                    signingPromise = this._signKegPayload(payload) // here we need Uint8Array
+                        .then(signature => {
+                            props.signature = signature;
+                            this.signatureError = false;
+                        })
+                        .catch(err => {
+                            console.error('Fail preparing keg to save.', err);
+                            return Promise.reject(err);
+                        });
                 }
                 payload = payload.buffer; // socket accepts ArrayBuffer
             }
@@ -109,7 +116,7 @@ class Keg {
             return Promise.reject(err);
         }
         lastVersion = this.version; // eslint-disable-line prefer-const
-        return socket.send('/auth/kegs/update', {
+        return signingPromise.then(() => socket.send('/auth/kegs/update', {
             kegDbId: this.db.id,
             update: {
                 kegId: this.id,
@@ -119,7 +126,7 @@ class Keg {
                 props,
                 version: lastVersion + 1
             }
-        }).then(resp => {
+        })).then(resp => {
             this.collectionVersion = resp.collectionVersion;
             // in case this keg was already updated through other code paths we change version in a smart way
             this.version = Math.max(lastVersion + 1, this.version);
@@ -133,9 +140,7 @@ class Keg {
      * @private
      */
     _signKegPayload(payload) {
-        let signed = sign.signDetached(payload, getUser().signKeys.secretKey);
-        signed = cryptoUtil.bytesToB64(signed);
-        return signed;
+        return sign.signDetached(payload, getUser().signKeys.secretKey).then(cryptoUtil.bytesToB64);
     }
 
     /**
@@ -192,7 +197,7 @@ class Keg {
                 payload = new Uint8Array(keg.payload);
                 // SELF kegs do not require signing
                 if (this.db.id !== 'SELF') {
-                    // this._verifyKegSignature(payload, keg.props.signature);
+                    this._verifyKegSignature(payload, keg.props.signature);
                 }
                 // is this keg shared with us and needs re-encryption?
                 // todo: sharedKegSenderPK is used here to detect keg that still needs re-encryption
@@ -250,8 +255,9 @@ class Keg {
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
         const contact = getContactStore().getContact(this.owner);
         contact.whenLoaded(() => {
-            this.signatureError = contact.notFound
-                || !sign.verifyDetached(payload, signature, contact.signingPublicKey);
+            contact.notFound ? Promise.resolve(false) :
+                sign.verifyDetached(payload, signature, contact.signingPublicKey)
+                .then(r => (this.signatureError = !r));
         });
     }
 

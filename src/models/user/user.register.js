@@ -70,11 +70,15 @@ module.exports = function mixUserRegisterModule() {
                     this.encryptionKeys.secretKey).buffer
             },
             signing: {
-                token: cng.signingKey.token.buffer,
-                signature: signCrypto.signDetached(cng.signingKey.token, this.signKeys.secretKey).buffer
+                token: cng.signingKey.token.buffer
             }
         };
 
-        return socket.send('/noauth/activate', activationRequest);
+        return signCrypto.signDetached(cng.signingKey.token, this.signKeys.secretKey)
+            .then(signature => {
+                activationRequest.signing.signature = signature.buffer;
+                return activationRequest;
+            })
+            .then(() => socket.send('/noauth/activate', activationRequest));
     };
 };
