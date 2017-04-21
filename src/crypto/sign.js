@@ -6,23 +6,32 @@
 
 const nacl = require('tweetnacl');
 
+let detached = nacl.sign.detached;
+let verify = nacl.sign.detached.verify;
+
 /**
  * Signs the message with secret key and returns detached signature
  * @param {Uint8Array} message
  * @param {Uint8Array} secretKey
- * @returns {Uint8Array} signature
+ * @returns {Promise<Uint8Array>} signature
  */
 function signDetached(message, secretKey) {
-    return nacl.sign.detached(message, secretKey);
+    return Promise.resolve(detached(message, secretKey));
 }
 
 function verifyDetached(message, signature, publicKey) {
+    let result = false;
     try {
-        return nacl.sign.detached.verify(message, signature, publicKey);
+        result = verify(message, signature, publicKey);
     } catch (err) {
         console.error(err);
-        return false;
     }
+    return Promise.resolve(result);
 }
 
-module.exports = { signDetached, verifyDetached };
+function setDetachedVerify(detachedFunc, verifyFunc) {
+    detached = detachedFunc;
+    verify = verifyFunc;
+}
+
+module.exports = { signDetached, verifyDetached, setDetachedVerify };

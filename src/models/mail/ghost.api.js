@@ -66,9 +66,12 @@ ghostAPI.encrypt = function(ghost, user, serializedGhost) {
             body,
             user.getSharedKey(ghost.ephemeralKeypair.publicKey)
         );
-        const s = sign.signDetached(res.body, user.signKeys.secretKey);
-        res.signature = cryptoUtil.bytesToB64(s);
-        return Promise.resolve(res);
+        return sign.signDetached(res.body, user.signKeys.secretKey)
+            .then(cryptoUtil.bytesToB64)
+            .then(signature => {
+                res.signature = signature;
+                return res;
+            });
     } catch (e) {
         return Promise.reject(e);
     }
