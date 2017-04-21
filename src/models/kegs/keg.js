@@ -104,15 +104,12 @@ class Keg {
                             props.signature = signature;
                             this.signatureError = false;
                         })
-                        .catch(err => {
-                            console.error('Fail preparing keg to save.', err);
-                            return Promise.reject(err);
-                        });
+                        .tapCatch(err => console.error('Failed to sign keg', err));
                 }
                 payload = payload.buffer; // socket accepts ArrayBuffer
             }
         } catch (err) {
-            console.error('Fail preparing keg to save.', err);
+            console.error('Failed preparing keg to save.', err);
             return Promise.reject(err);
         }
         lastVersion = this.version; // eslint-disable-line prefer-const
@@ -257,7 +254,7 @@ class Keg {
         contact.whenLoaded(() => {
             contact.notFound ? Promise.resolve(false) :
                 sign.verifyDetached(payload, signature, contact.signingPublicKey)
-                .then(r => (this.signatureError = !r));
+                    .then(r => (this.signatureError = !r));
         });
     }
 

@@ -73,7 +73,8 @@ const config = new class {
     chat = {
         initialPageSize: 40, // amount of messages to load to a newly opened chat
         pageSize: 20, // when next/prev pages is requested, chat will load this amount of messages
-        maxLoadedMessages: 60 // chat will remove excess of messages if paging resulted in larger count
+        maxLoadedMessages: 60, // chat will remove excess of messages if paging resulted in larger count
+        decryptQueueThrottle: 0 // delay between decryption of individual messages when processing a batch
     };
 }();
 

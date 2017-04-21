@@ -6,7 +6,7 @@
 
 const nacl = require('tweetnacl');
 
-let detached = nacl.sign.detached;
+let sign = nacl.sign.detached;
 let verify = nacl.sign.detached.verify;
 
 /**
@@ -16,7 +16,7 @@ let verify = nacl.sign.detached.verify;
  * @returns {Promise<Uint8Array>} signature
  */
 function signDetached(message, secretKey) {
-    return Promise.resolve(detached(message, secretKey));
+    return Promise.resolve(sign(message, secretKey));
 }
 
 function verifyDetached(message, signature, publicKey) {
@@ -29,9 +29,9 @@ function verifyDetached(message, signature, publicKey) {
     return Promise.resolve(result);
 }
 
-function setDetachedVerify(detachedFunc, verifyFunc) {
-    detached = detachedFunc;
+function setImplementation(signFunc, verifyFunc) {
+    sign = signFunc;
     verify = verifyFunc;
 }
 
-module.exports = { signDetached, verifyDetached, setDetachedVerify };
+module.exports = { signDetached, verifyDetached, setImplementation };
