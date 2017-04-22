@@ -4,7 +4,7 @@ const socket = require('../../network/socket');
 const Ghost = require('./ghost');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
-const warnings = require('../warnings/warnings');
+const warnings = require('../warnings');
 
 class MailStore {
     @observable ghosts = observable.shallowArray([]); // sorted array

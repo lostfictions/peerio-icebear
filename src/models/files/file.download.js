@@ -2,7 +2,7 @@
  * Download module for File model, for code file length sake
  */
 const config = require('../../config');
-const warnings = require('./../warnings/warnings');
+const warnings = require('./../warnings');
 const FileDownloader = require('./file-downloader');
 const cryptoUtil = require('../../crypto/util');
 const FileNonceGenerator = require('./file-nonce-generator');

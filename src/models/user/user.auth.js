@@ -12,7 +12,7 @@ const util = require('../../util');
 const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const warnings = require('../warnings/warnings');
+const warnings = require('../warnings');
 
 const { ServerError } = errors;
 

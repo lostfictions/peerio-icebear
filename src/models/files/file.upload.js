@@ -2,7 +2,7 @@
  * Upload module for File model, for code file length sake
  */
 const config = require('../../config');
-const warnings = require('./../warnings/warnings');
+const warnings = require('./../warnings');
 const FileUploader = require('./file-uploader');
 const socket = require('../../network/socket');
 const cryptoUtil = require('../../crypto/util');
