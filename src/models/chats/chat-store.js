@@ -1,4 +1,4 @@
-const { observable, action, computed } = require('mobx');
+const { observable, action, computed, reaction } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const normalize = require('../../errors').normalize;
@@ -31,6 +31,9 @@ class ChatStore {
     constructor() {
         this.events = new EventEmitter();
         socket.onAuthenticated(this.checkForNewChats);
+        reaction(() => this.activeChat, chat => {
+            if (chat) chat.loadMessages();
+        });
     }
 
     onNewMessages = _.throttle(() => {
