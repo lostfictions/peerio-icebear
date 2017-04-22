@@ -27,12 +27,11 @@ class Message extends Keg {
         super(null, 'message', db);
     }
 
-    send(text) {
+    send() {
         this.sending = true;
         this.sendError = false;
         this.assignTemporaryId();
         this.sender = contactStore.getContact(User.current.username);
-        this.text = text;
         this.timestamp = new Date();
 
         return this.saveToServer()
@@ -46,20 +45,28 @@ class Message extends Keg {
             });
     }
 
-    resend() {
-        return this.send(this.text);
+    setRenameFact(newName) {
+        this.systemData = {
+            action: 'rename',
+            newName
+        };
     }
 
     serializeKegPayload() {
-        return {
+        const ret = {
             text: this.text,
             timestamp: this.timestamp.valueOf()
         };
+        if (this.systemData) {
+            ret.systemData = this.systemData;
+        }
+        return ret;
     }
 
     deserializeKegPayload(payload) {
         this.sender = contactStore.getContact(this.owner);
         this.text = payload.text;
+        this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
     }
 

@@ -8,7 +8,7 @@ const _ = require('lodash');
 class ChatReceiptHandler {
     // receipts cache {username: position}
     receipts = {};
-    downloadedReceiptId = 0;
+    downloadedCollectionVersion = '';
     loadingReceipts = false;
     scheduleReceiptsLoad = false;
     // this value means that something is scheduled to send
@@ -17,8 +17,8 @@ class ChatReceiptHandler {
 
     constructor(chat) {
         this.chat = chat;
-        tracker.onKegTypeUpdated(chat.id, 'receipt', this.onReceiptDigestUpdate);
-        this.onReceiptDigestUpdate();
+        tracker.onKegTypeUpdated(chat.id, 'receipt', this.onDigestUpdate);
+        this.onDigestUpdate();
         this._reactionsToDispose.push(reaction(() => socket.authenticated, authenticated => {
             if (!authenticated || !this.pendingReceipt) return;
             const pos = this.pendingReceipt;
@@ -27,7 +27,7 @@ class ChatReceiptHandler {
         }));
     }
 
-    onReceiptDigestUpdate = _.throttle(() => {
+    onDigestUpdate = _.throttle(() => {
         this.loadReceipts();
     }, 1000);
 
@@ -129,14 +129,14 @@ class ChatReceiptHandler {
                 reverse: false
             },
             filter: {
-                minCollectionVersion: this.downloadedReceiptId || ''
+                minCollectionVersion: this.downloadedCollectionVersion || ''
             }
         }).then(res => {
             const kegs = res.kegs;
             if (!kegs || !kegs.length) return;
             for (let i = 0; i < kegs.length; i++) {
-                if (kegs[i].collectionVersion > this.downloadedReceiptId) {
-                    this.downloadedReceiptId = kegs[i].collectionVersion;
+                if (kegs[i].collectionVersion > this.downloadedCollectionVersion) {
+                    this.downloadedCollectionVersion = kegs[i].collectionVersion;
                 }
                 try {
                     const r = new Receipt(this.chat.db);
@@ -179,7 +179,7 @@ class ChatReceiptHandler {
 
     dispose() {
         this._reactionsToDispose.forEach(d => d());
-        tracker.unsubscribe(this.onReceiptDigestUpdate);
+        tracker.unsubscribe(this.onDigestUpdate);
         this.receipts = {};
     }
 

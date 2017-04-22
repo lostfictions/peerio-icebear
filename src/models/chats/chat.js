@@ -5,6 +5,7 @@ const User = require('../user/user');
 const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
+const ChatHeadHandler = require('./chat.head-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
@@ -48,6 +49,8 @@ class Chat {
     // currently selected/focused in UI
     @observable active = false;
 
+    @observable _chatName; // this stores the chat name as it is set by user
+
 
     // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
@@ -59,6 +62,7 @@ class Chat {
     _messageHandler = null;
     _receiptHandler = null;
     _fileHandler = null;
+    _headHandler = null;
 
     _addMessageQueue = new Queue(1, config.chat.decryptQueueThrottle || 0);
 
@@ -70,6 +74,7 @@ class Chat {
     }
 
     @computed get chatName() {
+        if (this._chatName) return this._chatName;
         if (!this.participants) return '';
         return this.participants.length === 0
             ? User.current.username
@@ -131,6 +136,7 @@ class Chat {
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);
+                this._headHandler = new ChatHeadHandler(this);
                 this.loadingMeta = false;
                 this.metaLoaded = true;
                 setTimeout(() => this._messageHandler.onMessageDigestUpdate(), 2000);
@@ -235,12 +241,10 @@ class Chat {
         return -1;
     }
 
-    @action sendMessage(text, files) {
+    _sendMessage(m) {
         if (this.canGoDown) this.reset();
-        const m = new Message(this.db);
-        m.files = files;
         // send() will fill message with data required for rendering
-        const promise = m.send(text);
+        const promise = m.send();
         this.limboMessages.push(m);
         this._detectLimboGrouping();
         when(() => !!m.id, action(() => {
@@ -254,6 +258,13 @@ class Chat {
             }
         }));
         return promise;
+    }
+
+    @action sendMessage(text, files) {
+        const m = new Message(this.db);
+        m.files = files;
+        m.text = text;
+        return this._sendMessage(m);
     }
 
     // todo: this is temporary, for failed messages. When we have message delete - it should be unified process.
@@ -305,6 +316,10 @@ class Chat {
     loadNextPage() {
         if (!this.canGoDown) return;
         this._messageHandler.getPage(false);
+    }
+
+    rename(name) {
+        return this._headHandler.saveChatName(name);
     }
 
     reset() {
@@ -379,6 +394,7 @@ class Chat {
             this._reactionsToDispose.forEach(d => d());
             if (this._messageHandler) this._messageHandler.dispose();
             if (this._receiptHandler) this._receiptHandler.dispose();
+            if (this._headHandler) this._headHandler.dispose();
         } catch (err) {
             console.error(err);
         }
