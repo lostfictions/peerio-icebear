@@ -33,6 +33,16 @@ class Contact {
         return String.fromCodePoint((firstName || username || ' ').codePointAt(0)).toUpperCase();
     }
 
+    @computed get fullName() {
+        let ret = '';
+        if (this.firstName) ret = this.firstName;
+        if (this.lastName) {
+            if (ret) ret += ' ';
+            ret += this.lastName;
+        }
+        return ret;
+    }
+
     // fingerprint calculation is async, but at the same time we want it to be lazy computed
     // so we cache computed result here
     @observable __fingerprint = null;
