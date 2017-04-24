@@ -149,10 +149,14 @@ class ChatStore {
     }
 
     @action unloadChat(chat) {
-        chat.dispose();
         if (chat.active) {
-            ChatStore.activeChat = null;
+            if (this.chats.length > 1) {
+                this.activate(this.chats.find(c => c.id !== chat.id).id);
+            } else {
+                this.activeChat = null;
+            }
         }
+        chat.dispose();
         chat.active = false;
         tracker.deactivateKegDb(chat.id);
         tracker.removeDbDigest(chat.id);
