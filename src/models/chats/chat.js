@@ -9,7 +9,7 @@ const ChatHeadHandler = require('./chat.head-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
-
+const DOMPurify = require('dompurify');
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
 function getTemporaryChatId() {
@@ -319,7 +319,19 @@ class Chat {
     }
 
     rename(name) {
-        return this._headHandler.saveChatName(name);
+        let validated = name || '';
+        validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] });
+        validated = validated.substr(0, 120);
+        if (this._chatName === validated) return Promise.resolve(); // nothing to rename
+        const prevName = this._chatName;
+        this._chatName = validated;
+        return this._headHandler.saveChatName(validated)
+            .tapCatch(() => {
+                // we want to restore chat name to the state before fail attempt
+                // but in case it got updated while we were saving we don't restore older name
+                if (this._chatName !== validated) return;
+                this._chatName = prevName;
+            });
     }
 
     reset() {
