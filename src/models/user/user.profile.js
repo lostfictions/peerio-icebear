@@ -4,18 +4,28 @@ const tracker = require('../update-tracker');
 const { retryUntilSuccess } = require('../../helpers/retry.js');
 
 module.exports = function mixUserRegisterModule() {
-    const _profileKeg = new Profile(this.kegDb, this);
-    const _quotaKeg = new Quota(this.kegDb, this);
+    const _profileKeg = new Profile(this);
+    const _quotaKeg = new Quota(this);
 
     this.loadProfile = (force) => {
         const digest = tracker.getDigest('SELF', 'profile');
-        if (!force && digest.maxUpdateId <= _profileKeg.collectionVersion) return;
+        if (!force && digest.maxUpdateId <= _profileKeg.collectionVersion) {
+            if (digest.maxUpdateId !== digest.knownUpdateId) {
+                tracker.seenThis('SELF', 'profile', digest.maxUpdateId);
+            }
+            return;
+        }
         retryUntilSuccess(() => _profileKeg.load().then(this.loadProfile), 'Profile Load');
     };
 
     this.loadQuota = (force) => {
         const digest = tracker.getDigest('SELF', 'quotas');
-        if (!force && digest.maxUpdateId <= _quotaKeg.collectionVersion) return;
+        if (!force && digest.maxUpdateId <= _quotaKeg.collectionVersion) {
+            if (digest.maxUpdateId !== digest.knownUpdateId) {
+                tracker.seenThis('SELF', 'quotas', digest.maxUpdateId);
+            }
+            return;
+        }
         retryUntilSuccess(() => _quotaKeg.load().then(this.loadQuota), 'Quota Load');
     };
 

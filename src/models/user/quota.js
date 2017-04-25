@@ -1,8 +1,8 @@
 const Keg = require('../kegs/keg');
 
 class Quota extends Keg {
-    constructor(db, user) {
-        super('quotas', 'quotas', db, true);
+    constructor(user) {
+        super('quotas', 'quotas', user.kegDb, true);
         this.user = user;
     }
 

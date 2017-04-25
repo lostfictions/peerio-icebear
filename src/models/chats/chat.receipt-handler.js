@@ -33,12 +33,12 @@ class ChatReceiptHandler {
 
 
     sendReceipt(pos) {
-        console.debug(`sendReceipt(${pos})`);
+        // console.debug(`sendReceipt(${pos})`);
         if (typeof pos !== 'number') throw new Error(`Attempt to send invalid receipt position ${pos}`);
         // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
         if (this.pendingReceipt) {
-            console.debug('Pending receipt exists ', this.pendingReceipt);
+            // console.debug('Pending receipt exists ', this.pendingReceipt);
             // we don't want to send older receipt if newer one exists already
             this.pendingReceipt = Math.max(pos, this.pendingReceipt);
             // console.debug('receipt was pending. now pending: ', this.pendingReceipt);
@@ -48,7 +48,7 @@ class ChatReceiptHandler {
         // getting it from cache or from server
         this.loadOwnReceipt()
             .then(r => {
-                console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
+                // console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
                 if (r.position >= this.pendingReceipt) {
                     // ups, keg has a bigger position then we are trying to save
                     // console.debug('it is higher then pending one too:', this.pendingReceipt);
@@ -151,6 +151,10 @@ class ChatReceiptHandler {
                     // too many logs
                     // console.debug(err);
                 }
+            }
+            const digest = tracker.getDigest(this.chat.id, 'receipt');
+            if (digest.knownUpdateId < digest.maxUpdateId) {
+                tracker.seenThis(this.chat.id, 'receipt', digest.maxUpdateId);
             }
             this.applyReceipts();
         }).finally(() => {

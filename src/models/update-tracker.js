@@ -138,6 +138,26 @@ class UpdateTracker {
 
     //  {"kegDbId":"SELF","type":"profile","maxUpdateId":3, knownUpdateId: 0, newKegsCount: 1},
     processDigestEvent(ev) {
+        // WORKAROUND: remove soon, when server replaces nulls with empty strings
+        ev.maxUpdateId = ev.maxUpdateId || '';
+        ev.knownUpdateId = ev.knownUpdateId || '';
+        // === HACK:
+        // this is a temporary hack to make sure boot kegs don't produce unread keg databases
+        // It's too much hussle to create handlers for this in the kegdb logic
+        // when we introduce key change which can change boot keg - this should go away
+        if (ev.type === 'boot' && ev.maxUpdateId !== ev.knownUpdateId) {
+            this.seenThis(ev.kegDbId, 'boot', ev.maxUpdateId);
+        }
+        // The same for tofu keg, it's never supposed to be updated atm so we always mark it as read
+        if (ev.type === 'tofu' && ev.maxUpdateId !== ev.knownUpdateId) {
+            this.seenThis(ev.kegDbId, 'tofu', ev.maxUpdateId);
+        }
+        // The same for my_chats keg, we don't rely on its collection version currently
+        if (ev.type === 'my_chats' && ev.maxUpdateId !== ev.knownUpdateId) {
+            this.seenThis(ev.kegDbId, 'my_chats', ev.maxUpdateId);
+        }
+        // === /HACK
+
         // here we want to do 2 things
         // 1. update internal data tracker
         // 2. fire or accumulate events
@@ -221,7 +241,9 @@ class UpdateTracker {
     };
 
     _processDigestResponse = digest => {
+        console.debug('Processing digest response');
         for (let i = 0; i < digest.length; i++) {
+            console.debug(JSON.stringify(digest[i], null, 1));
             this.processDigestEvent(digest[i]);
         }
     };

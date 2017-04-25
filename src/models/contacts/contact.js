@@ -136,8 +136,7 @@ class Contact {
                     newTofu.encryptionPublicKey = cryptoUtil.bytesToB64(this.encryptionPublicKey);
                     newTofu.signingPublicKey = cryptoUtil.bytesToB64(this.signingPublicKey);
                     // todo: this has a potential of creating 2+ tofu kegs for same contact
-                    // todo: in case of concurrency, but it's not a problem atm
-                    // todo: and tofu is likely to be redesigned
+                    // todo: add checks similar to reciept keg dedupe
                     newTofu.saveToServer();
                     return;
                 }

@@ -1,28 +1,29 @@
-const { observable, action, computed, reaction } = require('mobx');
+const { observable, action, computed, reaction, runInAction } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
-const normalize = require('../../errors').normalize;
 const tracker = require('../update-tracker');
 const EventEmitter = require('eventemitter3');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const MyChats = require('./my-chats');
+const TinyDb = require('../../db/tiny-db');
 
 class ChatStore {
+    // todo: not sure this little event emmiter experiment should live
     EVENT_TYPES = {
         messagesReceived: 'messagesReceived'
     };
+
     @observable chats = observable.shallowArray([]);
     // to prevent duplicates
     chatMap = {};
-    // to detect new chats created while we were offline
-    _knownChats = {};
     /** when chat list loading is in progress */
     @observable loading = false;
     // currently selected/focused chat
     @observable activeChat = null;
     // loadAllChats() was called and finished once already
     loaded = false;
-
+    downloadedMyChatsUpdateId = '';
 
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
@@ -30,11 +31,33 @@ class ChatStore {
 
     constructor() {
         this.events = new EventEmitter();
-        socket.onAuthenticated(this.checkForNewChats);
+        tracker.onKegTypeUpdated('SELF', 'my_chats', this.updateMyChats);
+        socket.onAuthenticated(this.updateMyChats);
         reaction(() => this.activeChat, chat => {
             if (chat) chat.loadMessages();
         });
     }
+
+    updateMyChats = _.throttle(() => {
+        if (!this.loaded) return;
+        const digest = tracker.getDigest('SELF', 'my_chats');
+        if (this.downloadedMyChatsUpdateId < digest.maxUpdateId) {
+            const c = new MyChats();
+            c.load(true)
+                .then(action(() => {
+                    this.chats.forEach(chat => {
+                        chat.isFavorite = c.favorites.includes(chat.id);
+                    });
+                    c.hidden.forEach(id => {
+                        if (this.chatMap[id]) this._unloadChat(this.chatMap[id]);
+                    });
+                }))
+                .catch(err => {
+                    // don't really care
+                    console.error(err);
+                });
+        }
+    }, 3000);
 
     onNewMessages = _.throttle(() => {
         this.events.emit(this.EVENT_TYPES.messagesReceived);
@@ -45,56 +68,63 @@ class ChatStore {
         if (id === 'SELF' || !!this.chatMap[id]) return;
         const c = new Chat(id, undefined, this);
         this.chatMap[id] = c;
-        this._knownChats[id] = true;
         this.chats.push(c);
         c.loadMetadata();
     };
 
-    // after reconnect we want to check if there was something added
-    @action.bound checkForNewChats() {
-        retryUntilSuccess(() =>
-            socket.send('/auth/kegs/user/dbs')
-                .then(action(list => {
-                    for (const id of list) {
-                        if (id === 'SELF') continue;
-                        if (!this._knownChats[id]) this.addChat(id);
-                    }
-                })), 'CheckForNewChats');
-    }
-
     // initial fill chats list
-    @action loadAllChats(max) {
+    // Logic:
+    // - load all favorite chats
+    // - see if we have some limit left and load other unhidden chats
+    // - see if digest contains some new chats that are not hidden
+    @action async loadAllChats(max = 30) {
         if (this.loaded || this.loading) return;
         this.loading = true;
-        retryUntilSuccess(() =>
+        // 1. Loading my_chats keg
+        const mychats = new MyChats();
+        await retryUntilSuccess(() => mychats.load(true));
+        // 2. loading favorite chats
+        runInAction(() => mychats.favorites.forEach(f => this.addChat(f)));
+        // 3. checking how many more chats we can load
+        const rest = max - mychats.favorites.length;
+        if (rest <= 0) return;
+        // 4. loading the rest unhidden chats
+        await retryUntilSuccess(() =>
             socket.send('/auth/kegs/user/dbs')
                 .then(action(list => {
                     let k = 0;
                     for (const id of list) {
-                        if (id === 'SELF') continue;
-                        if (max && k++ >= max) break;
+                        if (id === 'SELF' || mychats.hidden.includes(id) || mychats.favorites.includes(id)) continue;
+                        if (k++ >= rest) break;
                         this.addChat(id);
                     }
-                    this.loading = false;
-                    this.loaded = true;
-                    if (this.chats.length) this.activate(this.chats[0].id);
                 }))
-                .then(() => {
-                    // subscribe to future chats that will be created
-                    tracker.onKegDbAdded(id => {
-                        console.log(`New incoming chat: ${id}`);
-                        // we do this with delay, because there's possibily of receiving this event
-                        // as a reaction to our own process of creating a chat, and while it's not an issue
-                        // and is not going to break anything, we still want to avoid running useless routine
-                        setTimeout(() => this.addChat(id), 3000);
-                    });
-                    // check if chats were created while we were loading chat list
-                    // unlikely, but possible
-                    Object.keys(tracker.digest).forEach(this.addChat);
-                })
-                .tapCatch(err => {
-                    console.error(normalize(err, 'Error loading chat list.'));
-                }), 'LoadAllChats');
+        );
+
+        // 5. check if chats were created while we were loading chat list
+        // unlikely, but possible
+        Object.keys(tracker.digest).forEach(action(id => {
+            if (mychats.hidden.includes(id) || mychats.favorites.includes(id)) return;
+            this.addChat(id);
+        }));
+        // 6. set the flags and update chat feat/hidden states
+        this.loading = false;
+        this.loaded = true;
+        this.updateMyChats();
+
+        // 7. find out which chat to activate. TODO: store/retrieve locally
+        const lastUsed = await TinyDb.user.getValue('lastUsedChat');
+        if (lastUsed && this.chatMap[lastUsed]) this.activate(lastUsed);
+        else if (this.chats.length) this.activate(this.chats[0].id);
+
+        // 8. subscribe to future chats that will be created
+        tracker.onKegDbAdded(id => {
+            console.log(`New incoming chat: ${id}`);
+            // we do this with delay, because there's possibily of receiving this event
+            // as a reaction to our own process of creating a chat, and while it's not an issue
+            // and is not going to break anything, we still want to avoid running useless routine
+            setTimeout(() => this.addChat(id), 3000);
+        });
     }
 
     getSelflessParticipants(participants) {
@@ -139,6 +169,7 @@ class ChatStore {
     @action activate(id) {
         const chat = this.chatMap[id];
         if (!chat) return;
+        TinyDb.user.setValue('lastUsedChat', id);
         if (this.activeChat) {
             tracker.deactivateKegDb(this.activeChat.id);
             this.activeChat.active = false;
@@ -148,7 +179,7 @@ class ChatStore {
         this.activeChat = chat;
     }
 
-    @action unloadChat(chat) {
+    @action _unloadChat(chat) {
         if (chat.active) {
             if (this.chats.length > 1) {
                 this.activate(this.chats.find(c => c.id !== chat.id).id);
@@ -162,7 +193,6 @@ class ChatStore {
         tracker.removeDbDigest(chat.id);
 
         delete this.chatMap[chat.id];
-        delete this._knownChats[chat.id];
         this.chats.remove(chat);
     }
 

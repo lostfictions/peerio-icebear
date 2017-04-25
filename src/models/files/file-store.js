@@ -1,4 +1,4 @@
-const { observable, action, when, reaction, computed, autorunAsync } = require('mobx');
+const { observable, action, when, reaction, computed } = require('mobx');
 const socket = require('../../network/socket');
 const User = require('../user/user');
 const File = require('./file');
@@ -179,8 +179,8 @@ class FileStore {
                         }
                     }, 3000);
                 });
-                autorunAsync(() => {
-                    if (this.unreadFiles === 0 || !this.active || !clientApp.isFocused) return;
+                reaction(() => this.unreadFiles === 0 || !this.active || !clientApp.isFocused, (dontReport) => {
+                    if (dontReport) return;
                     tracker.seenThis('SELF', 'file', this.knownUpdateId);
                 }, 700);
                 setTimeout(this.updateFiles);

@@ -10,6 +10,9 @@ const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
 const DOMPurify = require('dompurify');
+const MyChats = require('./my-chats');
+const warnings = require('../warnings');
+
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
 function getTemporaryChatId() {
@@ -49,6 +52,7 @@ class Chat {
     // currently selected/focused in UI
     @observable active = false;
 
+    @observable isFavorite = false;
     @observable _chatName; // this stores the chat name as it is set by user
 
 
@@ -333,6 +337,44 @@ class Chat {
                 this._chatName = prevName;
             });
     }
+
+    _changingFavState = false;
+    toggleFavoriteState = () => {
+        if (this._changingFavState) return;
+        this._changingFavState = true;
+        const origState = this.isFavorite;
+        this.isFavorite = !this.isFavorite;
+        const c = new MyChats();
+        c.load(true)
+            .then(() => {
+                if (this.isFavorite ? c.addFavorite(this.id) : c.removeFavorite(this.id)) {
+                    return c.saveToServer();
+                }
+                return false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.isFavorite = origState;
+                warnings.add('error_changeChatFavoriteState');
+            })
+            .finally(() => { this._changingFavState = false; });
+    }
+
+
+    hide = () => {
+        this.store._unloadChat(this);
+        const c = new MyChats();
+        return c.load(true)
+            .then(() => {
+                if (c.addHidden(this.id)) {
+                    return c.saveToServer();
+                }
+                return false;
+            })
+            .catch(err => {
+                // todo: do we need a snackbar here? technically chat is hidden but we failed to persist the state
+            });
+    };
 
     reset() {
         this.loadingInitialPage = false;
