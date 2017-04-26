@@ -50,7 +50,7 @@ function prehashPass(pass, personalization) {
 function deriveAccountKeys(username, passphrase, randomSalt) {
     try {
         // requesting 64 bytes to split them for 2 keys
-        const scryptOptions = { N: 16384, r: 8, dkLen: 64, interruptStep: 200 };
+        const scryptOptions = { N: 16384, r: 8, dkLen: 64, interruptStep: 2000 };
         // secure salt - contains username
         const salt = util.concatTypedArrays(util.strToBytes(username), randomSalt);
         const pass = prehashPass(passphrase, 'PeerioPH');
@@ -94,7 +94,7 @@ function deriveEphemeralKeys(salt, passphrase) {
  */
 function deriveKeyFromPasscode(username, passcode) {
     try {
-        const scryptOptions = { N: 16384, r: 8, dkLen: 32, interruptStep: 200, encoding: 'binary' };
+        const scryptOptions = { N: 16384, r: 8, dkLen: 32, interruptStep: 2000, encoding: 'binary' };
         const salt = util.strToBytes(username);
         const pass = prehashPass(passcode);
 
