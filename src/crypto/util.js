@@ -257,7 +257,7 @@ function getEncryptedByteHash(length, value) {
 function getFingerprint(username, publicKey) {
     return new Promise(resolve => {
         getScrypt()(publicKey, strToBytes(username),
-            { N: 4096, r: 8, dkLen: 24, interruptStep: 200, encoding: 'binary' }, resolve);
+            { N: 4096, r: 8, dkLen: 24, encoding: 'binary' }, resolve);
     }).then(fingerprintToStr);
 }
 
