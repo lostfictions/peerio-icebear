@@ -129,7 +129,7 @@ class Chat {
         this.loadingMeta = true;
         // retry is handled inside loadMeta()
         this._metaPromise = this.db.loadMeta()
-            .then(action(() => {
+            .then(action(justCreated => { // eslint-disable-line
                 if (this.db.dbIsBroken) {
                     const errmsg = `Detected broken database. id ${this.db.id}`;
                     console.error(errmsg);
@@ -143,6 +143,11 @@ class Chat {
                 this._headHandler = new ChatHeadHandler(this);
                 this.loadingMeta = false;
                 this.metaLoaded = true;
+                if (justCreated) {
+                    const m = new Message(this.db);
+                    m.setChatCreationFact();
+                    return this._sendMessage(m);
+                }
                 setTimeout(() => this._messageHandler.onMessageDigestUpdate(), 2000);
             }));
         return this._metaPromise;

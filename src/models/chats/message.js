@@ -51,6 +51,11 @@ class Message extends Keg {
             newName
         };
     }
+    setChatCreationFact() {
+        this.systemData = {
+            action: 'create'
+        };
+    }
 
     serializeKegPayload() {
         const ret = {

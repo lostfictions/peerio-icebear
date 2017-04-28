@@ -103,14 +103,14 @@ class ChatKegDb {
     _resolveBootKeg = () => {
         return this._loadBootKeg()
             .then(boot => {
-                if (boot.version > 1) return boot;
+                if (boot.version > 1) return [boot, false];
                 return this._createBootKeg();
             })
-            .then(boot => {
+            .spread((boot, justCreated) => {
                 this.boot = boot;
                 this.key = boot.kegKey;
                 if (!this.key) this.dbIsBroken = true;
-                return this;
+                return justCreated;
             })
             .tapCatch(err => console.error(err));
     }
@@ -135,7 +135,7 @@ class ChatKegDb {
                 // keg key for this db
                 const boot = new ChatBootKeg(this, User.current, publicKeys);
                 // saving bootkeg
-                return boot.saveToServer().return(boot);
+                return boot.saveToServer().return([boot, true]);
             });
     }
 

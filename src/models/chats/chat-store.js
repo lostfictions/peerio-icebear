@@ -112,9 +112,9 @@ class ChatStore {
         this.loaded = true;
         this.updateMyChats();
 
-        // 7. find out which chat to activate. TODO: store/retrieve locally
+        // 7. find out which chat to activate.
         const lastUsed = await TinyDb.user.getValue('lastUsedChat');
-        if (lastUsed && this.chatMap[lastUsed]) this.activate(lastUsed);
+        if (lastUsed) this.activate(lastUsed);
         else if (this.chats.length) this.activate(this.chats[0].id);
 
         // 8. subscribe to future chats that will be created
