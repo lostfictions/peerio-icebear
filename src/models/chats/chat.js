@@ -107,6 +107,16 @@ class Chat {
         }
         return false;
     }
+
+    @computed get lastMessageSnippet() {
+        let i = this.messages.length - 1;
+        while (i >= 0) {
+            const msg = this.messages[i--];
+            if (msg.systemData) continue;
+            return msg.text;
+        }
+        return '';
+    }
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
