@@ -70,6 +70,7 @@ class ChatMessageHandler {
         this.chat.unreadCount = msgDigest.newKegsCount;
         this.maxUpdateId = msgDigest.maxUpdateId;
         this.loadUpdates();
+        if (this.chat.canGoDown) this.chat.store.onNewMessages();
     };
 
     loadUpdates() {
