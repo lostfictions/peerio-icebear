@@ -108,15 +108,7 @@ class Chat {
         return false;
     }
 
-    @computed get lastMessageSnippet() {
-        let i = this.messages.length - 1;
-        while (i >= 0) {
-            const msg = this.messages[i--];
-            if (msg.systemData) continue;
-            return msg.text;
-        }
-        return '';
-    }
+    @observable mostRecentMessage;
     /**
      * @param {string} id - chat id
      * @param {Array<Contact>} participants - chat participants
@@ -213,6 +205,15 @@ class Chat {
         }
 
         this.sortMessages();
+        // updating most recent message
+        for (let i = this.messages.length - 1; i >= 0; i--) {
+            const msg = this.messages[i];
+            if (msg.systemData) continue;
+            if (!this.mostRecentMessage || +this.mostRecentMessage.id < +msg.id) {
+                this.mostRecentMessage = msg;
+            }
+            break;
+        }
 
         const excess = this.messages.length - config.chat.maxLoadedMessages;
         if (excess > 0) {
