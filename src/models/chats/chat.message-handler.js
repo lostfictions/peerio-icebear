@@ -73,7 +73,7 @@ class ChatMessageHandler {
     };
 
     loadUpdates() {
-        if (!this.chat.active || this.chat.canGoDown || !this.chat.initialPageLoaded
+        if (this.chat.canGoDown || !this.chat.initialPageLoaded
             || this.downloadedUpdateId >= this.maxUpdateId) return;
         if (this._loadingUpdates) {
             this._reCheckUpdates = true;
