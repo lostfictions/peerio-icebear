@@ -1,4 +1,4 @@
-const { observable, action, computed, reaction, runInAction } = require('mobx');
+const { observable, action, computed, reaction, runInAction, autorun } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -36,6 +36,35 @@ class ChatStore {
         reaction(() => this.activeChat, chat => {
             if (chat) chat.loadMessages();
         });
+
+        autorun(() => {
+            console.debug('CHAT SORT AUTORUN.');
+            this.sortChats();
+        });
+    }
+
+    sortChats() {
+        const array = this.chats;
+        for (let i = 1; i < array.length; i++) {
+            const item = array[i];
+            let indexHole = i;
+            while (indexHole > 0 && ChatStore.compareChats(array[indexHole - 1], item) > 0) {
+                array[indexHole] = array[--indexHole];
+            }
+            array[indexHole] = item;
+        }
+    }
+
+    static compareChats(a, b) {
+        if (a.isFavorite) {
+            if (b.isFavorite) {
+                return 0;
+            }
+            return -1;
+        } else if (!b.isFavorite) {
+            return 0;
+        }
+        return 1;
     }
 
     updateMyChats = _.throttle(() => {
