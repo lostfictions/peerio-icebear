@@ -237,9 +237,6 @@ class Chat {
         this._detectLimboGrouping();
         if (!prepend) this._sendReceipt();// no sense in sending receipts when paging back
         this._receiptHandler.applyReceipts();
-        if (this.unreadCount > 0 && !this.canGoDown) {
-            this.store.onNewMessages();
-        }
     }
 
     // sorts messages in-place
