@@ -208,7 +208,6 @@ class Chat {
         // updating most recent message
         for (let i = this.messages.length - 1; i >= 0; i--) {
             const msg = this.messages[i];
-            if (msg.systemData) continue;
             if (!this.mostRecentMessage || +this.mostRecentMessage.id < +msg.id) {
                 this.mostRecentMessage = msg;
             }

@@ -51,6 +51,7 @@ class Message extends Keg {
             newName
         };
     }
+
     setChatCreationFact() {
         this.systemData = {
             action: 'create'
@@ -76,8 +77,10 @@ class Message extends Keg {
     }
 
     serializeProps() {
-        if (this.files) return { files: JSON.stringify(this.files) };
-        return {};
+        const ret = {};
+        if (this.files) ret.files = JSON.stringify(this.files);
+        if (this.systemData) ret.systemAction = this.systemData.action;
+        return ret;
     }
 
     deserializeProps(props) {
