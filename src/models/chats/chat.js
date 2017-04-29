@@ -44,6 +44,7 @@ class Chat {
     // initial messages loading
     @observable loadingInitialPage = false;
     @observable initialPageLoaded = false;
+    @observable mostRecentMessageLoaded = false;
     @observable loadingTopPage = false;
     @observable loadingBottomPage = false;
 

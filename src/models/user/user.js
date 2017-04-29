@@ -173,9 +173,14 @@ class User {
             this._firstLoginInSession = false;
             TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
-            this.loadProfile(true);
-            this.loadQuota(true);
             this.emojiMRU.loadCache();
+            // new accounts don't have digest for this kegs (they are created on first access)
+            // so loading of these kegs will not get triggered automatically
+            // we really need to call this here only once - after account is created, but there's no harm
+            // in repeating calls every login and it's safer this way
+            this.loadProfile();
+            this.loadQuota();
+            this.loadSettings();
             when(() => this.profileLoaded, () => {
                 this.setAsLastAuthenticated()
                     .catch(err => console.error(err)); // not critical, we can ignore this error

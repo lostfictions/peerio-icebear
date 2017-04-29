@@ -38,7 +38,6 @@ class ChatStore {
         });
 
         autorun(() => {
-            console.debug('CHAT SORT AUTORUN.');
             this.sortChats();
         });
     }

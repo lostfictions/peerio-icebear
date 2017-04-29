@@ -5,7 +5,7 @@ const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const config = require('../../config');
 const { retryUntilSuccess } = require('../../helpers/retry');
-const { reaction } = require('mobx');
+const { reaction, action } = require('mobx');
 const clientApp = require('../client-app');
 
 class ChatMessageHandler {
@@ -74,6 +74,7 @@ class ChatMessageHandler {
     };
 
     loadUpdates() {
+        if (!(this.chat.mostRecentMessageLoaded || this.chat.initialPageLoaded)) return;
         if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) return;
         if (this._loadingUpdates) {
             this._reCheckUpdates = true;
@@ -95,7 +96,7 @@ class ChatMessageHandler {
             }
         })
             .tapCatch(() => { this._loadingUpdates = false; })
-            .then(resp => {
+            .then(action(resp => {
                 this._loadingUpdates = false;
                 // there's way more updates then we are allowed to load
                 // so we jump to most recent messages
@@ -107,7 +108,7 @@ class ChatMessageHandler {
                 this.markAllAsSeen();
                 console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
                 this.chat.addMessages(resp.kegs);
-            }).finally(this.onMessageDigestUpdate);
+            })).finally(this.onMessageDigestUpdate);
     }
 
     markAllAsSeen() {
@@ -137,10 +138,11 @@ class ChatMessageHandler {
                 count: 1
             }
         }))
-            .then(resp => {
+            .then(action(resp => {
                 this.setDownloadedUpdateId(resp.kegs);
+                this.chat.mostRecentMessageLoaded = true;
                 return this.chat.addMessages(resp.kegs);
-            });
+            }));
     }
 
     getInitialPage() {
@@ -158,7 +160,7 @@ class ChatMessageHandler {
                 count: config.chat.initialPageSize
             }
         }))
-            .then(resp => {
+            .then(action(resp => {
                 this.chat.canGoUp = resp.hasMore;
                 this.chat.initialPageLoaded = true;
                 this.chat.loadingInitialPage = false;
@@ -168,7 +170,7 @@ class ChatMessageHandler {
                 if (!this.chat.canGoDown) this.markAllAsSeen();
                 console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
                 return this.chat.addMessages(resp.kegs);
-            });
+            }));
     }
 
     getPage(pagingUp = true) {
@@ -200,7 +202,7 @@ class ChatMessageHandler {
                 fromKegId: this.chat.messages[pagingUp ? 0 : this.chat.messages.length - 1].id,
                 count: config.chat.pageSize
             }
-        })).then(resp => {
+        })).then(action(resp => {
             console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
                 pagingUp && this.chat._cancelTopPageLoad
                     || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
@@ -217,7 +219,7 @@ class ChatMessageHandler {
             }
             return this.chat.addMessages(resp.kegs, pagingUp); // eslint-disable-line consistent-return
             // in case we paged to the most recent or new to us messages
-        }).finally(() => {
+        })).finally(() => {
             if (pagingUp) {
                 this.chat.loadingTopPage = false;
                 this.chat._cancelTopPageLoad = false;

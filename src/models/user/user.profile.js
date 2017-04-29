@@ -1,37 +1,49 @@
 const Profile = require('./profile');
 const Quota = require('./quota');
+const Settings = require('./settings');
 const tracker = require('../update-tracker');
 const { retryUntilSuccess } = require('../../helpers/retry.js');
+const warnings = require('../warnings');
 
 module.exports = function mixUserRegisterModule() {
     const _profileKeg = new Profile(this);
     const _quotaKeg = new Quota(this);
+    this.settings = new Settings(this);
 
-    this.loadProfile = (force) => {
-        const digest = tracker.getDigest('SELF', 'profile');
-        if (!force && digest.maxUpdateId <= _profileKeg.collectionVersion) {
+    this.loadSettings = () => {
+        loadSimpleKeg(this.settings);
+    };
+
+    this.saveSettings = () => {
+        return this.saveToServer().tapCatch(err => {
+            console.error(err);
+            warnings.add('error_saveSettings');
+        });
+    };
+
+    this.loadProfile = () => {
+        loadSimpleKeg(_profileKeg);
+    };
+
+    this.loadQuota = () => {
+        loadSimpleKeg(_quotaKeg);
+    };
+
+    function loadSimpleKeg(keg) {
+        const digest = tracker.getDigest('SELF', keg.type);
+        if (digest.maxUpdateId !== '' && digest.maxUpdateId <= keg.collectionVersion) {
             if (digest.maxUpdateId !== digest.knownUpdateId) {
-                tracker.seenThis('SELF', 'profile', digest.maxUpdateId);
+                tracker.seenThis('SELF', keg.type, digest.maxUpdateId);
             }
             return;
         }
-        retryUntilSuccess(() => _profileKeg.load().then(this.loadProfile), 'Profile Load');
-    };
-
-    this.loadQuota = (force) => {
-        const digest = tracker.getDigest('SELF', 'quotas');
-        if (!force && digest.maxUpdateId <= _quotaKeg.collectionVersion) {
-            if (digest.maxUpdateId !== digest.knownUpdateId) {
-                tracker.seenThis('SELF', 'quotas', digest.maxUpdateId);
-            }
-            return;
-        }
-        retryUntilSuccess(() => _quotaKeg.load().then(this.loadQuota), 'Quota Load');
-    };
+        retryUntilSuccess(() => keg.load().then(() => loadSimpleKeg(keg)), `${keg.type} Load`);
+    }
 
     // will be triggered first time after login
     tracker.onKegTypeUpdated('SELF', 'profile', this.loadProfile);
     tracker.onKegTypeUpdated('SELF', 'quotas', this.loadQuota);
+    tracker.onKegTypeUpdated('SELF', 'settings', this.loadSettings);
 
     this.saveProfile = function() {
         return _profileKeg.saveToServer();
