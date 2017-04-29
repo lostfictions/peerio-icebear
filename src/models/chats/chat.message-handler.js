@@ -73,8 +73,7 @@ class ChatMessageHandler {
     };
 
     loadUpdates() {
-        if (this.chat.canGoDown || !this.chat.initialPageLoaded
-            || this.downloadedUpdateId >= this.maxUpdateId) return;
+        if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) return;
         if (this._loadingUpdates) {
             this._reCheckUpdates = true;
             return;
@@ -125,6 +124,22 @@ class ChatMessageHandler {
                 this.downloadedUpdateId = kegs[i].collectionVersion;
             }
         }
+    }
+
+    loadMostRecentMessage() {
+        retryUntilSuccess(() => socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: this.chat.id,
+            options: {
+                type: 'message',
+                reverse: true,
+                offset: 0,
+                count: 1
+            }
+        }))
+            .then(resp => {
+                this.setDownloadedUpdateId(resp.kegs);
+                return this.chat.addMessages(resp.kegs);
+            });
     }
 
     getInitialPage() {

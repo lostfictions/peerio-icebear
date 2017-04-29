@@ -69,7 +69,7 @@ class ChatStore {
         const c = new Chat(id, undefined, this);
         this.chatMap[id] = c;
         this.chats.push(c);
-        c.loadMetadata();
+        c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
 
     // initial fill chats list

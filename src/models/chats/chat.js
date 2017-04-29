@@ -321,6 +321,10 @@ class Chat {
         return this._fileHandler.share(files);
     }
 
+    loadMostRecentMessage() {
+        return this._messageHandler.loadMostRecentMessage();
+    }
+
     async loadMessages() {
         if (!this.metaLoaded) await this.loadMetadata();
         this._messageHandler.getInitialPage()
