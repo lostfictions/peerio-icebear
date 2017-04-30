@@ -15,7 +15,7 @@ module.exports = function mixUserRegisterModule() {
     };
 
     this.saveSettings = () => {
-        return this.saveToServer().tapCatch(err => {
+        return this.settings.saveToServer().tapCatch(err => {
             console.error(err);
             warnings.add('error_saveSettings');
         });
