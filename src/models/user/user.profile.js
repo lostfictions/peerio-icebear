@@ -46,7 +46,10 @@ module.exports = function mixUserRegisterModule() {
     tracker.onKegTypeUpdated('SELF', 'settings', this.loadSettings);
 
     this.saveProfile = function() {
-        return _profileKeg.saveToServer();
+        return _profileKeg.saveToServer().tapCatch(err => {
+            console.error(err);
+            warnings.add('error_profileSave');
+        });
     };
 
     // todo: move to quota keg, make computed

@@ -56,6 +56,7 @@ class Chat {
     @observable isFavorite = false;
     @observable _chatName; // this stores the chat name as it is set by user
 
+    @observable changingFavState = false;
 
     // list of files being uploaded to this chat
     @observable uploadQueue = observable.shallowArray([]);
@@ -358,10 +359,9 @@ class Chat {
             });
     }
 
-    _changingFavState = false;
     toggleFavoriteState = () => {
-        if (this._changingFavState) return;
-        this._changingFavState = true;
+        if (this.changingFavState) return;
+        this.changingFavState = true;
         const origState = this.isFavorite;
         this.isFavorite = !this.isFavorite;
         const c = new MyChats();
@@ -377,7 +377,7 @@ class Chat {
                 this.isFavorite = origState;
                 warnings.add('error_changeChatFavoriteState');
             })
-            .finally(() => { this._changingFavState = false; });
+            .finally(() => { this.changingFavState = false; });
     }
 
 
