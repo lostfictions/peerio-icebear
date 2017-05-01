@@ -10,7 +10,8 @@ class Profile extends Keg {
         return {
             firstName: this.user.firstName,
             lastName: this.user.lastName,
-            locale: this.user.locale
+            locale: this.user.locale,
+            primaryAddressValue: this.user.primaryAddress
         };
     }
 
