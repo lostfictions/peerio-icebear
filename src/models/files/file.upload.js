@@ -88,6 +88,7 @@ function upload(filePath, fileName, resume) {
             .then(() => {
                 this._saveUploadEndFact();
                 this._resetUploadState(stream);
+                warnings.add('snackbar_uploadComplete');
             })
             .catch(err => {
                 console.error(err);

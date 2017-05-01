@@ -13,8 +13,6 @@ const clientApp = require('../client-app');
 class FileStore {
     @observable files = observable.shallowArray([]);
     @observable loading = false;
-    @observable ongoingUploads = 0;
-    @observable completedUploads = 0;
     @observable currentFilter = '';
     // file store needs to know when it's considered 'active' meaning that user is looking at the file list.
     // Currently we need this to mark files as 'read' after a while.
@@ -117,13 +115,6 @@ class FileStore {
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');
             this.onFileDigestUpdate();
-        });
-        reaction(() => this.ongoingUploads, () => {
-            if (this.ongoingUploads === 0) return;
-            const currentCompletedUploads = this.completedUploads;
-            when(() => this.ongoingUploads === 0, () => {
-                (this.completedUploads > currentCompletedUploads) && warnings.add('snackbar_uploadComplete');
-            });
         });
     }
 
@@ -236,16 +227,13 @@ class FileStore {
                 warnings.addSevere('error_fileQuotaExceeded', 'error');
                 return;
             }
-            this.ongoingUploads++; // todo: this crap will not play nice with resume after app restart
             keg.upload(filePath, fileName);
             this.files.unshift(keg);
 
             const disposer = when(() => keg.deleted, () => {
-                this.ongoingUploads--;
                 this.files.remove(keg);
             });
             when(() => keg.readyForDownload, () => {
-                this.ongoingUploads--;
                 disposer();
             });
         });

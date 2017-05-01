@@ -62,6 +62,7 @@ function download(filePath, resume) {
                 this._saveDownloadEndFact();
                 this._resetDownloadState(stream);
                 this.cached = true; // currently for mobile only
+                warnings.add('snackbar_downloadComplete');
             })
             .catch(err => {
                 console.error(err);
