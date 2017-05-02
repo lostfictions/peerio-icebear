@@ -32,12 +32,20 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
     const fDirty = `${fName}Dirty`;
     const fOnChange = `${fName}OnChange`;
     const fOnBlur = `${fName}OnBlur`;
-    const formValid = store.isValid || (() => true);
     const fieldValidators = Array.isArray(validatorOrArray) ? validatorOrArray : [validatorOrArray];
 
-    store.isValid = () => {
-        return store[fValid] && formValid();
-    };
+    store.validatedFields = store.validatedFields || [];
+    store.validatedFields.push(fName);
+
+    store.isValid = store.isValid || (() => store.validatedFields.reduce(
+        (acc, field) => acc && !!store[`${field}Valid`], true));
+
+    store.resetValidationState = store.resetValidationState || (
+        () => store.validatedFields.forEach(field => {
+            store[`${field}Dirty`] = undefined;
+            store[`${field}ValidationMessageText`] = undefined;
+        }));
+
     const extend = {};
     if (store[fValid] === undefined) {
         extend[fValid] = false;
