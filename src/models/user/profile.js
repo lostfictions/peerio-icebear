@@ -23,6 +23,10 @@ class Profile extends Keg {
         this.user.isDeleted = data.deleted;
         this.user.primaryAddress = data.primaryAddressValue;
         this.user.primaryAddressType = data.primaryAddressType;
+        (data.addresses || []).forEach(a => {
+            if (a.address === data.primaryAddressValue) a.primary = true;
+        });
+        // this is observable so we assign it after all modifications
         this.user.addresses = data.addresses || [];
         this.user.primaryAddressConfirmed = false;
         for (let i = 0; i < this.user.addresses.length; i++) {

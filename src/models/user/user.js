@@ -34,6 +34,7 @@ class User {
     @observable passcodeIsSet = false;
     @observable quota = null;
     @observable profileLoaded = false;
+    @observable.ref addresses;
 
     createdAt = null;
     deleted = false;

@@ -4,6 +4,7 @@ const Settings = require('./settings');
 const tracker = require('../update-tracker');
 const { retryUntilSuccess } = require('../../helpers/retry.js');
 const warnings = require('../warnings');
+const socket = require('../../network/socket');
 
 module.exports = function mixUserRegisterModule() {
     const _profileKeg = new Profile(this);
@@ -48,7 +49,59 @@ module.exports = function mixUserRegisterModule() {
     this.saveProfile = function() {
         return _profileKeg.saveToServer().tapCatch(err => {
             console.error(err);
-            warnings.add('error_profileSave');
+            warnings.add('error_saveSettings');
+        });
+    };
+
+    this.resendEmailConfirmation = function(email) {
+        return socket.send('/auth/address/resend-confirmation', {
+            address: {
+                type: 'email',
+                value: email
+            }
+        })
+            .then(() => {
+                warnings.add('warning_emailConfirmationResent');
+            })
+            .tapCatch(err => {
+                console.error(err);
+                warnings.add('error_resendConfirmation');
+            });
+    };
+
+    this.removeEmail = function(email) {
+        return socket.send('/auth/address/remove', {
+            address: {
+                type: 'email',
+                value: email
+            }
+        }).tapCatch(err => {
+            console.error(err);
+            warnings.add('error_removeEmail');
+        });
+    };
+
+    this.addEmail = function(email) {
+        return socket.send('/auth/address/add', {
+            address: {
+                type: 'email',
+                value: email
+            }
+        }).tapCatch(err => {
+            console.error(err);
+            warnings.add('error_addEmail');
+        });
+    };
+
+    this.makeEmailPrimary = function(email) {
+        return socket.send('/auth/address/make-primary', {
+            address: {
+                type: 'email',
+                value: email
+            }
+        }).tapCatch(err => {
+            console.error(err);
+            warnings.add('error_makeEmailPrimary');
         });
     };
 
