@@ -13,6 +13,10 @@ class Warnings {
 
     // warnings waiting to be shown
     _queue = [];
+    // Wome combination of conditions like several reconnects while afk might create multiple duplicate warnings
+    // because server sends them on every reconnect until dismissed.
+    // To avoid that we store a cache of uncofirmed warnings for the session.
+    _sessionCache = {};
 
     constructor() {
         reaction(() => clientApp.isFocused, isFocused => {
@@ -68,8 +72,11 @@ class Warnings {
      * Exposed mostly for testing, should not be used by clients directly
      */
     @action.bound addServerWarning(serverObj) {
+        if (this._sessionCache[serverObj.token]) return;
+        this._sessionCache[serverObj.token] = true;
         try {
-            this._queueItem(new ServerWarning(serverObj));
+            const w = new ServerWarning(serverObj, () => { delete this._sessionCache[serverObj.token]; });
+            this._queueItem(w);
         } catch (e) {
             console.error(e); // try/catch protects from invalid data sent from server
         }

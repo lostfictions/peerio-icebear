@@ -243,7 +243,7 @@ class UpdateTracker {
     _processDigestResponse = digest => {
         console.debug('Processing digest response');
         for (let i = 0; i < digest.length; i++) {
-            console.debug(JSON.stringify(digest[i], null, 1));
+            // console.debug(JSON.stringify(digest[i], null, 1));
             this.processDigestEvent(digest[i]);
         }
     };

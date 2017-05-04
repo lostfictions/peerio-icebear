@@ -7,17 +7,21 @@ const socket = require('../../network/socket');
  * Server warning. Server sends locale key and severity level for client to display.
  */
 class ServerWarning extends SystemWarning {
-    constructor(obj) {
+    constructor(obj, onClear) {
         if (!obj.msg.startsWith('serverWarning_') || !isKnownKey(obj.msg)) {
             console.debug(obj);
             throw new Error('Invalid/unknown warning key received from server.');
         }
         super(obj.msg, obj.title, null, obj.level);
         this.token = obj.token; // to use when dismissing/acknowleging server message
+        this.onClear = onClear;
     }
 
     dispose() {
-        return retryUntilSuccess(() => socket.send('/auth/warning/clear', { token: this.token }));
+        return retryUntilSuccess(() => socket.send('/auth/warning/clear', { token: this.token }))
+            .then(() => {
+                if (this.onClear) this.onClear();
+            });
     }
 }
 
