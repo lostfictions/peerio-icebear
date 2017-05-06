@@ -48,6 +48,7 @@ const fileHelpers = require('./helpers/file');
 const MRUList = require('./helpers/mru-list');
 const warningStates = require('./models/warnings/system-warning').STATES;
 const clientApp = require('./models/client-app');
+const systemMessages = require('./helpers/system-messages');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
@@ -73,5 +74,6 @@ module.exports = {
     Clock,
     fileHelpers,
     MRUList,
-    clientApp
+    clientApp,
+    systemMessages
 };
