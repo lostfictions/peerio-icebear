@@ -31,7 +31,7 @@ class Profile extends Keg {
         this.user.primaryAddressConfirmed = false;
         for (let i = 0; i < this.user.addresses.length; i++) {
             const a = this.user.addresses[i];
-            if (a.address !== this.user.primaryAddress) continue;
+            if (!a.primary) continue;
             this.user.primaryAddressConfirmed = a.confirmed;
             break;
         }

@@ -35,6 +35,7 @@ class User {
     @observable quota = null;
     @observable profileLoaded = false;
     @observable.ref addresses;
+    @observable primaryAddressConfirmed;
 
     createdAt = null;
     deleted = false;
