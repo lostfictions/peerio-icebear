@@ -51,6 +51,10 @@ function upload(filePath, fileName, resume) {
         if (resume) {
             p = this._getUlResumeParams(filePath);
         }
+        // we need fileId to be set before fucntion returns
+        if (!this.fileId) {
+            this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
+        }
         let stream, nextChunkId, nonceGen;
         return p.then(nextChunk => {
             nextChunkId = nextChunk;
@@ -59,7 +63,6 @@ function upload(filePath, fileName, resume) {
                 this.uploadedAt = new Date(); // todo: should we update this when upload actually finishes?
                 this.name = fileName || this.name || fileHelper.getFileName(filePath);
                 this.key = cryptoUtil.bytesToB64(keys.generateEncryptionKey());
-                this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
             }
             stream = new config.FileStream(filePath, 'read');
             return stream.open();

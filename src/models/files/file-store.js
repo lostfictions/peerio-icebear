@@ -124,7 +124,7 @@ class FileStore {
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
-        this.updateFiles();
+        this.updateFiles(this.maxUpdateId);
     };
 
     _getFiles() {
@@ -180,16 +180,18 @@ class FileStore {
 
     // this essentially does the same as loadAllFiles but with filter,
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
-    updateFiles = () => {
+    updateFiles = (maxId) => {
         if (!this.loaded || this.updating) return;
-        console.log(`Proceeding to file update. Known collection version: ${this.maxUpdateId}`);
+        if (!maxId) maxId = this.maxUpdateId; // eslint-disable-line
+        console.log(`Proceeding to file update. Known collection version: ${this.knownUpdateId}`);
         this.updating = true;
-        retryUntilSuccess(() => this._getFiles(this.maxUpdateId), 'Updating file list')
-            .then(action(kegs => {
-                for (const keg of kegs.kegs) {
+        retryUntilSuccess(() => this._getFiles(), 'Updating file list')
+            .then(action(resp => {
+                const kegs = resp.kegs;
+                for (const keg of kegs) {
                     if (keg.collectionVersion > this.knownUpdateId) {
                         this.knownUpdateId = keg.collectionVersion;
-                    } else continue;
+                    }
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
                     if (keg.deleted && existing) {
@@ -200,12 +202,15 @@ class FileStore {
                     if (!file.deleted && !existing) this.files.push(file);
                 }
                 this.updating = false;
+                // need this bcs if u delete all files knownUpdateId won't be set at all after initial load
+                if (this.knownUpdateId < maxId) this.knownUpdateId = maxId;
                 // in case we missed another event while updating
-                if (kegs.length) setTimeout(this.onFileDigestUpdate);
+                if (kegs.length || (this.maxUpdateId && this.knownUpdateId < this.maxUpdateId)) setTimeout(this.updateFiles);
+                else setTimeout(this.onFileDigestUpdate);
             }));
     };
 
-    // todo; file map
+    // todo: file map
     getById(fileId) {
         for (let i = 0; i < this.files.length; i++) {
             if (this.files[i].fileId === fileId) return this.files[i];
