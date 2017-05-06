@@ -57,7 +57,7 @@ class ChatStore {
     static compareChats(a, b) {
         if (a.isFavorite) {
             if (b.isFavorite) {
-                return 0;
+                return a.chatName.localeCompare(b.chatName);
             }
             return -1;
         } else if (!b.isFavorite) {
