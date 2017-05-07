@@ -7,17 +7,22 @@ const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const MyChats = require('./my-chats');
 const TinyDb = require('../../db/tiny-db');
+const ChatWatchList = require('./chat-watch-list');
 
 class ChatStore {
     // todo: not sure this little event emmiter experiment should live
     EVENT_TYPES = {
         messagesReceived: 'messagesReceived'
     };
+    events = new EventEmitter();
 
     @observable chats = observable.shallowArray([]);
     // to prevent duplicates
     chatMap = {};
-    /** when chat list loading is in progress */
+    // chas that were updated after login and are candidates to be added to the list
+    // but only when there will be new meaningful data in them (messages)
+    watchList = new ChatWatchList();
+    // when chat list loading is in progress
     @observable loading = false;
     // currently selected/focused chat
     @observable activeChat = null;
@@ -33,7 +38,9 @@ class ChatStore {
     }
 
     constructor() {
-        this.events = new EventEmitter();
+        this.watchList.onChatPromoted(id => {
+            this.addChat(id, true);
+        });
         tracker.onKegTypeUpdated('SELF', 'my_chats', this.updateMyChats);
         socket.onAuthenticated(this.updateMyChats);
         reaction(() => this.activeChat, chat => {
@@ -97,9 +104,18 @@ class ChatStore {
         this.events.emit(this.EVENT_TYPES.messagesReceived);
     }, 1000);
 
-    addChat = id => {
+    // 'promoted' means this chat has to be added to store bypassing watchlist
+    // because this chat is the part of initial list loaded on login
+    // or it has been promoted by watch list
+    addChat = (id, promoted) => {
         if (!id) throw new Error(`Invalid chat id. ${id}`);
         if (id === 'SELF' || !!this.chatMap[id]) return;
+        if (!promoted) {
+            // watchlist will immediatelly promote this chat if needed
+            this.watchList.add(id);
+            return;
+        }
+        this.watchList.remove(id); // it case this chat has been promoted not by watch list
         const c = new Chat(id, undefined, this);
         this.chatMap[id] = c;
         this.chats.push(c);
@@ -119,7 +135,7 @@ class ChatStore {
         const mychats = new MyChats();
         await retryUntilSuccess(() => mychats.load(true));
         // 2. loading favorite chats
-        runInAction(() => mychats.favorites.forEach(f => this.addChat(f)));
+        runInAction(() => mychats.favorites.forEach(f => this.addChat(f, true)));
         // 3. checking how many more chats we can load
         const rest = max - mychats.favorites.length;
         if (rest <= 0) return;
@@ -131,7 +147,7 @@ class ChatStore {
                     for (const id of list) {
                         if (id === 'SELF' || mychats.hidden.includes(id) || mychats.favorites.includes(id)) continue;
                         if (k++ >= rest) break;
-                        this.addChat(id);
+                        this.addChat(id, true);
                     }
                 }))
         );
@@ -140,7 +156,7 @@ class ChatStore {
         // unlikely, but possible
         Object.keys(tracker.digest).forEach(action(id => {
             if (mychats.hidden.includes(id) || mychats.favorites.includes(id)) return;
-            this.addChat(id);
+            this.addChat(id, true);
         }));
         // 6. set the flags and update chat feat/hidden states
         this.loading = false;
@@ -156,8 +172,9 @@ class ChatStore {
         tracker.onKegDbAdded(id => {
             console.log(`New incoming chat: ${id}`);
             // we do this with delay, because there's possibily of receiving this event
-            // as a reaction to our own process of creating a chat, and while it's not an issue
-            // and is not going to break anything, we still want to avoid running useless routine
+            // as a reaction to our own process of creating a chat (no id yet so can't look it up in the map)
+            // and while it's not an issue and is not going to break anything,
+            // we still want to avoid wasting time on useless routine
             setTimeout(() => this.addChat(id), 3000);
         });
     }
@@ -195,7 +212,7 @@ class ChatStore {
         const chat = new Chat(null, this.getSelflessParticipants(participants), this);
         chat.loadMetadata()
             .then(() => {
-                this.addChat(chat.id);
+                this.addChat(chat.id, true);
                 this.activate(chat.id);
             });
         return chat;
