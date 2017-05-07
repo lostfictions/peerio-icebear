@@ -1,5 +1,5 @@
 const socket = require('../../network/socket');
-const { observable, action, when, computed } = require('mobx');
+const { observable, action, when, computed, reaction } = require('mobx');
 const { cryptoUtil } = require('../../crypto/index');
 const { getUser } = require('./../../helpers/di-current-user');
 const Tofu = require('./tofu');
@@ -29,8 +29,7 @@ class Contact {
     }
 
     @computed get letter() {
-        const { username, firstName } = this;
-        return String.fromCodePoint((firstName || username || ' ').codePointAt(0)).toUpperCase();
+        return String.fromCodePoint((this.firstName || this.username || ' ').codePointAt(0)).toUpperCase();
     }
 
     @computed get fullName() {
@@ -84,6 +83,10 @@ class Contact {
     constructor(username, noAutoLoad) {
         this.username = username;
         if (getUser().username === username) this.isMe = true;
+        if (this.isMe) {
+            reaction(() => getUser().firstName, n => { this.firstName = n; });
+            reaction(() => getUser().lastName, n => { this.lastName = n; });
+        }
         if (!noAutoLoad) this.load();
     }
 
