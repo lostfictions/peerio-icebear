@@ -25,6 +25,9 @@ class ChatStore {
     loaded = false;
     downloadedMyChatsUpdateId = '';
 
+    _hiddenChatsVersion = 0;
+    _hiddenChats = []; // for reference, list of chats that uses has explicitly hidden
+
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
@@ -79,6 +82,9 @@ class ChatStore {
                     c.hidden.forEach(id => {
                         if (this.chatMap[id]) this._unloadChat(this.chatMap[id]);
                     });
+                    if (c.version > this._hiddenChatsVersion) {
+                        this._hiddenChats = c.hidden;
+                    }
                 }))
                 .catch(err => {
                     // don't really care
@@ -97,6 +103,7 @@ class ChatStore {
         const c = new Chat(id, undefined, this);
         this.chatMap[id] = c;
         this.chats.push(c);
+        if (this._hiddenChats.includes(id)) c.unhide();
         c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
 

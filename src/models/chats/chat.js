@@ -392,7 +392,22 @@ class Chat {
                 return false;
             })
             .catch(err => {
+                console.error(err);
                 // todo: do we need a snackbar here? technically chat is hidden but we failed to persist the state
+            });
+    };
+
+    unhide = () => {
+        const c = new MyChats();
+        return c.load(true)
+            .then(() => {
+                if (c.removeHidden(this.id)) {
+                    return c.saveToServer();
+                }
+                return false;
+            })
+            .catch(err => {
+                console.error(err);
             });
     };
 
