@@ -5,10 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "prepush": "npm run validate",
-    "postcheckout": "npm update && npm run ctags",
-    "postmerge": "npm update && npm run ctags",
-    "precommit": "npm run lint && npm run ctags",
-    "postcommit": "npm run ctags",
+    "postcheckout": "opt --out npm-update --exec \"npm update\"",
+    "postmerge": "opt --out npm-update --exec \"npm update\"",
+    "precommit": "opt --out lint --exec \"npm run lint\"",
     "commitmsg": "validate-commit-msg",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --check-leaks --timeout 15000",
     "start": "npm run mocha -- -w",
@@ -18,8 +17,7 @@
     "release": "standard-version && git push --follow-tags origin master",
     "doc:serve": "documentation serve -w src/**",
     "doc:lint": "documentation lint src/**",
-    "doc:build": "documentation build src/** -f md -o API.md",
-    "ctags": "if [ -f .git/hooks/ctags-all ]; then .git/hooks/ctags-all; fi"
+    "doc:build": "documentation build src/** -f md -o API.md"
   },
   "repository": {
     "type": "git",
@@ -82,6 +80,7 @@
     "mock-require": "2.0.2",
     "npm-run-all": "4.0.2",
     "nyc": "10.3.2",
+    "opt-cli": "1.5.1",
     "rimraf": "2.6.1",
     "sinon": "2.2.0",
     "sinon-chai": "2.10.0",
