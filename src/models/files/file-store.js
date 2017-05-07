@@ -296,6 +296,28 @@ class FileStore {
         checkFile();
     }
 
+    shareSelectedFiles(users) {
+        const files = this.getSelectedFiles();
+        this.clearSelection();
+        const count = files.length;
+        if (!count || !users.length) return;
+
+        const promises = [];
+        users.forEach(username => {
+            files.forEach(file => {
+                promises.push(file.share(username));
+            });
+        });
+
+        Promise.all(promises).then(() => {
+            if (count > 1) {
+                warnings.add('title_filesShared', '', { count });
+            } else {
+                warnings.add('title_fileShared', '', { name: files[0].name });
+            }
+        });
+    }
+
 }
 
 module.exports = new FileStore();
