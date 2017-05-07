@@ -4,6 +4,7 @@ const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const Receipt = require('./receipt');
 const _ = require('lodash');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 class ChatReceiptHandler {
     // receipts cache {username: position}
@@ -46,7 +47,7 @@ class ChatReceiptHandler {
         }
         this.pendingReceipt = pos;
         // getting it from cache or from server
-        this.loadOwnReceipt()
+        retryUntilSuccess(this.loadOwnReceipt)
             .then(r => {
                 // console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
                 if (r.position >= this.pendingReceipt) {
@@ -80,7 +81,7 @@ class ChatReceiptHandler {
     }
 
     // loads or creates new receipt keg
-    loadOwnReceipt() {
+    loadOwnReceipt = () => {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
         return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
@@ -113,7 +114,7 @@ class ChatReceiptHandler {
             this._ownReceipt = r;
             return r.saveToServer().return(r);
         });
-    }
+    };
 
     loadReceipts() {
         if (this.loadingReceipts) {
