@@ -24,6 +24,8 @@ class File extends Keg {
     @observable size = 0;
     @observable uploadedAt = null;
 
+    @observable fileOwner;
+
     // -- View state data ----------------------------------------------------------------------------------------
     // Depends on server set property 'fileProcessingState'
     @observable readyForDownload = false;
@@ -39,6 +41,7 @@ class File extends Keg {
     // is this file visible or filtered by search
     @observable show = true;
     // is upload cancel is initiated by user
+
     uploadCancelled = false;
 
     // -- computed properties ------------------------------------------------------------------------------------
