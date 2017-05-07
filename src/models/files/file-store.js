@@ -154,7 +154,7 @@ class FileStore {
                     if (keg.collectionVersion > this.knownUpdateId) {
                         this.knownUpdateId = keg.collectionVersion;
                     }
-                    if (file.loadFromKeg(keg)) this.files.push(file);
+                    if (file.loadFromKeg(keg)) this.files.unshift(file);
                 }
                 this.loading = false;
                 this.loaded = true;
@@ -199,7 +199,7 @@ class FileStore {
                         continue;
                     }
                     if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
-                    if (!file.deleted && !existing) this.files.push(file);
+                    if (!file.deleted && !existing) this.files.unshift(file);
                 }
                 this.updating = false;
                 // need this bcs if u delete all files knownUpdateId won't be set at all after initial load
