@@ -41,8 +41,9 @@ class File extends Keg {
     // is this file visible or filtered by search
     @observable show = true;
     // is upload cancel is initiated by user
-
-    uploadCancelled = false;
+    uploadCancelled = false; // todo: anri: i don't like this
+    // is this file currently shared with anyone
+    @observable shared = false;
 
     // -- computed properties ------------------------------------------------------------------------------------
     // file extension
@@ -106,6 +107,7 @@ class File extends Keg {
         this.fileOwner = props.owner || this.owner;
         this.sharedBy = props.sharedBy;
         this.chunkSize = +props.chunkSize;
+        this.shared = props.shared;
     }
 
     // -- class methods ------------------------------------------------------------------------------------------
