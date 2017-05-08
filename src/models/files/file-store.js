@@ -173,7 +173,7 @@ class FileStore {
                 reaction(() => this.unreadFiles === 0 || !this.active || !clientApp.isFocused, (dontReport) => {
                     if (dontReport) return;
                     tracker.seenThis('SELF', 'file', this.knownUpdateId);
-                }, 700);
+                }, { fireImmediately: true, delay: 700 });
                 setTimeout(this.updateFiles);
             }));
     }
