@@ -1,4 +1,4 @@
-const { observable, action, computed, reaction, runInAction, autorun } = require('mobx');
+const { observable, action, computed, reaction, runInAction, autorunAsync } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -15,8 +15,12 @@ class ChatStore {
         messagesReceived: 'messagesReceived'
     };
     events = new EventEmitter();
+    @observable _unreadChatsOnTop = false;
 
     @observable chats = observable.shallowArray([]);
+
+    @observable unreadChatsAlwaysOnTop = false;
+
     // to prevent duplicates
     chatMap = {};
     // chas that were updated after login and are candidates to be added to the list
@@ -47,8 +51,14 @@ class ChatStore {
             if (chat) chat.loadMessages();
         });
 
-        autorun(() => {
+        autorunAsync(() => {
             this.sortChats();
+        }, 300);
+        socket.onceAuthenticated(async () => {
+            this.unreadChatsAlwaysOnTop = !!(await TinyDb.user.getValue('pref_unreadChatsAlwaysOnTop'));
+            autorunAsync(() => {
+                TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
+            }, 300);
         });
     }
 
@@ -57,14 +67,17 @@ class ChatStore {
         for (let i = 1; i < array.length; i++) {
             const item = array[i];
             let indexHole = i;
-            while (indexHole > 0 && ChatStore.compareChats(array[indexHole - 1], item) > 0) {
+            while (
+                indexHole > 0
+                && ChatStore.compareChats(array[indexHole - 1], item, this.unreadChatsAlwaysOnTop) > 0
+            ) {
                 array[indexHole] = array[--indexHole];
             }
             array[indexHole] = item;
         }
     }
 
-    static compareChats(a, b) {
+    static compareChats(a, b, unreadOnTop) {
         if (a.isFavorite) {
             // favorite chats are sorted by name
             if (b.isFavorite) {
@@ -74,11 +87,11 @@ class ChatStore {
             return -1;
         } else if (!b.isFavorite) {
             // non favorite chats sort by a weird combination unread count and then by update time
-            // we want chats with unread count > 0 to always come first
-            if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
-            if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
-            // we don't want to reorder chats with no new messages to avoid excessive reordering
-            if (a.unreadCount === 0 && b.unreadCount === 0) return 0;
+            if (unreadOnTop) {
+                // we want chats with unread count > 0 to always come first
+                if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+                if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+            }
             // if both chats have unread message - then sort by update time
             const amsg = a.mostRecentMessage;
             const bmsg = b.mostRecentMessage;
