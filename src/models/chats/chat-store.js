@@ -66,13 +66,31 @@ class ChatStore {
 
     static compareChats(a, b) {
         if (a.isFavorite) {
+            // favorite chats are sorted by name
             if (b.isFavorite) {
                 return a.chatName.localeCompare(b.chatName);
             }
+            // a is fav, b is not fav
             return -1;
         } else if (!b.isFavorite) {
-            return 0;
+            // non favorite chats sort by a weird combination unread count and then by update time
+            // we want chats with unread count > 0 to always come first
+            if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+            if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+            // we don't want to reorder chats with no new messages to avoid excessive reordering
+            if (a.unreadCount === 0 && b.unreadCount === 0) return 0;
+            // if both chats have unread message - then sort by update time
+            const amsg = a.mostRecentMessage;
+            const bmsg = b.mostRecentMessage;
+            if (!amsg) {
+                if (!bmsg) return 0;
+                return 1;
+            } else if (!bmsg) {
+                return -1;
+            }
+            return amsg.timestamp > bmsg.timestamp ? -1 : 1;
         }
+        // a is not fav, b is fav
         return 1;
     }
 
