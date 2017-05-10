@@ -81,7 +81,7 @@ class Contact {
      * @param {[bool]} noAutoLoad - don't automatically call this.load() in constructor (needed for tests)
      */
     constructor(username, noAutoLoad) {
-        this.username = username;
+        this.username = username.toLowerCase();
         if (getUser().username === username) this.isMe = true;
         if (this.isMe) {
             reaction(() => getUser().firstName, n => { this.firstName = n; });
