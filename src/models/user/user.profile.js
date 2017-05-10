@@ -77,7 +77,7 @@ module.exports = function mixUserRegisterModule() {
             }
         }).tapCatch(err => {
             console.error(err);
-            warnings.add('error_removeEmail');
+            warnings.add('error_saveSettings');
         });
     };
 
@@ -89,7 +89,7 @@ module.exports = function mixUserRegisterModule() {
             }
         }).tapCatch(err => {
             console.error(err);
-            warnings.add('error_addEmail');
+            warnings.add('error_saveSettings');
         });
     };
 
@@ -101,7 +101,7 @@ module.exports = function mixUserRegisterModule() {
             }
         }).tapCatch(err => {
             console.error(err);
-            warnings.add('error_makeEmailPrimary');
+            warnings.add('error_saveSettings');
         });
     };
 

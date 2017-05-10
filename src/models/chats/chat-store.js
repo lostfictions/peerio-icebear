@@ -210,9 +210,8 @@ class ChatStore {
 
         // 9. subscribe to future chats that will be created
         tracker.onKegDbAdded(id => {
-            console.log(`New incoming chat: ${id}`);
             // we do this with delay, because there's possibily of receiving this event
-            // as a reaction to our own process of creating a chat (no id yet so can't look it up in the map)
+            // as a reaction to our own request to create a chat (no id yet so can't look it up in the map)
             // and while it's not an issue and is not going to break anything,
             // we still want to avoid wasting time on useless routine
             setTimeout(() => this.addChat(id), 3000);

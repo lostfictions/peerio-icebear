@@ -125,7 +125,7 @@ class FileStore {
 
     onFileDigestUpdate = () => {
         const digest = tracker.getDigest('SELF', 'file');
-        console.log(`Files digest: ${JSON.stringify(digest)}`);
+        // console.log(`Files digest: ${JSON.stringify(digest)}`);
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
@@ -234,7 +234,7 @@ class FileStore {
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;
-                warnings.addSevere('error_fileQuotaExceeded', 'error');
+                warnings.addSevere('error_fileQuotaExceeded', 'error_uploadFailed');
                 return;
             }
             keg.upload(filePath, fileName);
