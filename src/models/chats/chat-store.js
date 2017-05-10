@@ -79,7 +79,7 @@ class ChatStore {
         if (a.isFavorite) {
             // favorite chats are sorted by name
             if (b.isFavorite) {
-                return a.chatName.localeCompare(b.chatName);
+                return a.name.localeCompare(b.name);
             }
             // a is fav, b is not fav
             return -1;

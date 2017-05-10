@@ -79,7 +79,7 @@ class Chat {
         return this.participants.map(p => p.username);
     }
 
-    @computed get chatName() {
+    @computed get name() {
         if (this._chatName) return this._chatName;
         if (!this.participants) return '';
         return this.participants.length === 0
