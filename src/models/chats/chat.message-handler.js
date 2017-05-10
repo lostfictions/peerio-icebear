@@ -21,7 +21,7 @@ class ChatMessageHandler {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'message', this.onMessageDigestUpdate);
         this.onMessageDigestUpdate();
-        this._reactionsToDispose.push(reaction(() => this.chat.active, (active) => {
+        this._reactionsToDispose.push(reaction(() => this.chat.active && clientApp.isInChatsView, (active) => {
             if (active) {
                 this.onMessageDigestUpdate();
                 this.markAllAsSeen();
@@ -35,7 +35,7 @@ class ChatMessageHandler {
                 this.onMessageDigestUpdate();
             }
         }));
-        this._reactionsToDispose.push(reaction(() => clientApp.isFocused, (isFocused) => {
+        this._reactionsToDispose.push(reaction(() => clientApp.isFocused && clientApp.isInChatsView, (isFocused) => {
             if (isFocused) {
                 this.markAllAsSeen();
                 this.removeMaker();
@@ -57,10 +57,10 @@ class ChatMessageHandler {
     }
 
     removeMaker() {
-        if (!clientApp.isFocused || !this.chat.active) return;
+        if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
         this._removeMarkerTimer = setTimeout(() => {
             this._removeMarkerTimer = null;
-            if (!clientApp.isFocused || !this.chat.active) return;
+            if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             this.chat.newMessagesMarkerPos = null;
         }, 7000);
     }
@@ -114,10 +114,10 @@ class ChatMessageHandler {
     }
 
     markAllAsSeen() {
-        if (!clientApp.isFocused || !this.chat.active) return;
+        if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
         this._markAsSeenTimer = setTimeout(() => {
             this._markAsSeenTimer = null;
-            if (!clientApp.isFocused || !this.chat.active) return;
+            if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
         }, 3000);
     }

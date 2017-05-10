@@ -6,6 +6,8 @@ const { observable } = require('mobx');
 
 class ClientApp {
     @observable isFocused = true;
+    @observable isInChatsView = false;
+    @observable isInFilesView = false;
 }
 
 module.exports = new ClientApp();

@@ -123,9 +123,10 @@ class Chat {
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
         this.db = new ChatKegDb(id, participants);
-        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused, shouldSendReceipt => {
-            if (shouldSendReceipt) this._sendReceipt();
-        }));
+        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
+            shouldSendReceipt => {
+                if (shouldSendReceipt) this._sendReceipt();
+            }));
     }
     _metaPromise = null;
     loadMetadata() {
@@ -473,7 +474,7 @@ class Chat {
     _sendReceipt() {
         // messages are sorted at this point ;)
         if (!this.messages.length) return;
-        if (!clientApp.isFocused || !this.active) return;
+        if (!clientApp.isFocused || !clientApp.isInChatsView || !this.active) return;
 
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
     }

@@ -14,9 +14,6 @@ class FileStore {
     @observable files = observable.shallowArray([]);
     @observable loading = false;
     @observable currentFilter = '';
-    // file store needs to know when it's considered 'active' meaning that user is looking at the file list.
-    // Currently we need this to mark files as 'read' after a while.
-    @observable active = false;
     loaded = false;
     updating = false;
     maxUpdateId = '';
@@ -175,7 +172,7 @@ class FileStore {
                         }
                     }, 3000);
                 });
-                reaction(() => this.unreadFiles === 0 || !this.active || !clientApp.isFocused, (dontReport) => {
+                reaction(() => this.unreadFiles === 0 || !clientApp.isInFilesView || !clientApp.isFocused, (dontReport) => {
                     if (dontReport) return;
                     tracker.seenThis('SELF', 'file', this.knownUpdateId);
                 }, { fireImmediately: true, delay: 700 });

@@ -21,6 +21,7 @@ class ChatStore {
 
     @observable unreadChatsAlwaysOnTop = false;
 
+
     // to prevent duplicates
     chatMap = {};
     // chas that were updated after login and are candidates to be added to the list
