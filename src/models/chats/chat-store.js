@@ -8,6 +8,7 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const MyChats = require('./my-chats');
 const TinyDb = require('../../db/tiny-db');
 const ChatWatchList = require('./chat-watch-list');
+const config = require('../../config');
 
 class ChatStore {
     // todo: not sure this little event emmiter experiment should live
@@ -161,7 +162,7 @@ class ChatStore {
     // - load all favorite chats
     // - see if we have some limit left and load other unhidden chats
     // - see if digest contains some new chats that are not hidden
-    @action async loadAllChats(max = 30) {
+    @action async loadAllChats() {
         if (this.loaded || this.loading) return;
         this.loading = true;
         // 1. Loading my_chats keg
@@ -170,7 +171,7 @@ class ChatStore {
         // 2. loading favorite chats
         runInAction(() => mychats.favorites.forEach(f => this.addChat(f, true)));
         // 3. checking how many more chats we can load
-        const rest = max - mychats.favorites.length;
+        const rest = config.chat.maxInitalChats - mychats.favorites.length;
         if (rest <= 0) return;
         // 4. loading the rest unhidden chats
         await retryUntilSuccess(() =>

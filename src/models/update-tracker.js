@@ -138,9 +138,8 @@ class UpdateTracker {
 
     //  {"kegDbId":"SELF","type":"profile","maxUpdateId":3, knownUpdateId: 0, newKegsCount: 1},
     processDigestEvent(ev) {
-        // WORKAROUND: remove soon, when server replaces nulls with empty strings
-        // ev.maxUpdateId = ev.maxUpdateId || '';
-        // ev.knownUpdateId = ev.knownUpdateId || '';
+        ev.maxUpdateId = ev.maxUpdateId || '';
+        ev.knownUpdateId = ev.knownUpdateId || '';
         // === HACK:
         // this is a temporary hack to make sure boot kegs don't produce unread keg databases
         // It's too much hussle to create handlers for this in the kegdb logic
