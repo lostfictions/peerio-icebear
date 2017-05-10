@@ -37,6 +37,16 @@ class User {
     @observable.ref addresses;
     @observable primaryAddressConfirmed;
 
+    @computed get fullName() {
+        let ret = '';
+        if (this.firstName) ret = this.firstName;
+        if (this.lastName) {
+            if (ret) ret += ' ';
+            ret += this.lastName;
+        }
+        return ret;
+    }
+
     createdAt = null;
     deleted = false;
     blacklisted = false;
