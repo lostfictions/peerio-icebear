@@ -5,6 +5,7 @@ const tracker = require('../update-tracker');
 const { retryUntilSuccess } = require('../../helpers/retry.js');
 const warnings = require('../warnings');
 const socket = require('../../network/socket');
+const validators = require('../../helpers/validation/field-validation').validators;
 
 module.exports = function mixUserRegisterModule() {
     const _profileKeg = new Profile(this);
@@ -82,11 +83,18 @@ module.exports = function mixUserRegisterModule() {
     };
 
     this.addEmail = function(email) {
-        return socket.send('/auth/address/add', {
-            address: {
-                type: 'email',
-                value: email
+        return validators.emailAvailability.action(email).then(available => {
+            if (!available) {
+                warnings.addSevere('error_emailTaken', 'title_error');
+                return;
             }
+            // eslint-disable-next-line
+            return socket.send('/auth/address/add', {
+                address: {
+                    type: 'email',
+                    value: email
+                }
+            });
         }).tapCatch(err => {
             console.error(err);
             warnings.add('error_saveSettings');
