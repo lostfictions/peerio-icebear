@@ -27,16 +27,21 @@ class FileStore {
     static isFileSelected(file) {
         return file.selected;
     }
-    static isFileSelectedAndShareable(file) {
-        return file.selected && file.canShare;
+
+    static isSelectedFileShareable(file) {
+        return !file.selected ? true : file.canShare;
+    }
+
+    static isFileShareable(file) {
+        return file.canShare;
     }
 
     @computed get hasSelectedFiles() {
         return this.files.some(FileStore.isFileSelected);
     }
 
-    @computed get hasSelectedShareableFiles() {
-        return this.files.some(FileStore.isFileSelectedAndShareable);
+    @computed get canShareSelectedFiles() {
+        return this.hasSelectedFiles && this.files.every(FileStore.isSelectedFileShareable);
     }
     @computed get allVisibleSelected() {
         for (let i = 0; i < this.files.length; i++) {
