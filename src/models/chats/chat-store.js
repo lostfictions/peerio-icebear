@@ -1,4 +1,4 @@
-const { observable, action, computed, reaction, runInAction, autorunAsync } = require('mobx');
+const { observable, action, computed, reaction, runInAction, autorunAsync, when } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -15,7 +15,6 @@ class ChatStore {
         messagesReceived: 'messagesReceived'
     };
     events = new EventEmitter();
-    @observable _unreadChatsOnTop = false;
 
     @observable chats = observable.shallowArray([]);
 
@@ -31,7 +30,7 @@ class ChatStore {
     // currently selected/focused chat
     @observable activeChat = null;
     // loadAllChats() was called and finished once already
-    loaded = false;
+    @observable loaded = false;
     downloadedMyChatsUpdateId = '';
 
     _hiddenChatsVersion = 0;
@@ -46,7 +45,6 @@ class ChatStore {
             this.addChat(id, true);
         });
         tracker.onKegTypeUpdated('SELF', 'my_chats', this.updateMyChats);
-        socket.onAuthenticated(this.updateMyChats);
         reaction(() => this.activeChat, chat => {
             if (chat) chat.loadMessages();
         });
@@ -58,7 +56,7 @@ class ChatStore {
             this.unreadChatsAlwaysOnTop = !!(await TinyDb.user.getValue('pref_unreadChatsAlwaysOnTop'));
             autorunAsync(() => {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
-            }, 300);
+            }, 2000);
         });
     }
 
@@ -107,15 +105,16 @@ class ChatStore {
         return 1;
     }
 
-    updateMyChats = _.throttle(() => {
-        if (!this.loaded) return;
+    _updateMyChatsFn = () => {
         const digest = tracker.getDigest('SELF', 'my_chats');
         if (this.downloadedMyChatsUpdateId < digest.maxUpdateId) {
             const c = new MyChats();
-            c.load(true)
+            return c.load(true)
                 .then(action(() => {
-                    this.chats.forEach(chat => {
-                        chat.isFavorite = c.favorites.includes(chat.id);
+                    c.favorites.forEach(id => {
+                        const favchat = this.chatMap[id];
+                        if (!favchat) return;
+                        favchat.isFavorite = true;
                     });
                     c.hidden.forEach(id => {
                         if (this.chatMap[id]) this._unloadChat(this.chatMap[id]);
@@ -123,13 +122,16 @@ class ChatStore {
                     if (c.version > this._hiddenChatsVersion) {
                         this._hiddenChats = c.hidden;
                     }
-                }))
-                .catch(err => {
-                    // don't really care
-                    console.error(err);
-                });
+                    this.downloadedMyChatsUpdateId = c.collectionVersion;
+                    setTimeout(this.updateMyChats, 300);
+                }));
         }
-    }, 3000);
+        return Promise.resolve();
+    };
+
+    updateMyChats = async () => {
+        return retryUntilSuccess(this._updateMyChatsFn, 'Updating MyChats keg in chat store');
+    }
 
     onNewMessages = _.throttle(() => {
         this.events.emit(this.EVENT_TYPES.messagesReceived);
@@ -183,23 +185,29 @@ class ChatStore {
                 }))
         );
 
-        // 5. check if chats were created while we were loading chat list
+        // 5. set the flags and update chat feat/hidden states
+        await this.updateMyChats();
+        // 6. waiting for most chats to load but up to a reasonable time
+        await Promise.map(this.chats, chat => {
+            return new Promise(resolve => when(() => chat.mostRecentMessageLoaded, resolve));
+        }).timeout(3000).catch(() => { /* well, the rest will trigger re-render */ });
+
+        this.loading = false;
+        this.loaded = true;
+
+        // 7. check if chats were created while we were loading chat list
         // unlikely, but possible
         Object.keys(tracker.digest).forEach(action(id => {
             if (mychats.hidden.includes(id) || mychats.favorites.includes(id)) return;
             this.addChat(id, true);
         }));
-        // 6. set the flags and update chat feat/hidden states
-        this.loading = false;
-        this.loaded = true;
-        this.updateMyChats();
 
-        // 7. find out which chat to activate.
+        // 8. find out which chat to activate.
         const lastUsed = await TinyDb.user.getValue('lastUsedChat');
         if (lastUsed) this.activate(lastUsed);
         else if (this.chats.length) this.activate(this.chats[0].id);
 
-        // 8. subscribe to future chats that will be created
+        // 9. subscribe to future chats that will be created
         tracker.onKegDbAdded(id => {
             console.log(`New incoming chat: ${id}`);
             // we do this with delay, because there's possibily of receiving this event
