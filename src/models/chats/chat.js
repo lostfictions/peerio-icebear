@@ -201,6 +201,7 @@ class Chat {
             const existing = this._messageMap[msg.id];
             if (existing) {
                 this.messages.remove(existing);
+                msg.setUIPropsFrom(existing);
             }
             // new message case
             this._messageMap[msg.id] = msg;

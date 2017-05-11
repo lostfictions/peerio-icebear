@@ -12,6 +12,15 @@ class Message extends Keg {
     @observable firstOfTheDay;
     // whether or not to group this message with previous one in message list
     @observable groupWithPrevious;
+
+    // for UI use
+    @observable.shallow inlineImages = [];
+
+    // some properties are filly cotrolled by UI and when SDK replaces obect with it's updated equivalent copy
+    // we want to retain those properties
+    setUIPropsFrom(msg) {
+        this.inlineImages = msg.inlineImages;
+    }
     // -----
     // used to compare calendar days
     @computed get dayFingerprint() {
