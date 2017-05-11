@@ -8,10 +8,9 @@ class Profile extends Keg {
 
     serializeKegPayload() {
         return {
-            firstName: this.user.firstName,
-            lastName: this.user.lastName,
-            locale: this.user.locale,
-            primaryAddressValue: this.user.primaryAddress
+            firstName: this.user.firstName.trim(),
+            lastName: this.user.lastName.trim(),
+            locale: this.user.locale.trim()
         };
     }
 

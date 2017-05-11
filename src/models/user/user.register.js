@@ -24,11 +24,11 @@ module.exports = function mixUserRegisterModule() {
                     signingPublicKey: this.signKeys.publicKey.buffer,
                     encryptionPublicKey: this.encryptionKeys.publicKey.buffer,
                     authSalt: this.authSalt.buffer,
-                    username: this.username,
-                    email: this.email,
-                    firstName: this.firstName || '',
-                    lastName: this.lastName || '',
-                    localeCode: this.locale
+                    username: this.username.trim(),
+                    email: this.email.trim(),
+                    firstName: this.firstName.trim() || '',
+                    lastName: this.lastName.trim() || '',
+                    localeCode: this.locale.trim()
                 };
                 return socket.send('/noauth/register', request);
             })
