@@ -317,8 +317,8 @@ class Chat {
     }
 
 
-    uploadAndShareFile(path, name) {
-        return this._fileHandler.uploadAndShare(path, name);
+    uploadAndShareFile(path, name, deleteAfterUpload) {
+        return this._fileHandler.uploadAndShare(path, name, deleteAfterUpload);
     }
 
     shareFiles(files) {

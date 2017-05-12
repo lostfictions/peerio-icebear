@@ -76,6 +76,15 @@ class NodeFileStream extends FileStreamAbstract {
     static getStat(path) {
         return Promise.resolve(fs.statSync(path));
     }
+
+    static delete(path) {
+        return new Promise((resolve, reject) => {
+            fs.unlink(path, err => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+    }
 }
 
 module.exports = NodeFileStream;

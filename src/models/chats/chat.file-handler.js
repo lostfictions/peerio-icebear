@@ -3,6 +3,7 @@
  */
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
+const config = require('../../config');
 
 class ChatFileHandler {
 
@@ -16,7 +17,7 @@ class ChatFileHandler {
      * @param {[string]} name - override file name, specify to store the file in Peerio with this name
      * @return {File}
      */
-    uploadAndShare(path, name) {
+    uploadAndShare(path, name, deleteAfterUpload) {
         const file = fileStore.upload(path, name);
         file.uploadQueue = this.chat.uploadQueue; // todo: change, this is dirty
         this.chat.uploadQueue.push(file);
@@ -26,6 +27,9 @@ class ChatFileHandler {
         when(() => file.readyForDownload, () => {
             this.chat.uploadQueue.remove(file);
             this.share([file]);
+            if (deleteAfterUpload) {
+                config.FileStream.delete(path);
+            }
             deletedDisposer();
         });
         return file;
