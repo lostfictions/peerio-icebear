@@ -13,6 +13,8 @@ const { publicCrypto } = require('../../crypto/index');
 const { formatBytes } = require('../../util');
 const config = require('../../config');
 const MRUList = require('../../helpers/mru-list');
+const migrator = require('../../legacy/account_migrator');
+const { ServerError } = require('../../errors');
 
 let currentUser;
 
@@ -166,11 +168,14 @@ class User {
                 this.signKeys = this.kegDb.boot.signKeys;
             })
             .then(() => this._postAuth())
-            .catch(err => {
+            .catch(e => {
+                if (e && (e.code === ServerError.codes.accountMigrationRequired)) {
+                    return Promise.reject(e);
+                }
                 if (socket.connected && !socket.authenticated) {
                     socket.reset();
                 }
-                return Promise.reject(err);
+                return Promise.reject(e);
             });
     }
 

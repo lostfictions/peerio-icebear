@@ -14,7 +14,6 @@ const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 const warnings = require('../warnings');
 
-const { ServerError } = errors;
 
 module.exports = function mixUserAuthModule() {
     /**
@@ -27,11 +26,7 @@ module.exports = function mixUserAuthModule() {
         return this._loadAuthSalt()
             .then(this._deriveKeys)
             .then(this._getAuthToken)
-            .then(this._authenticateAuthToken)
-            .tapCatch(e => {
-                e && (e.code === ServerError.codes.accountMigrationRequired)
-                    && warnings.addSevere('error_cannotMigrate', 'error_loginFailed');
-            });
+            .then(this._authenticateAuthToken);
     };
 
     /**
