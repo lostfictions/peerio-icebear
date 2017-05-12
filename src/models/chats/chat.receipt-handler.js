@@ -63,19 +63,20 @@ class ChatReceiptHandler {
                         if (r.position >= this.pendingReceipt) {
                             this.pendingReceipt = null;
                         }
+                        if (this.pendingReceipt) {
+                            pos = this.pendingReceipt;// eslint-disable-line
+                            this.pendingReceipt = null;
+                            this.sendReceipt(pos);
+                        }
                     })
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
                         console.error(err);
                         this._ownReceipt = null;
-                    })
-                    .finally(() => {
-                        if (socket.authenticated && this.pendingReceipt && r.position < this.pendingReceipt) {
-                            pos = this.pendingReceipt;// eslint-disable-line
-                            this.pendingReceipt = null;
-                            this.sendReceipt(pos);
-                        }
+                        pos = this.pendingReceipt;// eslint-disable-line
+                        this.pendingReceipt = null;
+                        this.sendReceipt(pos);
                     });
             });
     }
