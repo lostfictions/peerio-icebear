@@ -6,6 +6,7 @@ class Settings extends Keg {
     @observable contactRequestNotifications = false;
     @observable messageNotifications = false;
     @observable errorTracking = false;
+    @observable subscribeToPromoEmails = false;
 
     constructor(user) {
         super('settings', 'settings', user.kegDb, true);
@@ -17,7 +18,8 @@ class Settings extends Keg {
             contactNotifications: this.contactNotifications,
             contactRequestNotifications: this.contactRequestNotifications,
             messageNotifications: this.messageNotifications,
-            errorTracking: this.errorTracking
+            errorTracking: this.errorTracking,
+            subscribeToPromoEmails: this.subscribeToPromoEmails
         };
     }
 
@@ -26,6 +28,7 @@ class Settings extends Keg {
         this.contactRequestNotifications = data.contactRequestNotifications;
         this.messageNotifications = data.messageNotifications;
         this.errorTracking = data.errorTracking;
+        this.subscribeToPromoEmails = data.subscribeToPromoEmails;
         this.loaded = true;
     }
 
