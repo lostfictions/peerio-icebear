@@ -82,7 +82,7 @@ class ChatMessageHandler {
         this._loadingUpdates = true;
         this._reCheckUpdates = false;
 
-        console.log('Getting updates for chat', this.chat.id);
+        // console.log('Getting updates for chat', this.chat.id);
         socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -108,7 +108,7 @@ class ChatMessageHandler {
                 }
                 this.setDownloadedUpdateId(resp.kegs);
                 this.markAllAsSeen();
-                console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
+                // console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
                 this.chat.addMessages(resp.kegs);
             })).finally(this.onMessageDigestUpdate);
     }
@@ -119,7 +119,7 @@ class ChatMessageHandler {
             this._markAsSeenTimer = null;
             if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
-        }, 3000);
+        }, 2000);
     }
 
     setDownloadedUpdateId(kegs) {
