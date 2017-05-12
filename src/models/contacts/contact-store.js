@@ -56,8 +56,23 @@ class ContactStore {
                 list && list.length && this._merge(list);
             });
     }
+
+    loadContactsFromTOFUKegs() {
+        socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: 'SELF',
+            options: {
+                type: 'tofu'
+            }
+        }).then(res => {
+            if (!res.kegs || !res.kegs.length) return;
+            res.kegs.forEach(keg => this.getContact(keg.props.username));
+        });
+    }
 }
 
 const store = new ContactStore();
+socket.onceAuthenticated(() => {
+    store.loadContactsFromTOFUKegs();
+});
 setContactStore(store);
 module.exports = store;
