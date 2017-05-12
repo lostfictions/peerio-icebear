@@ -53,7 +53,7 @@ class ChatStore {
 
         autorunAsync(() => {
             this.sortChats();
-        }, 300);
+        }, 500);
         socket.onceAuthenticated(async () => {
             this.unreadChatsAlwaysOnTop = !!(await TinyDb.user.getValue('pref_unreadChatsAlwaysOnTop'));
             autorunAsync(() => {
@@ -110,21 +110,22 @@ class ChatStore {
     _updateMyChatsFn = () => {
         const digest = tracker.getDigest('SELF', 'my_chats');
         if (this.downloadedMyChatsUpdateId < digest.maxUpdateId) {
-            const c = new MyChats();
-            return c.load(true)
+            const myChats = new MyChats();
+            return myChats.load(true)
                 .then(action(() => {
-                    c.favorites.forEach(id => {
+                    this.chats.forEach(chat => { chat.isFavorite = false; });
+                    myChats.favorites.forEach(id => {
                         const favchat = this.chatMap[id];
                         if (!favchat) return;
                         favchat.isFavorite = true;
                     });
-                    c.hidden.forEach(id => {
+                    myChats.hidden.forEach(id => {
                         if (this.chatMap[id]) this._unloadChat(this.chatMap[id]);
                     });
-                    if (c.version > this._hiddenChatsVersion) {
-                        this._hiddenChats = c.hidden;
+                    if (myChats.version > this._hiddenChatsVersion) {
+                        this._hiddenChats = myChats.hidden;
                     }
-                    this.downloadedMyChatsUpdateId = c.collectionVersion;
+                    this.downloadedMyChatsUpdateId = myChats.collectionVersion;
                     setTimeout(this.updateMyChats, 300);
                 }));
         }
