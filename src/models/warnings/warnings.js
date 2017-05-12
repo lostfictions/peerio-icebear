@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { observable, action, when, reaction } = require('mobx');
 const socket = require('../../network/socket');
 const SystemWarning = require('./system-warning');
@@ -78,7 +79,7 @@ class Warnings {
             const w = new ServerWarning(serverObj, () => { delete this._sessionCache[serverObj.token]; });
             this._queueItem(w);
         } catch (e) {
-            console.error(e); // try/catch protects from invalid data sent from server
+            L.error(e); // try/catch protects from invalid data sent from server
         }
     }
 }

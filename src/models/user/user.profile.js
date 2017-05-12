@@ -1,3 +1,4 @@
+const L = require('l.js');
 const Profile = require('./profile');
 const Quota = require('./quota');
 const Settings = require('./settings');
@@ -18,7 +19,7 @@ module.exports = function mixUserRegisterModule() {
 
     this.saveSettings = () => {
         return this.settings.saveToServer().tapCatch(err => {
-            console.error(err);
+            L.error(err);
             warnings.add('error_saveSettings');
         });
     };
@@ -49,7 +50,7 @@ module.exports = function mixUserRegisterModule() {
 
     this.saveProfile = function() {
         return _profileKeg.saveToServer().tapCatch(err => {
-            console.error(err);
+            L.error(err);
             warnings.add('error_saveSettings');
         });
     };
@@ -65,7 +66,7 @@ module.exports = function mixUserRegisterModule() {
                 warnings.add('warning_emailConfirmationResent');
             })
             .tapCatch(err => {
-                console.error(err);
+                L.error(err);
                 warnings.add('error_resendConfirmation');
             });
     };
@@ -77,7 +78,7 @@ module.exports = function mixUserRegisterModule() {
                 value: email
             }
         }).tapCatch(err => {
-            console.error(err);
+            L.error(err);
             warnings.add('error_saveSettings');
         });
     };

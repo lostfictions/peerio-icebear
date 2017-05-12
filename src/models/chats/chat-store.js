@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { observable, action, computed, reaction, runInAction, autorunAsync, when } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');

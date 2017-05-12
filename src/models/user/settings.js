@@ -6,6 +6,7 @@ class Settings extends Keg {
     @observable contactRequestNotifications = false;
     @observable messageNotifications = false;
     @observable errorTracking = false;
+    @observable dataCollection = false;
     @observable subscribeToPromoEmails = false;
 
     constructor(user) {
@@ -19,6 +20,7 @@ class Settings extends Keg {
             contactRequestNotifications: this.contactRequestNotifications,
             messageNotifications: this.messageNotifications,
             errorTracking: this.errorTracking,
+            dataCollection: this.dataCollection,
             subscribeToPromoEmails: this.subscribeToPromoEmails
         };
     }
@@ -28,6 +30,7 @@ class Settings extends Keg {
         this.contactRequestNotifications = data.contactRequestNotifications;
         this.messageNotifications = data.messageNotifications;
         this.errorTracking = data.errorTracking;
+        this.dataCollection = data.dataCollection;
         this.subscribeToPromoEmails = data.subscribeToPromoEmails;
         this.loaded = true;
     }

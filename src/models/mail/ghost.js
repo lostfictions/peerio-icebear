@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { observable, computed, action } = require('mobx');
 const moment = require('moment');
 const Keg = require('../kegs/keg');
@@ -143,7 +144,7 @@ class Ghost extends Keg {
             })
             .catch(err => {
                 this.sendError = true;
-                console.error('Error sending ghost', err);
+                L.error('Error sending ghost', err);
                 return Promise.reject(err);
             })
             .finally(() => {

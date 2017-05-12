@@ -2,6 +2,7 @@
  * Base class for kegs
  * @module models/keg
  */
+const L = require('l.js');
 const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError } = require('../../errors');
@@ -104,12 +105,12 @@ class Keg {
                             props.signature = signature;
                             this.signatureError = false;
                         })
-                        .tapCatch(err => console.error('Failed to sign keg', err));
+                        .tapCatch(err => L.error('Failed to sign keg', err));
                 }
                 payload = payload.buffer; // socket accepts ArrayBuffer
             }
         } catch (err) {
-            console.error('Failed preparing keg to save.', err);
+            L.error('Failed preparing keg to save.', err);
             return Promise.reject(err);
         }
         lastVersion = this.version; // eslint-disable-line prefer-const
@@ -176,7 +177,7 @@ class Keg {
     loadFromKeg(keg, allowEmpty = false) {
         try {
             if (this.id && this.id !== keg.kegId) {
-                console.error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+                L.error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
                 return false;
             }
             this.id = keg.kegId;
@@ -217,7 +218,7 @@ class Keg {
             if (this.afterLoad) this.afterLoad();
             return this;
         } catch (err) {
-            console.error(err);
+            L.error(err);
             return false;
         }
     }

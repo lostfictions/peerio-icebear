@@ -1,3 +1,4 @@
+const L = require('l.js');
 const Keg = require('./keg');
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
 
@@ -44,7 +45,7 @@ class ChatBootKeg extends Keg {
         kegKey = cryptoUtil.b64ToBytes(kegKey);
         kegKey = publicCrypto.decrypt(kegKey, this.publicKey, this.user.encryptionKeys.secretKey);
         if (kegKey === false) {
-            console.error('Failed to decrypt chat key for myself.');
+            L.error('Failed to decrypt chat key for myself.');
             // todo: mark as invalid to prevent message loading attempts?
             return;
         }

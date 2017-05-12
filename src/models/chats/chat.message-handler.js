@@ -1,6 +1,7 @@
 /**
  * Module takes care of listening to chat updates and loading updated data
  */
+const L = require('l.js');
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const config = require('../../config');
@@ -82,7 +83,7 @@ class ChatMessageHandler {
         this._loadingUpdates = true;
         this._reCheckUpdates = false;
 
-        // console.log('Getting updates for chat', this.chat.id);
+        L.info('Getting updates for chat', this.chat.id);
         socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -108,7 +109,7 @@ class ChatMessageHandler {
                 }
                 this.setDownloadedUpdateId(resp.kegs);
                 this.markAllAsSeen();
-                // console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
+                L.info(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
                 this.chat.addMessages(resp.kegs);
             })).finally(this.onMessageDigestUpdate);
     }
@@ -152,7 +153,7 @@ class ChatMessageHandler {
             return Promise.resolve();
         }
         this.chat.loadingInitialPage = true;
-        console.log('loading initial page for this.chat', this.chat.id);
+        L.info('loading initial page for this.chat', this.chat.id);
         return retryUntilSuccess(() => socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -170,7 +171,7 @@ class ChatMessageHandler {
                 this.chat._cancelBottomPageLoad = false;
                 this.setDownloadedUpdateId(resp.kegs);
                 if (!this.chat.canGoDown) this.markAllAsSeen();
-                console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
+                L.info(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
                 return this.chat.addMessages(resp.kegs);
             }));
     }

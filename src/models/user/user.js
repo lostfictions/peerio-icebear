@@ -1,6 +1,7 @@
 /**
  * @module models/user
  */
+const L = require('l.js');
 const socket = require('../../network/socket');
 const mixUserProfileModule = require('./user.profile.js');
 const mixUserRegisterModule = require('./user.register.js');
@@ -130,11 +131,11 @@ class User {
      * @returns {Promise}
      */
     createAccountAndLogin = () => {
-        console.log('Starting account registration sequence.');
+        L.info('Starting account registration sequence.');
         return this._createAccount()
             .then(() => this._authenticateConnection())
             .then(() => {
-                console.log('Creating boot keg.');
+                L.info('Creating boot keg.');
                 return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
                     this.encryptionKeys, this.kegKey);
             })
@@ -159,7 +160,7 @@ class User {
      * Authenticates connection and makes necessary initial requests.
      */
     login() {
-        console.log('Starting login sequence');
+        L.info('Starting login sequence');
         return this._preAuth()
             .then(() => this._authenticateConnection())
             .then(() => this.kegDb.loadBootKeg(this.bootKey))
@@ -200,7 +201,7 @@ class User {
             this.loadSettings();
             when(() => this.profileLoaded, () => {
                 this.setAsLastAuthenticated()
-                    .catch(err => console.error(err)); // not critical, we can ignore this error
+                    .catch(err => L.error(err)); // not critical, we can ignore this error
             });
         }
     }
@@ -216,7 +217,7 @@ class User {
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
             .catch(err => {
-                console.error(err);
+                L.error(err);
                 return false;
             });
     }

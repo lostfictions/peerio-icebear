@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { action, reaction } = require('mobx');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
@@ -72,7 +73,7 @@ class ChatReceiptHandler {
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
-                        console.error(err);
+                        L.error(err);
                         this._ownReceipt = null;
                         pos = this.pendingReceipt;// eslint-disable-line
                         this.pendingReceipt = null;

@@ -1,7 +1,7 @@
 /**
  * Keg update handling module
  */
-
+const L = require('l.js');
 const socket = require('../network/socket');
 
 /*
@@ -69,7 +69,7 @@ class UpdateTracker {
      */
     onKegDbAdded(handler) {
         if (this.dbAddedHandlers.includes(handler)) {
-            console.error('This handler already subscribed to onKegDbAdded');
+            L.error('This handler already subscribed to onKegDbAdded');
             return;
         }
         this.dbAddedHandlers.push(handler);
@@ -90,7 +90,7 @@ class UpdateTracker {
             this.updateHandlers[kegDbId][kegType] = [];
         }
         if (this.updateHandlers[kegDbId][kegType].includes(handler)) {
-            console.error('This handler already subscribed to onKegTypeUpdated');
+            L.error('This handler already subscribed to onKegTypeUpdated');
             return;
         }
         this.updateHandlers[kegDbId][kegType].push(handler);
@@ -210,7 +210,7 @@ class UpdateTracker {
             try {
                 handler(id);
             } catch (err) {
-                console.error(err);
+                L.error(err);
             }
         });
     }
@@ -221,7 +221,7 @@ class UpdateTracker {
             try {
                 handler();
             } catch (err) {
-                console.error(err);
+                L.error(err);
             }
         });
     }
@@ -252,7 +252,7 @@ class UpdateTracker {
      * Initial call, reads only unread data.
      */
     loadDigest() {
-        console.log(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
+        L.info(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
         socket.send('/auth/kegs/updates/digest', { unread: true })
             .then(this._processDigestResponse)
             .then(() => socket.send('/auth/kegs/updates/digest', { kegDbIds: this.activeKegDbs }))

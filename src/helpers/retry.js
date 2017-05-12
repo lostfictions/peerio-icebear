@@ -1,3 +1,4 @@
+const L = require('l.js');
 const socket = require('../network/socket');
 const errors = require('../errors');
 
@@ -42,7 +43,7 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
 function scheduleRetry(fn, id) {
     const callInfo = callsInProgress[id];
     if (callInfo.retryCount++ > maxRetryCount) {
-        console.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
+        L.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
         console.debug(fn);
         callInfo.reject(errors.normalize(callInfo.lastError));
         return;

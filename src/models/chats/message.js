@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
@@ -46,7 +47,7 @@ class Message extends Keg {
         return this.saveToServer()
             .catch(err => {
                 this.sendError = true;
-                console.error('Error sending message', err);
+                L.error('Error sending message', err);
                 return Promise.reject(err);
             })
             .finally(() => {

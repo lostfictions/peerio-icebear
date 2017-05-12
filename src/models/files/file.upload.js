@@ -1,6 +1,7 @@
 /**
  * Upload module for File model, for code file length sake
  */
+const L = require('l.js');
 const config = require('../../config');
 const warnings = require('./../warnings');
 const FileUploader = require('./file-uploader');
@@ -23,14 +24,14 @@ function _getUlResumeParams(path) {
             return socket.send('/auth/file/state', { fileId: this.fileId });
         })
         .then(state => {
-            console.log(state);
+            L.info(state);
             if (state.status === 'ready' || state.chunksUploadComplete) {
                 throw new Error('File already uploaded.');
             }
             return state.lastChunkNum + 1;
         })
         .catch(err => {
-            console.log(err);
+            L.info(err);
             this._saveUploadEndFact();
             this._resetUploadState();
             this.remove();
@@ -68,7 +69,7 @@ function upload(filePath, fileName, resume) {
             return stream.open();
         })
             .then(() => { // eslint-disable-line consistent-return
-                console.log(`File read stream open. File size: ${stream.size}`);
+                L.info(`File read stream open. File size: ${stream.size}`);
                 if (nextChunkId === null) {
                     this.size = stream.size;
                     if (!this.size) return Promise.reject('Can not upload zero size file.');
@@ -76,7 +77,7 @@ function upload(filePath, fileName, resume) {
                     nonceGen = new FileNonceGenerator(0, this.chunksCount - 1);
                     this.nonce = cryptoUtil.bytesToB64(nonceGen.nonce);
                     return this.saveToServer().catch(err => {
-                        console.error(err);
+                        L.error(err);
                         this.remove();
                         return Promise.reject(err);
                     });
@@ -94,22 +95,22 @@ function upload(filePath, fileName, resume) {
                 warnings.add('snackbar_uploadComplete');
             })
             .catch(err => {
-                console.error(err);
+                L.error(err);
                 !this.uploadCancelled && warnings.addSevere('error_uploadFailed', 'error', { fileName: this.name });
                 this._resetUploadState();
-                console.log('file.upload.js: stopped uploading');
+                L.info('file.upload.js: stopped uploading');
                 return Promise.reject(new Error(err));
             });
     } catch (ex) {
         this._resetUploadState();
-        console.error(ex);
+        L.error(ex);
         return Promise.reject(ex);
     }
 }
 
 function cancelUpload() {
     if (this.readyForDownload) return Promise.reject();
-    console.log('file.uploads.js: upload cancelled');
+    L.info('file.uploads.js: upload cancelled');
     this.uploadCancelled = true;
     this._saveUploadEndFact();
     this._resetUploadState();
@@ -136,7 +137,7 @@ function _resetUploadState(stream) {
     try {
         if (stream) stream.close();
     } catch (ex) {
-        console.error(ex);
+        L.error(ex);
     }
 }
 

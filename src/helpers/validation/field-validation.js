@@ -1,6 +1,7 @@
 /**
  * Validates fields in a form.
  */
+
 import { reaction, extendObservable, computed } from 'mobx';
 
 const userValidators = require('./user-validators');
@@ -84,7 +85,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
 
     // when field changes, reaction is triggered
     reaction(() => store[fName], value => {
-        // console.log(`${fName}: ${value} validation run`);
+        // L.info(`${fName}: ${value} validation run`);
         store[fValid] = false;
         store[fieldValidationMessageText] = '';
         let valid = Promise.resolve(true);
@@ -107,12 +108,12 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
             });
         });
         valid = valid.then(() => {
-            // console.log(`${fName} is valid`);
+            // L.info(`${fName} is valid`);
             store[fValid] = true;
             store[fieldValidationMessageText] = '';
         })
         .catch(error => {
-            // console.log(`${fName} is invalid`);
+            // L.info(`${fName} is invalid`);
                 // note computed message will only how up if field is dirty
             store[fValid] = false;
             store[fieldValidationMessageText] = error.message;

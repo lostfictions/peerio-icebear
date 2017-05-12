@@ -10,6 +10,12 @@ To get started, set the `PEERIO_STAGING_SOCKET_SERVER` environment variable. Run
 In order to log in automatically, Good news, create 'autologin.json' in project root (gitignored) with your desired user: `{ "username":"", "passphrase":""}`
 
 ## Development policy
+
+### Dependencies
+
+When adding a dependency to peerio-icebear, you should add it to both the dependencies and peerDependencies. 
+
+
 ### Errors
 
 #### Always use `Error` object when:   

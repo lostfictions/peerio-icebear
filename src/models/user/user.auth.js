@@ -5,7 +5,7 @@
  * @todo local storage of authSalt
  * @module models/user
  */
-
+const L = require('l.js');
 const socket = require('../../network/socket');
 const { keys, publicCrypto, secret, cryptoUtil } = require('../../crypto/index');
 const util = require('../../util');
@@ -22,7 +22,7 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._authenticateConnection = () => {
-        console.log('Starting connection auth sequence.');
+        L.info('Starting connection auth sequence.');
         return this._loadAuthSalt()
             .then(this._deriveKeys)
             .then(this._getAuthToken)
@@ -55,7 +55,7 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._loadAuthSalt = () => {
-        console.log('Loading auth salt');
+        L.info('Loading auth salt');
         if (this.authSalt) return Promise.resolve();
         return socket.send('/noauth/auth-salt/get', { username: this.username })
             .then((response) => {
@@ -70,7 +70,7 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._getAuthToken = () => {
-        console.log('Requesting auth token.');
+        L.info('Requesting auth token.');
         return socket.send('/noauth/auth-token/get', {
             username: this.username,
             authSalt: this.authSalt.buffer,
@@ -90,7 +90,7 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._authenticateAuthToken = data => {
-        console.log('Sending auth token back.');
+        L.info('Sending auth token back.');
         const decrypted = publicCrypto.decryptCompat(data.token, data.nonce,
             data.ephemeralServerPK, this.authKeys.secretKey);
         // 65 84 = 'AT' (access token)
@@ -113,7 +113,7 @@ module.exports = function mixUserAuthModule() {
      */
     this._checkForPasscode = (skipCache) => {
         if (!skipCache && this.authKeys) {
-            console.log('user.auth.js: auth keys already loaded');
+            L.info('user.auth.js: auth keys already loaded');
             return Promise.resolve(true);
         }
         return TinyDb.system.getValue(`${this.username}:passcode`)
@@ -132,10 +132,10 @@ module.exports = function mixUserAuthModule() {
             })
             .catch(err => {
                 if (err && err.name === 'NoPasscodeFoundError') {
-                    console.log(err.message);
+                    L.info(err.message);
                     return;
                 }
-                console.log(errors.normalize(err));
+                L.info(errors.normalize(err));
             });
     };
 
@@ -150,11 +150,11 @@ module.exports = function mixUserAuthModule() {
      * @private
      */
     this._derivePassphraseFromPasscode = (passcodeSecret) => {
-        console.log('Deriving passphrase from passcode.');
+        L.info('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, passcodeSecret)
             .then(this.deserializeAuthData)
             .catch(() => {
-                console.log('Deriving passphrase from passcode failed, ' +
+                L.info('Deriving passphrase from passcode failed, ' +
                     'will ignore and retry login with passphrase');
             });
     };
@@ -185,7 +185,7 @@ module.exports = function mixUserAuthModule() {
     };
 
     this.deserializeAuthData = (data) => {
-        // console.log(data);
+        // L.info(data);
         const { username, passphrase, authSalt, bootKey, authKeys } = data;
         this.username = username;
         this.passphrase = passphrase;
@@ -240,7 +240,7 @@ module.exports = function mixUserAuthModule() {
     this.setPasscode = (passcode) => {
         if (!this.username) return Promise.reject(new Error('Username is required to derive keys'));
         if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
-        console.log('Setting passcode');
+        L.info('Setting passcode');
         return keys.deriveKeyFromPasscode(this.username, passcode)
             .then(passcodeKey => {
                 return secret.encryptString(this.serializeAuthData(), passcodeKey);

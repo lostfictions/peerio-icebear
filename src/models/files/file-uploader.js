@@ -2,6 +2,7 @@
  * Skynet's little brother who tries hard to remove bottlenecks in the whole
  * "read -> encrypt -> upload" process to maximize upload speed.
  */
+const L = require('l.js');
 const socket = require('../../network/socket');
 const errors = require('../../errors');
 const secret = require('../../crypto/secret');
@@ -32,13 +33,13 @@ class FileUploader extends FileProcessor {
         // amount of bytes to read and to send
         this.file.progressMax = file.size;
         if (startFromChunk != null) {
-            console.log(`Resuming upload. Starting with chunk ${startFromChunk}`);
+            L.info(`Resuming upload. Starting with chunk ${startFromChunk}`);
             nonceGenerator.chunkId = startFromChunk;
             this.lastReadChunkId = startFromChunk - 1;
             this.file.progress = startFromChunk * file.chunkSize;
-            console.log(`progress ${this.file.progress}`);
+            L.info(`progress ${this.file.progress}`);
             stream.seek(startFromChunk * file.chunkSize);
-            console.log(`Upload continues from ${stream.nextReadPos}`);
+            L.info(`Upload continues from ${stream.nextReadPos}`);
         }
         socket.onDisconnect(this._error);
     }
@@ -68,7 +69,7 @@ class FileUploader extends FileProcessor {
     _processReadChunk = buffer => {
         this.readingChunk = false;
         if (this.stopped) return;
-        // console.log(`read ${buffer.length} bytes`, `pos: ${this.stream.pos}`);
+        // L.info(`read ${buffer.length} bytes`, `pos: ${this.stream.pos}`);
         if (buffer.length === 0) {
             this.eofReached = true;
         } else {
@@ -96,7 +97,7 @@ class FileUploader extends FileProcessor {
 
         const chunk = this.uploadQueue.shift();
         this.chunksWaitingForResponse++;
-        // console.log(`sending chunk ${chunk.id}`);
+        // L.info(`sending chunk ${chunk.id}`);
         socket.send('/auth/file/chunk/upload', {
             fileId: this.file.fileId,
             chunkNum: chunk.id,
@@ -105,7 +106,7 @@ class FileUploader extends FileProcessor {
         })
             .then(() => {
                 this.chunksWaitingForResponse--;
-                // console.log(`chunk ${chunk.id} sent`);
+                // L.info(`chunk ${chunk.id} sent`);
                 if (this.stopped) return;
                 this.file.progress += this.file.chunkSize;
                 this._tick();

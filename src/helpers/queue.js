@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { computed, observable, action } = require('mobx');
 
 class Queue {
@@ -37,7 +38,7 @@ class Queue {
             this.onTaskComplete();
         } catch (ex) {
             // in case something went wrong we schedule next task
-            console.error(ex);
+            L.error(ex);
             this.onTaskComplete();
         }
     }

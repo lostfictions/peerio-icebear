@@ -1,3 +1,4 @@
+const L = require('l.js');
 const _ = require('lodash');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');
@@ -48,14 +49,14 @@ class MailStore {
         if (this.loading || this.loaded) return;
         this.loading = true;
         this._getGhosts().then(action(kegs => {
-            console.log('there are mail kegs', kegs.length);
+            L.info('there are mail kegs', kegs.length);
             for (const keg of kegs) {
                 const ghost = new Ghost(User.current.kegDb);
                 if (keg.collectionVersion > this.knownCollectionVersion) {
                     this.knownCollectionVersion = keg.collectionVersion;
                 }
                 if (ghost.loadFromKeg(keg)) {
-                    console.log('loading ghost', ghost.ghostId);
+                    L.info('loading ghost', ghost.ghostId);
                     this.ghostMap.set(ghost.ghostId, ghost);
                 }
             }

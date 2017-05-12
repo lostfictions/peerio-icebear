@@ -1,6 +1,7 @@
 /**
  * Keg database module
  */
+const L = require('l.js');
 const ChatBootKeg = require('./chat-boot-keg');
 const socket = require('../../network/socket');
 const User = require('../user/user');
@@ -112,14 +113,14 @@ class ChatKegDb {
                 if (!this.key) this.dbIsBroken = true;
                 return justCreated;
             })
-            .tapCatch(err => console.error(err));
+            .tapCatch(err => L.error(err));
     }
 
     /**
      * Create boot keg for this database
      */
     _createBootKeg() {
-        console.log(`Creating chat boot keg for ${this.id}`);
+        L.info(`Creating chat boot keg for ${this.id}`);
         const publicKeys = {};
 
         return Contact.ensureAllLoaded(this.participants)
@@ -143,7 +144,7 @@ class ChatKegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     _loadBootKeg() {
-        // console.log(`Loading chat boot keg for ${this.id}`);
+        // L.info(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
         return boot.load(true).return(boot);
     }

@@ -1,3 +1,4 @@
+const L = require('l.js');
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -138,7 +139,7 @@ class Chat {
             .then(action(justCreated => { // eslint-disable-line
                 if (this.db.dbIsBroken) {
                     const errmsg = `Detected broken database. id ${this.db.id}`;
-                    console.error(errmsg);
+                    L.error(errmsg);
                     throw new Error(errmsg);
                 }
                 this.id = this.db.id;
@@ -376,7 +377,7 @@ class Chat {
                 return false;
             })
             .catch(err => {
-                console.error(err);
+                L.error(err);
                 this.isFavorite = origState;
                 warnings.add('error_changeChatFavoriteState');
             })
@@ -487,7 +488,7 @@ class Chat {
             if (this._receiptHandler) this._receiptHandler.dispose();
             if (this._headHandler) this._headHandler.dispose();
         } catch (err) {
-            console.error(err);
+            L.error(err);
         }
     }
 
