@@ -12,6 +12,7 @@ const clientApp = require('../client-app');
 const DOMPurify = require('dompurify');
 const MyChats = require('./my-chats');
 const warnings = require('../warnings');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -386,17 +387,16 @@ class Chat {
     hide = () => {
         this.store._unloadChat(this);
         const c = new MyChats();
-        return c.load(true)
+        return retryUntilSuccess(() => c.load(true)
             .then(() => {
                 if (c.addHidden(this.id)) {
                     return c.saveToServer();
                 }
                 return false;
             })
-            .catch(err => {
+            .tapCatch(err => {
                 console.error(err);
-                // todo: do we need a snackbar here? technically chat is hidden but we failed to persist the state
-            });
+            }));
     };
 
     unhide = () => {
