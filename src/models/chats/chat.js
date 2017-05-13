@@ -351,7 +351,7 @@ class Chat {
         let validated = name || '';
         validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
         validated = validated.substr(0, 120);
-        if (this._chatName === validated) return Promise.resolve(); // nothing to rename
+        if (this._chatName === validated || (!this._chatName && !validated)) return Promise.resolve(); // nothing to rename
         const prevName = this._chatName;
         this._chatName = validated;
         return this._headHandler.saveChatName(validated)
