@@ -17,8 +17,10 @@ function authenticate(username, passphrase) {
         .then(data => {
             const token = decryptAuthToken(data, keyPair);
             return socket.send('/noauth/legacy/auth-token/validate', { decryptedAuthToken: token.buffer });
-        });
+        })
+        .then(() => socket.send('/noauth/legacy/account'));
 }
+
 
 function derivePublicKeyString(username, passphrase) {
     return deriveKeys(username, passphrase)
@@ -33,11 +35,11 @@ function getAuthToken(username, publicKeyString) {
 
 function decryptAuthToken(data, keyPair) {
     const dToken = nacl.box.open(
-                    new Uint8Array(data.token),
-                    new Uint8Array(data.nonce),
-                    new Uint8Array(data.ephemeralServerPK),
-                    keyPair.secretKey
-                );
+        new Uint8Array(data.token),
+        new Uint8Array(data.nonce),
+        new Uint8Array(data.ephemeralServerPK),
+        keyPair.secretKey
+    );
     if (dToken && dToken.length === 0x20 && dToken[0] === 0x41 && dToken[1] === 0x54) {
         return dToken.slice();
     }

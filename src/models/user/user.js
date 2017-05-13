@@ -171,7 +171,13 @@ class User {
             .then(() => this._postAuth())
             .catch(e => {
                 if (e && (e.code === ServerError.codes.accountMigrationRequired)) {
-                    return Promise.reject(e);
+                    return migrator.authenticate(this.username, this.passphrase)
+                        .then((data) => {
+                            this.firstName = data.firstName || this.username;
+                            this.lastName = data.lastName || this.username;
+                            this.email = data.email || 'enter_your_email@localhost';
+                            return this.createAccountAndLogin();
+                        });
                 }
                 if (socket.connected && !socket.authenticated) {
                     socket.reset();

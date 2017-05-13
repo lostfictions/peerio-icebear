@@ -41,7 +41,6 @@ const util = require('./util');
 const warnings = require('./models/warnings');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
-const legacyMigrator = require('./legacy/account_migrator');
 const defaultClock = require('./helpers/observable-clock').default;
 const Clock = require('./helpers/observable-clock').Clock;
 const fileHelpers = require('./helpers/file');
@@ -69,7 +68,6 @@ module.exports = {
     util,
     warnings,
     warningStates,
-    legacyMigrator,
     defaultClock,
     Clock,
     fileHelpers,
