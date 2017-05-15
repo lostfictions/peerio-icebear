@@ -40,6 +40,9 @@ class User {
     @observable.ref addresses;
     @observable primaryAddressConfirmed;
 
+    // ui flags
+    @observable autologinEnabled = false;
+
     @computed get fullName() {
         let ret = '';
         if (this.firstName) ret = this.firstName;
