@@ -455,7 +455,8 @@ class Chat {
             const current = this.messages[i];
             const prev = this.messages[i - 1];
             if (prev.sender.username === current.sender.username
-                && prev.dayFingerprint === current.dayFingerprint) {
+                && prev.dayFingerprint === current.dayFingerprint
+                && (current.timestamp - prev.timestamp) < 600000) { // 10 minutes
                 current.groupWithPrevious = true;
             } else {
                 current.groupWithPrevious = false;
