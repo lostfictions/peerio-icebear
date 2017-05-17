@@ -158,6 +158,7 @@ class ChatStore {
         const c = new Chat(id, undefined, this);
         this.chatMap[id] = c;
         this.chats.push(c);
+        tracker.registerDbInstance(id);
         if (this._hiddenChats.includes(id)) c.unhide();
         c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
@@ -286,7 +287,7 @@ class ChatStore {
         chat.dispose();
         chat.active = false;
         tracker.deactivateKegDb(chat.id);
-        tracker.removeDbDigest(chat.id);
+        tracker.unregisterDbInstance(chat.id);
 
         delete this.chatMap[chat.id];
         this.chats.remove(chat);

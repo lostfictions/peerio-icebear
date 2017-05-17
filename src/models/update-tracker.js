@@ -29,6 +29,10 @@ class UpdateTracker {
     activeKegDbs = ['SELF'];
     // tracker data
     digest = {};
+
+    // a list of existing db instances for tracker to not generate dbadded event for them
+    knownDbInstances = {};
+
     // this flag controls whether updates to digest will immediately fire an event or
     // will accumulate to allow effective/minimal events generation after large amounts for digest data
     // has been processed
@@ -39,7 +43,7 @@ class UpdateTracker {
     constructor() {
         socket.onceStarted(() => {
             socket.subscribe(socket.APP_EVENTS.kegsUpdate, this.processDigestEvent.bind(this));
-            socket.onAuthenticated(this.loadDigest.bind(this));
+            socket.onAuthenticated(this.loadDigest);
             // when disconnected, we know that reconnect will trigger digest reload
             // and we want to accumulate events during that time
             socket.onDisconnect(() => { this.accumulateEvents = true; });
@@ -132,10 +136,6 @@ class UpdateTracker {
         }
     }
 
-    removeDbDigest(id) {
-        delete this.digest[id];
-    }
-
     //  {"kegDbId":"SELF","type":"profile","maxUpdateId":3, knownUpdateId: 0, newKegsCount: 1},
     processDigestEvent(ev) {
         ev.maxUpdateId = ev.maxUpdateId || '';
@@ -164,9 +164,9 @@ class UpdateTracker {
         let shouldEmitUpdateEvent = false;
 
         // kegDb yet unknown to our digest? consider it just added
-        if (!this.digest[ev.kegDbId]) {
+        if (!this.digest[ev.kegDbId] || !this.knownDbInstances[ev.kegDbId]) {
             shouldEmitUpdateEvent = true;
-            this.digest[ev.kegDbId] = {};
+            this.digest[ev.kegDbId] = this.digest[ev.kegDbId] || {};
             if (this.accumulateEvents) {
                 if (!this.eventCache.add.includes(ev.kegDbId)) {
                     this.eventCache.add.push(ev.kegDbId);
@@ -251,7 +251,7 @@ class UpdateTracker {
      * Fills this.data with full update info from server.
      * Initial call, reads only unread data.
      */
-    loadDigest() {
+    loadDigest = () => {
         L.info(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
         socket.send('/auth/kegs/updates/digest', { unread: true })
             .then(this._processDigestResponse)
@@ -275,6 +275,15 @@ class UpdateTracker {
             type,
             lastKnownVersion: updateId
         });
+    }
+    // marks database as 'existing' in current client session so tracker knows
+    // when to generate 'dbAdded' event and when not
+    registerDbInstance(id) {
+        this.knownDbInstances[id] = true;
+    }
+
+    unregisterDbInstance(id) {
+        this.knownDbInstances[id] = false;
     }
 }
 
