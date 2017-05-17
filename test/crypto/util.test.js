@@ -113,7 +113,7 @@ describe('Crypto Utilities module', () => {
     });
 
     it('should pad and unpad passphrase', () => {
-        const passphrase = "hello world секретная строка";
+        const passphrase = 'hello world секретная строка';
         const paddedPassphrase = util.padPassphrase(passphrase);
         paddedPassphrase.should.not.equal(passphrase);
         const unpaddedPassphrase = util.unpadPassphrase(paddedPassphrase);
