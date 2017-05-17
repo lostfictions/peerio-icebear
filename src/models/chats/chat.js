@@ -384,10 +384,10 @@ class Chat {
             .finally(() => { this.changingFavState = false; });
     }
 
-
     hide = () => {
         this.store._unloadChat(this);
         const c = new MyChats();
+        this.store.hidingChat = true;
         return retryUntilSuccess(() => c.load(true)
             .then(() => {
                 if (c.addHidden(this.id)) {
@@ -397,7 +397,8 @@ class Chat {
             })
             .tapCatch(err => {
                 console.error(err);
-            }));
+            }))
+            .finally(() => { this.store.hidingChat = false; });
     };
 
     unhide = () => {

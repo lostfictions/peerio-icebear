@@ -32,6 +32,8 @@ class ChatStore {
     @observable loading = false;
     // currently selected/focused chat
     @observable activeChat = null;
+    // chats set this flag and UI should use it to prevent user from spam-clicking the 'hide' button
+    @observable hidingChat = false;
     // loadAllChats() was called and finished once already
     @observable loaded = false;
     downloadedMyChatsUpdateId = '';
