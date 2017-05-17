@@ -93,7 +93,7 @@ function isNonEmptyString(name) {
 function isValidLoginUsername(name) {
     return isValid('signup', 'username')(name)
         // we get undefined for throttled requests and false for completed
-        .then((value) => value === false);
+        .then((value) => ((value === undefined) ? value : (value === false)));
 }
 
 function areEqualValues(value, additionalArguments) {
