@@ -41,7 +41,7 @@ class TinyDb {
     static user = null;
 
     static openSystemDb() {
-        systemDb = new TinyDb('system');
+        systemDb = new TinyDb('$system$');
     }
 
     static openUserDb(username, key) {
@@ -72,7 +72,7 @@ class TinyDb {
      * @param {string} ciphertext
      * @returns {string}
      */
-    _decrypt= (ciphertext) => {
+    _decrypt = (ciphertext) => {
         if (ciphertext == null) return null;
         if (!this.key) return ciphertext;
         const buf = util.b64ToBytes(ciphertext);
