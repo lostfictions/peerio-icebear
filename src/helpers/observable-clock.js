@@ -29,6 +29,10 @@ class Clock {
         return Date.now(); // in case this call is regular one, not observed
     }
 
+    dispose() {
+        this._stopTicking();
+    }
+
     _tick = () => {
         this._lastTickValue = Date.now();
         this._atom.reportChanged();
