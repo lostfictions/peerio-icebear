@@ -42,6 +42,9 @@ class Contact {
         }
         return ret;
     }
+    @computed get fullNameLower() {
+        return this.fullName.toLowerCase();
+    }
 
     // fingerprint calculation is async, but at the same time we want it to be lazy computed
     // so we cache computed result here
