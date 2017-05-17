@@ -111,4 +111,12 @@ describe('Crypto Utilities module', () => {
         hash1.should.deep.equal('0447c1bcd5739016604b495bc7790291df2dd80a9e197312ca0cc02efd3457ac');
         hash2.should.deep.equal('2cf712b1f1f35527d4f3c09ee7ddeca8237f71b0be58cba5cfe11087a434ce82');
     });
+
+    it('should pad and unpad passphrase', () => {
+        const passphrase = "hello world секретная строка";
+        const paddedPassphrase = util.padPassphrase(passphrase);
+        paddedPassphrase.should.not.equal(passphrase);
+        const unpaddedPassphrase = util.unpadPassphrase(paddedPassphrase);
+        unpaddedPassphrase.should.equal(passphrase);
+    });
 });

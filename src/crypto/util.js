@@ -270,6 +270,50 @@ function fingerprintToStr(h) {
     return c.join('-');
 }
 
+/** Maximum length of passphrase (Account Key) in String characters  */
+const MAX_PASSPHRASE_LENGTH = 1024;
+
+/**
+ * Pads passphrase (aka Account Key) to MAX_PASSPHRASE_LENGTH + 8
+ * characters.
+ *
+ * Throws if passphrase is longer than MAX_PASSPHRASE_LENGTH.
+ *
+ * @returns {string} padded passhprase
+ */
+function padPassphrase(passphrase) {
+    if (passphrase.length > MAX_PASSPHRASE_LENGTH) {
+        throw new Error("Account Key is too long");
+    }
+    // Calculate hex length
+    const len = ("00000000" + (passphrase.length).toString(16)).substr(-8);
+    // Calculate padding.
+    const paddingLen = MAX_PASSPHRASE_LENGTH - passphrase.length;
+    const padding = new Array(paddingLen + 1).join("."); // string of paddingLen dots
+    // Return len || passphrase || padding
+    return len + passphrase + padding;
+}
+
+/**
+ * Unpads passphrase (aka Account Key) padded by padPassphrase().
+ *
+ * @param {string} paddedPassphrase
+ */
+function unpadPassphrase(paddedPassphrase) {
+    if (paddedPassphrase.length < 8) {
+        // Must have at least hex length.
+        throw new Error("Malformed padded passphrase");
+    }
+    // Extract hex length of unpadded passphrase.
+    const len = parseInt(paddedPassphrase.substring(0, 8), 16);
+    // Check that padding is correct.
+    const paddingLen = MAX_PASSPHRASE_LENGTH - len;
+    if (8 + len + paddingLen !== paddedPassphrase.length) {
+        throw new Error("Malformed padded passphrase");
+    }
+    return paddedPassphrase.substring(8, 8 + len);
+}
+
 module.exports = {
     getRandomBytes,
     getRandomNumber,
@@ -289,5 +333,8 @@ module.exports = {
     getHexHash,
     getByteHash,
     getEncryptedByteHash,
-    getFingerprint
+    getFingerprint,
+    padPassphrase,
+    unpadPassphrase,
+    MAX_PASSPHRASE_LENGTH
 };
