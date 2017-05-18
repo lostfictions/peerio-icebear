@@ -7,7 +7,7 @@ function getFileNameWithoutExtension(path) {
 }
 
 function getFileExtension(name) {
-    let extension = name.toLowerCase().match(/\.\w+$/);
+    let extension = name.toLocaleLowerCase().match(/\.\w+$/);
     extension = extension ? extension[0].substring(1) : '';
     return extension;
 }

@@ -30,7 +30,7 @@ class Contact {
     }
 
     @computed get letter() {
-        return String.fromCodePoint((this.firstName || this.username || ' ').codePointAt(0)).toUpperCase();
+        return String.fromCodePoint((this.firstName || this.username || ' ').codePointAt(0)).toLocaleUpperCase();
     }
 
     @computed get fullName() {
@@ -43,7 +43,7 @@ class Contact {
         return ret;
     }
     @computed get fullNameLower() {
-        return this.fullName.toLowerCase();
+        return this.fullName.toLocaleLowerCase();
     }
 
     // fingerprint calculation is async, but at the same time we want it to be lazy computed
