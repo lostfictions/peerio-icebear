@@ -24,6 +24,8 @@ class Keg {
     @observable id;
     @observable tempId;
     @observable deleted = false;
+    @observable loading = false;
+    @observable saving = false;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
@@ -54,12 +56,21 @@ class Keg {
         this.tempId = getTemporaryKegId();
     }
 
+    _resetSavingState = () => {
+        this.saving = false;
+    }
+    _resetLoadingState = () => {
+        this.loading = false;
+    }
     /**
      * Saves keg to server, creates keg (reserves id) first if needed
      * @returns {Promise<Keg>}
      */
     saveToServer(cleanShareData) {
-        if (this.id) return this._internalSave(cleanShareData);
+        if (this.loding) return Promise.reject(new Error('Can not save keg while it is loading.'));
+        if (this.saving) return Promise.reject(new Error('Can not save keg while it is already saving.'));
+        this.saving = true;
+        if (this.id) return this._internalSave(cleanShareData).finally(this._resetSavingState);
 
         return socket.send('/auth/kegs/create', {
             kegDbId: this.db.id,
@@ -68,7 +79,7 @@ class Keg {
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
-            return this._internalSave(cleanShareData);
+            return this._internalSave(cleanShareData).finally(this._resetSavingState);
         });
     }
 
@@ -79,6 +90,7 @@ class Keg {
      * @private
      */
     _internalSave(cleanShareData) {
+        this.saving = true; // in case _internalSave was called directly
         let payload, props, lastVersion, signingPromise = Promise.resolve(true);
         try {
             payload = this.serializeKegPayload();
@@ -147,6 +159,9 @@ class Keg {
      * @returns {Promise.<Keg>}
      */
     load(allowEmpty = false) {
+        if (this.saving) return Promise.reject(new Error('Can not load keg while it is saving.'));
+        if (this.loading) return Promise.reject(new Error('Can not load keg while it is already loading.'));
+        this.loading = true;
         return socket.send('/auth/kegs/get', {
             kegDbId: this.db.id,
             kegId: this.id
@@ -158,7 +173,7 @@ class Keg {
                 ));
             }
             return ret;
-        });
+        }).finally(this._resetLoadingState);
     }
 
     remove() {
