@@ -45,9 +45,11 @@ class Message extends Keg {
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
         this.userMentions = [];
-        this.userMentions = _.uniq(
-            this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
-        );
+        if (this.text) {
+            this.userMentions = _.uniq(
+                this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
+            );
+        }
 
         return this.saveToServer()
             .catch(err => {
