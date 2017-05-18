@@ -9,6 +9,7 @@ class Message extends Keg {
     @observable sending = false;
     @observable sendError = false;
     @observable receipts; // array of usernames
+    @observable.shallow userMentions = [];
     // ----- calculated in chat store, used in ui
     // is this message first in the day it was sent (and loaded message page)
     @observable firstOfTheDay;
@@ -44,12 +45,6 @@ class Message extends Keg {
         this.assignTemporaryId();
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
-        this.userMentions = [];
-        if (this.text) {
-            this.userMentions = _.uniq(
-                this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
-            );
-        }
 
         return this.saveToServer()
             .catch(err => {
@@ -76,6 +71,9 @@ class Message extends Keg {
     }
 
     serializeKegPayload() {
+        this.userMentions = this.text ? _.uniq(
+            this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
+        ) : [];
         const ret = {
             text: this.text,
             timestamp: this.timestamp.valueOf(),
@@ -93,7 +91,7 @@ class Message extends Keg {
         this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
         this.userMentions = payload.userMentions;
-        this.isMention = this.userMentions ? this.userMentions.indexOf(User.current.username) > -1 : false;
+        this.isMention = this.userMentions.includes(User.current.username);
     }
 
     serializeProps() {
