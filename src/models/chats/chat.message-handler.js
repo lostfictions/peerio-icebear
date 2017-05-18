@@ -104,9 +104,6 @@ class ChatMessageHandler {
                     this.chat.reset();
                     return;
                 }
-                if (this.chat.unreadCount && resp.kegs.length) {
-                    this.chat.store.onNewMessages();
-                }
                 this.setDownloadedUpdateId(resp.kegs);
                 this.markAllAsSeen();
                 L.info(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
@@ -182,18 +179,18 @@ class ChatMessageHandler {
             || (!pagingUp && this.chat.loadingBottomPage)) {
             return;
         }
-        console.debug('Loading page', pagingUp ? 'UP' : 'DOWN');
+        L.verbose('Loading page', pagingUp ? 'UP' : 'DOWN');
         if (pagingUp) {
             this.chat.loadingTopPage = true;
             if (this.chat.loadingBottomPage) {
                 this.chat._cancelBottomPageLoad = true;
-                console.debug('Bottom page load cancelled');
+                L.verbose('Bottom page load cancelled');
             }
         } else {
             this.chat.loadingBottomPage = true;
             if (this.chat.loadingTopPage) {
                 this.chat._cancelTopPageLoad = true;
-                console.debug('Top page load cancelled');
+                L.verbose('Top page load cancelled');
             }
         }
         // todo: cancel retries if navigated away from chat?
@@ -206,7 +203,7 @@ class ChatMessageHandler {
                 count: config.chat.pageSize
             }
         })).then(action(resp => {
-            console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
+            L.verbose('Received page', pagingUp ? 'UP' : 'DOWN',
                 pagingUp && this.chat._cancelTopPageLoad
                     || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
             if (pagingUp) {

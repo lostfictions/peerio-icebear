@@ -240,9 +240,9 @@ class UpdateTracker {
     };
 
     _processDigestResponse = digest => {
-        console.debug('Processing digest response');
+        L.silly('Processing digest response');
         for (let i = 0; i < digest.length; i++) {
-            // console.debug(JSON.stringify(digest[i], null, 1));
+            // L.verbose(JSON.stringify(digest[i], null, 1));
             this.processDigestEvent(digest[i]);
         }
     };

@@ -3,6 +3,7 @@ const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
+const _ = require('lodash');
 
 class Message extends Keg {
     @observable sending = false;
@@ -43,6 +44,10 @@ class Message extends Keg {
         this.assignTemporaryId();
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
+        this.userMentions = [];
+        this.userMentions = _.uniq(
+            this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
+        );
 
         return this.saveToServer()
             .catch(err => {
@@ -71,7 +76,8 @@ class Message extends Keg {
     serializeKegPayload() {
         const ret = {
             text: this.text,
-            timestamp: this.timestamp.valueOf()
+            timestamp: this.timestamp.valueOf(),
+            userMentions: this.userMentions
         };
         if (this.systemData) {
             ret.systemData = this.systemData;
@@ -84,6 +90,8 @@ class Message extends Keg {
         this.text = payload.text;
         this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
+        this.userMentions = payload.userMentions;
+        this.isMention = this.userMentions ? this.userMentions.indexOf(User.current.username) > -1 : false;
     }
 
     serializeProps() {

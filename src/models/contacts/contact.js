@@ -113,6 +113,8 @@ class Contact {
                 this.username = profile.username;
                 this.firstName = profile.firstName || '';
                 this.lastName = profile.lastName || '';
+                this.mentionRegex = new RegExp(`@${this.username}`, 'gi');
+
                 // this is server - controlled data, so we don't account for cases when it's invalid
                 this.encryptionPublicKey = new Uint8Array(profile.encryptionPublicKey);
                 this.signingPublicKey = new Uint8Array(profile.signingPublicKey);

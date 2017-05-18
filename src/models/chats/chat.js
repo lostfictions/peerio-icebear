@@ -182,14 +182,40 @@ class Chat {
         const msg = new Message(this.db);
         // no payload for some reason. probably because of connection break after keg creation
         if (msg.isEmpty || !msg.loadFromKeg(keg)) {
-            console.debug('empty message keg', keg);
+            L.verbose('empty message keg', keg);
             return;
         }
         accumulator.push(msg);
     }
 
+    /**
+     * Alert UI hooks of new messages/mentions.
+     *
+     * @param {Number} freshBatchMentionCount -- # of new/freshly loaded messages
+     * @param {Number} freshBatchMessageCount -- # of new/freshly loaded mentions
+     * @param {Number} lastMentionId -- id of last mention message, if exists
+     */
+    onNewMessageLoad(freshBatchMentionCount, freshBatchMessageCount, lastMentionId) {
+        // fresh batch could mean app/page load rather than unreads,
+        // but we don't care about unread count if there aren't *new* unreads
+        if (this.unreadCount && freshBatchMessageCount) {
+            const lastMessageText = lastMentionId ?
+                    this._messageMap[lastMentionId].text : this.messages[this.messages.length - 1].text;
+            this.store.onNewMessages({
+                freshBatchMentionCount,
+                lastMessageText,
+                unreadCount: this.unreadCount,
+                chat: this
+            });
+        }
+    }
+
     // all kegs are decrypted and parsend, now we just push them to the observable array
     @action _finishAddMessages(accumulator, prepend) {
+        let newMessageCount = 0;
+        let newMentionCount = 0;
+        let lastMentionId;
+
         for (let i = 0; i < accumulator.length; i++) {
             const msg = accumulator[i];
             // deleted message case
@@ -204,12 +230,21 @@ class Chat {
             if (existing) {
                 this.messages.remove(existing);
                 msg.setUIPropsFrom(existing);
+            } else {
+                // track number of new messages & mentions in 'batch'
+                newMessageCount += 1;
+                if (msg.isMention) {
+                    newMentionCount += 1;
+                    lastMentionId = msg.id;
+                }
             }
             // new message case
             this._messageMap[msg.id] = msg;
             this.messages.push(msg);
         }
+        this.onNewMessageLoad(newMentionCount, newMessageCount, lastMentionId);
 
+        // sort
         this.sortMessages();
         // updating most recent message
         for (let i = this.messages.length - 1; i >= 0; i--) {
@@ -299,7 +334,6 @@ class Chat {
         delete this._messageMap[message.id];
     }
 
-
     sendAck() {
         return this.sendMessage(ACK_MSG);
     }
@@ -316,7 +350,6 @@ class Chat {
         }
         return true;
     }
-
 
     uploadAndShareFile(path, name, deleteAfterUpload) {
         return this._fileHandler.uploadAndShare(path, name, deleteAfterUpload);
@@ -473,7 +506,6 @@ class Chat {
             this.limboMessages[i].groupWithPrevious = true;
         }
     }
-
 
     _sendReceipt() {
         // messages are sorted at this point ;)

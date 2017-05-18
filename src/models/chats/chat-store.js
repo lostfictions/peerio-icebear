@@ -139,8 +139,8 @@ class ChatStore {
         return retryUntilSuccess(this._updateMyChatsFn, 'Updating MyChats keg in chat store');
     }
 
-    onNewMessages = _.throttle(() => {
-        this.events.emit(this.EVENT_TYPES.messagesReceived);
+    onNewMessages = _.throttle((props) => {
+        this.events.emit(this.EVENT_TYPES.messagesReceived, props);
     }, 1000);
 
     // 'promoted' means this chat has to be added to store bypassing watchlist

@@ -2,6 +2,7 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const isKnownKey = require('peerio-translator').has;
 const SystemWarning = require('./system-warning');
 const socket = require('../../network/socket');
+const L = require('l.js');
 
 /**
  * Server warning. Server sends locale key and severity level for client to display.
@@ -9,7 +10,7 @@ const socket = require('../../network/socket');
 class ServerWarning extends SystemWarning {
     constructor(obj, onClear) {
         if (!obj.msg.startsWith('serverWarning_') || !isKnownKey(obj.msg)) {
-            console.debug(obj);
+            L.verbose(obj);
             throw new Error('Invalid/unknown warning key received from server.');
         }
         super(obj.msg, obj.title, null, obj.level);
