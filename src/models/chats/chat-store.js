@@ -6,7 +6,7 @@ const tracker = require('../update-tracker');
 const EventEmitter = require('eventemitter3');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
-const MyChats = require('./my-chats');
+// const MyChats = require('./my-chats');
 const TinyDb = require('../../db/tiny-db');
 const ChatWatchList = require('./chat-watch-list');
 const config = require('../../config');
@@ -49,7 +49,7 @@ class ChatStore {
         this.watchList.onChatPromoted(id => {
             this.addChat(id, true);
         });
-        tracker.onKegTypeUpdated('SELF', 'my_chats', this.updateMyChats);
+
         reaction(() => this.activeChat, chat => {
             if (chat) chat.loadMessages();
         });
@@ -110,34 +110,6 @@ class ChatStore {
         return 1;
     }
 
-    _updateMyChatsFn = () => {
-        const digest = tracker.getDigest('SELF', 'my_chats');
-        if (this.downloadedMyChatsUpdateId < digest.maxUpdateId) {
-            const myChats = new MyChats();
-            return myChats.load(true)
-                .then(action(() => {
-                    this.chats.forEach(chat => { chat.isFavorite = false; });
-                    myChats.favorites.forEach(id => {
-                        const favchat = this.chatMap[id];
-                        if (!favchat) return;
-                        favchat.isFavorite = true;
-                    });
-                    myChats.hidden.forEach(id => {
-                        if (this.chatMap[id]) this._unloadChat(this.chatMap[id]);
-                    });
-                    if (myChats.version > this._hiddenChatsVersion) {
-                        this._hiddenChats = myChats.hidden;
-                    }
-                    this.downloadedMyChatsUpdateId = myChats.collectionVersion;
-                    setTimeout(this.updateMyChats, 300);
-                }));
-        }
-        return Promise.resolve();
-    };
-
-    updateMyChats = async () => {
-        return retryUntilSuccess(this._updateMyChatsFn, 'Updating MyChats keg in chat store');
-    }
 
     onNewMessages = _.throttle((props) => {
         this.events.emit(this.EVENT_TYPES.messagesReceived, props);
