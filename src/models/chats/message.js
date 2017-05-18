@@ -91,7 +91,7 @@ class Message extends Keg {
         this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
         this.userMentions = payload.userMentions;
-        this.isMention = this.userMentions.includes(User.current.username);
+        this.isMention = this.userMentions ? this.userMentions.includes(User.current.username) : false;
     }
 
     serializeProps() {
