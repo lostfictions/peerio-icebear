@@ -182,7 +182,7 @@ class User {
                             return this.createAccountAndLogin();
                         });
                 }
-                if (socket.connected && !socket.authenticated) {
+                if (!socket.authenticated) {
                     socket.reset();
                 }
                 return Promise.reject(e);

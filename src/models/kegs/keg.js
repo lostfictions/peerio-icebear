@@ -79,18 +79,18 @@ class Keg {
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
-            return this._internalSave(cleanShareData).finally(this._resetSavingState);
-        });
+            return this._internalSave(cleanShareData);
+        }).finally(this._resetSavingState);
     }
 
     /**
+     * WARNING: IF U CALL THIS FN DIRECTLY AND NOT FROM saveToServer() IT WILL BREAK saving STATE WORKFLOW
      * Updates existing server keg with new data.
      * This function assumes keg id exists so always use 'saveToServer()' to be safe.
      * @returns {Promise}
      * @private
      */
     _internalSave(cleanShareData) {
-        this.saving = true; // in case _internalSave was called directly
         let payload, props, lastVersion, signingPromise = Promise.resolve(true);
         try {
             payload = this.serializeKegPayload();
