@@ -1,14 +1,15 @@
-const Keg = require('../kegs/keg');
+const SyncedKeg = require('../kegs/synced-keg');
 const { getUser } = require('../../helpers/di-current-user');
 
 // List of user's chats macro data/flags
-class MyChats extends Keg {
+class MyChats extends SyncedKeg {
 
     favorites = [];
     hidden = [];
 
+
     constructor() {
-        super('my_chats', 'my_chats', getUser().kegDb);
+        super('my_chats', getUser().kegDb);
     }
 
     serializeKegPayload() {

@@ -397,55 +397,32 @@ class Chat {
     }
 
     toggleFavoriteState = () => {
-        if (this.changingFavState) return;
         this.changingFavState = true;
-        const origState = this.isFavorite;
-        this.isFavorite = !this.isFavorite;
-        const c = new MyChats();
-        c.load(true)
-            .then(() => {
-                if (this.isFavorite ? c.addFavorite(this.id) : c.removeFavorite(this.id)) {
-                    return c.saveToServer();
-                }
-                return false;
-            })
-            .catch(err => {
-                L.error(err);
-                this.isFavorite = origState;
-                warnings.add('error_changeChatFavoriteState');
-            })
+        const myChats = this.store.myChats;
+        const newVal = !this.isFavorite;
+        myChats.save(
+            () => {
+                newVal ? myChats.addFavorite(this.id) : myChats.removeFavorite(this.id);
+            },
+            () => {
+                newVal ? myChats.removeFavorite(this.id) : myChats.addFavorite(this.id);
+            }
+        ).then(() => { this.isFavorite = newVal; })
             .finally(() => { this.changingFavState = false; });
     }
 
     hide = () => {
         this.store._unloadChat(this);
-        const c = new MyChats();
         this.store.hidingChat = true;
-        return retryUntilSuccess(() => c.load(true)
-            .then(() => {
-                if (c.addHidden(this.id)) {
-                    return c.saveToServer();
-                }
-                return false;
-            })
-            .tapCatch(err => {
-                console.error(err);
-            }))
-            .finally(() => { this.store.hidingChat = false; });
+        return this.store.myChats.save(() => {
+            this.store.myChats.addHidden(this.id);
+        }).finally(() => { this.store.hidingChat = false; });
     };
 
     unhide = () => {
-        const c = new MyChats();
-        return c.load(true)
-            .then(() => {
-                if (c.removeHidden(this.id)) {
-                    return c.saveToServer();
-                }
-                return false;
-            })
-            .catch(err => {
-                console.error(err);
-            });
+        return this.store.myChats.save(() => {
+            this.store.myChats.removeHidden(this.id);
+        });
     };
 
     reset() {
