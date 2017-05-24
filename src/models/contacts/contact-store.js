@@ -3,6 +3,8 @@ const { observable, when } = require('mobx');
 const socket = require('../../network/socket');
 const Contact = require('./contact');
 const { setContactStore } = require('../../helpers/di-contact-store');
+const warnings = require('../warnings');
+
 /**
  * Contact(Peerio user) information store.
  * Currently provides access to any public profiles and caches lookups.
@@ -35,6 +37,16 @@ class ContactStore {
             }
         });
         return c;
+    }
+
+    invite(email) {
+        return socket.send('/auth/contacts/invite', { email })
+            .then(() => {
+                warnings.add('snackbar_emailInviteSent');
+            })
+            .catch(() => {
+                warnings.add('error_emailInviteSend');
+            });
     }
 
     // todo map
