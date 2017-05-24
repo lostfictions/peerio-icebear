@@ -1,7 +1,7 @@
 /**
  * Download module for File model, for code file length sake
  */
-const L = require('l.js');
+
 const config = require('../../config');
 const warnings = require('./../warnings');
 const FileDownloader = require('./file-downloader');
@@ -20,7 +20,7 @@ function _getDlResumeParams(path) {
             return { wholeChunks, partialChunkSize };
         })
         .catch(err => {
-            L.info(err);
+            console.log(err);
             return Promise.resolve(true); // download from start
         });
 }
@@ -66,13 +66,13 @@ function download(filePath, resume) {
                 warnings.add('snackbar_downloadComplete');
             })
             .catch(err => {
-                L.error(err);
+                console.error(err);
                 warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
                 this._resetDownloadState();
             });
     } catch (ex) {
         this._resetDownloadState();
-        L.error(ex);
+        console.error(ex);
         return Promise.reject(ex);
     }
 }
@@ -103,7 +103,7 @@ function _resetDownloadState(stream) {
     try {
         if (stream) stream.close();
     } catch (ex) {
-        L.error(ex);
+        console.error(ex);
     }
 }
 

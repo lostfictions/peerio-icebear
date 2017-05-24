@@ -64,7 +64,7 @@ class ArrayStream {
     }
 
     /**
-     * Current stream length (from currentDict position to the end of stream)
+     * Current stream length (from current position to the end of stream)
      * @returns {number} - available byte length
      */
     get length() {

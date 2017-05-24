@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const tracker = require('../update-tracker');
 const ChatHead = require('./chat-head');
 const { retryUntilSuccess } = require('../../helpers/retry');
@@ -36,7 +36,7 @@ class ChatHeadHandler {
                 return keg.saveToServer();
             })
             .tapCatch(err => {
-                L.error(err);
+                console.error(err);
                 warnings.add('error_chatRename');
             })
             .then(() => {

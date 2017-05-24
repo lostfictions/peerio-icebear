@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const socket = require('../network/socket');
 const errors = require('../errors');
 
@@ -34,7 +34,7 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
     }).catch(err => {
         callInfo.lastError = err;
         scheduleRetry(fn, id);
-        L.verbose(err);
+        console.debug(err);
     });
 
     return callInfo.promise;
@@ -43,13 +43,13 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
 function scheduleRetry(fn, id) {
     const callInfo = callsInProgress[id];
     if (callInfo.retryCount++ > maxRetryCount) {
-        L.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
-        L.verbose(fn);
+        console.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
+        console.debug(fn);
         callInfo.reject(errors.normalize(callInfo.lastError));
         return;
     }
     const delay = minRetryInterval + Math.min(maxRetryInterval, (callInfo.retryCount * retryIntervalMultFactor));
-    L.verbose(`Retrying ${id} in ${delay} second`);
+    console.debug(`Retrying ${id} in ${delay} second`);
     setTimeout(() => socket.onceAuthenticated(() => retryUntilSuccess(fn, id, true)), delay);
 }
 

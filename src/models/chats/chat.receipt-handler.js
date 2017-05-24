@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { action, reaction } = require('mobx');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
@@ -35,30 +35,30 @@ class ChatReceiptHandler {
 
 
     sendReceipt(pos) {
-        // L.verbose(`sendReceipt(${pos})`);
+        // console.debug(`sendReceipt(${pos})`);
         if (typeof pos !== 'number') throw new Error(`Attempt to send invalid receipt position ${pos}`);
-        // L.verbose('asked to send receipt: ', pos);
+        // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
         if (this.pendingReceipt) {
-            // L.verbose('Pending receipt exists ', this.pendingReceipt);
+            // console.debug('Pending receipt exists ', this.pendingReceipt);
             // we don't want to send older receipt if newer one exists already
             this.pendingReceipt = Math.max(pos, this.pendingReceipt);
-            // L.verbose('receipt was pending. now pending: ', this.pendingReceipt);
+            // console.debug('receipt was pending. now pending: ', this.pendingReceipt);
             return; // will be send after current receipt finishes sending
         }
         this.pendingReceipt = pos;
         // getting it from cache or from server
         retryUntilSuccess(this.loadOwnReceipt)
             .then(r => {
-                // L.verbose('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
+                // console.debug('Loaded own receipt pos: ', r.position, ' pending: ', this.pendingReceipt);
                 if (r.position >= this.pendingReceipt) {
                     // ups, keg has a bigger position then we are trying to save
-                    // L.verbose('it is higher then pending one too:', this.pendingReceipt);
+                    // console.debug('it is higher then pending one too:', this.pendingReceipt);
                     this.pendingReceipt = null;
                     return;
                 }
                 r.position = this.pendingReceipt;
-                // L.verbose('Saving receipt: ', pos);
+                // console.debug('Saving receipt: ', pos);
                 return r.saveToServer() // eslint-disable-line
                     .then(() => {
                         if (r.position >= this.pendingReceipt) {
@@ -73,7 +73,7 @@ class ChatReceiptHandler {
                     .catch(err => {
                         // normally, this is a connection issue or concurrency.
                         // to resolve concurrency error we reload the cached keg
-                        L.error(err);
+                        console.error(err);
                         this._ownReceipt = null;
                         pos = this.pendingReceipt;// eslint-disable-line
                         this.pendingReceipt = null;
@@ -104,13 +104,13 @@ class ChatReceiptHandler {
                 for (let i = 1; i < res.kegs.length; i++) {
                     const toRemove = new Receipt(this.chat.db);
                     toRemove.id = res.kegs[i].kegId;
-                    L.verbose(`Deleting receipt keg ${toRemove.id}`);
+                    console.debug(`Deleting receipt keg ${toRemove.id}`);
                     toRemove.remove();
                 }
                 this._ownReceipt = r;
                 return r;
             }
-            L.verbose(`Creating receipt keg`);
+            console.debug(`Creating receipt keg`);
             r.username = User.current.username;
             r.position = 0;
             this._ownReceipt = r;
@@ -152,7 +152,7 @@ class ChatReceiptHandler {
                     // we don't want to break everything for one faulty receipt
                     // also we don't want to log this, because in case of faulty receipt there will be
                     // too many logs
-                    // L.verbose(err);
+                    // console.debug(err);
                 }
             }
             const digest = tracker.getDigest(this.chat.id, 'receipt');

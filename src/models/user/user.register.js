@@ -2,7 +2,7 @@
  * Registration module for User model.
  * @module models/user
  */
-const L = require('l.js');
+
 const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
 const signCrypto = require('../../crypto/sign');
@@ -11,7 +11,7 @@ const util = require('../../util');
 
 module.exports = function mixUserRegisterModule() {
     this._createAccount = () => {
-        L.info('Generating keys.');
+        console.log('Generating keys.');
         this.authSalt = keys.generateAuthSalt();
         this.signKeys = keys.generateSigningKeyPair();
         this.encryptionKeys = keys.generateEncryptionKeyPair();
@@ -36,7 +36,7 @@ module.exports = function mixUserRegisterModule() {
     };
 
     this._handleAccountCreationChallenge = (cng) => {
-        L.info('Processing account creation challenge.');
+        console.log('Processing account creation challenge.');
         // validating challenge, paranoid mode on
         if (typeof (cng.username) !== 'string'
             || !(cng.ephemeralServerPK instanceof ArrayBuffer)

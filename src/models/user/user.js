@@ -1,7 +1,7 @@
 /**
  * @module models/user
  */
-const L = require('l.js');
+
 const socket = require('../../network/socket');
 const mixUserProfileModule = require('./user.profile.js');
 const mixUserRegisterModule = require('./user.register.js');
@@ -134,11 +134,11 @@ class User {
      * @returns {Promise}
      */
     createAccountAndLogin = () => {
-        L.info('Starting account registration sequence.');
+        console.log('Starting account registration sequence.');
         return this._createAccount()
             .then(() => this._authenticateConnection())
             .then(() => {
-                L.info('Creating boot keg.');
+                console.log('Creating boot keg.');
                 return this.kegDb.createBootKeg(this.bootKey, this.signKeys,
                     this.encryptionKeys, this.kegKey);
             })
@@ -163,7 +163,7 @@ class User {
      * Authenticates connection and makes necessary initial requests.
      */
     login() {
-        L.info('Starting login sequence');
+        console.log('Starting login sequence');
         return this._preAuth()
             .then(() => this._authenticateConnection())
             .then(() => this.kegDb.loadBootKeg(this.bootKey))
@@ -178,7 +178,7 @@ class User {
                         .then((data) => {
                             this.firstName = data.firstName || this.username;
                             this.lastName = data.lastName || this.username;
-                            this.email = data.email || 'enter_your_email@localhost';
+                            this.email = data.primaryEmail || 'enter_your_email@localhost';
                             return this.createAccountAndLogin();
                         });
                 }
@@ -210,7 +210,7 @@ class User {
             this.loadSettings();
             when(() => this.profileLoaded, () => {
                 this.setAsLastAuthenticated()
-                    .catch(err => L.error(err)); // not critical, we can ignore this error
+                    .catch(err => console.error(err)); // not critical, we can ignore this error
             });
         }
     }
@@ -226,7 +226,7 @@ class User {
         return socket.send('/noauth/validateUsername', { username })
             .then(resp => !!resp && resp.available)
             .catch(err => {
-                L.error(err);
+                console.error(err);
                 return false;
             });
     }

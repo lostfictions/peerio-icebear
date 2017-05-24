@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { observable, action, when, reaction } = require('mobx');
 const socket = require('../../network/socket');
 const SystemWarning = require('./system-warning');
@@ -73,13 +73,15 @@ class Warnings {
      * Exposed mostly for testing, should not be used by clients directly
      */
     @action.bound addServerWarning(serverObj) {
+        // TODO: make confirm dialog work
+        if (serverObj.msg === 'serverWarning_promoConsentRequest') return;
         if (this._sessionCache[serverObj.token]) return;
         this._sessionCache[serverObj.token] = true;
         try {
             const w = new ServerWarning(serverObj, () => { delete this._sessionCache[serverObj.token]; });
             this._queueItem(w);
         } catch (e) {
-            L.error(e); // try/catch protects from invalid data sent from server
+            console.error(e); // try/catch protects from invalid data sent from server
         }
     }
 }

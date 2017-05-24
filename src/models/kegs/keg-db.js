@@ -1,7 +1,7 @@
 /**
  * Keg database module.
  */
-const L = require('l.js');
+
 const BootKeg = require('./boot-keg');
 // const socket = require('../../network/socket');;
 
@@ -23,7 +23,7 @@ class KegDb {
      * @param {Uint8Array} kegKey
      */
     createBootKeg(bootKey, signKeys, encryptionKeys, kegKey) {
-        L.info('Creating boot keg of "SELF".');
+        console.log('Creating boot keg of "SELF".');
         const boot = new BootKeg(this, bootKey);
         Object.assign(boot, {
             signKeys,
@@ -39,7 +39,7 @@ class KegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     loadBootKeg(bootKey) {
-        L.info('Loading boot keg of "SELF".');
+        console.log('Loading boot keg of "SELF".');
         const boot = new BootKeg(this, bootKey);
         this.boot = boot;
         return boot.load().then(() => {

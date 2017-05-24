@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -139,7 +139,7 @@ class Chat {
             .then(action(justCreated => { // eslint-disable-line
                 if (this.db.dbIsBroken) {
                     const errmsg = `Detected broken database. id ${this.db.id}`;
-                    L.error(errmsg);
+                    console.error(errmsg);
                     throw new Error(errmsg);
                 }
                 this.id = this.db.id;
@@ -182,7 +182,7 @@ class Chat {
         const msg = new Message(this.db);
         // no payload for some reason. probably because of connection break after keg creation
         if (msg.isEmpty || !msg.loadFromKeg(keg)) {
-            L.verbose('empty message keg', keg);
+            console.debug('empty message keg', keg);
             return;
         }
         accumulator.push(msg);
@@ -200,7 +200,7 @@ class Chat {
         // but we don't care about unread count if there aren't *new* unreads
         if (this.unreadCount && freshBatchMessageCount) {
             const lastMessageText = lastMentionId ?
-                    this._messageMap[lastMentionId].text : this.messages[this.messages.length - 1].text;
+                this._messageMap[lastMentionId].text : this.messages[this.messages.length - 1].text;
             this.store.onNewMessages({
                 freshBatchMentionCount,
                 lastMessageText,
@@ -499,7 +499,7 @@ class Chat {
             if (this._receiptHandler) this._receiptHandler.dispose();
             if (this._headHandler) this._headHandler.dispose();
         } catch (err) {
-            L.error(err);
+            console.error(err);
         }
     }
 

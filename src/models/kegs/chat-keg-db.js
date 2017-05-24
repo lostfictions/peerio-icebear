@@ -1,7 +1,7 @@
 /**
  * Keg database module
  */
-const L = require('l.js');
+
 const ChatBootKeg = require('./chat-boot-keg');
 const socket = require('../../network/socket');
 const User = require('../user/user');
@@ -80,7 +80,7 @@ class ChatKegDb {
         this.participants = this.participants || [];
         // duplicate absence should be handled level higher but just to be safe.
         const arg = { participants: _.uniq(this.participants.map(p => p.username)) };
-        // participants should not include currentDict user, but just to be safe.
+        // participants should not include current user, but just to be safe.
         if (arg.participants.indexOf(User.current.username) < 0) {
             arg.participants.push(User.current.username);
         }
@@ -113,14 +113,14 @@ class ChatKegDb {
                 if (!this.key) this.dbIsBroken = true;
                 return justCreated;
             })
-            .tapCatch(err => L.error(err));
+            .tapCatch(err => console.error(err));
     }
 
     /**
      * Create boot keg for this database
      */
     _createBootKeg() {
-        L.info(`Creating chat boot keg for ${this.id}`);
+        console.log(`Creating chat boot keg for ${this.id}`);
         const publicKeys = {};
 
         return Contact.ensureAllLoaded(this.participants)
@@ -144,7 +144,7 @@ class ChatKegDb {
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
      */
     _loadBootKeg() {
-        // L.info(`Loading chat boot keg for ${this.id}`);
+        // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
         return boot.load(true).return(boot);
     }

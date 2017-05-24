@@ -5,7 +5,7 @@
  * Other modules contain singleton instances for general use.
  * @module network/socket-client
  */
-const L = require('l.js');
+
 const io = require('socket.io-client/dist/socket.io');
 const { ServerError, DisconnectedError } = require('../errors');
 const { observable } = require('mobx');
@@ -72,7 +72,7 @@ class SocketClient {
 
     start(url) {
         if (this.started) return;
-        L.info(`Starting socket: ${url}`);
+        console.log(`Starting socket: ${url}`);
         const self = this;
         this.url = url;
         this.started = true;
@@ -83,12 +83,12 @@ class SocketClient {
             WebSocket.prototype.send = function(msg) {
                 self.bytesSent += msg.length || msg.byteLength || 0;
                 if (config.debug.socketLogEnabled && typeof msg === 'string') {
-                    L.info('OUTGOING SOCKET MSG:', msg);
+                    console.log('OUTGOING SOCKET MSG:', msg);
                 }
                 return s.call(this, msg);
             };
             setInterval(() => {
-                L.info('SENT:', util.formatBytes(self.bytesSent),
+                console.log('SENT:', util.formatBytes(self.bytesSent),
                     'RECEIVED:', util.formatBytes(self.bytesReceived));
             }, config.debug.trafficReportInterval);
         }
@@ -113,14 +113,14 @@ class SocketClient {
         };
 
         socket.on('connect', () => {
-            L.info('\ud83d\udc9a Socket connected.');
+            console.log('\ud83d\udc9a Socket connected.');
             clearBuffers();
             this.configureDebugLogger();
             this.connected = true;
         });
 
         socket.on('disconnect', () => {
-            L.info('\ud83d\udc94 Socket disconnected.');
+            console.log('\ud83d\udc94 Socket disconnected.');
             this.authenticated = false;
             this.connected = false;
             clearBuffers();
@@ -138,7 +138,7 @@ class SocketClient {
             this.socket.io.engine.addEventListener('message', (msg) => {
                 this.bytesReceived += msg.length || msg.byteLength || 0;
                 if (config.debug.socketLogEnabled && typeof msg === 'string') {
-                    L.info('INCOMING SOCKET MSG:', msg);
+                    console.log('INCOMING SOCKET MSG:', msg);
                 }
             });
         }
@@ -273,7 +273,7 @@ class SocketClient {
         this.subscribe(SOCKET_EVENTS.disconnect, handler);
     }
 
-    /** Closes currentDict connection and disables reconnects. */
+    /** Closes current connection and disables reconnects. */
     close = () => {
         this.socket.close();
     };

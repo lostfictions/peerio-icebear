@@ -1,7 +1,7 @@
 /**
  * Abstract parent class for FileDownloader and FileUploader
  */
-const L = require('l.js');
+
 const errors = require('../../errors');
 const cryptoUtil = require('../../crypto/util');
 
@@ -26,7 +26,7 @@ class FileProcessor {
     }
 
     start() {
-        L.info(`starting ${this.processType} for file id: ${this.file.id}`);
+        console.log(`starting ${this.processType} for file id: ${this.file.id}`);
         this._tick();
         return new Promise((resolve, reject) => {
             this.resolve = resolve;
@@ -50,11 +50,11 @@ class FileProcessor {
         }
         this.cleanup();
         if (err) {
-            L.info(`Failed to ${this.processType} file ${this.file.fileId}.`, err);
+            console.log(`Failed to ${this.processType} file ${this.file.fileId}.`, err);
             this.reject(errors.normalize(err));
             return;
         }
-        L.info(`${this.processType} success: ${this.file.fileId}`, this.toString());
+        console.log(`${this.processType} success: ${this.file.fileId}`, this.toString());
         this.resolve();
     }
 

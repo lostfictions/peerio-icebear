@@ -1,7 +1,7 @@
 /**
  * Module takes care of listening to chat updates and loading updated data
  */
-const L = require('l.js');
+
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const config = require('../../config');
@@ -83,7 +83,7 @@ class ChatMessageHandler {
         this._loadingUpdates = true;
         this._reCheckUpdates = false;
 
-        L.info('Getting updates for chat', this.chat.id);
+        console.log('Getting updates for chat', this.chat.id);
         socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -106,7 +106,7 @@ class ChatMessageHandler {
                 }
                 this.setDownloadedUpdateId(resp.kegs);
                 this.markAllAsSeen();
-                L.info(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
+                console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
                 this.chat.addMessages(resp.kegs);
             })).finally(this.onMessageDigestUpdate);
     }
@@ -150,7 +150,7 @@ class ChatMessageHandler {
             return Promise.resolve();
         }
         this.chat.loadingInitialPage = true;
-        L.info('loading initial page for this.chat', this.chat.id);
+        console.log('loading initial page for this.chat', this.chat.id);
         return retryUntilSuccess(() => socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -168,7 +168,7 @@ class ChatMessageHandler {
                 this.chat._cancelBottomPageLoad = false;
                 this.setDownloadedUpdateId(resp.kegs);
                 if (!this.chat.canGoDown) this.markAllAsSeen();
-                L.info(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
+                console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
                 return this.chat.addMessages(resp.kegs);
             }));
     }
@@ -179,18 +179,18 @@ class ChatMessageHandler {
             || (!pagingUp && this.chat.loadingBottomPage)) {
             return;
         }
-        L.verbose('Loading page', pagingUp ? 'UP' : 'DOWN');
+        console.debug('Loading page', pagingUp ? 'UP' : 'DOWN');
         if (pagingUp) {
             this.chat.loadingTopPage = true;
             if (this.chat.loadingBottomPage) {
                 this.chat._cancelBottomPageLoad = true;
-                L.verbose('Bottom page load cancelled');
+                console.debug('Bottom page load cancelled');
             }
         } else {
             this.chat.loadingBottomPage = true;
             if (this.chat.loadingTopPage) {
                 this.chat._cancelTopPageLoad = true;
-                L.verbose('Top page load cancelled');
+                console.debug('Top page load cancelled');
             }
         }
         // todo: cancel retries if navigated away from chat?
@@ -203,7 +203,7 @@ class ChatMessageHandler {
                 count: config.chat.pageSize
             }
         })).then(action(resp => {
-            L.verbose('Received page', pagingUp ? 'UP' : 'DOWN',
+            console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
                 pagingUp && this.chat._cancelTopPageLoad
                     || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
             if (pagingUp) {

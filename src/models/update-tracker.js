@@ -1,7 +1,7 @@
 /**
  * Keg update handling module
  */
-const L = require('l.js');
+
 const socket = require('../network/socket');
 
 /*
@@ -73,7 +73,7 @@ class UpdateTracker {
      */
     onKegDbAdded(handler) {
         if (this.dbAddedHandlers.includes(handler)) {
-            L.error('This handler already subscribed to onKegDbAdded');
+            console.error('This handler already subscribed to onKegDbAdded');
             return;
         }
         this.dbAddedHandlers.push(handler);
@@ -94,7 +94,7 @@ class UpdateTracker {
             this.updateHandlers[kegDbId][kegType] = [];
         }
         if (this.updateHandlers[kegDbId][kegType].includes(handler)) {
-            L.error('This handler already subscribed to onKegTypeUpdated');
+            console.error('This handler already subscribed to onKegTypeUpdated');
             return;
         }
         this.updateHandlers[kegDbId][kegType].push(handler);
@@ -210,7 +210,7 @@ class UpdateTracker {
             try {
                 handler(id);
             } catch (err) {
-                L.error(err);
+                console.error(err);
             }
         });
     }
@@ -221,7 +221,7 @@ class UpdateTracker {
             try {
                 handler();
             } catch (err) {
-                L.error(err);
+                console.error(err);
             }
         });
     }
@@ -240,9 +240,9 @@ class UpdateTracker {
     };
 
     _processDigestResponse = digest => {
-        L.silly('Processing digest response');
+        console.debug('Processing digest response');
         for (let i = 0; i < digest.length; i++) {
-            // L.verbose(JSON.stringify(digest[i], null, 1));
+            // console.debug(JSON.stringify(digest[i], null, 1));
             this.processDigestEvent(digest[i]);
         }
     };
@@ -252,7 +252,7 @@ class UpdateTracker {
      * Initial call, reads only unread data.
      */
     loadDigest = () => {
-        L.info(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
+        console.log(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
         socket.send('/auth/kegs/updates/digest', { unread: true })
             .then(this._processDigestResponse)
             .then(() => socket.send('/auth/kegs/updates/digest', { kegDbIds: this.activeKegDbs }))

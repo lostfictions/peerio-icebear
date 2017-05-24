@@ -85,7 +85,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
 
     // when field changes, reaction is triggered
     reaction(() => store[fName], value => {
-        // L.info(`${fName}: ${value} validation run`);
+        // console.log(`${fName}: ${value} validation run`);
         store[fValid] = false;
         store[fieldValidationMessageText] = '';
         let valid = Promise.resolve(true);
@@ -94,30 +94,30 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
             valid = valid.then(() => {
                 return action(value, fName);
             })
-            .then(validatorResult => {
-                if (validatorResult === true) {
-                    return true;
-                }
-                let m = validatorResult;
-                if (validatorResult === false) {
-                    m = message;
-                } else if (validatorResult && validatorResult.message) {
-                    m = validatorResult.message;
-                }
-                return Promise.reject(new Error(m));
-            });
+                .then(validatorResult => {
+                    if (validatorResult === true) {
+                        return true;
+                    }
+                    let m = validatorResult;
+                    if (validatorResult === false) {
+                        m = message;
+                    } else if (validatorResult && validatorResult.message) {
+                        m = validatorResult.message;
+                    }
+                    return Promise.reject(new Error(m));
+                });
         });
         valid = valid.then(() => {
-            // L.info(`${fName} is valid`);
+            // console.log(`${fName} is valid`);
             store[fValid] = true;
             store[fieldValidationMessageText] = '';
         })
-        .catch(error => {
-            // L.info(`${fName} is invalid`);
+            .catch(error => {
+                // console.log(`${fName} is invalid`);
                 // note computed message will only how up if field is dirty
-            store[fValid] = false;
-            store[fieldValidationMessageText] = error.message;
-        });
+                store[fValid] = false;
+                store[fieldValidationMessageText] = error.message;
+            });
         return null;
     }, true);
 }

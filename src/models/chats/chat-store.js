@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { observable, action, computed, reaction, runInAction, autorunAsync, when } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
@@ -236,7 +236,7 @@ class ChatStore {
             }
         }
         // we don't want our own user in participants, it's handled on the lowest level only.
-        // generally ui should assume currentDict user is participant to everything
+        // generally ui should assume current user is participant to everything
         const filteredParticipants = this.getSelflessParticipants(participants);
         // maybe we already have this chat cached
         for (const c of this.chats) {

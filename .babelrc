@@ -5,6 +5,12 @@
         "transform-class-properties",
         "transform-es2015-modules-commonjs",
         "transform-export-extensions",
-        ["transform-object-rest-spread", { "useBuiltIns": true }]
+        [
+            "transform-object-rest-spread",
+            {
+                "useBuiltIns": true
+            }
+        ],
+        "console-kungfu"
     ]
 }

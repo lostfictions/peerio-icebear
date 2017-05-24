@@ -3,7 +3,7 @@
  * Digital signing module
  * @module crypto/sign
  */
-const L = require('l.js');
+
 const nacl = require('tweetnacl');
 
 let sign = nacl.sign.detached;
@@ -24,7 +24,7 @@ function verifyDetached(message, signature, publicKey) {
     try {
         result = verify(message, signature, publicKey);
     } catch (err) {
-        L.error(err);
+        console.error(err);
     }
     return Promise.resolve(result);
 }

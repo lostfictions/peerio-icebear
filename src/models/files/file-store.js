@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { observable, action, when, reaction, computed } = require('mobx');
 const socket = require('../../network/socket');
 const User = require('../user/user');
@@ -116,14 +116,14 @@ class FileStore {
      */
     constructor() {
         tracker.onKegTypeUpdated('SELF', 'file', () => {
-            L.info('Files update event received');
+            console.log('Files update event received');
             this.onFileDigestUpdate();
         });
     }
 
     onFileDigestUpdate = () => {
         const digest = tracker.getDigest('SELF', 'file');
-        L.info(`Files digest: ${JSON.stringify(digest)}`);
+        console.log(`Files digest: ${JSON.stringify(digest)}`);
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
@@ -186,7 +186,7 @@ class FileStore {
     updateFiles = (maxId) => {
         if (!this.loaded || this.updating) return;
         if (!maxId) maxId = this.maxUpdateId; // eslint-disable-line
-        L.info(`Proceeding to file update. Known collection version: ${this.knownUpdateId}`);
+        console.log(`Proceeding to file update. Known collection version: ${this.knownUpdateId}`);
         this.updating = true;
         retryUntilSuccess(() => this._getFiles(), 'Updating file list')
             .then(action(resp => {
@@ -250,7 +250,7 @@ class FileStore {
     }
 
     resumeBrokenDownloads() {
-        L.info('Checking for interrupted downloads.');
+        console.log('Checking for interrupted downloads.');
         const regex = /^DOWNLOAD:(.*)$/;
         TinyDb.user.getAllKeys()
             .then(keys => {
@@ -259,7 +259,7 @@ class FileStore {
                     if (!match || !match[1]) continue;
                     const file = this.getById(match[1]);
                     if (file) {
-                        L.info(`Requesting download resume for ${keys[i]}`);
+                        console.log(`Requesting download resume for ${keys[i]}`);
                         TinyDb.user.getValue(keys[i]).then(dlInfo => file.download(dlInfo.path, true));
                     }
                 }
@@ -267,7 +267,7 @@ class FileStore {
     }
 
     resumeBrokenUploads() {
-        L.info('Checking for interrupted uploads.');
+        console.log('Checking for interrupted uploads.');
         const regex = /^UPLOAD:(.*)$/;
         TinyDb.user.getAllKeys()
             .then(keys => {
@@ -276,7 +276,7 @@ class FileStore {
                     if (!match || !match[1]) continue;
                     const file = this.getById(match[1]);
                     if (file) {
-                        L.info(`Requesting upload resume for ${keys[i]}`);
+                        console.log(`Requesting upload resume for ${keys[i]}`);
                         TinyDb.user.getValue(keys[i]).then(dlInfo => file.upload(dlInfo.path, null, true));
                     }
                 }

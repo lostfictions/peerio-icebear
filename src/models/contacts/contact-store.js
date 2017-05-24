@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const { observable, when } = require('mobx');
 const socket = require('../../network/socket');
 const Contact = require('./contact');
@@ -8,7 +8,7 @@ const { setContactStore } = require('../../helpers/di-contact-store');
  * Currently provides access to any public profiles and caches lookups.
  */
 class ContactStore {
-    /** @type {Array<Contact>} - A list of Contact objects that were requested in currentDict session. (cache) */
+    /** @type {Array<Contact>} - A list of Contact objects that were requested in current session. (cache) */
     @observable contacts = [];
 
     /**
@@ -52,8 +52,8 @@ class ContactStore {
     loadLegacyContacts() {
         return socket.send('/auth/legacy/contacts/get')
             .then(list => {
-                L.info(`contact-store.js: load legacy contacts`);
-                // L.info(list);
+                console.log(`contact-store.js: load legacy contacts`);
+                // console.log(list);
                 list && list.length && this._merge(list);
             });
     }

@@ -1,4 +1,4 @@
-const L = require('l.js');
+
 const socket = require('../../network/socket');
 const { observable, action, when, computed, reaction } = require('mobx');
 const { cryptoUtil } = require('../../crypto/index');
@@ -96,7 +96,7 @@ class Contact {
 
     load() {
         if (!this.loading || this._waitingForResponse) return;
-        L.info(`Loading contact: ${this.username}`);
+        console.log(`Loading contact: ${this.username}`);
         this.loading = true;
         this._waitingForResponse = true;
 
@@ -128,7 +128,7 @@ class Contact {
             .catch(err => {
                 this._waitingForResponse = false;
                 socket.onceAuthenticated(() => this.load());
-                L.info(err);
+                console.log(err);
             });
     }
 

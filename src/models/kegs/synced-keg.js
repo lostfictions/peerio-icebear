@@ -29,7 +29,7 @@ class SyncedKeg extends Keg {
     _loadKeg = () => retryUntilSuccess(() => {
         // do we even need to update?
         const digest = tracker.getDigest(this.db.id, this.type);
-        if (this.collectionVersion >= digest.maxUpdateId) {
+        if (this.collectionVersion && this.collectionVersion >= digest.maxUpdateId) {
             this.loaded = true;
             return Promise.resolve();
         }
