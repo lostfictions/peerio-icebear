@@ -26,7 +26,10 @@ module.exports = function mixUserAuthModule() {
         return this._loadAuthSalt()
             .then(this._deriveKeys)
             .then(this._getAuthToken)
-            .then(this._authenticateAuthToken);
+            .then(this._authenticateAuthToken)
+            .then(() => {
+                socket.preauthenticated = true;
+            });
     };
 
     /**

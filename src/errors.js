@@ -61,14 +61,17 @@ function getGenericCustomError(name, msg) {
 }
 module.exports.getGenericCustomError = getGenericCustomError;
 // -- Custom Errors ----------------------------------------------------------------------------------------------
-module.exports.DecryptionError = getGenericCustomError('DecryptionError');
-module.exports.EncryptionError = getGenericCustomError('EncryptionError');
-module.exports.AntiTamperError = getGenericCustomError('AntiTamperError');
-module.exports.AbstractCallError = getGenericCustomError('AbstractCallError',
-                                                         'Abstract function call. Override this function.');
-module.exports.NoPasscodeFoundError = getGenericCustomError('NoPasscodeFoundError',
-                                                         'No passcode found.');
-module.exports.DisconnectedError = getGenericCustomError('DisconnectedError');
+[
+    ['DecryptionError'],
+    ['EncryptionError'],
+    ['AntiTamperError'],
+    ['DisconnectedError'],
+    ['NotAuthenticatedError'],
+    ['AbstractCallError', 'Abstract function call. Override this function.'],
+    ['NoPasscodeFoundError', 'No passcode found.']
+].forEach(errType => {
+    module.exports[errType[0]] = getGenericCustomError(errType[0], errType[1]);
+});
 // -- Server Errors ----------------------------------------------------------------------------------------------
 const serverErrorCodes = {
     notFound: 404,

@@ -7,7 +7,7 @@
  */
 
 const io = require('socket.io-client/dist/socket.io');
-const { ServerError, DisconnectedError } = require('../errors');
+const { ServerError, DisconnectedError, NotAuthenticatedError } = require('../errors');
 const { observable } = require('mobx');
 const config = require('../config');
 const util = require('../util');
@@ -49,6 +49,10 @@ class SocketClient {
     started = false;
     url = null;
     @observable connected = false;
+    // this flag means that connection has technically been authenticated from server's perspective
+    // but client is still initializing, loading boot keg and other important data needed before starting any other
+    // processes and setting socket.authenticated to true
+    preauthenticated = false;
     @observable authenticated = false;
     @observable throttled = false;
     // for debug (if enabled)
@@ -76,6 +80,7 @@ class SocketClient {
         const self = this;
         this.url = url;
         this.started = true;
+        this.preauthenticated = false;
         this.authenticated = false;
         // <DEBUG>
         if (config.debug && config.debug.trafficReportInterval > 0) {
@@ -121,6 +126,7 @@ class SocketClient {
 
         socket.on('disconnect', () => {
             console.log('\ud83d\udc94 Socket disconnected.');
+            this.preauthenticated = false;
             this.authenticated = false;
             this.connected = false;
             clearBuffers();
@@ -207,6 +213,10 @@ class SocketClient {
             this.awaitingRequests[id] = reject;
             if (!this.connected) {
                 reject(new DisconnectedError());
+                return;
+            }
+            if (name.startsWith('/auth/') && !this.preauthenticated) {
+                reject(new NotAuthenticatedError());
                 return;
             }
             function handler(resp) {

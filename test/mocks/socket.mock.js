@@ -61,6 +61,7 @@ function mockSocket() {
         };
         this.started = true;
         this.connected = true;
+        this.preauthenticated = false;
         this.authenticated = false;
     };
     return socket;
