@@ -49,7 +49,7 @@ class Keg {
      * @returns {boolean}
      */
     get isEmpty() {
-        return this.version < 2;
+        return this.version === 1;
     }
 
     assignTemporaryId() {
