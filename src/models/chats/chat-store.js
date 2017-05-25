@@ -177,21 +177,21 @@ class ChatStore {
         await asPromise(this.myChats, 'loaded', true);
         // 3. checking how many more chats we can load
         const rest = config.chat.maxInitalChats - this.myChats.favorites.length;
-        if (rest <= 0) return;
-        // 4. loading the rest unhidden chats
-        await retryUntilSuccess(() =>
-            socket.send('/auth/kegs/user/dbs')
-                .then(action(list => {
-                    let k = 0;
-                    for (const id of list) {
-                        if (id === 'SELF' || this.myChats.hidden.includes(id)
-                            || this.myChats.favorites.includes(id)) continue;
-                        if (k++ >= rest) break;
-                        this.addChat(id);
-                    }
-                }))
-        );
-
+        if (rest > 0) {
+            // 4. loading the rest unhidden chats
+            await retryUntilSuccess(() =>
+                socket.send('/auth/kegs/user/dbs')
+                    .then(action(list => {
+                        let k = 0;
+                        for (const id of list) {
+                            if (id === 'SELF' || this.myChats.hidden.includes(id)
+                                || this.myChats.favorites.includes(id)) continue;
+                            if (k++ >= rest) break;
+                            this.addChat(id);
+                        }
+                    }))
+            );
+        }
         // 5. check if chats were created while we were loading chat list
         // unlikely, but possible
         Object.keys(tracker.digest).forEach(id => {
