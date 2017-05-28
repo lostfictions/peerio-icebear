@@ -7,7 +7,7 @@ const User = require('../user/user');
 const tracker = require('../update-tracker');
 const warnings = require('../warnings');
 
-class MailStore {
+class GhostStore {
     @observable ghosts = observable.shallowArray([]); // sorted array
     @observable ghostMap = observable.shallowMap({});
     @observable loading = false;
@@ -189,4 +189,4 @@ class MailStore {
 
 }
 
-module.exports = new MailStore();
+module.exports = new GhostStore();
