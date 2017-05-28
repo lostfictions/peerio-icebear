@@ -121,14 +121,14 @@ class FileStore {
         });
     }
 
-    onFileDigestUpdate = () => {
+    onFileDigestUpdate = _.throttle(() => {
         const digest = tracker.getDigest('SELF', 'file');
         console.log(`Files digest: ${JSON.stringify(digest)}`);
         this.unreadFiles = digest.newKegsCount;
         if (digest.maxUpdateId === this.maxUpdateId) return;
         this.maxUpdateId = digest.maxUpdateId;
         this.updateFiles(this.maxUpdateId);
-    };
+    }, 1500);
 
     _getFiles() {
         const filter = { minCollectionVersion: this.knownUpdateId };
