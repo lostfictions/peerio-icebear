@@ -64,7 +64,7 @@ class ChatMessageHandler {
             this._removeMarkerTimer = null;
             if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             this.chat.newMessagesMarkerPos = null;
-        }, 7000);
+        }, 20000);
     }
 
     // one of the reasons to throttle is to avoid changing unreadCount observable inside a reaction to it's change
