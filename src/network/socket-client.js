@@ -212,10 +212,12 @@ class SocketClient {
         return new Promise((resolve, reject) => {
             this.awaitingRequests[id] = reject;
             if (!this.connected) {
+                console.error(`Attempt to send ${name} while disconnected`);
                 reject(new DisconnectedError());
                 return;
             }
             if (name.startsWith('/auth/') && !this.preauthenticated) {
+                console.error(`Attempt to send ${name} while not authenticated`);
                 reject(new NotAuthenticatedError());
                 return;
             }
