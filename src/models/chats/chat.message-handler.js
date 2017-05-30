@@ -119,7 +119,7 @@ class ChatMessageHandler {
             this._markAsSeenTimer = null;
             if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
-        }, 2000);
+        }, 1000);
     }
 
     setDownloadedUpdateId(kegs) {
