@@ -119,7 +119,13 @@ class ChatMessageHandler {
             this._markAsSeenTimer = null;
             if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             tracker.seenThis(this.chat.id, 'message', this.downloadedUpdateId);
-        }, 1000);
+        }, this._getTimeoutValue(this.chat.unreadCount));
+    }
+
+    _getTimeoutValue(unreadCount) {
+        if (unreadCount <= 5) return 0;
+        if (unreadCount < 20) return 1000;
+        return 1500;
     }
 
     setDownloadedUpdateId(kegs) {
