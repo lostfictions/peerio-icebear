@@ -14,7 +14,7 @@ describe('TinyDB', () => {
         key = keys.generateEncryptionKey();
         username = helpers.getRandomUsername();
         // system db is expected to open without explicit call
-        db.system.should.be.defined;
+        db.system.should.exist;
     });
 
     function execForEachDb(testFn) {
