@@ -87,15 +87,17 @@ module.exports = function mixUserRegisterModule() {
         return validators.emailAvailability.action(email).then(available => {
             if (!available) {
                 warnings.addSevere('error_emailTaken', 'title_error');
-                return;
+                return Promise.resolve();
             }
-            // eslint-disable-next-line
             return socket.send('/auth/address/add', {
                 address: {
                     type: 'email',
                     value: email
                 }
-            });
+            })
+                .then(() => {
+                    warnings.add('warning_emailConfirmationSent');
+                });
         }).tapCatch(err => {
             console.error(err);
             warnings.add('error_saveSettings');
