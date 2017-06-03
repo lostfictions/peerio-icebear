@@ -11,9 +11,6 @@ const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
 const DOMPurify = require('dompurify');
-const MyChats = require('./my-chats');
-const warnings = require('../warnings');
-const { retryUntilSuccess } = require('../../helpers/retry');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;

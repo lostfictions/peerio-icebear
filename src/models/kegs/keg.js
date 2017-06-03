@@ -32,16 +32,17 @@ class Keg {
      * @param {KegDb} db - keg database owning this keg
      * @param {[boolean]} plaintext - should keg be encrypted
      */
-    constructor(id, type, db, plaintext) {
+    constructor(id, type, db, plaintext = false, forceSign = false) {
         this.id = id;
         this.type = type;
         this.db = db;
-        this.plaintext = !!plaintext;
+        this.plaintext = plaintext;
         this.keyId = 0; // @type {string} reserved for future keys change feature
         this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
         this.collectionVersion = ''; // @type {number} kegType-wide last update id for this keg
         this.props = {};
+        this.forceSign = forceSign;
     }
 
     /**
@@ -100,7 +101,7 @@ class Keg {
                 props.sharedKegRecipientPK = null;
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
-            if (!this.plaintext) {
+            if (!this.plaintext || this.forceSign) {
                 payload._sys = {
                     kegId: this.id,
                     type: this.type
@@ -111,15 +112,14 @@ class Keg {
             // should we encrypt the string?
             if (!this.plaintext) {
                 payload = secret.encryptString(payload, this.overrideKey || this.db.key);
-                if (this.db.id !== 'SELF') {
-                    signingPromise = this._signKegPayload(payload) // here we need Uint8Array
-                        .then(signature => {
-                            props.signature = signature;
-                            this.signatureError = false;
-                        })
-                        .tapCatch(err => console.error('Failed to sign keg', err));
-                }
-                payload = payload.buffer; // socket accepts ArrayBuffer
+            }
+            if (this.forceSign || (!this.plaintext && this.db.id !== 'SELF')) {
+                signingPromise = this._signKegPayload(payload)
+                    .then(signature => {
+                        props.signature = signature;
+                        this.signatureError = false;
+                    })
+                    .tapCatch(err => console.error('Failed to sign keg', err));
             }
         } catch (err) {
             console.error('Failed preparing keg to save.', err);
@@ -132,7 +132,7 @@ class Keg {
                 kegId: this.id,
                 keyId: '0',
                 type: this.type,
-                payload,
+                payload: this.plaintext ? payload : payload.buffer,
                 props,
                 version: lastVersion + 1
             }
@@ -150,7 +150,8 @@ class Keg {
      * @private
      */
     _signKegPayload(payload) {
-        return sign.signDetached(payload, getUser().signKeys.secretKey).then(cryptoUtil.bytesToB64);
+        const toSign = this.plaintext ? cryptoUtil.strToBytes(payload) : payload;
+        return sign.signDetached(toSign, getUser().signKeys.secretKey).then(cryptoUtil.bytesToB64);
     }
 
     /**
@@ -205,28 +206,30 @@ class Keg {
             if (!keg.payload) return allowEmpty ? this : false;
             let payload = keg.payload;
             let sharedKey = null;
-            // should we decrypt?
+
             if (!this.plaintext) {
                 payload = new Uint8Array(keg.payload);
-                // SELF kegs do not require signing
-                if (this.db.id !== 'SELF') {
-                    this._verifyKegSignature(payload, keg.props.signature);
-                }
-                // is this keg shared with us and needs re-encryption?
-                // todo: sharedKegSenderPK is used here to detect keg that still needs re-encryption
-                // todo: the property will get deleted after re-encryption
-                // todo: we can't introduce additional flag bcs props are not being deleted on keg delete
-                // todo: to allow re-sharing of the same file keg
-                if (keg.props.sharedBy && keg.props.sharedKegSenderPK) {
-                    // async call, changes state of the keg in case of issues
-                    this._validateAndReEncryptSharedKeg(keg.props);
-                    // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
-                    sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
-                }
+            }
+            // SELF kegs do not require signing
+            if (this.forceSign || (!this.plaintext && !this.db.id !== 'SELF')) {
+                this._verifyKegSignature(payload, keg.props.signature);
+            }
+            // is this keg shared with us and needs re-encryption?
+            // sharedKegSenderPK is used here to detect keg that still needs re-encryption
+            // the property will get deleted after re-encryption
+            // we can't introduce additional flag bcs props are not being deleted on keg delete
+            // to allow re-sharing of the same file keg
+            if (!this.plaintext && keg.props.sharedBy && keg.props.sharedKegSenderPK) {
+                // async call, changes state of the keg in case of issues
+                this._validateAndReEncryptSharedKeg(keg.props);
+                // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
+                sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
+            }
+            if (!this.plaintext) {
                 payload = secret.decryptString(payload, sharedKey || this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
-            if (!(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {
+            if (this.forceSign || !(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {
                 this.detectTampering(payload);
             }
             this.deserializeKegPayload(payload);
@@ -246,16 +249,14 @@ class Keg {
                 this.sharedKegError = true;
                 return;
             }
-            // todo: technically speaking we should retry this action until success.
-            // todo: but only for not verison-conflict related issues
-            // todo: and currently it's not actually an issue to have it re-encrypted later/next time it loads
+            // we don't care much if this fails because next time it will get re-saved
             this.saveToServer(true);
         });
     }
 
     /**
      *
-     * @param {Uint8Array} payload
+     * @param {Uint8Array|string} payload
      * @param {String} signature
      * @private
      */
@@ -269,8 +270,9 @@ class Keg {
         const contact = getContactStore().getContact(this.owner);
         contact.whenLoaded(() => {
             contact.notFound ? Promise.resolve(false) :
-                sign.verifyDetached(payload, signature, contact.signingPublicKey)
-                    .then(r => (this.signatureError = !r));
+                sign.verifyDetached(
+                    this.plaintext ? cryptoUtil.strToBytes(payload) : payload, signature, contact.signingPublicKey
+                ).then(r => (this.signatureError = !r));
         });
     }
 
@@ -312,6 +314,9 @@ class Keg {
      * @throws AntiTamperError
      */
     detectTampering(payload) {
+        if (!payload._sys) {
+            throw new AntiTamperError(`Anti tamper data missing for ${this.id}`);
+        }
         if (payload._sys.kegId !== this.id) {
             throw new AntiTamperError(`Inner ${payload._sys.kegId} and outer ${this.id} keg id mismatch.`);
         }

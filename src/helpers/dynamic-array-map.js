@@ -11,6 +11,7 @@ function createMap(array, keyProp) {
             delete map[el[keyProp]];
         }
         delta.added.forEach(el => { map[el[keyProp]] = el; });
+        return delta;
     });
 
     array.forEach(el => {

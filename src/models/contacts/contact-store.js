@@ -1,17 +1,175 @@
 
-const { observable, when } = require('mobx');
+const { observable, when, action, computed, intercept } = require('mobx');
 const socket = require('../../network/socket');
 const Contact = require('./contact');
 const { setContactStore } = require('../../helpers/di-contact-store');
+const MyContacts = require('../contacts/my-contacts');
+const Invites = require('../contacts/invites');
 const warnings = require('../warnings');
+const createMap = require('../../helpers/dynamic-array-map');
+const { getFirstLetterUpperCase } = require('./../../helpers/string');
 
 /**
  * Contact(Peerio user) information store.
  * Currently provides access to any public profiles and caches lookups.
  */
 class ContactStore {
-    /** @type {Array<Contact>} - A list of Contact objects that were requested in current session. (cache) */
-    @observable contacts = [];
+    /** @type {Array<Contact>} - This is a source of all contacts (except invited, non-peerio users) */
+    @observable.shallow contacts = [];
+    myContacts;
+    invites;
+    @computed get addedContacts() {
+        return this.contacts.filter(c => c.isAdded);
+    }
+
+    @observable.shallow invitedContacts = [];
+
+    // options: firstName, lastName, username
+    @observable uiViewSortBy = 'firstName';
+    // options: added, all
+    @observable uiViewFilter = 'added';
+    @observable uiViewSearchQuery = '';
+
+    _checkSortValue(change) {
+        switch (change.newValue) {
+            case 'firstName':
+            case 'lastName':
+            case 'username':
+                return change;
+            default:
+                console.error('Invalid contact sorting property:', change.newValue);
+                return null;
+        }
+    }
+
+    _checkFilterValue(change) {
+        switch (change.newValue) {
+            case 'added':
+            case 'all':
+                return change;
+            default:
+                console.error('Invalid contact filter property:', change.newValue);
+                return null;
+        }
+    }
+
+
+    @computed get uiView() {
+        let ret;
+        switch (this.uiViewFilter) {
+            case 'all':
+                ret = this.contacts;
+                break;
+            case 'added':
+                ret = this.addedContacts;
+                break;
+            default: ret = [];
+        }
+        if (this.uiViewSearchQuery) {
+            ret = this.filter(this.uiViewSearchQuery, ret, true);
+        }
+        ret = ret.sort((c1, c2) => {
+            const val1 = c1[this.uiViewSortBy] || '', val2 = c2[this.uiViewSortBy] || '';
+            return val1.localeCompare(val2);
+        });
+        ret = this.segmentizeByFirstLetter(ret, this.uiViewSortBy);
+        return ret;
+    }
+
+    segmentizeByFirstLetter(array, property) {
+        const ret = [];
+        if (!array.length) return ret;
+        const itemsByLetter = {}; // to easily group items by letter
+        const letterOrder = []; // to have the right order of letters
+        for (let i = 0; i < array.length; i++) {
+            const letter = getFirstLetterUpperCase(array[i][property]);
+            let letterArray = itemsByLetter[letter];
+            if (!letterArray) {
+                letterArray = itemsByLetter[letter] = [];
+                letterOrder.push(letter);
+            }
+            letterArray.push(array[i]);
+        }
+        for (let i = 0; i < letterOrder.length; i++) {
+            const letter = letterOrder[i];
+            ret.push({ letter, items: itemsByLetter[letter] });
+        }
+        return ret;
+    }
+
+    constructor() {
+        intercept(this, 'uiViewSortBy', this._checkSortValue);
+        intercept(this, 'uiViewFilter', this._checkFilterValue);
+        this._contactMap = createMap(this.contacts, 'username');
+        socket.onceAuthenticated(() => {
+            this.loadContactsFromTOFUKegs();
+            this.myContacts = new MyContacts();
+            this.myContacts.onUpdated = this.applyMyContactsData;
+            this.invites = new Invites();
+            this.invites.onUpdated = this.applyInvitesData;
+        });
+    }
+
+    applyMyContactsData = action(() => {
+        Object.keys(this.myContacts.contacts).forEach(username => {
+            this.getContact(username);
+        });
+        this.contacts.forEach(c => {
+            c.isAdded = !!this.myContacts.contacts[c.username];
+        });
+    });
+
+    applyInvitesData = action(() => {
+        this.invitedContacts = this.invites.issued;
+    });
+
+    /**
+     *
+     * @param {string|Contact} val - username, email or Contact
+     * @returns {Promise<bool>} - true: added, false: not found
+     */
+    addContact(val) {
+        const c = typeof val === 'string' ? this.getContact(val) : val;
+        if (this.myContacts.contacts[c.username]) return Promise.resolve(true);
+        return new Promise((resolve, reject) => {
+            when(() => !c.loading, () => {
+                if (c.notFound) {
+                    resolve(false);
+                } else {
+                    this.myContacts.save(
+                        () => this.myContacts.addContact(c),
+                        () => this.myContacts.removeContact(c),
+                        'error_contactAddFail'
+                    ).then(() => {
+                        // because own keg writes don't trigger digest update
+                        this.applyMyContactsData();
+                        warnings.add('snackbar_contactAdded');
+                        resolve(true);
+                    }).catch(reject);
+                }
+            });
+        });
+    }
+
+    removeContact(usernameOrContact) {
+        const c = typeof usernameOrContact === 'string' ? this.getContact(usernameOrContact) : usernameOrContact;
+        if (!this.myContacts.contacts[c.username]) return;
+        when(() => !c.loading, () => {
+            if (c.notFound) {
+                warnings.add('error_contactRemoveFail');
+            } else {
+                this.myContacts.save(
+                    () => this.myContacts.removeContact(c),
+                    () => this.myContacts.addContact(c),
+                    'error_contactRemoveFail'
+                ).then(() => {
+                    // because own keg writes don't trigger digest update
+                    this.applyMyContactsData();
+                    warnings.add('snackbar_contactRemoved');
+                });
+            }
+        });
+    }
 
     /**
      * Returns Contact object ether from cache or server.
@@ -20,7 +178,7 @@ class ContactStore {
      * @returns {Contact}
      */
     getContact(username) {
-        const existing = this._findInCache(username);
+        const existing = this._contactMap[username];
         if (existing) return existing;
 
         const c = new Contact(username);
@@ -28,12 +186,6 @@ class ContactStore {
         when(() => !c.loading, () => {
             if (c.notFound) {
                 this.contacts.remove(c);
-            } else {
-                for (const contact of this.contacts) {
-                    if (contact.username === c.username && contact !== c) {
-                        this.contacts.remove(contact);
-                    }
-                }
             }
         });
         return c;
@@ -47,14 +199,6 @@ class ContactStore {
             .catch(() => {
                 warnings.add('error_emailInviteSend');
             });
-    }
-
-    // todo map
-    _findInCache(username) {
-        for (const contact of this.contacts) {
-            if (contact.username === username) return contact;
-        }
-        return null;
     }
 
     _merge(usernames) {
@@ -86,32 +230,33 @@ class ContactStore {
      * @param {string} token - search query string
      * @param {Array<Contact>} list - optional list to search in, by default it will search in contact store
      */
-    filter(token, list) {
+    filter(token, list, nosort = false) {
         token = token.toLocaleLowerCase(); // eslint-disable-line
         let removeUnavailable = false;
         if (!list) {
             list = this.contacts; // eslint-disable-line
             removeUnavailable = true;
         }
-        return list
+        const ret = list
             .filter((c) => {
                 if (removeUnavailable) {
                     if (c.loading || c.notFound) return false;
                 }
                 return c.username.includes(token) || c.fullNameLower.includes(token);
-            }).sort((c1, c2) => {
-                if (c1.username.startsWith(token)) return -1;
-                if (c2.username.startsWith(token)) return 1;
-                if (c1.fullNameLower.startsWith(token)) return -1;
-                if (c2.fullNameLower.startsWith(token)) return 1;
-                return 0;
             });
+        if (nosort) return ret;
+        return ret.sort((c1, c2) => {
+            if (c1.isAdded && !c2.isAdded) return -1;
+            if (c2.isAdded && !c1.isAdded) return 1;
+            if (c1.username.startsWith(token)) return -1;
+            if (c2.username.startsWith(token)) return 1;
+            if (c1.fullNameLower.startsWith(token)) return -1;
+            if (c2.fullNameLower.startsWith(token)) return 1;
+            return 0;
+        });
     }
 }
 
 const store = new ContactStore();
-socket.onceAuthenticated(() => {
-    store.loadContactsFromTOFUKegs();
-});
 setContactStore(store);
 module.exports = store;

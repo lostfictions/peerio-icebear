@@ -4,6 +4,8 @@ const { observable, action, when, computed, reaction } = require('mobx');
 const { cryptoUtil } = require('../../crypto/index');
 const { getUser } = require('./../../helpers/di-current-user');
 const Tofu = require('./tofu');
+const { getFirstLetterUpperCase } = require('./../../helpers/string');
+
 /**
  * Possible states and how to read them:
  * loading === true - trying to load contact, will make many attempts in case of connection issues
@@ -23,6 +25,7 @@ class Contact {
     @observable encryptionPublicKey = null;
     @observable signingPublicKey = null;
     @observable tofuError = false;
+    @observable isAdded = false; // wether or not user added this contact to his address book
 
     @computed get color() {
         if (!this.signingPublicKey) return '#9e9e9e';
@@ -30,7 +33,7 @@ class Contact {
     }
 
     @computed get letter() {
-        return String.fromCodePoint((this.firstName || this.username || ' ').codePointAt(0)).toLocaleUpperCase();
+        return getFirstLetterUpperCase(this.firstName || this.username);
     }
 
     @computed get fullName() {
