@@ -121,6 +121,13 @@ class ContactStore {
 
     applyInvitesData = action(() => {
         this.invitedContacts = this.invites.issued;
+        when(() => this.myContacts.loaded, () => {
+            this.invitedContacts.forEach(c => {
+                if (c.username) {
+                    this.addContact(c.username);
+                }
+            });
+        });
     });
 
     /**
