@@ -325,7 +325,7 @@ class SocketClient {
     };
 
     resetReconnectTimer = () => {
-        if (this.reconnecting || this.reconnectTimer.counter < 2) return;
+        if (this.connected || this.reconnecting || this.reconnectTimer.counter < 2) return;
         this.backupAttempts = this.socket.io.backoff.attempts;
         this.reset();
     }
