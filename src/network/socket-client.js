@@ -11,6 +11,7 @@ const { ServerError, DisconnectedError, NotAuthenticatedError } = require('../er
 const { observable } = require('mobx');
 const config = require('../config');
 const util = require('../util');
+const Timer = require('../helpers/observable-timer');
 
 const STATES = {
     open: 'open',
@@ -55,6 +56,11 @@ class SocketClient {
     preauthenticated = false;
     @observable authenticated = false;
     @observable throttled = false;
+    @observable reconnectAttempt = 0;
+    @observable reconnecting = false;
+    @observable latency = 0;
+    reconnectTimer = new Timer();
+
     // for debug (if enabled)
     // DON'T MAKE THIS OBSERVABLE
     // At some conditions it creates cyclic reactions with autorun
@@ -102,9 +108,9 @@ class SocketClient {
         const socket = this.socket = io.connect(url, {
             reconnection: true,
             reconnectionAttempts: Infinity,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 8000,
-            randomizationFactor: 0.3,
+            reconnectionDelay: 500,
+            reconnectionDelayMax: 9000,
+            randomizationFactor: 0,
             timeout: 10000,
             autoConnect: false,
             transports: ['websocket'],
@@ -122,6 +128,7 @@ class SocketClient {
             clearBuffers();
             this.configureDebugLogger();
             this.connected = true;
+            this.reconnecting = false;
         });
 
         socket.on('disconnect', () => {
@@ -129,8 +136,31 @@ class SocketClient {
             this.preauthenticated = false;
             this.authenticated = false;
             this.connected = false;
+            this.reconnecting = true;
             clearBuffers();
             this.cancelAwaitingRequests();
+        });
+
+        socket.on('reconnect_attempt', num => {
+            if (this.backupAttempts) {
+                this.reconnectAttempt = this.backupAttempts;
+                this.socket.io.backoff.attempts = this.backupAttempts;
+                this.backupAttempts = 0;
+            } else {
+                this.reconnectAttempt = num;
+            }
+            this.reconnecting = true;
+        });
+
+        socket.on('pong', latency => {
+            this.latency = latency;
+        });
+
+        socket.on('reconnect_error', () => {
+            this.reconnecting = false;
+            // HACK: backoff.duration() will increase attempt count, so we balance that
+            this.socket.io.backoff.attempts--;
+            this.reconnectTimer.countDown(this.socket.io.backoff.duration() / 1000);
         });
 
         socket.open();
@@ -294,7 +324,15 @@ class SocketClient {
         this.socket.open();
     };
 
+    resetReconnectTimer = () => {
+        if (this.reconnecting || this.reconnectTimer.counter < 2) return;
+        this.backupAttempts = this.socket.io.backoff.attempts;
+        this.reset();
+    }
+
     reset = () => {
+        this.reconnecting = true;
+        this.reconnectTimer.stop();
         setTimeout(this.close);
         setTimeout(this.open);
     };
