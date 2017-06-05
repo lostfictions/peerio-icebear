@@ -121,12 +121,18 @@ class ContactStore {
 
     applyInvitesData = action(() => {
         this.invitedContacts = this.invites.issued;
-        when(() => this.myContacts.loaded, () => {
-            this.invitedContacts.forEach(c => {
+        when(() => this.invites.loaded, () => {
+            Promise.each(this.invitedContacts, c => {
                 if (c.username) {
-                    this.addContact(c.username)
+                    return this.addContact(c.username)
                         .then(() => this.removeInvite(c.email));
                 }
+                return null;
+            }).then(() => {
+                return Promise.each(this.invites.received, username => {
+                    return this.addContact(username)
+                        .then(() => this.removeReceivedInvite(username));
+                });
             });
         });
     });
@@ -180,9 +186,11 @@ class ContactStore {
     }
 
     removeInvite(email) {
-        socket.send('/auth/contacts/invites/remove', { email })
-            .then(() => this.invites.load())
-            .then(() => this.applyInvitesData());
+        return socket.send('/auth/contacts/issued-invites/remove', { email });
+    }
+
+    removeReceivedInvite(username) {
+        socket.send('/auth/contacts/received-invites/remove', { username });
     }
 
     /**

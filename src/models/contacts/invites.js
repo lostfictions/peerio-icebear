@@ -5,7 +5,7 @@ const _ = require('lodash');
 class Invites extends SyncedKeg {
 
     issued = [];
-
+    received = [];
     constructor() {
         super('invites', getUser().kegDb, true);
     }
@@ -16,6 +16,11 @@ class Invites extends SyncedKeg {
 
     deserializeKegPayload(payload) {
         this.issued = _.uniqWith(payload.issued, this._compareinvites);
+        this.received = _.uniq(
+            Object.keys(payload.received)
+                .reduce((acc, email) => acc.concat(payload.received[email]), [])
+                .map(item => item.username)
+        );
     }
 
     _compareinvites(a, b) {

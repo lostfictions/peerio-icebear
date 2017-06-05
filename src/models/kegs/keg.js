@@ -247,8 +247,11 @@ class Keg {
         contact.whenLoaded(() => {
             if (cryptoUtil.bytesToB64(contact.encryptionPublicKey) !== kegProps.sharedKegSenderPK) {
                 this.sharedKegError = true;
+                this.signatureError = true;
                 return;
             }
+            this.sharedKegError = false;
+            this.signatureError = false;
             // we don't care much if this fails because next time it will get re-saved
             this.saveToServer(true);
         });

@@ -33,6 +33,10 @@ class SyncedKeg extends Keg {
             this.loaded = true;
             return Promise.resolve();
         }
+        return this.reload();
+    });
+
+    reload() {
         return this.load(true)
             .then(() => {
                 this.loaded = true;
@@ -41,7 +45,7 @@ class SyncedKeg extends Keg {
                 // while finishing current operation
                 this._enqueueLoad();
             });
-    });
+    }
 
     save(dataChangeFn, dataRestoreFn, errorLocaleKey) {
         return new Promise((resolve, reject) => {

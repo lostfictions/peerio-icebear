@@ -9,7 +9,7 @@ const socket = require('../../network/socket');
  */
 class ServerWarning extends SystemWarning {
     constructor(obj, onClear) {
-        if (!obj.msg.startsWith('serverWarning_') || !isKnownKey(obj.msg)) {
+        if (!obj || !obj.msg || !obj.msg.startsWith('serverWarning_') || !isKnownKey(obj.msg)) {
             console.debug(obj);
             throw new Error('Invalid/unknown warning key received from server.');
         }
