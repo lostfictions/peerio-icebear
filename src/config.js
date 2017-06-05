@@ -49,7 +49,6 @@ const config = new class {
     supportUrl = 'https://peerio.zendesk.com';
 
     socketServerUrl = 'wss://';
-    avatarBaseUrl = 'https://';
     ghostFrontendUrl = 'https://';
     appVersion = '';
     platform = '';

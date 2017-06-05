@@ -7,7 +7,6 @@ const { retryUntilSuccess } = require('../../helpers/retry.js');
 const warnings = require('../warnings');
 const socket = require('../../network/socket');
 const validators = require('../../helpers/validation/field-validation').validators;
-const Avatar = require('./avatar');
 const contactStore = require('../contacts/contact-store');
 
 module.exports = function mixUserRegisterModule() {
@@ -142,17 +141,15 @@ module.exports = function mixUserRegisterModule() {
             }
         }
         this.savingAvatar = true;
-        const avatar = new Avatar(this);
         return retryUntilSuccess(() => {
-            return avatar.load()
-                .then(() => {
-                    if (blobs) avatar.setBlobs(blobs);
-                    else avatar.deleteBlobs();
-
-                    return avatar.saveToServer();
-                });
+            return socket.send('/auth/avatar/update', {
+                large: blobs ? blobs[0] : null,
+                medium: blobs ? blobs[1] : null
+            });
         }).finally(() => {
-            contactStore.getContact(this.username).profileVersion++;
+            const c = contactStore.getContact(this.username);
+            c.profileVersion++;
+            c.hasAvatar = !!blobs;
             this.savingAvatar = false;
         });
     };

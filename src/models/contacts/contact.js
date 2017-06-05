@@ -5,7 +5,7 @@ const { cryptoUtil } = require('../../crypto/index');
 const { getUser } = require('./../../helpers/di-current-user');
 const Tofu = require('./tofu');
 const { getFirstLetterUpperCase } = require('./../../helpers/string');
-const config = require('../../config');
+const serverSettings = require('../server-settings');
 
 /**
  * Possible states and how to read them:
@@ -29,6 +29,7 @@ class Contact {
     @observable isAdded = false; // wether or not user added this contact to his address book
     @observable urlSalt = null;
     @observable profileVersion = 0;
+    @observable hasAvatar = false;
 
     @computed get color() {
         if (!this.signingPublicKey) return '#9e9e9e';
@@ -69,11 +70,9 @@ class Contact {
         }
         return this.__fingerprint;
     }
-    @computed get hasAvatar() {
-        return !!this.urlSalt;
-    }
+
     @computed get _avatarUrl() {
-        return `${config.avatarBaseUrl}/v2/avatar/${this.urlSalt}`;
+        return `${serverSettings.avatarServer}/v2/avatar/${this.urlSalt}`;
     }
     @computed get largeAvatarUrl() {
         if (!this.hasAvatar) return null;
@@ -134,6 +133,7 @@ class Contact {
                 this.firstName = profile.firstName || '';
                 this.lastName = profile.lastName || '';
                 this.urlSalt = profile.urlSalt;
+                this.hasAvatar = profile.hasAvatar;
                 this.mentionRegex = new RegExp(`@${this.username}`, 'gi');
 
                 // this is server - controlled data, so we don't account for cases when it's invalid

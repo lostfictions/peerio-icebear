@@ -49,6 +49,8 @@ const warningStates = require('./models/warnings/system-warning').STATES;
 const clientApp = require('./models/client-app');
 const systemMessages = require('./helpers/system-messages');
 
+const serverSettings = require('./models/server-settings');
+
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
     errors,
@@ -73,5 +75,6 @@ module.exports = {
     fileHelpers,
     MRUList,
     clientApp,
-    systemMessages
+    systemMessages,
+    serverSettings
 };
