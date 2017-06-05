@@ -27,6 +27,14 @@ module.exports = function mixUserAuthModule() {
             .then(this._deriveKeys)
             .then(this._getAuthToken)
             .then(this._authenticateAuthToken)
+            .catch(e => {
+                if (e.code === 412) {
+                    console.log('Bad deviceToken, reauthenticating without one.');
+                    return TinyDb.system.removeValue(`${this.username}:deviceToken`)
+                        .then(() => this._authenticateConnection());
+                }
+                return Promise.reject(e);
+            })
             .then(() => {
                 socket.preauthenticated = true;
             });
@@ -74,15 +82,19 @@ module.exports = function mixUserAuthModule() {
      */
     this._getAuthToken = () => {
         console.log('Requesting auth token.');
-        return socket.send('/noauth/auth-token/get', {
-            username: this.username,
-            authSalt: this.authSalt.buffer,
-            authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
-            // deviceToken: todo
-            platform: config.platform,
-            arch: config.arch,
-            clientVersion: config.appVersion
-        })
+        return TinyDb.system.getValue(`${this.username}:deviceToken`)
+            .then((deviceTokenString) => {
+                const deviceToken = deviceTokenString ? cryptoUtil.b64ToBytes(deviceTokenString).buffer : undefined;
+                return socket.send('/noauth/auth-token/get', {
+                    username: this.username,
+                    authSalt: this.authSalt.buffer,
+                    authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
+                    deviceToken,
+                    platform: config.platform,
+                    arch: config.arch,
+                    clientVersion: config.appVersion
+                });
+            })
             .then(resp => util.convertBuffers(resp));
     };
 
@@ -102,10 +114,10 @@ module.exports = function mixUserAuthModule() {
         }
         return socket.send('/noauth/authenticate', {
             decryptedAuthToken: decrypted.buffer
+        })
+        .then(resp => {
+            return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
         });
-        // .then(resp => {
-        // todo: save resp.deviceToken
-        // });
     };
 
     /**
