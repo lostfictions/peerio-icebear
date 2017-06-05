@@ -124,7 +124,8 @@ class ContactStore {
         when(() => this.myContacts.loaded, () => {
             this.invitedContacts.forEach(c => {
                 if (c.username) {
-                    this.addContact(c.username);
+                    this.addContact(c.username)
+                        .then(() => this.removeInvite(c.email));
                 }
             });
         });
@@ -176,6 +177,12 @@ class ContactStore {
                 });
             }
         });
+    }
+
+    removeInvite(email) {
+        socket.send('/auth/contacts/invites/remove', { email })
+            .then(() => this.invites.load())
+            .then(() => this.applyInvitesData());
     }
 
     /**
