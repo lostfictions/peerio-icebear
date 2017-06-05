@@ -59,12 +59,12 @@
   "devDependencies": {
     "babel-cli": "6.24.1",
     "babel-eslint": "7.2.3",
+    "babel-plugin-console-kungfu": "git+https://github.com/PeerioTechnologies/babel-plugin-console-kungfu.git",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-decorators-legacy": "1.3.4",
     "babel-plugin-transform-es2015-modules-commonjs": "6.24.1",
     "babel-plugin-transform-export-extensions": "6.22.0",
     "babel-plugin-transform-object-rest-spread": "6.23.0",
-    "babel-plugin-console-kungfu": "git+https://github.com/PeerioTechnologies/babel-plugin-console-kungfu.git",
     "babel-register": "6.24.1",
     "babel-types": "6.24.1",
     "chai": "4.0.0",
