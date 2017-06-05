@@ -46,7 +46,7 @@ class SystemWarning {
         this.timer = setTimeout(() => {
             this.dismiss();
             this.timer = null;
-        }, 4000);
+        }, 7000);
     }
 
     cancelAutoDismiss() {
