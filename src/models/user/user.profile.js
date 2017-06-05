@@ -7,6 +7,8 @@ const { retryUntilSuccess } = require('../../helpers/retry.js');
 const warnings = require('../warnings');
 const socket = require('../../network/socket');
 const validators = require('../../helpers/validation/field-validation').validators;
+const Avatar = require('./avatar');
+const contactStore = require('../contacts/contact-store');
 
 module.exports = function mixUserRegisterModule() {
     const _profileKeg = new Profile(this);
@@ -125,5 +127,36 @@ module.exports = function mixUserRegisterModule() {
             return qTotal.limit > 0;
         }
         return true;
+    };
+    /**
+     * Pass null to delete avatar
+     */
+    this.saveAvatar = function(blobs) {
+        if (this.savingAvatar) return Promise.reject(new Error('Already saving avatar, wait for it to finish.'));
+
+        if (blobs) {
+            if (blobs.length !== 2) return Promise.reject(new Error('Blobs array length should be 2.'));
+            for (let i = 0; i < blobs.length; i++) {
+                if (blobs[i] instanceof ArrayBuffer) continue;
+                return Promise.reject(new Error('Blobs should be of ArrayBuffer type'));
+            }
+        }
+        this.savingAvatar = true;
+        const avatar = new Avatar(this);
+        return retryUntilSuccess(() => {
+            return avatar.load()
+                .then(() => {
+                    if (blobs) avatar.setBlobs(blobs);
+                    else avatar.deleteBlobs();
+
+                    return avatar.saveToServer();
+                });
+        }).finally(() => {
+            contactStore.getContact(this.username).profileVersion++;
+            this.savingAvatar = false;
+        });
+    };
+    this.deleteAvatar = function() {
+        this.saveAvatar(null);
     };
 };

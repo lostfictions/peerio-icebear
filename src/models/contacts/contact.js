@@ -5,6 +5,7 @@ const { cryptoUtil } = require('../../crypto/index');
 const { getUser } = require('./../../helpers/di-current-user');
 const Tofu = require('./tofu');
 const { getFirstLetterUpperCase } = require('./../../helpers/string');
+const config = require('../../config');
 
 /**
  * Possible states and how to read them:
@@ -26,6 +27,8 @@ class Contact {
     @observable signingPublicKey = null;
     @observable tofuError = false;
     @observable isAdded = false; // wether or not user added this contact to his address book
+    @observable urlSalt = null;
+    @observable profileVersion = 0;
 
     @computed get color() {
         if (!this.signingPublicKey) return '#9e9e9e';
@@ -65,6 +68,20 @@ class Contact {
             return nullFingerprint;
         }
         return this.__fingerprint;
+    }
+    @computed get hasAvatar() {
+        return !!this.urlSalt;
+    }
+    @computed get _avatarUrl() {
+        return `${config.avatarBaseUrl}/v2/avatar/${this.urlSalt}`;
+    }
+    @computed get largeAvatarUrl() {
+        if (!this.hasAvatar) return null;
+        return `${this._avatarUrl}/large/?${this.profileVersion}`;
+    }
+    @computed get mediumAvatarUrl() {
+        if (!this.hasAvatar) return null;
+        return `${this._avatarUrl}/medium/?${this.profileVersion}`;
     }
 
     // converts 12345-12345-12345-12345-12345 to
@@ -116,6 +133,7 @@ class Contact {
                 this.username = profile.username;
                 this.firstName = profile.firstName || '';
                 this.lastName = profile.lastName || '';
+                this.urlSalt = profile.urlSalt;
                 this.mentionRegex = new RegExp(`@${this.username}`, 'gi');
 
                 // this is server - controlled data, so we don't account for cases when it's invalid

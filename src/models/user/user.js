@@ -39,9 +39,11 @@ class User {
     @observable profileLoaded = false;
     @observable.ref addresses;
     @observable primaryAddressConfirmed;
+    @observable savingAvatar = false;
 
     // ui flags
     @observable autologinEnabled = false;
+
 
     @computed get fullName() {
         let ret = '';
