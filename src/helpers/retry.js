@@ -10,7 +10,7 @@ const retryIntervalMultFactor = 250; // every retry will add this amount to retr
 const callsInProgress = {};
 /**
  * 1. Executes the passed function
- * 2. If promise returend by function rejects - goto 1
+ * 2. If promise returned by function rejects - goto 1
  * Makes sure socket is authenticated before calling, and waits for it to become authenticated if needed.
  * @param {function} fn - function to execute
  * @param {[string]} id - unique id for this action, to prevent multiple parallel attempts
