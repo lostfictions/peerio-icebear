@@ -1,5 +1,5 @@
 const Keg = require('./../kegs/keg');
-const { observable, computed, action } = require('mobx');
+const { observable, computed, action, isObservableArray } = require('mobx');
 const { cryptoUtil, secret } = require('../../crypto');
 const fileHelper = require('../../helpers/file');
 const util = require('../../util');
@@ -113,7 +113,7 @@ class File extends Keg {
     // -- class methods ------------------------------------------------------------------------------------------
     share(contactOrContacts) {
         const contacts =
-            Array.isArray(contactOrContacts)
+            (Array.isArray(contactOrContacts) || isObservableArray(contactOrContacts))
                 ? contactOrContacts
                 : [contactOrContacts];
 

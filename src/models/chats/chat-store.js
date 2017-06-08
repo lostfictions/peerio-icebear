@@ -1,5 +1,5 @@
 
-const { observable, action, computed, reaction, runInAction, autorunAsync, when } = require('mobx');
+const { observable, action, computed, reaction, runInAction, autorunAsync, when, isObservableArray } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -274,7 +274,7 @@ class ChatStore {
     }
 
     @action startChatAndShareFiles(participants, fileOrFiles) {
-        const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+        const files = (Array.isArray(fileOrFiles) || isObservableArray(fileOrFiles)) ? fileOrFiles : [fileOrFiles];
         const chat = this.startChat(participants);
         return chat.loadMetadata().then(() => {
             chat.shareFiles(files);
