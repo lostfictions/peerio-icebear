@@ -205,7 +205,7 @@ class Keg {
             //  is this an empty keg? probably just created.
             if (!keg.payload) return allowEmpty ? this : false;
             let payload = keg.payload;
-            let sharedKey = null;
+            let payloadKey = null;
 
             if (!this.plaintext) {
                 payload = new Uint8Array(keg.payload);
@@ -223,10 +223,19 @@ class Keg {
                 // async call, changes state of the keg in case of issues
                 this._validateAndReEncryptSharedKeg(keg.props);
                 // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
-                sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
+                const sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
+
+                if (keg.props.encryptedPayloadKey) {
+                    // Payload was encrypted with a symmetric key, which was encrypted
+                    // for our public key and stored in encryptedPayloadKey prop.
+                    payloadKey = secret.decryptString(keg.props.encryptedPayloadKey, sharedKey);
+                } else {
+                    // Payload key is the shared key.
+                    payloadKey = sharedKey;
+                }
             }
             if (!this.plaintext) {
-                payload = secret.decryptString(payload, sharedKey || this.overrideKey || this.db.key);
+                payload = secret.decryptString(payload, payloadKey || this.overrideKey || this.db.key);
             }
             payload = JSON.parse(payload);
             if (this.forceSign || !(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {

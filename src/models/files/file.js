@@ -111,28 +111,56 @@ class File extends Keg {
     }
 
     // -- class methods ------------------------------------------------------------------------------------------
-    share(contact) {
+    share(contactOrContacts) {
+        const contacts =
+            Array.isArray(contactOrContacts)
+                ? contactOrContacts
+                : [contactOrContacts];
+
+        // Generate a new random payload key.
+        const payloadKey = cryptoUtil.getRandomBytes(32);
+
+        // Serialize payload.
+        const payload = JSON.stringify(this.serializeKegPayload());
+
+        // Encrypt payload with the payload key.
+        const encryptedPayload = secret.encryptString(payload, payloadKey);
+
+        // Encrypt message key for each recipient's public key.
+        //
+        // {
+        //   "user1": { "publicKey": ..., "encryptedKey": ... },
+        //   "user2": { "publicKey": ..., "encryptedKey": ... }
+        //   ...
+        //  }
+        //
+        const recipients = {};
+        contacts.forEach(contact => {
+            recipients[contact.username] = {
+                publicKey: cryptoUtil.bytesToB64(contact.encryptionPublicKey),
+                encryptedPayloadKey: cryptoUtil.bytesToB64(
+                    secret.encryptString(
+                        payloadKey, getUser().getSharedKey(contact.encryptionPublicKey)
+                    )
+                )
+            };
+        });
+
         const data = {
-            recipient: contact.username,
+            recipients,
             originalKegId: this.id,
             keg: {
-                type: this.type
+                type: this.type,
+                payload: encryptedPayload.buffer,
+                // todo: this is questionable, could we leak properties we don't want to this way?
+                // todo: on the other hand we can forget to add properties that we do want to share
+                props: this.serializeProps()
             }
         };
-        // todo: this is questionable, could we leak properties we don't want to this way?
-        // todo: on the other hand we can forget to add properties that we do want to share
-        data.keg.props = this.serializeProps();
-        data.keg.payload = this.serializeKegPayload();
-        data.keg.payload = JSON.stringify(data.keg.payload);
-        data.keg.payload = secret.encryptString(
-            data.keg.payload, getUser().getSharedKey(contact.encryptionPublicKey)
-        );
-        data.keg.payload = data.keg.payload.buffer;
+
         // when we implement key change history, this will help to figure out which key to use
         // this properties should not be blindly trusted, recipient verifies them
         data.keg.props.sharedKegSenderPK = cryptoUtil.bytesToB64(getUser().encryptionKeys.publicKey);
-        // reserved for future key change feature support
-        data.keg.props.sharedKegRecipientPK = cryptoUtil.bytesToB64(contact.encryptionPublicKey);
 
         return retryUntilSuccess(() => socket.send('/auth/kegs/share', data));
     }
