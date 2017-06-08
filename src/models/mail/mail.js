@@ -96,12 +96,8 @@ class Mail extends Keg {
     }
 
     @action deserializeProps(props) {
-        // TODO: verify props.messageId === payload.messageId
-        // TODO: verify props.sentId === payload.sentId
-        // TODO: verify props.replyId === payload.replyId
-        // TODO: verify props.files === payload.files
-        // TODO: verify props.recipients === payload.recipients
-        this.incoming = props.incoming;
+        // The source of truth for messageId, sentId, replyId, files, and
+        // recipients is the payload, so we don't deserialize them here.
         this.sender = props.sharedBy;
     }
 
