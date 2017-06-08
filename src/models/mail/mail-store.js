@@ -20,11 +20,11 @@ class MailStore {
     }
 
     static isMailOutgoing(mail) {
-        return !!mail.outgoingId;
+        return !!mail.sentId;
     }
 
     static isMailIncoming(mail) {
-        return !mail.outgoingId;
+        return !mail.sentId;
     }
 
     @computed get hasSelectedMails() {
