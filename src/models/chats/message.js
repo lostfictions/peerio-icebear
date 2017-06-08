@@ -92,9 +92,7 @@ class Message extends Keg {
         this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
         this.userMentions = payload.userMentions;
-        if (payload.files) {
-            this.files = JSON.parse(payload.files);
-        }
+        this.files = payload.files ? JSON.parse(payload.files) : null;
 
         this.isMention = this.userMentions ? this.userMentions.includes(User.current.username) : false;
     }
