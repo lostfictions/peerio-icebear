@@ -79,6 +79,7 @@ class Message extends Keg {
             timestamp: this.timestamp.valueOf(),
             userMentions: this.userMentions
         };
+        this._serializeFileAttachments(ret);
         if (this.systemData) {
             ret.systemData = this.systemData;
         }
@@ -91,20 +92,24 @@ class Message extends Keg {
         this.systemData = payload.systemData;
         this.timestamp = new Date(payload.timestamp);
         this.userMentions = payload.userMentions;
+        this.files = payload.files ? JSON.parse(payload.files) : null;
+
         this.isMention = this.userMentions ? this.userMentions.includes(User.current.username) : false;
     }
 
     serializeProps() {
         const ret = {};
-        if (this.files) ret.files = JSON.stringify(this.files);
+        this._serializeFileAttachments(ret);
         if (this.systemData) ret.systemAction = this.systemData.action;
         return ret;
     }
 
+    _serializeFileAttachments(obj) {
+        if (this.files) obj.files = JSON.stringify(this.files);
+    }
+
     deserializeProps(props) {
-        if (props.files) {
-            this.files = JSON.parse(props.files);
-        }
+        // files are in props only for search
     }
 }
 

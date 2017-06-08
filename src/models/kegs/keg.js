@@ -26,6 +26,7 @@ class Keg {
     @observable deleted = false;
     @observable loading = false;
     @observable saving = false;
+    lastLoadHadError = false;
     /**
      * @param {[string]} id - kegId, or null for new kegs
      * @param {string} type - keg type
@@ -192,8 +193,10 @@ class Keg {
      */
     loadFromKeg(keg, allowEmpty = false) {
         try {
+            this.lastLoadHadError = false;
             if (this.id && this.id !== keg.kegId) {
                 console.error(`Attempt to rehydrate keg(${this.id}) with data from another keg(${keg.kegId}).`);
+                this.lastLoadHadError = true;
                 return false;
             }
             this.id = keg.kegId;
@@ -203,7 +206,11 @@ class Keg {
             this.collectionVersion = keg.collectionVersion;
             if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
-            if (!keg.payload) return allowEmpty ? this : false;
+            if (!keg.payload) {
+                if (allowEmpty) return this;
+                this.lastLoadHadError = true;
+                return false;
+            }
             let payload = keg.payload;
             let payloadKey = null;
 
@@ -246,6 +253,7 @@ class Keg {
             return this;
         } catch (err) {
             console.error(err);
+            this.lastLoadHadError = true;
             return false;
         }
     }
@@ -273,7 +281,7 @@ class Keg {
      * @private
      */
     _verifyKegSignature(payload, signature) {
-        if (!payload) return;
+        if (!payload || this.lastLoadHadError) return;
         if (!signature) {
             this.signatureError = true;
             return;
@@ -281,6 +289,7 @@ class Keg {
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
         const contact = getContactStore().getContact(this.owner);
         contact.whenLoaded(() => {
+            if (this.lastLoadHadError) return;
             contact.notFound ? Promise.resolve(false) :
                 sign.verifyDetached(
                     this.plaintext ? cryptoUtil.strToBytes(payload) : payload, signature, contact.signingPublicKey

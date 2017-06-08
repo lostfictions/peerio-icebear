@@ -6,6 +6,7 @@ const { getUser } = require('./../../helpers/di-current-user');
 const Tofu = require('./tofu');
 const { getFirstLetterUpperCase } = require('./../../helpers/string');
 const serverSettings = require('../server-settings');
+const { t } = require('peerio-translator');
 
 /**
  * Possible states and how to read them:
@@ -21,6 +22,8 @@ class Contact {
     // once it's 'false' it means that we are done trying with ether positive (notFound=false) result
     // or negative result.
     @observable loading = true; // default state, bcs that's what we do from the moment contact is created
+    username;
+    usernameTag;
     @observable firstName = '';
     @observable lastName = '';
     @observable encryptionPublicKey = null;
@@ -105,8 +108,10 @@ class Contact {
      */
     constructor(username, noAutoLoad) {
         this.username = username.toLowerCase();
-        if (getUser().username === username) this.isMe = true;
+        if (getUser().username === this.username) this.isMe = true;
+        this.usernameTag = `@${this.username}`;
         if (this.isMe) {
+            this.usernameTag += ` (${t('title_you')})`;
             reaction(() => getUser().firstName, n => { this.firstName = n; });
             reaction(() => getUser().lastName, n => { this.lastName = n; });
         }

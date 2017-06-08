@@ -59,11 +59,8 @@ class ChatFileHandler {
         const ids = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            this.chat.participants.forEach(p => {
-                if (p.isMe) return;
-                // todo: handle failure
-                file.share(p);
-            });
+            // todo: handle failure
+            file.share(this.chat.participants);
             ids.push(file.fileId);
         }
         return ids;
