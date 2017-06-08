@@ -273,6 +273,15 @@ class ChatStore {
         this.activeChat = chat;
     }
 
+    @action startChatAndShareFiles(participants, fileOrFiles) {
+        const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+        const chat = this.startChat(participants);
+        return chat.loadMetadata().then(() => {
+            chat.shareFiles(files);
+            this.activate(chat.id);
+        });
+    }
+
     @action _unloadChat(chat) {
         if (chat.active) {
             if (this.chats.length > 1) {
