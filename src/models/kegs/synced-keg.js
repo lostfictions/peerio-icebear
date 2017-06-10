@@ -29,7 +29,7 @@ class SyncedKeg extends Keg {
     _loadKeg = () => retryUntilSuccess(() => {
         // do we even need to update?
         const digest = tracker.getDigest(this.db.id, this.type);
-        if (this.collectionVersion && this.collectionVersion >= digest.maxUpdateId) {
+        if (this.collectionVersion === null || this.collectionVersion >= digest.maxUpdateId) {
             this.loaded = true;
             return Promise.resolve();
         }
@@ -47,15 +47,46 @@ class SyncedKeg extends Keg {
             });
     }
 
+    /**
+     * Enqueues Save task.
+     *
+     * @param {function<bool>} dataChangeFn - function that will be called right before keg save,
+     * it has to mutate keg's state. Return false to cancel save.
+     * @param {[function]} dataRestoreFn - function that will be called to restore keg state to the point before
+     * dataChangeFn mutated it. Default implementation will rely on keg serialization functions. dataRestoreFn will only
+     * get called if version of the keg didn't change after save failed. This will make sure we won't overwrite
+     * freshly received data from server.
+     * @param {[string]} errorLocaleKey - optinal error to show in snackbar
+     * @returns {Promise}
+     *
+     * @memberof SyncedKeg
+     */
     save(dataChangeFn, dataRestoreFn, errorLocaleKey) {
         return new Promise((resolve, reject) => {
             this._syncQueue.addTask(() => {
                 const ver = this.version;
-                dataChangeFn();
+
+                if (!dataRestoreFn) {
+                    // implementing default restore logic
+                    const payload = this.serializeKegPayload();
+                    const props = this.serializeProps();
+                    //eslint-disable-next-line
+                    dataRestoreFn = () => {
+                        this.deserializeProps(props);
+                        this.deserializeKegPayload(payload);
+                    };
+                }
+
+                if (!dataChangeFn()) {
+                    // dataChangeFn decided not to save changes
+                    return null;
+                }
+
                 return this.saveToServer().tapCatch(() => {
                     this.onSaveError(errorLocaleKey);
+                    // we don't restore unless there was no changes after ours
                     if (ver !== this.version) return;
-                    if (dataRestoreFn) dataRestoreFn();
+                    dataRestoreFn();
                 });
             }, this, null, resolve, reject);
         });

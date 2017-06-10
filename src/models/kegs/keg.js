@@ -41,7 +41,7 @@ class Keg {
         this.keyId = 0; // @type {string} reserved for future keys change feature
         this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
-        this.collectionVersion = ''; // @type {number} kegType-wide last update id for this keg
+        this.collectionVersion = null; // @type {string} null means we didn't fetch the keg yet,
         this.props = {};
         this.forceSign = forceSign;
     }
@@ -203,7 +203,7 @@ class Keg {
             this.version = keg.version;
             this.owner = keg.owner;
             this.deleted = keg.deleted;
-            this.collectionVersion = keg.collectionVersion;
+            this.collectionVersion = keg.collectionVersion || ''; // protect from potential server bugs sending null
             if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
             if (!keg.payload) {
