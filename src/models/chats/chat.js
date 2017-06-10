@@ -78,6 +78,7 @@ class Chat {
     }
 
     @computed get name() {
+        if (!this.chatHead) return '';
         if (this.chatHead.chatName) return this.chatHead.chatName;
         if (!this.participants) return '';
         return this.participants.length === 0
