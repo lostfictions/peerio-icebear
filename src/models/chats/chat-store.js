@@ -1,5 +1,5 @@
 
-const { observable, action, computed, reaction, runInAction, autorunAsync, when, isObservableArray } = require('mobx');
+const { observable, action, computed, reaction, autorunAsync, isObservableArray } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -9,7 +9,6 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const MyChats = require('../chats/my-chats');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const User = require('../../models/user/user');
 const { asPromise } = require('../../helpers/prombservable');
 
 class ChatStore {
