@@ -6,11 +6,11 @@ const User = require('../user/user');
 const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
-const ChatHeadHandler = require('./chat.head-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
 const DOMPurify = require('dompurify');
+const ChatHead = require('./chat-head');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -53,7 +53,6 @@ class Chat {
     @observable active = false;
 
     @observable isFavorite = false;
-    @observable _chatName; // this stores the chat name as it is set by user
 
     @observable changingFavState = false;
 
@@ -79,7 +78,7 @@ class Chat {
     }
 
     @computed get name() {
-        if (this._chatName) return this._chatName;
+        if (this.chatHead.chatName) return this.chatHead.chatName;
         if (!this.participants) return '';
         return this.participants.length === 0
             ? (User.current.fullName || User.current.username)
@@ -144,7 +143,7 @@ class Chat {
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);
-                this._headHandler = new ChatHeadHandler(this);
+                this.chatHead = new ChatHead(this.db);
                 this.loadingMeta = false;
                 this.metaLoaded = true;
                 if (justCreated) {
@@ -381,15 +380,16 @@ class Chat {
         let validated = name || '';
         validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
         validated = validated.substr(0, 120);
-        if (this._chatName === validated || (!this._chatName && !validated)) return Promise.resolve(); // nothing to rename
-        const prevName = this._chatName;
-        this._chatName = validated;
-        return this._headHandler.saveChatName(validated)
-            .tapCatch(() => {
-                // we want to restore chat name to the state before fail attempt
-                // but in case it got updated while we were saving we don't restore older name
-                if (this._chatName !== validated) return;
-                this._chatName = prevName;
+        if (this.chatHead.chatName === validated || (!this.chatHead.chatName && !validated)) {
+            return Promise.resolve(); // nothing to rename
+        }
+        return this.chatHead.save(() => {
+            this.chatHead.chatName = validated;
+        }, 'error_chatRename')
+            .then(() => {
+                const m = new Message(this.chat.db);
+                m.setRenameFact(validated);
+                return this.chat._sendMessage(m);
             });
     }
 
