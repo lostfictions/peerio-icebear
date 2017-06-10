@@ -92,9 +92,9 @@ class Contact {
         let i = 0;
         return this.fingerprint
             .replace(/-/g, '')
-            .match(/.{1,4}/g)
+            .match(/.{1,5}/g)
             .join(' ')
-            .replace(/ /g, () => (i++ === 3 ? '\n' : ' '));
+            .replace(/ /g, () => (i++ === 2 ? '\n' : ' '));
     }
 
     // contact wasn't found on server

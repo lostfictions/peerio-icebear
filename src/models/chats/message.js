@@ -3,6 +3,7 @@ const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
+const moment = require('moment');
 const _ = require('lodash');
 
 class Message extends Keg {
@@ -32,6 +33,12 @@ class Message extends Keg {
             this.timestamp.getMonth().toString() +
             this.timestamp.getFullYear().toString();
     }
+
+    @computed get messageTimestampText() {
+        const { timestamp } = this;
+        return timestamp ? moment(timestamp).format('LT') : null;
+    }
+
     /**
      * @param {ChatStore} db - chat db
      */

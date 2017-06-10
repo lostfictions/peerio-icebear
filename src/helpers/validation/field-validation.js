@@ -68,7 +68,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
     // mark field (& those before it) as dirty on change
     store[fOnChange] = (val) => {
         store[fDirty] = true;
-        store[fName] = val;
+        // store[fName] = val;
         if (positionInForm !== undefined) {
             for (let i = 0; i <= positionInForm; ++i) {
                 const otherField = byOrder[i];
