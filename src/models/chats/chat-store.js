@@ -175,7 +175,7 @@ class ChatStore {
         // gonna happen in applyMyChatsData when fav list is loaded
         await asPromise(this.myChats, 'loaded', true);
         // 3. checking how many more chats we can load
-        const rest = config.chat.maxInitalChats - this.myChats.favorites.length;
+        const rest = config.chat.maxInitialChats - this.myChats.favorites.length;
         if (rest > 0) {
             // 4. loading the rest unhidden chats
             await retryUntilSuccess(() =>
