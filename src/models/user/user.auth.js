@@ -12,8 +12,6 @@ const util = require('../../util');
 const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const warnings = require('../warnings');
-
 
 module.exports = function mixUserAuthModule() {
     /**
@@ -115,9 +113,9 @@ module.exports = function mixUserAuthModule() {
         return socket.send('/noauth/authenticate', {
             decryptedAuthToken: decrypted.buffer
         })
-        .then(resp => {
-            return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
-        });
+            .then(resp => {
+                return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
+            });
     };
 
     /**

@@ -174,10 +174,11 @@ class FileStore {
                         }
                     }, 3000);
                 });
-                reaction(() => this.unreadFiles === 0 || !clientApp.isInFilesView || !clientApp.isFocused, (dontReport) => {
-                    if (dontReport) return;
-                    tracker.seenThis('SELF', 'file', this.knownUpdateId);
-                }, { fireImmediately: true, delay: 700 });
+                reaction(() => this.unreadFiles === 0 || !clientApp.isInFilesView || !clientApp.isFocused,
+                    (dontReport) => {
+                        if (dontReport) return;
+                        tracker.seenThis('SELF', 'file', this.knownUpdateId);
+                    }, { fireImmediately: true, delay: 700 });
                 setTimeout(this.updateFiles);
             }));
     }
@@ -209,8 +210,11 @@ class FileStore {
                 // need this bcs if u delete all files knownUpdateId won't be set at all after initial load
                 if (this.knownUpdateId < maxId) this.knownUpdateId = maxId;
                 // in case we missed another event while updating
-                if (kegs.length || (this.maxUpdateId && this.knownUpdateId < this.maxUpdateId)) setTimeout(this.updateFiles);
-                else setTimeout(this.onFileDigestUpdate);
+                if (kegs.length || (this.maxUpdateId && this.knownUpdateId < this.maxUpdateId)) {
+                    setTimeout(this.updateFiles);
+                } else {
+                    setTimeout(this.onFileDigestUpdate);
+                }
             }));
     };
 
@@ -298,30 +302,6 @@ class FileStore {
             setTimeout(checkFile);
         };
         checkFile();
-    }
-
-    shareSelectedFiles(users) {
-        throw new Error('DEPRECATED: use chatStore.startChatAndShareFiles(users)');
-        // const files = this.getSelectedFiles();
-        // this.clearSelection();
-        // const count = files.length;
-        // if (!count || !users.length) return;
-
-        // const promises = [];
-        // users.forEach(username => {
-        //     files.forEach(file => {
-        //         promises.push(file.share(username));
-        //     });
-        // });
-
-
-        // Promise.all(promises).then(() => {
-        //     if (count > 1) {
-        //         warnings.add('title_filesShared', '', { count });
-        //     } else {
-        //         warnings.add('title_fileShared', '', { name: files[0].name });
-        //     }
-        // });
     }
 
 }

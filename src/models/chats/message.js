@@ -108,7 +108,7 @@ class Message extends Keg {
         if (this.files) obj.files = JSON.stringify(this.files);
     }
 
-    deserializeProps(props) {
+    deserializeProps() {
         // files are in props only for search
     }
 }
