@@ -8,7 +8,7 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const Queue = require('../../helpers/queue');
 
 class ChatReceiptHandler {
-    // receipts cache {username: position}
+    // receipts cache {username: ReadReceipt}
     receipts = {};
     downloadedCollectionVersion = '';
     // this value means that something is scheduled to send
@@ -122,7 +122,7 @@ class ChatReceiptHandler {
                             this._ownReceipt = r;
                         }
                     } else {
-                        this.receipts[r.owner] = r.chatPosition;
+                        this.receipts[r.owner] = r;
                     }
                 } catch (err) {
                     // we don't want to break everything for one faulty receipt
@@ -145,9 +145,12 @@ class ChatReceiptHandler {
             msg.receipts = null;
             for (let k = 0; k < users.length; k++) {
                 const username = users[k];
-                if (+msg.id !== this.receipts[username]) continue;
+                const receipt = this.receipts[username];
+                if (+msg.id !== receipt.chatPosition) continue;
+                // receiptError is already calculated, signature error MIGHT already have been calculated
+                if (receipt.receiptError || receipt.signatureError) continue;
                 msg.receipts = msg.receipts || [];
-                msg.receipts.push(username);
+                msg.receipts.push({ username, receipt });
             }
         }
     }

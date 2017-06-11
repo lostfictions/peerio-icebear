@@ -5,7 +5,7 @@
 
 const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
-const { AntiTamperError } = require('../../errors');
+const { AntiTamperError, ServerError } = require('../../errors');
 const { observable } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
 const { getUser } = require('../../helpers/di-current-user');
@@ -168,15 +168,29 @@ class Keg {
         return socket.send('/auth/kegs/get', {
             kegDbId: this.db.id,
             kegId: this.id
-        }).then(keg => {
-            const ret = this.loadFromKeg(keg, allowEmpty);
-            if (ret === false) {
-                return Promise.reject(new Error(
-                    `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
-                ));
-            }
-            return ret;
-        }).finally(this._resetLoadingState);
+        })
+            .catch((err) => {
+                if (allowEmpty && err instanceof ServerError && err.code === ServerError.codes.notFound) {
+                    // expected error for empty named kegs
+                    const keg = {
+                        kegId: this.id,
+                        version: 1,
+                        collectionVersion: '',
+                        owner: '' // don't know yet
+                    };
+                    return keg;
+                }
+                return Promise.reject(err);
+            })
+            .then(keg => {
+                const ret = this.loadFromKeg(keg, allowEmpty);
+                if (ret === false) {
+                    return Promise.reject(new Error(
+                        `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
+                    ));
+                }
+                return ret;
+            }).finally(this._resetLoadingState);
     }
 
     remove() {
