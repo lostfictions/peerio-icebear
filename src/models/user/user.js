@@ -292,6 +292,11 @@ class User {
         this._sharedKeyCache[cacheKey] = cachedValue;
         return cachedValue;
     }
+
+    deleteAccount(username) {
+        if (username !== this.username) return;
+        socket.send('/auth/user/close');
+    }
 }
 
 module.exports = User;
