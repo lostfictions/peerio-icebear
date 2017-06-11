@@ -146,7 +146,7 @@ class ChatKegDb {
     _loadBootKeg() {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
-        return boot.load(true).return(boot);
+        return boot.load().return(boot);
     }
 }
 

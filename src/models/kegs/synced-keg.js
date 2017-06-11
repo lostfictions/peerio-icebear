@@ -14,7 +14,7 @@ class SyncedKeg extends Keg {
     @observable loaded = false;
 
     constructor(kegName, db, plaintext = false, forceSign = false) {
-        super(kegName, kegName, db, plaintext, forceSign);
+        super(kegName, kegName, db, plaintext, forceSign, true);
         // this will make sure we'll update every time server sends a new digest
         // it will also happen after reconnect, becasue SELF digest is always refreshed on reconnect
         tracker.onKegTypeUpdated(db.id, kegName, this._enqueueLoad);
@@ -37,7 +37,7 @@ class SyncedKeg extends Keg {
     });
 
     reload() {
-        return this.load(true)
+        return this.load()
             .then(() => {
                 this.loaded = true;
                 this.onUpdated();

@@ -33,7 +33,7 @@ class Keg {
      * @param {KegDb} db - keg database owning this keg
      * @param {[boolean]} plaintext - should keg be encrypted
      */
-    constructor(id, type, db, plaintext = false, forceSign = false) {
+    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
         this.id = id;
         this.type = type;
         this.db = db;
@@ -44,6 +44,7 @@ class Keg {
         this.collectionVersion = null; // @type {string} null means we didn't fetch the keg yet,
         this.props = {};
         this.forceSign = forceSign;
+        this.allowEmpty = allowEmpty;
     }
 
     /**
@@ -158,10 +159,9 @@ class Keg {
 
     /**
      * Populates this keg instance with data from server
-     * @param {[bool]} allowEmpty - do not fail on empty keg data
      * @returns {Promise.<Keg>}
      */
-    load(allowEmpty = false) {
+    load() {
         if (this.saving) return Promise.reject(new Error('Can not load keg while it is saving.'));
         if (this.loading) return Promise.reject(new Error('Can not load keg while it is already loading.'));
         this.loading = true;
@@ -170,7 +170,7 @@ class Keg {
             kegId: this.id
         })
             .catch((err) => {
-                if (allowEmpty && err instanceof ServerError && err.code === ServerError.codes.notFound) {
+                if (this.allowEmpty && err instanceof ServerError && err.code === ServerError.codes.notFound) {
                     // expected error for empty named kegs
                     const keg = {
                         kegId: this.id,
@@ -183,7 +183,7 @@ class Keg {
                 return Promise.reject(err);
             })
             .then(keg => {
-                const ret = this.loadFromKeg(keg, allowEmpty);
+                const ret = this.loadFromKeg(keg);
                 if (ret === false) {
                     return Promise.reject(new Error(
                         `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
@@ -203,10 +203,9 @@ class Keg {
     /**
      * Synchronous function to rehydrate current Keg instance with data from server.
      * @param {Object} keg as stored on server
-     * @param {[bool]} allowEmpty - do not fail if keg payload is empty
      * @returns {Keg|Boolean}
      */
-    loadFromKeg(keg, allowEmpty = false) {
+    loadFromKeg(keg) {
         try {
             this.lastLoadHadError = false;
             if (this.id && this.id !== keg.kegId) {
@@ -222,7 +221,7 @@ class Keg {
             if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
             if (!keg.payload) {
-                if (allowEmpty) return this;
+                if (this.allowEmpty) return this;
                 this.lastLoadHadError = true;
                 return false;
             }

@@ -163,6 +163,7 @@ class Contact {
     }
 
     loadTofu() {
+        console.log('Loading tofu:', this.username);
         return Tofu.getByUsername(this.username)
             .then(action(tofu => {
                 this._waitingForResponse = false;

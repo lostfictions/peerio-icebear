@@ -3,7 +3,7 @@ const Keg = require('../kegs/keg');
 class ReadReceipt extends Keg {
 
     constructor(username, db) {
-        super(username ? `read_receipt-${username}` : null, 'read_receipt', db);
+        super(username ? `read_receipt-${username}` : null, 'read_receipt', db, false, false, true);
     }
 
     serializeKegPayload() {

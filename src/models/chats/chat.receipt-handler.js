@@ -76,7 +76,7 @@ class ChatReceiptHandler {
                         console.error(err);
                         pos = this.pendingReceipt;// eslint-disable-line
                         this.pendingReceipt = null;
-                        this._ownReceipt.load(true).then(() => {
+                        this._ownReceipt.load().then(() => {
                             this.sendReceipt(pos);
                         });
                     });
@@ -87,7 +87,7 @@ class ChatReceiptHandler {
     loadOwnReceipt = () => {
         if (this._ownReceipt) return Promise.resolve(this._ownReceipt);
         this._ownReceipt = new ReadReceipt(User.current.username, this.chat.db);
-        return retryUntilSuccess(() => this._ownReceipt.load(true))
+        return retryUntilSuccess(() => this._ownReceipt.load())
             .then(() => {
                 if (!this._ownReceipt.chatPosition) this._ownReceipt.chatPosition = 0;
                 return this._ownReceipt;
