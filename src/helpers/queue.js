@@ -4,7 +4,7 @@ const { computed, observable, action } = require('mobx');
 class Queue {
     @observable tasks = observable.shallowArray([]);
     @observable runningTasks = 0;
-    @computed get queueLength() {
+    @computed get length() {
         return this.tasks.length + this.runningTasks;
     }
 
@@ -14,8 +14,22 @@ class Queue {
     }
 
     @action addTask(task, context, args, onFinish, onError) {
-        this.tasks.push({ task, context, args, onFinish, onError });
-        setTimeout(this.runTask, this.throttle);
+        return new Promise((resolve, reject) => {
+            this.tasks.push({
+                task,
+                context,
+                args,
+                onFinish: (...finishArgs) => {
+                    resolve(...finishArgs);
+                    if (onFinish) onFinish(...finishArgs);
+                },
+                onError: (...errArgs) => {
+                    reject(...errArgs);
+                    if (onError) onError(...errArgs);
+                }
+            });
+            setTimeout(this.runTask, this.throttle);
+        });
     }
     // runs next task if it is possible
     @action.bound runTask() {
@@ -28,8 +42,8 @@ class Queue {
             let ret = t.task.apply(t.context, t.args);
             if (ret instanceof Promise) {
                 // task is considered done when promise is complete
-                if (t.onFinish) ret = ret.then(t.onFinish);
-                if (t.onError) ret = ret.catch(t.onError);
+                ret = ret.then(t.onFinish);
+                ret = ret.catch(t.onError);
                 ret = ret.finally(this.onTaskComplete);
                 return;
             }

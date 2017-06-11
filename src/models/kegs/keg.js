@@ -100,6 +100,7 @@ class Keg {
             if (cleanShareData) {
                 props.sharedKegSenderPK = null;
                 props.sharedKegRecipientPK = null;
+                props.encryptedPayloadKey = null;
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
             if (!this.plaintext || this.forceSign) {
@@ -235,8 +236,9 @@ class Keg {
                 if (keg.props.encryptedPayloadKey) {
                     // Payload was encrypted with a symmetric key, which was encrypted
                     // for our public key and stored in encryptedPayloadKey prop.
-                    payloadKey = secret.decryptString(keg.props.encryptedPayloadKey, sharedKey);
+                    payloadKey = secret.decrypt(cryptoUtil.b64ToBytes(keg.props.encryptedPayloadKey), sharedKey);
                 } else {
+                    // TODO: @dchest u think we might need this?
                     // Payload key is the shared key.
                     payloadKey = sharedKey;
                 }

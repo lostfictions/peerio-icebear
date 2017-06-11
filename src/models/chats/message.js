@@ -34,6 +34,9 @@ class Message extends Keg {
             this.timestamp.getFullYear().toString();
     }
 
+    // TODO: mobile uses this, but desktop uses
+    // TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+    // TODO: resolve/unify this in favor of most performant method
     @computed get messageTimestampText() {
         const { timestamp } = this;
         return timestamp ? moment(timestamp).format('LT') : null;

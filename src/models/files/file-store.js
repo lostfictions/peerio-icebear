@@ -10,7 +10,8 @@ const config = require('../../config');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const clientApp = require('../client-app');
-// const chatStore
+const Queue = require('../../helpers/queue');
+const { setFileStore } = require('../../helpers/di-file-store');
 
 class FileStore {
     @observable files = observable.shallowArray([]);
@@ -20,6 +21,8 @@ class FileStore {
     updating = false;
     maxUpdateId = '';
     knownUpdateId = '';
+
+    uploadQueue = new Queue(1);
 
     @observable unreadFiles = 0;// tracker.getDigest('SELF', 'file').newKegsCount;
 
@@ -232,7 +235,7 @@ class FileStore {
      * @param {string} filePath
      * @param {string} fileName
      */
-    upload(filePath, fileName) {
+    upload = (filePath, fileName) => {
         const keg = new File(User.current.kegDb);
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
@@ -240,14 +243,17 @@ class FileStore {
                 warnings.addSevere('error_fileQuotaExceeded', 'error_uploadFailed');
                 return;
             }
-            keg.upload(filePath, fileName);
-            this.files.unshift(keg);
+            this.uploadQueue.addTask(() => {
+                const ret = keg.upload(filePath, fileName);
+                this.files.unshift(keg);
 
-            const disposer = when(() => keg.deleted, () => {
-                this.files.remove(keg);
-            });
-            when(() => keg.readyForDownload, () => {
-                disposer();
+                const disposer = when(() => keg.deleted, () => {
+                    this.files.remove(keg);
+                });
+                when(() => keg.readyForDownload, () => {
+                    disposer();
+                });
+                return ret;
             });
         });
 
@@ -282,7 +288,9 @@ class FileStore {
                     const file = this.getById(match[1]);
                     if (file) {
                         console.log(`Requesting upload resume for ${keys[i]}`);
-                        TinyDb.user.getValue(keys[i]).then(dlInfo => file.upload(dlInfo.path, null, true));
+                        TinyDb.user.getValue(keys[i]).then(dlInfo => {
+                            return this.uploadQueue.addTask(() => file.upload(dlInfo.path, null, true));
+                        });
                     }
                 }
             });
@@ -305,5 +313,6 @@ class FileStore {
     }
 
 }
-
-module.exports = new FileStore();
+const ret = new FileStore();
+setFileStore(ret);
+module.exports = ret;

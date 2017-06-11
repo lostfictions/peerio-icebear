@@ -1,12 +1,12 @@
 /**
- * DI module to use models/user avoiding cyclic requires
+ * DI module to use models and stores avoiding cyclic requires
  */
 let contactStore;
 module.exports = {
     setContactStore(store) {
         contactStore = store;
     },
-    /** @returns {User} */
+    /** @returns {ContactStore} */
     getContactStore() {
         return contactStore;
     }
