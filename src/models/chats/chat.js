@@ -63,6 +63,7 @@ class Chat {
     // chat briefly sets this value to the id of last seen message so client can render separator marker
     @observable newMessagesMarkerPos = '';
 
+    @observable.ref chatHead; // observable bcs this.name relies on it
     _messageHandler = null;
     _receiptHandler = null;
     _fileHandler = null;
@@ -78,8 +79,7 @@ class Chat {
     }
 
     @computed get name() {
-        if (!this.chatHead) return '';
-        if (this.chatHead.chatName) return this.chatHead.chatName;
+        if (this.chatHead && this.chatHead.chatName) return this.chatHead.chatName;
         if (!this.participants) return '';
         return this.participants.length === 0
             ? (User.current.fullName || User.current.username)
@@ -388,9 +388,9 @@ class Chat {
             this.chatHead.chatName = validated;
         }, 'error_chatRename')
             .then(() => {
-                const m = new Message(this.chat.db);
+                const m = new Message(this.db);
                 m.setRenameFact(validated);
-                return this.chat._sendMessage(m);
+                return this._sendMessage(m);
             });
     }
 
