@@ -204,10 +204,9 @@ class ContactStore {
         if (existing) return existing;
 
         const c = new Contact(username);
-        this.contacts.unshift(c);
         when(() => !c.loading, () => {
-            if (c.notFound) {
-                this.contacts.remove(c);
+            if (!c.notFound && !this._contactMap[username]) {
+                this.contacts.unshift(c);
             }
         });
         return c;
