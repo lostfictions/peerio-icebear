@@ -22,11 +22,10 @@ describe('Chat files module', () => {
         // Test call
         chat.shareFiles(files);
         // verifying
-        // that file.share() was called for every participant
+        // that file.share() was called
         files.forEach(f => {
-            f.share.calledTwice.should.be.true;
-            f.share.withArgs(chat.participants[0]).calledOnce.should.be.true;
-            f.share.withArgs(chat.participants[1]).calledOnce.should.be.true;
+            f.share.calledOnce.should.be.true;
+            f.share.withArgs(chat.participants).calledOnce.should.be.true;
         });
         // that message was sent to the chat
         chat.sendMessage.calledOnce.should.be.true;
@@ -36,7 +35,7 @@ describe('Chat files module', () => {
 
     it('should upload and share file', () => {
         // sharing is tested in previous test case, here we stub it
-       // const chatFiles = require('../../src/models/chats/chat.files');
+        // const chatFiles = require('../../src/models/chats/chat.files');
 
         const chat = createFakeChat();
         sinon.stub(chat._fileHandler, 'share');
