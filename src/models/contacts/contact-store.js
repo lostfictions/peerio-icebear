@@ -18,6 +18,8 @@ class ContactStore {
     @observable.shallow contacts = [];
     myContacts;
     invites;
+    _requestMap = {};
+
     @computed get addedContacts() {
         return this.contacts.filter(c => c.isAdded);
     }
@@ -263,11 +265,16 @@ class ContactStore {
      * @returns {Contact}
      */
     getContact(username, prefetchedData) {
-        const existing = this._contactMap[username];
+        let existing = this._contactMap[username];
+        if (existing) return existing;
+        existing = this._requestMap[username];
         if (existing) return existing;
 
         const c = new Contact(username, prefetchedData);
+        this._requestMap[username] = c;
+
         when(() => !c.loading, () => {
+            delete this._requestMap[username];
             if (!c.notFound && !this._contactMap[username]) {
                 this.contacts.unshift(c);
             }
