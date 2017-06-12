@@ -206,6 +206,7 @@ class UpdateTracker {
     }
 
     emitKegDbAddedEvent(id) {
+        if (id === 'SELF') return;
         this.dbAddedHandlers.forEach(handler => {
             try {
                 handler(id);
