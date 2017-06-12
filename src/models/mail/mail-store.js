@@ -204,15 +204,16 @@ class MailStore {
      * @param {Array<Contact>} recipients
      * @param {string} subject
      * @param {string} body
-     * @param {File[]?} optional, files to attach
+     * @param {Array<File>?} optional, file kegs to attach
      * @param {string?} optional, messageId of message to reply to
      */
     send(recipients, subject, body, files, replyId) {
+        const fileIds = this._shareFileKegs(recipients, files);
         const keg = new Mail(User.current.kegDb);
         keg.recipients = recipients;
         keg.subject = subject;
         keg.body = body;
-        keg.files = files;
+        keg.files = fileIds;
         keg.replyId = replyId;
 
         keg.send(recipients);
@@ -227,6 +228,25 @@ class MailStore {
         return keg;
     }
 
+    /**
+     * Shares existing Peerio files with contacts.
+     * This function performs only logical sharing, meaning provides permissions/access for recipients.
+     * It doesn't inform recipients in the chat about the fact of sharing.
+     * @param {Array<File>} files
+     * @return {Array<string>} - fileId list
+     * @private
+     */
+    _shareFileKegs(contacts, files) {
+        if (!files || !files.length) return null;
+        const ids = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            // todo: handle failure
+            file.share(contacts);
+            ids.push(file.fileId);
+        }
+        return ids;
+    }
 }
 
 module.exports = new MailStore();
