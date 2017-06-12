@@ -16,12 +16,12 @@ const callsInProgress = {};
  * @param {[string]} id - unique id for this action, to prevent multiple parallel attempts
  * @returns {Promise} - resolves when action is finally executed, never rejects
  */
-function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
+function retryUntilSuccess(fn, id = Math.random(), maxRetries = maxRetryCount, thisIsRetry) {
     let callInfo = callsInProgress[id];
     // don't make parallel calls
     if (!thisIsRetry && callInfo) return callInfo.promise;
     if (!callInfo) {
-        callInfo = { retryCount: 0 };
+        callInfo = { retryCount: 0, maxRetries };
         callInfo.promise = new Promise((resolve, reject) => {
             callInfo.resolve = resolve;
             callInfo.reject = reject;
@@ -42,7 +42,7 @@ function retryUntilSuccess(fn, id = Math.random(), thisIsRetry) {
 // todo: don't retry if throttled
 function scheduleRetry(fn, id) {
     const callInfo = callsInProgress[id];
-    if (callInfo.retryCount++ > maxRetryCount) {
+    if (callInfo.retryCount++ > callInfo.maxRetries) {
         console.error(`Maximum retry count reached for action id ${id}. Giving up, rejecting promise.`);
         console.debug(fn);
         callInfo.reject(errors.normalize(callInfo.lastError));
@@ -50,7 +50,7 @@ function scheduleRetry(fn, id) {
     }
     const delay = minRetryInterval + Math.min(maxRetryInterval, (callInfo.retryCount * retryIntervalMultFactor));
     console.debug(`Retrying ${id} in ${delay} second`);
-    setTimeout(() => socket.onceAuthenticated(() => retryUntilSuccess(fn, id, true)), delay);
+    setTimeout(() => socket.onceAuthenticated(() => retryUntilSuccess(fn, id, callInfo.maxRetries, true)), delay);
 }
 
 

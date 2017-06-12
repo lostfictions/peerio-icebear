@@ -9,6 +9,7 @@ const uploadModule = require('./file.upload');
 const downloadModule = require('./file.download');
 const { getUser } = require('../../helpers/di-current-user');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const { ServerError } = require('../../errors');
 
 const CHUNK_OVERHEAD = config.CHUNK_OVERHEAD;
 
@@ -180,6 +181,19 @@ class File extends Keg {
         this._resetDownloadState();
         if (!this.id) return Promise.resolve();
         return retryUntilSuccess(() => super.remove(), `remove file ${this.id}`).then(() => { this.deleted = true; });
+    }
+
+    rename(newName) {
+        return retryUntilSuccess(() => {
+            this.name = newName;
+            return this.saveToServer()
+                .catch(err => {
+                    if (err instanceof ServerError && err.code === ServerError.codes.malformedRequest) {
+                        return this.load();
+                    }
+                    return Promise.reject(err);
+                });
+        }, 5);
     }
 }
 
