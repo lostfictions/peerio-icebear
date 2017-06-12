@@ -71,7 +71,7 @@ const config = new class {
     observableClockEventFrequency = 30; // seconds
 
     chat = {
-        maxInitalChats: 15, // maximum amount of chats to load initially (favorite chats will load in full)
+        maxInitialChats: 15, // maximum amount of chats to load initially (favorite chats will load in full)
         initialPageSize: 40, // amount of messages to load to a newly opened chat
         pageSize: 30, // when next/prev pages is requested, chat will load this amount of messages
         maxLoadedMessages: 80, // chat will remove excess of messages if paging resulted in larger count

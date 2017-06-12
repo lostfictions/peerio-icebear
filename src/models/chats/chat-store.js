@@ -1,5 +1,5 @@
 
-const { observable, action, computed, reaction, runInAction, autorunAsync, when, isObservableArray } = require('mobx');
+const { observable, action, computed, reaction, autorunAsync, isObservableArray } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -9,7 +9,6 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const MyChats = require('../chats/my-chats');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-const User = require('../../models/user/user');
 const { asPromise } = require('../../helpers/prombservable');
 
 class ChatStore {
@@ -176,7 +175,7 @@ class ChatStore {
         // gonna happen in applyMyChatsData when fav list is loaded
         await asPromise(this.myChats, 'loaded', true);
         // 3. checking how many more chats we can load
-        const rest = config.chat.maxInitalChats - this.myChats.favorites.length;
+        const rest = config.chat.maxInitialChats - this.myChats.favorites.length;
         if (rest > 0) {
             // 4. loading the rest unhidden chats
             await retryUntilSuccess(() =>

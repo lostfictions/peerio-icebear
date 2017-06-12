@@ -5,7 +5,7 @@
 
 const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
-const { AntiTamperError } = require('../../errors');
+const { AntiTamperError, ServerError } = require('../../errors');
 const { observable } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
 const { getUser } = require('../../helpers/di-current-user');
@@ -33,7 +33,7 @@ class Keg {
      * @param {KegDb} db - keg database owning this keg
      * @param {[boolean]} plaintext - should keg be encrypted
      */
-    constructor(id, type, db, plaintext = false, forceSign = false) {
+    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
         this.id = id;
         this.type = type;
         this.db = db;
@@ -41,9 +41,10 @@ class Keg {
         this.keyId = 0; // @type {string} reserved for future keys change feature
         this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
-        this.collectionVersion = ''; // @type {number} kegType-wide last update id for this keg
+        this.collectionVersion = null; // @type {string} null means we didn't fetch the keg yet,
         this.props = {};
         this.forceSign = forceSign;
+        this.allowEmpty = allowEmpty;
     }
 
     /**
@@ -100,6 +101,7 @@ class Keg {
             if (cleanShareData) {
                 props.sharedKegSenderPK = null;
                 props.sharedKegRecipientPK = null;
+                props.encryptedPayloadKey = null;
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
             if (!this.plaintext || this.forceSign) {
@@ -157,25 +159,38 @@ class Keg {
 
     /**
      * Populates this keg instance with data from server
-     * @param {[bool]} allowEmpty - do not fail on empty keg data
      * @returns {Promise.<Keg>}
      */
-    load(allowEmpty = false) {
+    load() {
         if (this.saving) return Promise.reject(new Error('Can not load keg while it is saving.'));
         if (this.loading) return Promise.reject(new Error('Can not load keg while it is already loading.'));
         this.loading = true;
         return socket.send('/auth/kegs/get', {
             kegDbId: this.db.id,
             kegId: this.id
-        }).then(keg => {
-            const ret = this.loadFromKeg(keg, allowEmpty);
-            if (ret === false) {
-                return Promise.reject(new Error(
-                    `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
-                ));
-            }
-            return ret;
-        }).finally(this._resetLoadingState);
+        })
+            .catch((err) => {
+                if (this.allowEmpty && err instanceof ServerError && err.code === ServerError.codes.notFound) {
+                    // expected error for empty named kegs
+                    const keg = {
+                        kegId: this.id,
+                        version: 1,
+                        collectionVersion: '',
+                        owner: '' // don't know yet
+                    };
+                    return keg;
+                }
+                return Promise.reject(err);
+            })
+            .then(keg => {
+                const ret = this.loadFromKeg(keg);
+                if (ret === false) {
+                    return Promise.reject(new Error(
+                        `Failed to hydrate keg id ${this.id} with server data from db ${this.db ? this.db.id : 'null'}`
+                    ));
+                }
+                return ret;
+            }).finally(this._resetLoadingState);
     }
 
     remove() {
@@ -188,10 +203,9 @@ class Keg {
     /**
      * Synchronous function to rehydrate current Keg instance with data from server.
      * @param {Object} keg as stored on server
-     * @param {[bool]} allowEmpty - do not fail if keg payload is empty
      * @returns {Keg|Boolean}
      */
-    loadFromKeg(keg, allowEmpty = false) {
+    loadFromKeg(keg) {
         try {
             this.lastLoadHadError = false;
             if (this.id && this.id !== keg.kegId) {
@@ -203,11 +217,11 @@ class Keg {
             this.version = keg.version;
             this.owner = keg.owner;
             this.deleted = keg.deleted;
-            this.collectionVersion = keg.collectionVersion;
+            this.collectionVersion = keg.collectionVersion || ''; // protect from potential server bugs sending null
             if (keg.props) this.deserializeProps(keg.props);
             //  is this an empty keg? probably just created.
             if (!keg.payload) {
-                if (allowEmpty) return this;
+                if (this.allowEmpty) return this;
                 this.lastLoadHadError = true;
                 return false;
             }
@@ -235,8 +249,9 @@ class Keg {
                 if (keg.props.encryptedPayloadKey) {
                     // Payload was encrypted with a symmetric key, which was encrypted
                     // for our public key and stored in encryptedPayloadKey prop.
-                    payloadKey = secret.decryptString(keg.props.encryptedPayloadKey, sharedKey);
+                    payloadKey = secret.decrypt(cryptoUtil.b64ToBytes(keg.props.encryptedPayloadKey), sharedKey);
                 } else {
+                    // TODO: @dchest u think we might need this?
                     // Payload key is the shared key.
                     payloadKey = sharedKey;
                 }

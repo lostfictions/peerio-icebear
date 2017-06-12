@@ -284,12 +284,18 @@ class User {
      * @return {Uint8Array}
      */
     getSharedKey(theirPublicKey) {
+        if (!(theirPublicKey instanceof Uint8Array)) throw new Error('Invalid argument type');
         const cacheKey = theirPublicKey.join(',');
         let cachedValue = this._sharedKeyCache[cacheKey];
         if (cachedValue) return cachedValue;
         cachedValue = publicCrypto.computeSharedKey(theirPublicKey, this.encryptionKeys.secretKey);
         this._sharedKeyCache[cacheKey] = cachedValue;
         return cachedValue;
+    }
+
+    deleteAccount(username) {
+        if (username !== this.username) return;
+        socket.send('/auth/user/close');
     }
 }
 

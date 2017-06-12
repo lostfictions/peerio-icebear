@@ -3,6 +3,7 @@ const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
+const moment = require('moment');
 const _ = require('lodash');
 
 class Message extends Keg {
@@ -32,6 +33,15 @@ class Message extends Keg {
             this.timestamp.getMonth().toString() +
             this.timestamp.getFullYear().toString();
     }
+
+    // TODO: mobile uses this, but desktop uses
+    // TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+    // TODO: resolve/unify this in favor of most performant method
+    @computed get messageTimestampText() {
+        const { timestamp } = this;
+        return timestamp ? moment(timestamp).format('LT') : null;
+    }
+
     /**
      * @param {ChatStore} db - chat db
      */
@@ -108,7 +118,7 @@ class Message extends Keg {
         if (this.files) obj.files = JSON.stringify(this.files);
     }
 
-    deserializeProps(props) {
+    deserializeProps() {
         // files are in props only for search
     }
 }

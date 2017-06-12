@@ -54,7 +54,7 @@ class File extends Keg {
     @computed get cachePath() {
         if (!config.isMobile) return null;
         // we need constant id to find file in cache, but fileId contains some restricted characters
-        const uid = cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
+        const uid = this.name || cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
         return config.FileStream.getFullPath(`${uid}.${this.ext}`);
     }
     // Human readable file siz
@@ -139,7 +139,7 @@ class File extends Keg {
             recipients[contact.username] = {
                 publicKey: cryptoUtil.bytesToB64(contact.encryptionPublicKey),
                 encryptedPayloadKey: cryptoUtil.bytesToB64(
-                    secret.encryptString(
+                    secret.encrypt(
                         payloadKey, getUser().getSharedKey(contact.encryptionPublicKey)
                     )
                 )

@@ -1,5 +1,5 @@
 
-const { observable, when, action, computed, intercept } = require('mobx');
+const { observable, when, action, computed, intercept, isObservableArray } = require('mobx');
 const socket = require('../../network/socket');
 const Contact = require('./contact');
 const { setContactStore } = require('../../helpers/di-contact-store');
@@ -18,6 +18,8 @@ class ContactStore {
     @observable.shallow contacts = [];
     myContacts;
     invites;
+    _requestMap = {};
+
     @computed get addedContacts() {
         return this.contacts.filter(c => c.isAdded);
     }
@@ -165,6 +167,69 @@ class ContactStore {
         });
     }
 
+    /**
+     * Accepts array of preloaded contacts, doesn't not wait for passed contacts to load
+     * @param {Array<Contact>} contacts
+     * @returns
+     * @memberof ContactStore
+     */
+    addContactBatch(contacts) {
+        return this.myContacts.save(
+            () => {
+                contacts.forEach(c => this.myContacts.addContact(c));
+                return true;
+            },
+            () => contacts.forEach(c => this.myContacts.removeContact(c))
+        );
+    }
+
+    /**
+     * Looks up by email and adds contacts to favorites list.
+     * @param {Array<string>} emails
+     * @returns {imported:Array<string>, notFound: Array<string>}
+     * @memberof ContactStore
+     */
+    importContacts(emails) {
+        if (!Array.isArray(emails) && !isObservableArray(emails)) {
+            return Promise.reject(new Error(`importContact(emails) argument should be an Array<string>`));
+        }
+        return new Promise((resolve, reject) => {
+            const ret = { imported: [], notFound: [] };
+            let pos = 0;
+            const step = () => {
+                this._getBatchPage(emails, pos)
+                    .then(res => {
+                        if (!res.length) {
+                            resolve(ret);
+                        }
+                        const toAdd = [];
+                        for (let i = 0; i < res.length; i++) {
+                            const item = res[i];
+                            if (!item || !item.length) {
+                                ret.notFound.push(emails[pos + i]);
+                                continue;
+                            }
+                            const c = this.getContact(item[0].profile.username, [item]);
+                            toAdd.push(c);
+                        }
+                        pos += res.length;
+                        return this.addContactBatch(toAdd).then(() => {
+                            this.applyMyContactsData();
+                            ret.imported.push(...toAdd.map(c => c.username));
+                            step();
+                        });
+                    })
+                    .catch(() => reject(ret));
+            };
+            step();
+        });
+    }
+
+    _getBatchPage(emails, pos) {
+        if (pos >= emails.length) return Promise.resolve([]);
+        return socket.send('/auth/user/lookup', { string: emails.slice(pos, pos + 15) });
+    }
+
     removeContact(usernameOrContact) {
         const c = typeof usernameOrContact === 'string' ? this.getContact(usernameOrContact) : usernameOrContact;
         if (!this.myContacts.contacts[c.username]) return;
@@ -199,15 +264,19 @@ class ContactStore {
      * @param {string} username
      * @returns {Contact}
      */
-    getContact(username) {
-        const existing = this._contactMap[username];
+    getContact(username, prefetchedData) {
+        let existing = this._contactMap[username];
+        if (existing) return existing;
+        existing = this._requestMap[username];
         if (existing) return existing;
 
-        const c = new Contact(username);
-        this.contacts.unshift(c);
+        const c = new Contact(username, prefetchedData);
+        this._requestMap[username] = c;
+
         when(() => !c.loading, () => {
-            if (c.notFound) {
-                this.contacts.remove(c);
+            delete this._requestMap[username];
+            if (!c.notFound && !this._contactMap[username]) {
+                this.contacts.unshift(c);
             }
         });
         return c;

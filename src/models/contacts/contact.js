@@ -92,9 +92,9 @@ class Contact {
         let i = 0;
         return this.fingerprint
             .replace(/-/g, '')
-            .match(/.{1,4}/g)
+            .match(/.{1,5}/g)
             .join(' ')
-            .replace(/ /g, () => (i++ === 3 ? '\n' : ' '));
+            .replace(/ /g, () => (i++ === 2 ? '\n' : ' '));
     }
 
     // contact wasn't found on server
@@ -103,10 +103,10 @@ class Contact {
     _waitingForResponse = false;
 
     /**
-     * @param username
+     * @param username - this can also be an email which will be replaced with username if user found
      * @param {[bool]} noAutoLoad - don't automatically call this.load() in constructor (needed for tests)
      */
-    constructor(username, noAutoLoad) {
+    constructor(username, noAutoLoad, prefetchedData) {
         this.username = username.toLowerCase();
         if (getUser().username === this.username) this.isMe = true;
         this.usernameTag = `@${this.username}`;
@@ -115,25 +115,29 @@ class Contact {
             reaction(() => getUser().firstName, n => { this.firstName = n; });
             reaction(() => getUser().lastName, n => { this.lastName = n; });
         }
-        if (!noAutoLoad) this.load();
+        if (!noAutoLoad) this.load(prefetchedData);
     }
 
-    load() {
+    load(prefetchedData) {
         if (!this.loading || this._waitingForResponse) return;
         console.log(`Loading contact: ${this.username}`);
         this.loading = true;
         this._waitingForResponse = true;
 
-        socket.send('/auth/user/lookup', { string: this.username })
+        (
+            prefetchedData
+                ? Promise.resolve(prefetchedData)
+                : socket.send('/auth/user/lookup', { string: this.username })
+        )
             .then(action(resp => {
                 // currently there are old users in the system that don't have encryption public keys
-                if (!resp || !resp.length || !resp[0].profile.encryptionPublicKey) {
+                if (!resp || !resp.length || !resp[0].length || !resp[0][0].profile.encryptionPublicKey) {
                     this.notFound = true;
                     this._waitingForResponse = false;
                     this.loading = false;
                     return;
                 }
-                const profile = resp[0].profile;
+                const profile = resp[0][0].profile;
                 this.username = profile.username;
                 this.firstName = profile.firstName || '';
                 this.lastName = profile.lastName || '';
@@ -153,12 +157,13 @@ class Contact {
             }))
             .catch(err => {
                 this._waitingForResponse = false;
-                socket.onceAuthenticated(() => this.load());
+                if (!prefetchedData) socket.onceAuthenticated(() => this.load());
                 console.log(err);
             });
     }
 
     loadTofu() {
+        console.log('Loading tofu:', this.username);
         return Tofu.getByUsername(this.username)
             .then(action(tofu => {
                 this._waitingForResponse = false;

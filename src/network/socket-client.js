@@ -253,6 +253,9 @@ class SocketClient {
             }
             function handler(resp) {
                 if (resp && resp.error) {
+                    if (resp.error === ServerError.codes.accountClosed) {
+                        this.close();
+                    }
                     this.throttled = this.throttled || (resp.error === 425);
                     reject(new ServerError(resp.error, resp.message));
                     return;

@@ -20,7 +20,8 @@ class ServerSettings {
                     this.avatarServer = res.fileBaseUrl;
                     this.acceptableClientVersions = res.acceptsClientVersions;
                     this.tag = res.tag;
-                    console.log('Server settings retrieved.', this.tag, this.avatarServer, this.acceptableClientVersions);
+                    console.log('Server settings retrieved.', this.tag,
+                        this.avatarServer, this.acceptableClientVersions);
                 });
         }, 'Server Settings Load');
     }
