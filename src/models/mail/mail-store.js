@@ -207,13 +207,12 @@ class MailStore {
      * @param {Array<File>?} optional, file kegs to attach
      * @param {string?} optional, messageId of message to reply to
      */
-    send(recipients, subject, body, files, replyId) {
-        const fileIds = this._shareFileKegs(recipients, files);
+    async send(recipients, subject, body, files, replyId) {
         const keg = new Mail(User.current.kegDb);
         keg.recipients = recipients;
         keg.subject = subject;
         keg.body = body;
-        keg.files = fileIds;
+        keg.files = await this._shareFileKegs(recipients, files);
         keg.replyId = replyId;
 
         keg.send(recipients);
@@ -229,23 +228,17 @@ class MailStore {
     }
 
     /**
-     * Shares existing Peerio files with contacts.
-     * This function performs only logical sharing, meaning provides permissions/access for recipients.
-     * It doesn't inform recipients in the chat about the fact of sharing.
+     * Shares existing Peerio files with contacts, returning a Promise resolving
+     * to the shared file ids.
      * @param {Array<File>} files
-     * @return {Array<string>} - fileId list
+     * @return {Promise<Array<string>> | Promise<undefined>} fileId list
      * @private
      */
     _shareFileKegs(contacts, files) {
-        if (!files || !files.length) return null;
-        const ids = [];
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            // todo: handle failure
-            file.share(contacts);
-            ids.push(file.fileId);
-        }
-        return ids;
+        if (!files || !files.length) return Promise.resolve(undefined);
+        return Promise.all(
+            files.map(file => file.share(contacts).then(() => file.fileId))
+        );
     }
 }
 
