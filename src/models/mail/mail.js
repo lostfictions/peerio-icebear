@@ -67,9 +67,9 @@ class Mail extends Keg {
             recipients: this.recipients,
             subject: this.subject,
             body: this.body,
-            files: this.files.slice(),
             timestamp: this.timestamp
         };
+        if (this.files) ret.files = this.files.slice();
         if (this.sentId) ret.sentId = this.sentId;
         if (this.replyId) ret.replyId = this.replyId;
     }
