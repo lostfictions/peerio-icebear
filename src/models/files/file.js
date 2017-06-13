@@ -180,7 +180,8 @@ class File extends Keg {
         this._resetUploadState();
         this._resetDownloadState();
         if (!this.id) return Promise.resolve();
-        return retryUntilSuccess(() => super.remove(), `remove file ${this.id}`).then(() => { this.deleted = true; });
+        return retryUntilSuccess(() => super.remove(), `remove file ${this.id}`, 3)
+            .then(() => { this.deleted = true; });
     }
 
     rename(newName) {
