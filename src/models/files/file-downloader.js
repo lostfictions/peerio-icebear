@@ -131,29 +131,52 @@ class FileDownloader extends FileProcessor {
     _download = (url) => {
         const self = this;
         let lastLoaded = 0;
+        let totalLoaded = 0;
+        let retryCount = 0;
+        // For refactoring lovers: (yes, @anri, you)
+        // - don't convert event handlers to arrow functions
         const p = new Promise((resolve, reject) => {
             const xhr = this.currentXhr = new XMLHttpRequest();
+
+            const trySend = () => {
+                self.file.progress -= totalLoaded;
+                // had to do this bcs uploaded blob takes some time to propagate through cloud
+                if (retryCount++ >= 5) return false;
+                if (retryCount > 0) {
+                    console.log('Blob download retry attempt: ', retryCount, url);
+                }
+                setTimeout(() => {
+                    xhr.open('GET', url);
+                    xhr.responseType = 'arraybuffer';
+                    xhr.send();
+                }, 3000);
+                return true;
+            };
+
             xhr.onreadystatechange = function() {
                 if (this.readyState !== 4) return;
                 if (this.status === 200 || this.status === 206) {
                     resolve(this.response);
                     return;
                 }
-                if (!p.isRejected()) reject();
+                console.error('Download blob error: ', this.status);
+                if (!p.isRejected()) {
+                    if (!trySend()) reject();
+                }
             };
 
             xhr.onprogress = function(event) {
+                if (p.isRejected()) return;
                 self.file.progress += event.loaded - lastLoaded;
                 lastLoaded = event.loaded;
+                totalLoaded += lastLoaded;
             };
 
             xhr.ontimeout = xhr.onabort = xhr.onerror = function() {
-                if (!p.isRejected()) reject();
+                if (!p.isRejected() && !trySend()) reject();
             };
 
-            xhr.open('GET', url);
-            xhr.responseType = 'arraybuffer';
-            xhr.send();
+            trySend();
         }).finally(() => { this.currentXhr = null; });
 
         return p;

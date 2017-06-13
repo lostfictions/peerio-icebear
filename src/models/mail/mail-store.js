@@ -118,8 +118,7 @@ class MailStore {
     }, 1500);
 
     _getMails() {
-        const filter = { minCollectionVersion: this.knownUpdateId };
-        if (this.knownUpdateId === '') filter.deleted = false;
+        const filter = this.knownUpdateId ? { minCollectionVersion: this.knownUpdateId } : { deleted: false };
 
         return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: 'SELF',

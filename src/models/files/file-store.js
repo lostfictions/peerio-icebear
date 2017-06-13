@@ -135,7 +135,7 @@ class FileStore {
     }, 1500);
 
     _getFiles() {
-        const filter = { minCollectionVersion: this.knownUpdateId };
+        const filter = this.knownUpdateId ? { minCollectionVersion: this.knownUpdateId } : {};
         if (this.knownUpdateId === '') filter.deleted = false;
 
         return socket.send('/auth/kegs/db/list-ext', {
@@ -193,6 +193,7 @@ class FileStore {
         if (!maxId) maxId = this.maxUpdateId; // eslint-disable-line
         console.log(`Proceeding to file update. Known collection version: ${this.knownUpdateId}`);
         this.updating = true;
+        let dirty = false;
         retryUntilSuccess(() => this._getFiles(), 'Updating file list')
             .then(action(resp => {
                 const kegs = resp.kegs;
@@ -207,9 +208,16 @@ class FileStore {
                         continue;
                     }
                     if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
-                    if (!file.deleted && !existing) this.files.unshift(file);
+                    if (!file.deleted && !existing) {
+                        dirty = true;
+                        this.files.unshift(file);
+                    }
                 }
                 this.updating = false;
+                if (dirty) {
+                    this.resumeBrokenDownloads();
+                    this.resumeBrokenUploads();
+                }
                 // need this bcs if u delete all files knownUpdateId won't be set at all after initial load
                 if (this.knownUpdateId < maxId) this.knownUpdateId = maxId;
                 // in case we missed another event while updating

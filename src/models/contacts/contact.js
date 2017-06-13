@@ -106,7 +106,7 @@ class Contact {
      * @param username - this can also be an email which will be replaced with username if user found
      * @param {[bool]} noAutoLoad - don't automatically call this.load() in constructor (needed for tests)
      */
-    constructor(username, noAutoLoad, prefetchedData) {
+    constructor(username, prefetchedData, noAutoLoad) {
         this.username = username.toLowerCase();
         if (getUser().username === this.username) this.isMe = true;
         this.usernameTag = `@${this.username}`;
@@ -139,6 +139,7 @@ class Contact {
                 }
                 const profile = resp[0][0].profile;
                 this.username = profile.username;
+                this.usernameTag = `@${this.username}`;
                 this.firstName = profile.firstName || '';
                 this.lastName = profile.lastName || '';
                 this.urlSalt = profile.urlSalt;

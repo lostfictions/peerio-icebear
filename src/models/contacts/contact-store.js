@@ -201,6 +201,7 @@ class ContactStore {
                     .then(res => {
                         if (!res.length) {
                             resolve(ret);
+                            return null;
                         }
                         const toAdd = [];
                         for (let i = 0; i < res.length; i++) {

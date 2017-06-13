@@ -36,11 +36,11 @@
     "dompurify": "0.9.0",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
-    "mobx": "3.1.14",
+    "mobx": "3.1.15",
     "moment": "2.18.1",
     "peerio-translator": "git+https://github.com/PeerioTechnologies/peerio-translator.git#icebear",
     "scrypt-async": "1.3.1",
-    "socket.io-client": "1.7.4",
+    "socket.io-client": "2.0.2",
     "tweetnacl": "1.0.0"
   },
   "dependencies": {
@@ -50,11 +50,11 @@
     "dompurify": "0.9.0",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
-    "mobx": "3.1.14",
+    "mobx": "3.1.15",
     "moment": "2.18.1",
     "peerio-translator": "git+https://github.com/PeerioTechnologies/peerio-translator.git#icebear",
     "scrypt-async": "1.3.1",
-    "socket.io-client": "1.7.4",
+    "socket.io-client": "2.0.2",
     "tweetnacl": "1.0.0"
   },
   "devDependencies": {
@@ -69,7 +69,7 @@
     "babel-register": "6.24.1",
     "babel-types": "6.25.0",
     "chai": "4.0.2",
-    "chai-as-promised": "6.0.0",
+    "chai-as-promised": "7.0.0",
     "cz-conventional-changelog": "2.0.0",
     "documentation": "4.0.0-rc.1",
     "eslint-config-peerio": "1.19.9",
@@ -80,8 +80,8 @@
     "nyc": "11.0.2",
     "opt-cli": "1.5.1",
     "rimraf": "2.6.1",
-    "sinon": "2.3.2",
-    "sinon-chai": "2.10.0",
+    "sinon": "2.3.4",
+    "sinon-chai": "2.11.0",
     "source-map-support": "0.4.15",
     "standard-version": "4.0.0",
     "validate-commit-msg": "2.12.2"
