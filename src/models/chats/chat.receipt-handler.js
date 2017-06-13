@@ -97,16 +97,15 @@ class ChatReceiptHandler {
     loadReceipts = () => {
         let digest = tracker.getDigest(this.chat.id, 'read_receipt');
         if (digest.maxUpdateId <= this.downloadedCollectionVersion) return null;
-
+        const filter = this.downloadedCollectionVersion ?
+            { minCollectionVersion: this.downloadedCollectionVersion } : {};
         return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
                 type: 'read_receipt',
                 reverse: false
             },
-            filter: {
-                minCollectionVersion: this.downloadedCollectionVersion || ''
-            }
+            filter
         }).then(res => {
             const kegs = res.kegs;
             if (!kegs || !kegs.length) return;

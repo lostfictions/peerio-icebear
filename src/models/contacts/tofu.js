@@ -56,7 +56,6 @@ class Tofu extends Keg {
                 reverse: false
             },
             filter: {
-                minCollectionVersion: '',
                 username
             }
         }).then(res => {

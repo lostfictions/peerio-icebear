@@ -86,6 +86,7 @@ class ChatMessageHandler {
         this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
+        const filter = this.downloadedUpdateId ? { minCollectionVersion: this.downloadedUpdateId } : {};
         socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
@@ -93,9 +94,7 @@ class ChatMessageHandler {
                 type: 'message',
                 reverse: false
             },
-            filter: {
-                minCollectionVersion: this.downloadedUpdateId
-            }
+            filter
         })
             .tapCatch(() => { this._loadingUpdates = false; })
             .then(action(resp => {
