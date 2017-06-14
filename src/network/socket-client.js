@@ -260,6 +260,10 @@ class SocketClient {
                         getUser().deleted = true;
                         this.close();
                     }
+                    if (resp.error === ServerError.codes.accountBlacklisted) {
+                        getUser().blacklisted = true;
+                        this.close();
+                    }
                     this.throttled = this.throttled || (resp.error === 425);
                     reject(new ServerError(resp.error, resp.message));
                     return;

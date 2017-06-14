@@ -33,6 +33,7 @@ class Contact {
     @observable urlSalt = null;
     @observable profileVersion = 0;
     @observable hasAvatar = false;
+    @observable isDeleted = false;
 
     @computed get color() {
         if (!this.signingPublicKey) return '#9e9e9e';
@@ -144,7 +145,7 @@ class Contact {
                 this.lastName = profile.lastName || '';
                 this.urlSalt = profile.urlSalt;
                 this.hasAvatar = profile.hasAvatar;
-                this.isDeleted = profile.isDeleted;
+                this.isDeleted = !!profile.isDeleted;
                 this.mentionRegex = new RegExp(`@${this.username}`, 'gi');
 
                 // this is server - controlled data, so we don't account for cases when it's invalid

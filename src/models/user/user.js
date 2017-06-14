@@ -40,6 +40,7 @@ class User {
     @observable.ref addresses;
     @observable primaryAddressConfirmed;
     @observable deleted = false;
+    @observable blacklisted = false;
 
     @observable savingAvatar = false;
     // ui flags
