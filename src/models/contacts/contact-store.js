@@ -278,6 +278,7 @@ class ContactStore {
             delete this._requestMap[username];
             if (!c.notFound && !this._contactMap[username]) {
                 this.contacts.unshift(c);
+                c.isAdded = !!this.myContacts.contacts[c.username];
             }
         });
         return c;
