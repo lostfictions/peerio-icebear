@@ -144,6 +144,7 @@ class Contact {
                 this.lastName = profile.lastName || '';
                 this.urlSalt = profile.urlSalt;
                 this.hasAvatar = profile.hasAvatar;
+                this.isDeleted = profile.isDeleted;
                 this.mentionRegex = new RegExp(`@${this.username}`, 'gi');
 
                 // this is server - controlled data, so we don't account for cases when it's invalid

@@ -39,8 +39,9 @@ class User {
     @observable profileLoaded = false;
     @observable.ref addresses;
     @observable primaryAddressConfirmed;
-    @observable savingAvatar = false;
+    @observable deleted = false;
 
+    @observable savingAvatar = false;
     // ui flags
     @observable autologinEnabled = false;
 
@@ -296,6 +297,14 @@ class User {
     deleteAccount(username) {
         if (username !== this.username) return;
         socket.send('/auth/user/close');
+    }
+
+    clearFromTinyDb() {
+        return Promise.all([
+            TinyDb.user.clear(),
+            User.removeLastAuthenticated(),
+            TinyDb.system.removeValue(`${User.current.username}:deviceToken`)
+        ]);
     }
 }
 

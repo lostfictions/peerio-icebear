@@ -12,6 +12,7 @@ const { observable } = require('mobx');
 const config = require('../config');
 const util = require('../util');
 const Timer = require('../helpers/observable-timer');
+const { getUser } = require('../helpers/di-current-user');
 
 const STATES = {
     open: 'open',
@@ -20,6 +21,7 @@ const STATES = {
     closing: 'closing'
 };
 
+// socket.io event
 const SOCKET_EVENTS = {
     connect: 'connect',
     connect_error: 'connect_error',
@@ -37,6 +39,7 @@ const SOCKET_EVENTS = {
     authenticated: 'authenticated'
 };
 
+// application events sent by app server
 const APP_EVENTS = {
     twoFA: 'twoFA',
     kegsUpdate: 'kegsUpdate',
@@ -254,6 +257,7 @@ class SocketClient {
             function handler(resp) {
                 if (resp && resp.error) {
                     if (resp.error === ServerError.codes.accountClosed) {
+                        getUser().deleted = true;
                         this.close();
                     }
                     this.throttled = this.throttled || (resp.error === 425);
