@@ -4,12 +4,16 @@
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
+const Queue = require('../../helpers/queue');
 
 class ChatFileHandler {
+
+    shareQueue = new Queue(1, 2000);
 
     constructor(chat) {
         this.chat = chat;
     }
+
 
     /**
      * Initiates file upload and shares it to the chat afterwards
@@ -41,8 +45,12 @@ class ChatFileHandler {
      * @param {Array<File>} files
      */
     share(files) {
-        const ids = this.shareFileKegs(files);
-        return this.chat.sendMessage('', ids);
+        return Promise.map(files, (f) => {
+            return this.shareQueue.addTask(() => {
+                const ids = this.shareFileKegs([f]);
+                return this.chat.sendMessage('', ids);
+            });
+        });
     }
 
 

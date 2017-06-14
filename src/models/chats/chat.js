@@ -73,8 +73,13 @@ class Chat {
 
     _reactionsToDispose = [];
 
+    @computed get isReadOnly() {
+        return this.participants.length > 0
+            && this.participants.filter(p => p.isDeleted).length === this.participants.length;
+    }
+
     @computed get participantUsernames() {
-        if (!this.participants) return null;
+        // if (!this.participants) return null;
         return this.participants.map(p => p.username);
     }
 
