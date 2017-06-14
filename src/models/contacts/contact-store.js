@@ -341,11 +341,13 @@ class ContactStore {
         return ret.sort((c1, c2) => {
             if (c1.isAdded && !c2.isAdded) return -1;
             if (c2.isAdded && !c1.isAdded) return 1;
-            if (c1.username.startsWith(token)) return -1;
-            if (c2.username.startsWith(token)) return 1;
-            if (c1.fullNameLower.startsWith(token)) return -1;
-            if (c2.fullNameLower.startsWith(token)) return 1;
-            return 0;
+            if (token) {
+                if (c1.username.startsWith(token)) return -1;
+                if (c2.username.startsWith(token)) return 1;
+                if (c1.fullNameLower.startsWith(token)) return -1;
+                if (c2.fullNameLower.startsWith(token)) return 1;
+            }
+            return c1.username.localeCompare(c2.username);
         });
     }
 }
