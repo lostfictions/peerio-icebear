@@ -1,5 +1,5 @@
 # ʕ•ᴥ•ʔ 
-[![CircleCI](https://circleci.com/gh/PeerioTechnologies/peerio-icebear/tree/master.svg?style=svg)](https://circleci.com/gh/PeerioTechnologies/peerio-icebear/tree/master)
+
 # peerio-icebear
 Peerio Icebear is a client library supporting Peerio apps
 
