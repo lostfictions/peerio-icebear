@@ -2,6 +2,8 @@
 
 # peerio-icebear
 Peerio Icebear is a client library supporting Peerio apps
+* https://github.com/PeerioTechnologies/peerio-desktop
+* https://github.com/PeerioTechnologies/peerio-mobile
 
 ## Development configuration
 
