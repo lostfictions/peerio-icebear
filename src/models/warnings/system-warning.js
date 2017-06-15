@@ -16,11 +16,12 @@ class SystemWarning {
      * @param {object} data - variables to pass to peerio-translator when resolving content
      * @param {string} [level='medium'] - severity level, options [medium, severe]
      */
-    constructor(content, title, data, level = 'medium') {
+    constructor(content, title, data, level = 'medium', callback) {
         this.content = content;
         this.title = title;
         this.data = data;
         this.level = level;
+        this.callback = callback;
     }
 
     show() {
@@ -37,6 +38,7 @@ class SystemWarning {
         setTimeout(() => {
             this.dispose();
             this.state = SystemWarning.STATES.DISMISSED;
+            if (this.callback) this.callback();
         }, 700);
     }
 

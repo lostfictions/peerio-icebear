@@ -57,16 +57,16 @@ class Warnings {
      * @param {object} [data] - variables to pass to translator
      * @param {string} [level='medium'] - severity level
      */
-    @action add(content, title, data, level = 'medium') {
-        this._queueItem(new SystemWarning(content, title, data, level));
+    @action add(content, title, data, level = 'medium', callback) {
+        this._queueItem(new SystemWarning(content, title, data, level, callback));
     }
 
     /**
      * Shortcut to add severe warnings without specifying severity level explicitly
      * @see add
      */
-    @action addSevere(content, title, data) {
-        this.add(content, title, data, 'severe');
+    @action addSevere(content, title, data, callback) {
+        this.add(content, title, data, 'severe', callback);
     }
 
     /**
