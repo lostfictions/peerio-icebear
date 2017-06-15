@@ -391,7 +391,7 @@ class Chat {
         }
         return this.chatHead.save(() => {
             this.chatHead.chatName = validated;
-        }, 'error_chatRename')
+        }, null, 'error_chatRename')
             .then(() => {
                 const m = new Message(this.db);
                 m.setRenameFact(validated);

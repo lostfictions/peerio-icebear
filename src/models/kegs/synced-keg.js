@@ -77,7 +77,7 @@ class SyncedKeg extends Keg {
                     };
                 }
 
-                if (!dataChangeFn()) {
+                if (dataChangeFn() === false) {
                     // dataChangeFn decided not to save changes
                     return null;
                 }
