@@ -16,6 +16,7 @@ const config = require('../../config');
 const MRUList = require('../../helpers/mru-list');
 const migrator = require('../../legacy/account_migrator');
 const { ServerError } = require('../../errors');
+const warnings = require('../warnings');
 
 let currentUser;
 
@@ -296,8 +297,19 @@ class User {
     }
 
     deleteAccount(username) {
-        if (username !== this.username) return;
-        socket.send('/auth/user/close');
+        if (username !== this.username) {
+            return Promise.reject(new Error('Pass username to delete current user account.'));
+        }
+        if (!this.primaryAddressConfirmed) {
+            warnings.addSevere('error_deletingAccountNoConfirmedEmail');
+            return Promise.reject();
+        }
+        return socket.send('/auth/user/close')
+            .catch(err => {
+                console.error(err);
+                warnings.addSevere('error_deletingAccount');
+                return Promise.reject(err);
+            });
     }
 
     clearFromTinyDb() {
