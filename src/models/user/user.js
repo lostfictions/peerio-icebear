@@ -127,10 +127,10 @@ class User {
         return this.fileQuotaTotal === 0 ? 0 : Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100));
     }
 
-    canUploadFileSize = function(size) {
+    canUploadFileSize = (size) => {
         const chunkSize = config.upload.getChunkSize(size);
         const chunkCount = Math.ceil(size / chunkSize);
-        return this.fileQuotaLeft >= (size + chunkCount * chunkSize);
+        return this.fileQuotaLeft >= (size + chunkCount * config.CHUNK_OVERHEAD);
     };
 
     /**
