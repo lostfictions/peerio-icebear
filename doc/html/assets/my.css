@@ -1,0 +1,8 @@
+.dim {
+  opacity: 0.4;
+  transition: opacity 300ms ease;
+}
+
+.dim:hover {
+  opacity: initial;
+}
