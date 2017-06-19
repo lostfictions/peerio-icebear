@@ -1,6 +1,7 @@
-# ʕ•ᴥ•ʔ 
+# ʕ•ᴥ•ʔ peerio-icebear
 
-# peerio-icebear
+Documentation: https://peeriotechnologies.github.io/peerio-icebear/html/
+
 Peerio Icebear is a client library supporting Peerio apps
 * https://github.com/PeerioTechnologies/peerio-desktop
 * https://github.com/PeerioTechnologies/peerio-mobile
