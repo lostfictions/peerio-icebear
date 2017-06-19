@@ -25,12 +25,12 @@ const NONCE_SIZE = 24;
  * This is a refactored version of nacl.secretbox().
  * @param {Uint8Array} msgBytes
  * @param {Uint8Array} key
- * @param {[Uint8Array]} nonce - (24 byte) in case you have want to set your own nonce instead of random one
+ * @param {Uint8Array} [nonce] - (24 byte) in case you have want to set your own nonce instead of random one
  * @param {boolean} appendNonce - default 'true'
  * @param {boolean} prependLength - prepends 4 bytes containing message length after encryption
  */
 exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
-                           appendNonce = true, prependLength = false) {
+    appendNonce = true, prependLength = false) {
     // validating arguments
     // todo: do we need this validation, or encryption failed due to invalid args is not a security issue?
     /*
@@ -82,8 +82,8 @@ exports.encryptString = function(msg, key) {
  * This is a refactored version of nacl.secretbox.open().
  * @param {Uint8Array} cipher - cipher bytes with 16 zerobytes prepended and optionally appended nonce
  * @param {Uint8Array} key
- * @param {[Uint8Array]} nonce - optional nonce (specify when it's not appended to cipher bytes)
- * @param {[boolean]} containsLength
+ * @param {Uint8Array} [nonce] - optional nonce (specify when it's not appended to cipher bytes)
+ * @param {boolean} [containsLength]
  */
 exports.decrypt = function(cipher, key, nonce, containsLength) {
     /*

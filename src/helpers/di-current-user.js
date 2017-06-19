@@ -1,5 +1,6 @@
 /**
  * DI module to use models/user avoiding cyclic requires
+ * @module helpers/di-current-user
  */
 let currentUser;
 module.exports = {

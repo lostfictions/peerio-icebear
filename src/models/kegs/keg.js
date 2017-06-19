@@ -28,10 +28,10 @@ class Keg {
     @observable saving = false;
     lastLoadHadError = false;
     /**
-     * @param {[string]} id - kegId, or null for new kegs
+     * @param {string} [id] - kegId, or null for new kegs
      * @param {string} type - keg type
      * @param {KegDb} db - keg database owning this keg
-     * @param {[boolean]} plaintext - should keg be encrypted
+     * @param {boolean} [plaintext] - should keg be encrypted
      */
     constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
         this.id = id;
@@ -39,7 +39,7 @@ class Keg {
         this.db = db;
         this.plaintext = plaintext;
         this.keyId = 0; // @type {string} reserved for future keys change feature
-        this.overrideKey = null; // @type {[Uint8Array]} separate key for this keg, overrides regular keg key
+        this.overrideKey = null; // @type {Uint8Array} separate key for this keg, overrides regular keg key
         this.version = 0; // @type {number} keg version
         this.collectionVersion = null; // @type {string} null means we didn't fetch the keg yet,
         this.props = {};

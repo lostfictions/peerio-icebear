@@ -18,7 +18,7 @@ class ChatFileHandler {
     /**
      * Initiates file upload and shares it to the chat afterwards
      * @param {string} path - full file path
-     * @param {[string]} name - override file name, specify to store the file in Peerio with this name
+     * @param {string} [name] - override file name, specify to store the file in Peerio with this name
      * @return {File}
      */
     uploadAndShare(path, name, deleteAfterUpload) {

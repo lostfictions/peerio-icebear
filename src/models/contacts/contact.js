@@ -105,7 +105,7 @@ class Contact {
 
     /**
      * @param username - this can also be an email which will be replaced with username if user found
-     * @param {[bool]} noAutoLoad - don't automatically call this.load() in constructor (needed for tests)
+     * @param {bool} [noAutoLoad] - don't automatically call this.load() in constructor (needed for tests)
      */
     constructor(username, prefetchedData, noAutoLoad) {
         this.username = username.toLowerCase();

@@ -40,13 +40,13 @@ const Contact = require('../contacts/contact');
 
 class ChatKegDb {
 
-    // if true -  something is wrong with bootkeg, most likely it was maliciously created and can't be used
+    // if true -  something is wrong with boot keg, most likely it was maliciously created and can't be used
     dbIsBroken = false;
     /**
      * Creates new database instance.
      * At least one of 2 parameters should be passed
-     * @param {[string]} id - or specific id for shared databases
-     * @param {[Array<Contact>]} participants - participants list, EXCLUDING own username
+     * @param {string} [id] - or specific id for shared databases
+     * @param {Array<Contact>} [participants] - participants list, EXCLUDING own username
      */
     constructor(id, participants) {
         this.id = id;

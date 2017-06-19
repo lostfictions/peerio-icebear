@@ -26,7 +26,7 @@ class FileUploader extends FileProcessor {
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator
-     * @param {[number]} startFromChunk - in case of resume, start uploading from the chunk after this one
+     * @param {number} startFromChunk - in case of resume, start uploading from the chunk after this one
      */
     constructor(file, stream, nonceGenerator, startFromChunk) {
         super(file, stream, nonceGenerator, 'upload');

@@ -13,7 +13,7 @@ const callsInProgress = {};
  * 2. If promise returned by function rejects - goto 1
  * Makes sure socket is authenticated before calling, and waits for it to become authenticated if needed.
  * @param {function} fn - function to execute
- * @param {[string]} id - unique id for this action, to prevent multiple parallel attempts
+ * @param {string} [id] - unique id for this action, to prevent multiple parallel attempts
  * @returns {Promise} - resolves when action is finally executed, never rejects
  */
 function retryUntilSuccess(fn, id = Math.random(), maxRetries = maxRetryCount, thisIsRetry) {

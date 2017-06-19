@@ -6,5 +6,10 @@ const sign = require('./sign');
 const setScrypt = require('./scrypt-proxy').setScrypt;
 
 module.exports = {
-    cryptoUtil, keys, publicCrypto, secret, sign, setScrypt
+    cryptoUtil,
+    keys,
+    publicCrypto,
+    secret,
+    sign,
+    setScrypt
 };

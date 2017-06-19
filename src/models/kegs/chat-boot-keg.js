@@ -19,7 +19,7 @@ class ChatBootKeg extends Keg {
     /**
      * @param {KegDb} db - owner instance
      * @param {User} user - currently authenticated user
-     * @param {[object]} participantPublicKeys - username:publicKey map, pass when creating new keg
+     * @param {object} [participantPublicKeys] - username:publicKey map, pass when creating new keg
      */
     constructor(db, user, participantPublicKeys) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg

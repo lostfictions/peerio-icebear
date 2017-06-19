@@ -13,7 +13,7 @@ class FileNonceGenerator {
      * Chunk Id is zero-based.
      * @param {number} startChunkId - chunk id to start with (next nonce will use this id)
      * @param {number} maxChunkId
-     * @param {[Uint8Array]} nonce - leave empty to generate random one
+     * @param {Uint8Array} nonce - leave empty to generate random one
      */
     constructor(startChunkId, maxChunkId, nonce = util.getRandomNonce()) {
         this.nonce = nonce;

@@ -52,11 +52,11 @@ class SyncedKeg extends Keg {
      *
      * @param {function<bool>} dataChangeFn - function that will be called right before keg save,
      * it has to mutate keg's state. Return false to cancel save.
-     * @param {[function]} dataRestoreFn - function that will be called to restore keg state to the point before
+     * @param {function} [dataRestoreFn] - function that will be called to restore keg state to the point before
      * dataChangeFn mutated it. Default implementation will rely on keg serialization functions. dataRestoreFn will only
      * get called if version of the keg didn't change after save failed. This will make sure we won't overwrite
      * freshly received data from server.
-     * @param {[string]} errorLocaleKey - optinal error to show in snackbar
+     * @param {string} [errorLocaleKey] - optional error to show in snackbar
      * @returns {Promise}
      *
      * @memberof SyncedKeg
