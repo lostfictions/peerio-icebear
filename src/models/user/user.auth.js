@@ -186,22 +186,28 @@ module.exports = function mixUserAuthModule() {
     };
 
     this.serializeAuthData = () => {
-        const { username, passphrase } = this;
+        const username = this.username;
+        const paddedPassphrase = cryptoUtil.padPassphrase(this.passphrase);
         const authSalt = cryptoUtil.bytesToB64(this.authSalt);
         const bootKey = cryptoUtil.bytesToB64(this.bootKey);
         const secretKey = cryptoUtil.bytesToB64(this.authKeys.secretKey);
         const publicKey = cryptoUtil.bytesToB64(this.authKeys.publicKey);
         const data = JSON.stringify({
-            username, passphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
+            username, paddedPassphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
         });
         return data;
     };
 
     this.deserializeAuthData = (data) => {
         // console.log(data);
-        const { username, passphrase, authSalt, bootKey, authKeys } = data;
+        const { username, authSalt, bootKey, authKeys } = data;
         this.username = username;
-        this.passphrase = passphrase;
+        if (data.paddedPassphrase) {
+            this.passphrase = cryptoUtil.unpadPassphrase(data.paddedPassphrase);
+        } else {
+            // Compatibility with old versions that didn't pad passhprase.
+            this.passphrase = data.passphrase;
+        }
         this.authSalt = authSalt && cryptoUtil.b64ToBytes(authSalt);
         this.bootKey = bootKey && cryptoUtil.b64ToBytes(bootKey);
         if (authKeys) {
