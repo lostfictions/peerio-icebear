@@ -46,7 +46,7 @@ class User {
     @observable savingAvatar = false;
     // ui flags
     @observable autologinEnabled = false;
-
+    @observable secureWithTouchID = false;
 
     @computed get fullName() {
         let ret = '';
