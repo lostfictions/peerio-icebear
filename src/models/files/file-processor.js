@@ -1,4 +1,4 @@
-/**
+/*
  * Abstract parent class for FileDownloader and FileUploader
  */
 

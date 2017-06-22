@@ -52,8 +52,7 @@ const util = require('./util');
 const warnings = require('./models/warnings');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
-const defaultClock = require('./helpers/observable-clock').default;
-const Clock = require('./helpers/observable-clock').Clock;
+const Clock = require('./helpers/observable-clock');
 const fileHelpers = require('./helpers/file');
 const MRUList = require('./helpers/mru-list');
 const warningStates = require('./models/warnings/system-warning').STATES;
@@ -81,7 +80,6 @@ module.exports = {
     util,
     warnings,
     warningStates,
-    defaultClock,
     Clock,
     fileHelpers,
     MRUList,

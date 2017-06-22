@@ -1,7 +1,7 @@
 /**
  * Peerio Crypto module for key handling.
  * @module crypto/keys
- * @protected
+ * @public
  */
 const getScrypt = require('./scrypt-proxy').getScrypt;
 const BLAKE2s = require('blake2s-js');
@@ -47,12 +47,12 @@ function prehashPass(value, personalization) {
 
 /**
  * Deterministically derives symmetrical boot key and auth key pair.
- * @param {String} username
- * @param {String} passphrase
+ * @param {string} username
+ * @param {string} passphrase
  * @param {Uint8Array} randomSalt - 32 random bytes
  * @returns {Promise<{bootKey: Uint8Array, authKeyPair: KeyPair}>}
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function deriveAccountKeys(username, passphrase, randomSalt) {
     try {
@@ -80,10 +80,10 @@ function deriveAccountKeys(username, passphrase, randomSalt) {
 /**
  * Derive keys for a ghost/ephemeral user.
  * @param {Uint8Array} salt - e.g. ephemeral ID
- * @param {String} passphrase
+ * @param {string} passphrase
  * @returns {Promise<KeyPair>}
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function deriveEphemeralKeys(salt, passphrase) {
     try {
@@ -101,7 +101,7 @@ function deriveEphemeralKeys(salt, passphrase) {
  * @param {string} passcode
  * @returns {Promise<Uint8Array>}
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function deriveKeyFromPasscode(username, passcode) {
     try {
@@ -119,7 +119,7 @@ function deriveKeyFromPasscode(username, passcode) {
  * Generates new random signing (ed25519) key pair.
  * @returns {KeyPair} - 32 byte public key and 64 byte secret key.
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function generateSigningKeyPair() {
     return nacl.sign.keyPair();
@@ -129,7 +129,7 @@ function generateSigningKeyPair() {
  * Generates new random asymmetric (curve25519) key pair.
  * @returns {KeyPair} 32 byte keys
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function generateEncryptionKeyPair() {
     return nacl.box.keyPair();
@@ -139,7 +139,7 @@ function generateEncryptionKeyPair() {
  * Generates new random symmetric (xsalsa20) 32 byte secret key.
  * @returns {Uint8Array} 32 bytes
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function generateEncryptionKey() {
     return util.getRandomBytes(32);
@@ -149,7 +149,7 @@ function generateEncryptionKey() {
  * Generates new salt for auth process
  * @returns {Uint8Array} 32 bytes
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function generateAuthSalt() {
     return util.getRandomBytes(32);
@@ -159,7 +159,7 @@ function generateAuthSalt() {
  * Hashes auth public key. Uses personalized hash.
  * @returns {Uint8Array} 32 bytes personalized hash
  * @memberof crypto/keys
- * @protected
+ * @public
  */
 function getAuthKeyHash(key) {
     const hash = new BLAKE2s(32, { personalization: util.strToBytes('AuthCPK1') });

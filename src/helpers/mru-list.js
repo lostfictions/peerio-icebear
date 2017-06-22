@@ -2,39 +2,56 @@ const TinyDb = require('../db/tiny-db');
 const _ = require('lodash');
 const { observable, action } = require('mobx');
 /**
- * Base class for any Most Recently Used implementations
- * Gotchas: Don't create 2+ instances for the same list name. Due to caching it will lead to conflicts.
+ * Base class for any Most Recently Used implementations.
+ * Gotcha: Don't create 2+ instances for the same list name. Due to caching it will lead to conflicts.
+ * @param {string} name - unique name for the list
+ * @param {number} [limit] - maximum number of elements in the list (will remove least recent)
+ * @public
  */
 class MRUList {
-    /**
-     * Observable list of current MRU list. DO NOT MODIFY.
-     */
-    @observable.shallow list = [];
-    _name;
-    _limit;
-    /**
-     * Creates an instance of MRU List
-     * @param {string} name - unique name for the list
-     * @param {number} limit - maximum number of elements in the list
-     */
     constructor(name, limit = 10) {
         this._name = `MRU_${name}`;
         this._limit = limit;
     }
 
+    /**
+     * Observable list of current MRU list. Readonly.
+     * @readonly
+     * @member {ObservableArray<string>} list
+     * @instance
+     * @memberof MRUList
+     * @public
+     */
+    @observable.shallow list = [];
+    _name;
+    _limit;
+
+    /**
+     * Loads cached list from current user's TinyDb.
+     * Normally you call this once, after user has been authenticated.
+     * In case an instance is created before that, loadCache() is not called automatically.
+     * @public
+     */
     async loadCache() {
         const list = await TinyDb.user.getValue(this._name);
         if (list) this.list = list;
     }
 
+    /**
+     * @private
+     */
     _saveCache = _.throttle(() => {
         return TinyDb.user.setValue(this._name, this.list.peek());
     }, 3000);
 
 
     /**
-     * Adds item usage fact to the list
+     * Adds item usage fact to the list. Saves it to TinyDb in a throttled manner.
+     * @function addItem
      * @param {string} item
+     * @instance
+     * @memberof MRUList
+     * @public
      */
     @action addItem(item) {
         this.list.remove(item);

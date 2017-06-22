@@ -1,4 +1,4 @@
-/**
+/*
  * Upload module for File model, for code file length sake
  */
 

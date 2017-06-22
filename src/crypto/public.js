@@ -1,6 +1,7 @@
 /**
  * Public key encryption module
  * @module crypto/public
+ * @public
  */
 
 const nacl = require('tweetnacl');
@@ -8,13 +9,16 @@ const secret = require('./secret');
 const { DecryptionError } = require('../errors');
 
 /**
- * This is a classic variant of decryption function for server compatibility -- ie.
- * used for decrypting authTokens and other tokens.
- * @param {Uint8Array} cipher
- * @param {Uint8Array} nonce
- * @param {Uint8Array} theirPublicKey
- * @param {Uint8Array} mySecretKey
- * @return {Uint8Array}
+ * This is a classic variant of decryption function for server compatibility.
+ * It's used for decrypting authTokens and other tokens. For everything else client uses optimized version
+ * {@link decrypt}
+ * @param {Uint8Array} cipher - encrypted bytes
+ * @param {Uint8Array} nonce - 24 byte nonce
+ * @param {Uint8Array} theirPublicKey - message sender's public key
+ * @param {Uint8Array} mySecretKey - decrypting user's secret key
+ * @returns {Uint8Array}  decrypted bytes
+ * @memberof crypto/public
+ * @public
  */
 function decryptCompat(cipher, nonce, theirPublicKey, mySecretKey) {
     const decrypted = nacl.box.open(cipher, nonce, theirPublicKey, mySecretKey);
@@ -24,11 +28,15 @@ function decryptCompat(cipher, nonce, theirPublicKey, mySecretKey) {
 }
 
 /**
- * Encrypt
- * @param {Uint8Array} msgBytes
- * @param {Uint8Array} theirPublicKey
- * @param {Uint8Array} mySecretKey
- * @return {Uint8Array}
+ * Encrypt using public key crypto.
+ * WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
+ * to use crypto/secret.encrypt {@link crypto/secret:encrypt} with precalculated shared key from User class {@link User}
+ * @param {Uint8Array} msgBytes - unencrypted message
+ * @param {Uint8Array} theirPublicKey - message recipient's public key
+ * @param {Uint8Array} mySecretKey - encrypting user's secret key
+ * @returns {Uint8Array} encrypted bytes
+ * @memberof crypto/public
+ * @public
  */
 function encrypt(msgBytes, theirPublicKey, mySecretKey) {
     const sharedKey = nacl.box.before(theirPublicKey, mySecretKey);
@@ -36,15 +44,30 @@ function encrypt(msgBytes, theirPublicKey, mySecretKey) {
 }
 
 /**
- * Decrypt
- * @param {Uint8Array} cipher
- * @param {Uint8Array} theirPublicKey
- * @param {Uint8Array} mySecretKey
- * @return {Uint8Array}
+ * Decrypt using public key crypto.
+ * WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
+ * to use crypto/secret.encrypt {@link crypto/secret:encrypt} with precalculated shared key from User class {@link User}
+ * @param {Uint8Array} cipher - encrypted bytes
+ * @param {Uint8Array} theirPublicKey - message sender's public key
+ * @param {Uint8Array} mySecretKey - decrypting user's secret key
+ * @returns {Uint8Array} decrypted bytes
+ * @memberof crypto/public
+ * @public
  */
 function decrypt(cipher, theirPublicKey, mySecretKey) {
     const sharedKey = nacl.box.before(theirPublicKey, mySecretKey);
     return secret.decrypt(cipher, sharedKey);
 }
 
-module.exports = { decryptCompat, encrypt, decrypt, computeSharedKey: nacl.box.before };
+/**
+ * Calculates shared key for public key crypto.
+ * @param {Uint8Array} theirPublicKey - other user's public key
+ * @param {Uint8Array} mySecretKey - current user's secret key
+ * @returns {Uint8Array} 32 bytes shared key
+ * @function
+ * @memberof crypto/public
+ * @public
+ */
+const computeSharedKey = nacl.box.before;
+
+module.exports = { decryptCompat, encrypt, decrypt, computeSharedKey };

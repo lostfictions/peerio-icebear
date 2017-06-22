@@ -1,99 +1,108 @@
-/* eslint no-prototype-builtins:0 */
-
-// An example of how to implement storage in client apps
-/*
-class KeyValueStorageExample {
-    data = {};
-    constructor(name) {
-        this.name = name;
-    }
-    // should return null if value doesn't exist
-    getValue(key) {
-        return Promise.resolve(this.data[key]);
-    }
-    setValue(key, value) {
-        this.data[key] = value;
-        return Promise.resolve();
-    }
-    removeValue(key) {
-        delete this.data[key];
-        return Promise.resolve();
-    }
-    getAllKeys() {
-        return Promise.resolve(Object.keys(this.data));
-    }
-}
-*/
-
 const secret = require('../crypto/secret');
 const util = require('../crypto/util');
 const config = require('../config');
 
 let systemDb;
-
+/**
+ * Local storage for small amounts of data like user preferences and flags.
+ * @param {string} name - database name
+ * @param {Uint8Array} [encryptionKey] - encryption key
+ * @public
+ * @example
+ * // at any time use unencrypted shared database
+ * TinyDb.system.getValue('lastAuthenticatedUsername');
+ * @example
+ * // after successful login use User's personal encrypted database.
+ * // Only values are encrypted.
+ * TinyDb.user.setValue('lastUsedEmoji',':grumpy_cat:')
+ */
 class TinyDb {
-    // unencrypted system database, singleton
+    constructor(name, encryptionKey) {
+        this.name = name;
+        this.encryptionKey = encryptionKey;
+        this.engine = new config.StorageEngine(name);
+    }
+
+    /**
+     * Instance of unencrypted system database.
+     * @member {TinyDb}
+     * @static
+     * @public
+     */
     static get system() {
         if (!systemDb) TinyDb.openSystemDb();
         return systemDb;
     }
-    // encrypted user database
+
+    /**
+     * Instance of encrypted user database.
+     * Only values are encrypted.
+     * @const {TinyDb}
+     * @static
+     * @public
+     */
     static user = null;
 
+    /**
+     * Creates system database instance and assigns it to {@link system} property
+     * @private
+     */
     static openSystemDb() {
         systemDb = new TinyDb('$system$');
     }
 
-    static openUserDb(username, key) {
-        TinyDb.user = new TinyDb(username, key);
-    }
-
     /**
-     * @param {string} name - database name
-     * @param {Uint8Array} [key] - encryption key
+     * Creates user database instance.
+     * @param {string} username
+     * @param {Uint8Array} encryptionKey - database key
+     * @protected
      */
-    constructor(name, key) {
-        this.name = name;
-        this.key = key;
-        this.engine = new config.StorageEngine(name);
+    static openUserDb(username, encryptionKey) {
+        TinyDb.user = new TinyDb(username, encryptionKey);
     }
 
     /**
      * @param {string} valueString
      * @returns {string} ciphertext
+     * @private
      */
     _encrypt = (valueString) => {
-        if (!this.key) return valueString;
-        const buf = secret.encryptString(valueString, this.key);
+        if (!this.encryptionKey) return valueString;
+        const buf = secret.encryptString(valueString, this.encryptionKey);
         return util.bytesToB64(buf);
     };
 
     /**
      * @param {string} ciphertext
      * @returns {string}
+     * @private
      */
     _decrypt = (ciphertext) => {
         if (ciphertext == null) return null;
-        if (!this.key) return ciphertext;
+        if (!this.encryptionKey) return ciphertext;
         const buf = util.b64ToBytes(ciphertext);
-        return secret.decryptString(buf, this.key);
+        return secret.decryptString(buf, this.encryptionKey);
     };
 
     /**
+     * Gets a value from TinyDb.
      * @param {string} key
-     * @returns {Promise<Object>}
+     * @returns {Promise<any>} - JSON.parse() result of retrieved value
+     * @public
      */
     getValue(key) {
-        if (!key) return Promise.reject(new Error('Invalid tinydb key'));
+        if (!key) return Promise.reject(new Error('Invalid TinyDb key'));
         return this.engine.getValue(key)
             .then(this._decrypt)
             .then(JSON.parse);
     }
 
     /**
+     * Stores a value in TinyDb.
      * @param {string} key
-     * @param {Object} value
+     * @param {any} value - will be serialized with JSON.stringify() before storing.
      * @returns {Promise}
+     * @public
      */
     setValue(key, value) {
         if (!key) return Promise.reject(new Error('Invalid tinydb key'));
@@ -102,15 +111,30 @@ class TinyDb {
         return this.engine.setValue(key, val);
     }
 
+    /**
+     * Removes value from TinyDb
+     * @param {string} key
+     * @returns {Promise}
+     * @public
+     */
     removeValue(key) {
         if (!key) return Promise.reject(new Error('Invalid tinydb key'));
         return this.engine.removeValue(key);
     }
 
+    /**
+     * Returns a list of all keys in TinyDb
+     * @returns {Promise<string[]>}
+     * @public
+     */
     getAllKeys() {
         return this.engine.getAllKeys();
     }
 
+    /**
+     * Clears all TinyDb values
+     * @public
+     */
     clear() {
         this.engine.clear();
     }

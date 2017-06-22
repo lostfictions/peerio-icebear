@@ -1,6 +1,9 @@
 toc:
   - name: WELCOME
     file: welcome.md
+  - name: Configuration
+    file: configuration.md
+  - config
   - name: Entry point
     file: entry-point.md
   - index
@@ -8,5 +11,28 @@ toc:
     description: Miscellaneous items
   - typedefs
   - extensions/uint8array
+  - errors
+  - util
   - name: crypto
+    file: crypto.md
+  - crypto/util
   - crypto/keys
+  - crypto/secret
+  - crypto/public
+  - crypto/sign
+  - crypto/scrypt-proxy
+  - name: storage
+    description:
+  - TinyDb
+  - StorageEngineInterface
+  - name: Utility classes
+  - description: Shared classes for different purposes not related to business logic directly.
+  - ArrayStream
+  - MRUList
+  - Clock
+  - Queue
+  - name: Helpers
+    description: Different kinds of helper modules
+  - helpers/di-current-user
+  - helpers/di-file-store
+  - helpers/di-contact-store

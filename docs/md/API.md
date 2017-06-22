@@ -2,11 +2,997 @@
 
 ### Table of Contents
 
+-   [config](#config)
+    -   [upload.chunkSizes](#uploadchunksizes)
+    -   [upload.getChunkSize](#uploadgetchunksize)
+    -   [upload.encryptBufferSize](#uploadencryptbuffersize)
+    -   [upload.uploadBufferSize](#uploaduploadbuffersize)
+    -   [upload.uploadBufferSize](#uploaduploadbuffersize-1)
+    -   [debug.trafficReportInterval](#debugtrafficreportinterval)
+    -   [debug.socketLogEnabled](#debugsocketlogenabled)
+    -   [socketServerUrl](#socketserverurl)
+    -   [ghostFrontendUrl](#ghostfrontendurl)
+    -   [appVersion](#appversion)
+    -   [platform](#platform)
+    -   [CHUNK_OVERHEAD](#chunk_overhead)
+    -   [download.maxDownloadChunkSize](#downloadmaxdownloadchunksize)
+    -   [download.maxDecryptBufferSize](#downloadmaxdecryptbuffersize)
+    -   [FileStream](#filestream)
+    -   [StorageEngine](#storageengine)
+    -   [observableClockEventFrequency](#observableclockeventfrequency)
+    -   [chat.maxInitialChats](#chatmaxinitialchats)
+    -   [chat.initialPageSize](#chatinitialpagesize)
+    -   [chat.pageSize](#chatpagesize)
+    -   [chat.maxLoadedMessages](#chatmaxloadedmessages)
+    -   [chat.decryptQueueThrottle](#chatdecryptqueuethrottle)
+-   [crypto/keys](#cryptokeys)
+    -   [deriveAccountKeys](#deriveaccountkeys)
+    -   [deriveEphemeralKeys](#deriveephemeralkeys)
+    -   [deriveKeyFromPasscode](#derivekeyfrompasscode)
+    -   [generateSigningKeyPair](#generatesigningkeypair)
+    -   [generateEncryptionKeyPair](#generateencryptionkeypair)
+    -   [generateEncryptionKey](#generateencryptionkey)
+    -   [generateAuthSalt](#generateauthsalt)
+    -   [getAuthKeyHash](#getauthkeyhash)
+-   [crypto/public](#cryptopublic)
+    -   [decryptCompat](#decryptcompat)
+    -   [encrypt](#encrypt)
+    -   [decrypt](#decrypt)
+    -   [computeSharedKey](#computesharedkey)
+-   [crypto/scrypt-proxy](#cryptoscrypt-proxy)
+    -   [getScrypt](#getscrypt)
+    -   [setScrypt](#setscrypt)
+-   [crypto/secret](#cryptosecret)
+    -   [NONCE_SIZE](#nonce_size)
+    -   [encrypt](#encrypt-1)
+    -   [encryptString](#encryptstring)
+    -   [decrypt](#decrypt-1)
+    -   [decryptString](#decryptstring)
+-   [crypto/sign](#cryptosign)
+    -   [signDetached](#signdetached)
+    -   [verifyDetached](#verifydetached)
+    -   [setImplementation](#setimplementation)
+-   [crypto/util](#cryptoutil)
+    -   [strToBytes](#strtobytes)
+    -   [bytesToStr](#bytestostr)
+    -   [b64ToBytes](#b64tobytes)
+    -   [bytesToB64](#bytestob64)
+    -   [bytesToHex](#bytestohex)
+    -   [hexToBytes](#hextobytes)
+    -   [numberToByteArray](#numbertobytearray)
+    -   [byteArrayToNumber](#bytearraytonumber)
+    -   [getHexHash](#gethexhash)
+    -   [getByteHash](#getbytehash)
+    -   [getFingerprint](#getfingerprint)
+    -   [concatTypedArrays](#concattypedarrays)
+    -   [MAX_PASSPHRASE_LENGTH](#max_passphrase_length)
+    -   [padBytes](#padbytes)
+    -   [padPassphrase](#padpassphrase)
+    -   [unpadPassphrase](#unpadpassphrase)
+    -   [getRandomBytes](#getrandombytes)
+    -   [getRandomNumber](#getrandomnumber)
+    -   [getRandomNonce](#getrandomnonce)
+    -   [getRandomUserSpecificIdBytes](#getrandomuserspecificidbytes)
+    -   [getRandomUserSpecificIdB64](#getrandomuserspecificidb64)
+    -   [getRandomUserSpecificIdHex](#getrandomuserspecificidhex)
+-   [StorageEngineInterface](#storageengineinterface)
+    -   [getValue](#getvalue)
+    -   [setValue](#setvalue)
+    -   [removeValue](#removevalue)
+    -   [getAllKeys](#getallkeys)
+    -   [clear](#clear)
+-   [TinyDb](#tinydb)
+    -   [getValue](#getvalue-1)
+    -   [setValue](#setvalue-1)
+    -   [removeValue](#removevalue-1)
+    -   [getAllKeys](#getallkeys-1)
+    -   [clear](#clear-1)
+    -   [system](#system)
+    -   [user](#user)
+-   [errors](#errors)
+    -   [normalize](#normalize)
+    -   [getGenericCustomError](#getgenericcustomerror)
+    -   [serverErrorCodes](#servererrorcodes)
+    -   [ServerError](#servererror)
 -   [extensions/uint8array](#extensionsuint8array)
     -   [slice](#slice)
+-   [ArrayStream](#arraystream)
+    -   [peek](#peek)
+    -   [read](#read)
+    -   [length](#length)
+-   [MRUList](#mrulist)
+    -   [list](#list)
+    -   [loadCache](#loadcache)
+    -   [addItem](#additem)
+-   [Clock](#clock)
+    -   [now](#now)
+    -   [dispose](#dispose)
+    -   [default](#default)
+-   [Queue](#queue)
+    -   [tasks](#tasks)
+    -   [runningTasks](#runningtasks)
+    -   [length](#length-1)
+    -   [addTask](#addtask)
 -   [index](#index)
 -   [typedefs](#typedefs)
     -   [KeyPair](#keypair)
+-   [util](#util)
+    -   [convertBuffers](#convertbuffers)
+    -   [formatBytes](#formatbytes)
+
+## config
+
+Configuration module.
+Exists just to collect most of the app configuration aspects in one place.
+
+**Following properties have to be set before client app starts using Icebear SDK.**
+Best to do it in your local config.js
+
+-   socketServerUrl
+-   ghostFrontendUrl
+-   appVersion
+-   platform
+-   FileStream
+-   StorageEngine
+
+### upload.chunkSizes
+
+For reference. Table of chunk sizes based on file sizes.
+Is not supposed to be changed ever.
+If you do change it for some reason - remember to restart paused uploads as file chunk size might change.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;{maxFileSize: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)?, chunkSize: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}>
+
+### upload.getChunkSize
+
+Finds which chunk size to use for given file size based on [chunkSizes](chunkSizes) reference table.
+
+**Parameters**
+
+-   `fileSize` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** in bytes.
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** chunk size to use, in bytes.
+
+### upload.encryptBufferSize
+
+Max amount of bytes to buffer from disk for encrypting.
+This number can't be less than maximum chunk size.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### upload.uploadBufferSize
+
+Max amount of chunks to pre-encrypt for sending
+This number can't be less than maximum chunk size.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### upload.uploadBufferSize
+
+Max amount of uploaded chunks per one file waiting for server response.
+When reached this number, uploader will wait for at least one chunk to get a response.
+Bigger number = faster upload = more pressure on server.
+0-5 is a reasonable range to pick. Default is 2.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### debug.trafficReportInterval
+
+Traffic stat summary will be logged with this interval (ms.)
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### debug.socketLogEnabled
+
+All socket messages will be logged if set to `true` before socket is started.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### socketServerUrl
+
+App server connection url. (wss://)
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### ghostFrontendUrl
+
+Ghost website url. (https&#x3A;//)
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### appVersion
+
+Application version (semver).
+Will be used by server to detect deprecated client versions.
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### platform
+
+Strictly one of: 'electron', 'outlook', 'android', 'ios', 'browser',
+unless server has been updated to support more platform strings and this documentation wasn't :-P
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### CHUNK_OVERHEAD
+
+For reference. Amount of bytes added to every file chunk in encrypted state.
+DO NOT change this value unless you really know what you're doing.
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 32
+
+### download.maxDownloadChunkSize
+
+Max amount of bytes to download at once for further processing.
+File gets downloaded in 'downloadChunks' and then broken down to the chunk size it was uploaded with.
+This number can't be less than maximum chunk size.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### download.maxDecryptBufferSize
+
+Max amount of bytes to download and queue for decryption.
+This number can't be less than maximum chunk size.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### FileStream
+
+File stream implementation class.
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: FileStreamAbstract
+
+### StorageEngine
+
+Storage engine implementation class.
+
+**Client app is required to set this property before using Icebear SDK.**
+
+Type: [StorageEngineInterface](#storageengineinterface)
+
+### observableClockEventFrequency
+
+Frequency (seconds) at which default observable clock will be changing its value.
+Default clock can be used for refreshing timestamps and other time counters.
+Do not set this value too low, create custom clocks instead.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxInitialChats
+
+Maximum amount of chats to load initially. Favorite chats will ignore this and load in full number.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.initialPageSize
+
+Amount of messages to load to a chat initially.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.pageSize
+
+When navigating chat history, load this amount of messages per page.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxLoadedMessages
+
+Icebear will unload messages over this limit, resulting is low memory consumption when navigating history
+or chatting normally.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.decryptQueueThrottle
+
+Delay (ms) between decryption of individual messages when processing a batch.
+Increase to get more responsiveness, but increase page load time.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+## crypto/keys
+
+Peerio Crypto module for key handling.
+
+### deriveAccountKeys
+
+Deterministically derives symmetrical boot key and auth key pair.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `randomSalt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 random bytes
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;{bootKey: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array), authKeyPair: KeyPair}>** 
+
+### deriveEphemeralKeys
+
+Derive keys for a ghost/ephemeral user.
+
+**Parameters**
+
+-   `salt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** e.g. ephemeral ID
+-   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;KeyPair>** 
+
+### deriveKeyFromPasscode
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `passcode` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 
+
+### generateSigningKeyPair
+
+Generates new random signing (ed25519) key pair.
+
+Returns **KeyPair** 32 byte public key and 64 byte secret key.
+
+### generateEncryptionKeyPair
+
+Generates new random asymmetric (curve25519) key pair.
+
+Returns **KeyPair** 32 byte keys
+
+### generateEncryptionKey
+
+Generates new random symmetric (xsalsa20) 32 byte secret key.
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+
+### generateAuthSalt
+
+Generates new salt for auth process
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+
+### getAuthKeyHash
+
+Hashes auth public key. Uses personalized hash.
+
+**Parameters**
+
+-   `key`  
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes personalized hash
+
+## crypto/public
+
+Public key encryption module
+
+### decryptCompat
+
+This is a classic variant of decryption function for server compatibility.
+It's used for decrypting authTokens and other tokens. For everything else client uses optimized version
+[decrypt](decrypt)
+
+**Parameters**
+
+-   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted bytes
+-   `nonce` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 24 byte nonce
+-   `theirPublicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** message sender's public key
+-   `mySecretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** decrypting user's secret key
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** decrypted bytes
+
+### encrypt
+
+Encrypt using public key crypto.
+WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
+to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](User)
+
+**Parameters**
+
+-   `msgBytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** unencrypted message
+-   `theirPublicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** message recipient's public key
+-   `mySecretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypting user's secret key
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted bytes
+
+### decrypt
+
+Decrypt using public key crypto.
+WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
+to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](User)
+
+**Parameters**
+
+-   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted bytes
+-   `theirPublicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** message sender's public key
+-   `mySecretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** decrypting user's secret key
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** decrypted bytes
+
+### computeSharedKey
+
+Calculates shared key for public key crypto.
+
+**Parameters**
+
+-   `theirPublicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** other user's public key
+-   `mySecretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** current user's secret key
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes shared key
+
+## crypto/scrypt-proxy
+
+Mobile UI thread suffocates even with async scrypt so we let mobile implement scrypt in a worker thread.
+
+### getScrypt
+
+Returns chosen scrypt implementation.
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** scrypt
+
+### setScrypt
+
+Sets chosen scrypt implementation.
+
+**Parameters**
+
+-   `fn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** scrypt
+
+## crypto/secret
+
+Secret key encryption module.
+
+Encrypt and decrypt functions replace `nacl.secretbox` and `nacl.secretbox.open`
+see tweetnacl-js <https://github.com/dchest/tweetnacl-js>.
+This replacement reduces the amount of memory allocation and copy operations.
+
+The output cipher bytes have following differences with `nacl.secretbox` output:
+
+-   nonce is appended to the cipher bytes.
+-   16 BOXZEROBYTES in the beginning of cipher bytes are not stripped and another 16 are appended to them
+    because we'll need them for decryption
+
+Cipherbytes structure:
+`[ 32 zero bytes ][ actual cipher bytes ][ 24-byte nonce]`
+
+### NONCE_SIZE
+
+24 - The size of the nonce is used for encryption
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### encrypt
+
+Encrypts and authenticates data using symmetric encryption.
+This is a refactored version of nacl.secretbox().
+
+**Parameters**
+
+-   `msgBytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes symmetric key
+-   `nonce` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** in case you want to set your own nonce. 24 bytes. (optional, default `getRandomNonce()`)
+-   `appendNonce` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** appends nonce to the end of encrypted bytes (optional, default `true`)
+-   `prependLength` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** adds 4 bytes containing message length after encryption to the beginning (optional, default `false`)
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted bytes
+
+### encryptString
+
+Helper method to decode string to bytes and encrypt it.
+
+**Parameters**
+
+-   `msg` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** message to encrypt
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes symmetric key
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted bytes
+
+### decrypt
+
+Decrypts and authenticates data using symmetric encryption.
+This is a refactored version of nacl.secretbox.open().
+
+**Parameters**
+
+-   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** cipher bytes with 16 zerobytes prepended and optionally appended nonce
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes symmetric key
+-   `nonce` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** pass nonce when it's not appended to cipher bytes (optional, default `'will be extracted from message'`)
+-   `containsLength` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** whether or not to ignore first 4 bytes (optional, default `false`)
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** decrypted message
+
+### decryptString
+
+Helper method to decode decrypted data to a string.
+
+**Parameters**
+
+-   `cipher` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** encrypted message
+-   `key` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes symmetric key
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** decrypted message
+
+## crypto/sign
+
+Digital signing module
+
+### signDetached
+
+Signs the message with secret key and returns detached signature
+
+**Parameters**
+
+-   `message` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** any data that needs signing
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 64 bytes secret key from the signing user's signing key pair.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 64 bytes signature
+
+### verifyDetached
+
+Verifies message signature
+
+**Parameters**
+
+-   `message` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** any data that needs verifying
+-   `signature` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 64 bytes
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes public key from the signing user's signing key pair.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** verification result
+
+### setImplementation
+
+Allows overriding of sign and verify functions in case it has to be an async implementation.
+Mobile currently uses this.
+
+**Parameters**
+
+-   `signFunc` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** see [signDetached](signDetached)
+-   `verifyFunc` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** see [verifyDetached](verifyDetached)
+
+## crypto/util
+
+Peerio crypto utilities module.
+Exported from icebear index as `crypto.cryptoUtil`
+
+### strToBytes
+
+Converts UTF8 string to byte array.
+Uses native TextEncoder or Buffer.
+
+**Parameters**
+
+-   `str` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** string to convert to byte array
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** utf8 decoded bytes
+
+### bytesToStr
+
+Converts byte array to UTF8 string.
+Uses native TextEncoder or Buffer.
+
+**Parameters**
+
+-   `bytes` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** utf8 bytes
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** encoded string
+
+### b64ToBytes
+
+Converts Base64 string to byte array.
+
+**Parameters**
+
+-   `str` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** B64 string to decode
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+### bytesToB64
+
+Converts Uint8Array or ArrayBuffer to Base64 string.
+
+**Parameters**
+
+-   `bytes` **([Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) \| [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer))** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** B64 string encoded bytes
+
+### bytesToHex
+
+Converts Uint8Array or ArrayBuffer to hex encoded string.
+
+**Parameters**
+
+-   `bytes` **([Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) \| [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer))** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** B64 string encoded bytes (no 0x or other prefix, just data)
+
+### hexToBytes
+
+Converts hex string to byte array.
+
+**Parameters**
+
+-   `str` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** hex string to decode, no prefixes, just data
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+### numberToByteArray
+
+Converts 32-bit unsigned integer to byte array.
+
+**Parameters**
+
+-   `num` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 32-bit unsigned integer
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+### byteArrayToNumber
+
+Converts bytes to 32-bit unsigned integer.
+
+**Parameters**
+
+-   `arr` **([UInt8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) \| [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer))** 4 bytes representing unsigned integer
+-   `offset`  
+-   `length`  
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 32-bit unsigned integer
+
+### getHexHash
+
+Hashes a value and returns hex string.
+
+**Parameters**
+
+-   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** hash length 1-32
+-   `value` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** value to hash
+-   `personalizationString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** hex encoded hash
+
+### getByteHash
+
+Hashes a value and returns hash bytes.
+
+**Parameters**
+
+-   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** hash length 1-32
+-   `value` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** value to hash
+-   `personalizationString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** hash bytes
+
+### getFingerprint
+
+Returns user fingerprint string.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** fingerprint. Example: `51823-23479-94038-76454-79776-13778`
+
+### concatTypedArrays
+
+Concatenates two Uint8Arrays.
+
+**Parameters**
+
+-   `arr1` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `arr2` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** new concatenated array.
+
+### MAX_PASSPHRASE_LENGTH
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 1024
+
+### padBytes
+
+Adds 0 bytes to the end of a Uint8Array until it is `length` bytes long.
+
+**Parameters**
+
+-   `arr` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+-   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** new zero-padded array
+
+### padPassphrase
+
+Pads passphrase (aka Account Key) to MAX_PASSPHRASE_LENGTH + 8
+characters.
+
+**Parameters**
+
+-   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+
+-   Throws **any** if passphrase is too long
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** passhprase padded with dots `.`
+
+### unpadPassphrase
+
+Unpads passphrase (aka Account Key) padded by [padPassphrase](padPassphrase).
+
+**Parameters**
+
+-   `paddedPassphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+
+-   Throws **any** if padded passphrase is too short
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** unpadded passphrase
+
+### getRandomBytes
+
+Generates random bytes suitable for crypto use
+
+**Parameters**
+
+-   `num` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** byte count to return
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** random bytes array of `num` size
+
+### getRandomNumber
+
+Generated cryptographically secure random number in a set range.
+Range can't be more then 2\*\*31 (2147483648).
+
+**Parameters**
+
+-   `min` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** minimum random number value (inclusive) (optional, default `0`)
+-   `max` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** maximum random value (exclusive) (optional, default `2147483648`)
+
+
+-   Throws **InvalidArgumentError** 
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** random number
+
+### getRandomNonce
+
+Generates 24-byte unique random nonce.
+Partially consists of 4 bytes of current timestamp. 4 bytes fits almost 50 days worth of milliseconds,
+so if you are generating 1 nonce every millisecond, it's guaranteed to have no collisions within 50 days
+even without random bytes part.
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 24 bytes, [4: from timestamp][20: random]
+
+### getRandomUserSpecificIdBytes
+
+Generates random id bytes.
+Partially consists of hashed username and timestamp.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 42 bytes, [16: username+timestamp hash][26: random bytes]
+
+### getRandomUserSpecificIdB64
+
+Same as [crypto/util:getRandomUserSpecificIdBytes](crypto/util:getRandomUserSpecificIdBytes) but returns B64 string
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** id in base64 encoding
+
+### getRandomUserSpecificIdHex
+
+-   **See: crypto/util:getRandomUserSpecificIdBytes**
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** id in hex encoding
+
+## StorageEngineInterface
+
+This is a contract for the actual client-specific StorageEngine client has to implement and set to config module.
+TinyDb will get the implementation from config module and use it.
+
+**Parameters**
+
+-   `namespace` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** unique namespace will be passed to storage engine when instantiating.
+    Values in current instance should be stored under that unique namespace.
+
+### getValue
+
+Asynchronously gets a value from storage.
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** strictly `null` if key or value doesn't exist. TinyDb stores only strings,
+so any other return type is an error.
+
+### setValue
+
+Asynchronously saves a value to storage.
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** if key already exists - overwrite.
+-   `value` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** TinyDb will serialize any value to string before saving it.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### removeValue
+
+Asynchronously removes key/value from store.
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** if key doesn't exist, just resolve promise.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### getAllKeys
+
+Asynchronously retrieves a list of all keys in current namespace
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>>** 
+
+### clear
+
+Removes all data from current namespace.
+
+## TinyDb
+
+Local storage for small amounts of data like user preferences and flags.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** database name
+-   `encryptionKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?** encryption key
+
+**Examples**
+
+```javascript
+// at any time use unencrypted shared database
+TinyDb.system.getValue('lastAuthenticatedUsername');
+```
+
+```javascript
+// after successful login use User's personal encrypted database.
+// Only values are encrypted.
+TinyDb.user.setValue('lastUsedEmoji',':grumpy_cat:')
+```
+
+### getValue
+
+Gets a value from TinyDb.
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;any>** JSON.parse() result of retrieved value
+
+### setValue
+
+Stores a value in TinyDb.
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `value` **any** will be serialized with JSON.stringify() before storing.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### removeValue
+
+Removes value from TinyDb
+
+**Parameters**
+
+-   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### getAllKeys
+
+Returns a list of all keys in TinyDb
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>>** 
+
+### clear
+
+Clears all TinyDb values
+
+### system
+
+Instance of unencrypted system database.
+
+Type: [TinyDb](#tinydb)
+
+### user
+
+Instance of encrypted user database.
+Only values are encrypted.
+
+Type: [TinyDb](#tinydb)
+
+## errors
+
+Peerio custom error types and error handling helpers.
+
+    // CUSTOM ERROR TEMPLATE
+    function CustomError(message, nestedError, otherData) {
+      var error = Error.call(this, message);
+      this.name = 'CustomError';
+      this.message = error.message;
+      this.stack = error.stack;
+      this.nestedError = nestedError;
+      this.otherData = otherData;
+    }
+
+    CustomError.prototype = Object.create(Error.prototype);
+    CustomError.prototype.constructor = CustomError;
+
+### normalize
+
+Use this helper to resolve returning error value.
+If you:
+
+-   have an error result from catch() or reject()
+-   don't know what exactly that result is, Error, string, undefined or something else
+-   don't need custom errors just want to generate meaningful Error object
+
+Call normalize and pass the result you've got together with fallback message,
+that will be wrapped in Error object and returned in case the result wasn't instance of Error
+
+**Parameters**
+
+-   `error` **any** anything you received as an error via catch
+-   `failoverMessage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** if error will not be of Error instance, this message wrapped in new Error object
+    will be returned
+
+Returns **[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)** 
+
+### getGenericCustomError
+
+Helper function to create custom errors with less code.
+It's useful when your custom error only expects to have an optional `message` and `data` object arguments.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** custom error name, should match the class name you will use for the error
+-   `msg` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** default message for the error
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** class, inherited from Error
+
+### serverErrorCodes
+
+Check sources for the list of codes.
+You can look up this enum both by integer code and by string error name.
+
+### ServerError
+
+Server error, socket throws it when server returns error.
+
+**Parameters**
+
+-   `code` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** server error code
+-   `msg` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** message, if any
+
+Returns **ServerError** 
 
 ## extensions/uint8array
 
@@ -26,6 +1012,144 @@ Returns a new Uint8Array containing a portion of current array defined by parame
     Can be negative to mark position counting from the end the array. (optional, default `this.length`)
 
 Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** new array containing a range of bytes from original array.
+
+## ArrayStream
+
+Provides access to array of Uint8Array chunks of data in a stream fashion.
+Currently supports only reading from stream.
+Underlying array can receive new data by appending(pushing) chunks to it
+
+**Parameters**
+
+-   `array` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** 
+
+### peek
+
+Get a portion of data from the stream without consuming it (moving stream pointer)
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?** 
+
+### read
+
+Read a chunk of data from stream.
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes to read.
+-   `adjust` **bool?** default: true. Will consume data read from stream (move pointer). (optional, default `true`)
+
+Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?** array of requested size. If there's not enough
+data to fill array of requested size - null will be returned.
+
+### length
+
+Current stream length (from current position to the end of stream)
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** available byte length
+
+## MRUList
+
+Base class for any Most Recently Used implementations.
+Gotcha: Don't create 2+ instances for the same list name. Due to caching it will lead to conflicts.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** unique name for the list
+-   `limit` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)?** maximum number of elements in the list (will remove least recent) (optional, default `10`)
+
+### list
+
+Observable list of current MRU list. Readonly.
+
+Type: ObservableArray&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### loadCache
+
+Loads cached list from current user's TinyDb.
+Normally you call this once, after user has been authenticated.
+In case an instance is created before that, loadCache() is not called automatically.
+
+### addItem
+
+Adds item usage fact to the list. Saves it to TinyDb in a throttled manner.
+
+**Parameters**
+
+-   `item` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+## Clock
+
+Observable clock.
+Provides clock.now property that is mobx observable and changes at specified time interval.
+Doesn't tick when no one is observing.
+Create your own clock or use default one.
+
+**Parameters**
+
+-   `interval` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** clock update interval in seconds
+
+### now
+
+Current timestamp. Observable. Updates every `this.interval` seconds
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### dispose
+
+Stops the clock, it can't be restarted after this.
+
+### default
+
+Default clock instance with `config.observableClockEventFrequency` interval
+
+Type: [Clock](#clock)
+
+## Queue
+
+Observable task queue implementation
+
+**Parameters**
+
+-   `parallelism` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** how many tasks can run(wait to be finished) at the same time (optional, default `1`)
+-   `throttle` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** how many milliseconds delay to make before running every task (optional, default `0`)
+
+### tasks
+
+List of tasks in queue. Running tasks are not here.
+
+Type: ObservableArray&lt;[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)>
+
+### runningTasks
+
+Amount of currently running tasks
+
+Type: Observable&lt;[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)>
+
+### length
+
+Amount of currently running tasks + tasks in queue
+
+Type: Computed&lt;[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)>
+
+### addTask
+
+Adds task to the queue.
+Depending on return value task will be considered finished right after exit from the function or
+after returned promise is fulfilled.
+
+**Parameters**
+
+-   `task` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function to run
+-   `context` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** 'this' context to execute the task with
+-   `args` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;any>?** arguments to pass to the task
+-   `onSuccess` **callback?** callback will be executed as soon as task is finished without error
+-   `onError` **callback&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>?** callback will be executed if task throws or rejects promise
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
 ## index
 
@@ -50,3 +1174,33 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 -   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
 -   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+
+## util
+
+Various utility functions that didn't fit anywhere else.
+
+### convertBuffers
+
+Finds all ArrayBuffer type properties recursively and changes them to Uint8Array created with the same ArrayBuffer.
+
+**Parameters**
+
+-   `obj` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** object to check for ArrayBuffers.
+
+Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** same object that was passed but with some property values changed.
+
+### formatBytes
+
+Converts bytes number to human-readable string format.
+
+**Parameters**
+
+-   `bytes` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+**Examples**
+
+```javascript
+formatBytes(1024); // returns '1 KB'
+```
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** formatted string.

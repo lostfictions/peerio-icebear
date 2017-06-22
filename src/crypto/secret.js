@@ -1,46 +1,46 @@
-
 /**
  * Secret key encryption module.
- * encrypt and decrypt functions replace nacl.secretbox and nacl.secretbox.open.
+ *
+ * Encrypt and decrypt functions replace `nacl.secretbox` and `nacl.secretbox.open`
+ * see tweetnacl-js {@link https://github.com/dchest/tweetnacl-js}.
  * This replacement reduces the amount of memory allocation and copy operations.
- * The output cipher bytes have following differences with nacl.secretbox output:
+ *
+ * The output cipher bytes have following differences with `nacl.secretbox` output:
  * - nonce is appended to the cipher bytes.
  * - 16 BOXZEROBYTES in the beginning of cipher bytes are not stripped and another 16 are appended to them
+ * because we'll need them for decryption
  *
  * Cipherbytes structure:
- * [ 32 zero bytes ][ actual cipher bytes ][ 24-byte nonce]
+ * `[ 32 zero bytes ][ actual cipher bytes ][ 24-byte nonce]`
  *
  * @module crypto/secret
+ * @public
  */
 
-// IDEA: try reusing same large ArrayBuffer for output
 const nacl = require('tweetnacl');
 const util = require('./util');
 const { DecryptionError } = require('../errors');
 
+/**
+ * 24 - The size of the nonce is used for encryption
+ * @memberof crypto/secret
+ * @public
+ */
 const NONCE_SIZE = 24;
 
 /**
  * Encrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox().
  * @param {Uint8Array} msgBytes
- * @param {Uint8Array} key
- * @param {Uint8Array} [nonce] - (24 byte) in case you have want to set your own nonce instead of random one
- * @param {boolean} appendNonce - default 'true'
- * @param {boolean} prependLength - prepends 4 bytes containing message length after encryption
+ * @param {Uint8Array} key - 32 bytes symmetric key
+ * @param {Uint8Array} [nonce=getRandomNonce()] - in case you want to set your own nonce. 24 bytes.
+ * @param {boolean} [appendNonce=true] - appends nonce to the end of encrypted bytes
+ * @param {boolean} [prependLength=false] - adds 4 bytes containing message length after encryption to the beginning
+ * @returns {Uint8Array} encrypted bytes
+ * @memberof crypto/secret
+ * @public
  */
-exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
-    appendNonce = true, prependLength = false) {
-    // validating arguments
-    // todo: do we need this validation, or encryption failed due to invalid args is not a security issue?
-    /*
-    if (!(msgBytes instanceof Uint8Array
-        && key instanceof Uint8Array
-        && key.length === KEY_LENGTH)) {
-        throw new EncryptionError('secret.encrypt: Invalid argument type or key length.');
-    }
-    */
-    // todo: there must be a way to avoid this allocation and copy(change tweetnacl.js?)
+function encrypt(msgBytes, key, nonce = util.getRandomNonce(), appendNonce = true, prependLength = false) {
     const fullMsgLength = 32 + msgBytes.length; /* ZEROBYTES */
     const m = new Uint8Array(fullMsgLength);
     for (let i = 32; i < fullMsgLength; i++) m[i] = msgBytes[i - 32];
@@ -66,34 +66,34 @@ exports.encrypt = function(msgBytes, key, nonce = util.getRandomNonce(),
         }
     }
     nacl.lowlevel.crypto_secretbox(cipherContainer, m, m.length, nonce, key);
-    return c;// contains 16 zero bytes in the beginning, needed for decryption
-};
+    return c; // contains 16 zero bytes in the beginning, needed for decryption
+}
 
 /**
  * Helper method to decode string to bytes and encrypt it.
+ * @param {string} msg - message to encrypt
+ * @param {Uint8Array} key - 32 bytes symmetric key
+ * @returns {Uint8Array} encrypted bytes
+ * @memberof crypto/secret
+ * @public
  */
-exports.encryptString = function(msg, key) {
+function encryptString(msg, key) {
     const msgBytes = util.strToBytes(msg);
-    return exports.encrypt(msgBytes, key);
-};
+    return encrypt(msgBytes, key);
+}
 
 /**
  * Decrypts and authenticates data using symmetric encryption.
  * This is a refactored version of nacl.secretbox.open().
  * @param {Uint8Array} cipher - cipher bytes with 16 zerobytes prepended and optionally appended nonce
- * @param {Uint8Array} key
- * @param {Uint8Array} [nonce] - optional nonce (specify when it's not appended to cipher bytes)
- * @param {boolean} [containsLength]
+ * @param {Uint8Array} key - 32 bytes symmetric key
+ * @param {Uint8Array} [nonce='will be extracted from message'] - pass nonce when it's not appended to cipher bytes
+ * @param {boolean} [containsLength=false] - whether or not to ignore first 4 bytes
+ * @returns {Uint8Array} decrypted message
+ * @memberof crypto/secret
+ * @public
  */
-exports.decrypt = function(cipher, key, nonce, containsLength) {
-    /*
-    if (!(cipher instanceof Uint8Array
-        && key instanceof Uint8Array
-        && key.length === KEY_LENGTH
-        && cipher.length >= 56)) {
-        throw new DecryptionError('secret.decrypt: Invalid argument type or length.');
-    }
-    */
+function decrypt(cipher, key, nonce, containsLength) {
     let start = 0, end;
     if (!nonce) {
         nonce = cipher.subarray(-NONCE_SIZE); //eslint-disable-line
@@ -112,12 +112,20 @@ exports.decrypt = function(cipher, key, nonce, containsLength) {
         throw new DecryptionError('Decryption failed.');
     }
     return m.subarray(32); /* ZEROBYTES */
-};
-
+}
 
 /**
  * Helper method to decode decrypted data to a string.
+ * @param {Uint8Array} cipher - encrypted message
+ * @param {Uint8Array} key - 32 bytes symmetric key
+ * @returns {string} decrypted message
+ * @memberof crypto/secret
+ * @public
  */
-exports.decryptString = function(cipher, key) {
-    return util.bytesToStr(exports.decrypt(cipher, key));
+function decryptString(cipher, key) {
+    return util.bytesToStr(decrypt(cipher, key));
+}
+
+module.exports = {
+    encrypt, encryptString, decrypt, decryptString, NONCE_SIZE
 };
