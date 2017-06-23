@@ -1,7 +1,20 @@
-// accepts observable array and property name
-// returns a map that will be dynamically updated when items are added or removed
-// doesn't watch for map key property change
+/**
+ * @namespace helpers/dynamic-array-map
+ * @protected
+ */
 
+// jsdoc hack..
+let a;//eslint-disable-line
+
+/**
+ * Creates a map object that will be dynamically updated when items are added or removed to the passed array.
+ * Doesn't watch for map key property change.
+ * @param {ObservableArray<object>} array - array to create map for
+ * @param {any} keyProp - property of the items in the array that will be used as key for the map
+ * @returns {Object} - map object
+ * @memberof helpers/dynamic-array-map
+ * @protected
+ */
 function createMap(array, keyProp) {
     const map = {};
 

@@ -66,7 +66,7 @@ class TinyDb {
      * @returns {string} ciphertext
      * @private
      */
-    _encrypt = (valueString) => {
+    encrypt = (valueString) => {
         if (!this.encryptionKey) return valueString;
         const buf = secret.encryptString(valueString, this.encryptionKey);
         return util.bytesToB64(buf);
@@ -77,7 +77,7 @@ class TinyDb {
      * @returns {string}
      * @private
      */
-    _decrypt = (ciphertext) => {
+    decrypt = (ciphertext) => {
         if (ciphertext == null) return null;
         if (!this.encryptionKey) return ciphertext;
         const buf = util.b64ToBytes(ciphertext);
@@ -93,7 +93,7 @@ class TinyDb {
     getValue(key) {
         if (!key) return Promise.reject(new Error('Invalid TinyDb key'));
         return this.engine.getValue(key)
-            .then(this._decrypt)
+            .then(this.decrypt)
             .then(JSON.parse);
     }
 
@@ -107,7 +107,7 @@ class TinyDb {
     setValue(key, value) {
         if (!key) return Promise.reject(new Error('Invalid tinydb key'));
         let val = JSON.stringify(value == null ? null : value);
-        val = this._encrypt(val);
+        val = this.encrypt(val);
         return this.engine.setValue(key, val);
     }
 

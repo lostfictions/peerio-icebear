@@ -1,3 +1,8 @@
+/**
+ * Retry operation tools.
+ * @module helpers/retry
+ * @protected
+ */
 
 const socket = require('../network/socket');
 const errors = require('../errors');
@@ -14,7 +19,11 @@ const callsInProgress = {};
  * Makes sure socket is authenticated before calling, and waits for it to become authenticated if needed.
  * @param {function} fn - function to execute
  * @param {string} [id] - unique id for this action, to prevent multiple parallel attempts
- * @returns {Promise} - resolves when action is finally executed, never rejects
+ * @param {number} [maxRetries=120] - override if needed
+ * @param {bool} [thisIsRetry] - for internal use only
+ * @returns {Promise} - resolves when action is finally executed, rejects after all attempts exhausted
+ * @memberof helpers/retry
+ * @protected
  */
 function retryUntilSuccess(fn, id = Math.random(), maxRetries = maxRetryCount, thisIsRetry) {
     let callInfo = callsInProgress[id];

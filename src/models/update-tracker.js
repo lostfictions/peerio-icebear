@@ -1,10 +1,10 @@
-/**
- * Keg update handling module
- */
 
 const socket = require('../network/socket');
 
-/*
+/**
+ * Data update tracking module. This an internal module that allows Icebear to get and report new data as it arrives
+ * and is needed by your client.
+ *
  * How does update tracking work:
  *
  * 1. Update Tracker interacts with application logic via
@@ -18,16 +18,36 @@ const socket = require('../network/socket');
  *      b. anything that is {unread: true} is reloaded
  *      c. anything that contains {kegType: 'critical keg type(we don't have them yet)'} is reloaded
  *      d. anything that is currently active in the UI (chat) is reloaded
+ *
+ *  @namespace UpdateTracker
+ * @protected
  */
 class UpdateTracker {
-    // listeners to new keg db added event
+    /**
+     * listeners to new keg db added event
+     * @member {Array<function>}
+     * @private
+     */
     dbAddedHandlers = [];
-    // listeners to changes in existing keg dbs
+    /**
+     * Listeners to changes in existing keg databases.
+     * @member {{kegDbId: {kegType: function}}}
+     * @private
+     */
     updateHandlers = {};
-    // keg databases that are currently 'active' in UI (user interacts with them directly)
-    // we need this to make sure we update them on reconnect
+    /**
+     * Keg databases that are currently 'active' in UI (user interacts with them directly)
+     * we need this to make sure we update them on reconnect
+     * @member {Array<string>}
+     * @private
+     */
     activeKegDbs = ['SELF'];
-    // tracker data
+
+    /**
+     *
+     *
+     * @member
+     */
     digest = {};
 
     // a list of existing db instances for tracker to not generate dbadded event for them

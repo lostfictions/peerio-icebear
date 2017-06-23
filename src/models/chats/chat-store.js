@@ -12,7 +12,7 @@ const config = require('../../config');
 const { asPromise } = require('../../helpers/prombservable');
 
 class ChatStore {
-    // todo: not sure this little event emmiter experiment should live
+    // todo: not sure this little event emitter experiment should live
     EVENT_TYPES = {
         messagesReceived: 'messagesReceived'
     };

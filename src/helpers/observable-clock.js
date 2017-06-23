@@ -20,14 +20,6 @@ class Clock {
     }
 
     /**
-     * Default clock instance with `config.observableClockEventFrequency` interval
-     * @member {Clock}
-     * @public
-     */
-    static default = new Clock(config.observableClockEventFrequency);
-
-
-    /**
      * Current timestamp. Observable. Updates every `this.interval` seconds
      * @member {number}
      * @public
@@ -63,5 +55,13 @@ class Clock {
         this._intervalHandler = null;
     }
 }
+
+/**
+ * Default clock instance with `config.observableClockEventFrequency` interval
+ * @member {Clock}
+ * @memberof {Clock}
+ * @public
+ */
+Clock.default = new Clock(config.observableClockEventFrequency);
 
 module.exports = Clock;

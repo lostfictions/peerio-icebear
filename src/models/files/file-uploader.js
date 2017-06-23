@@ -1,4 +1,4 @@
-/**
+/*
  * Skynet's little brother who tries hard to remove bottlenecks in the whole
  * "read -> encrypt -> upload" process to maximize upload speed.
  */

@@ -1,10 +1,10 @@
 toc:
   - name: WELCOME
     file: welcome.md
-  - name: Configuration
+  - name: CONFIGURATION
     file: configuration.md
   - config
-  - name: Entry point
+  - name: ENTRY POINT
     file: entry-point.md
   - index
   - name: MISC
@@ -13,7 +13,7 @@ toc:
   - extensions/uint8array
   - errors
   - util
-  - name: crypto
+  - name: CRYPTO
     file: crypto.md
   - crypto/util
   - crypto/keys
@@ -21,18 +21,42 @@ toc:
   - crypto/public
   - crypto/sign
   - crypto/scrypt-proxy
-  - name: storage
-    description:
+  - name: STORAGE
   - TinyDb
   - StorageEngineInterface
-  - name: Utility classes
+  - NodeJsonStorage
+  - name: UTILITY CLASSES
   - description: Shared classes for different purposes not related to business logic directly.
-  - ArrayStream
-  - MRUList
-  - Clock
   - Queue
-  - name: Helpers
-    description: Different kinds of helper modules
+  - Clock
+  - Timer
+  - MRUList
+  - ArrayStream
+  - name: HELPERS
+    description: Various kinds of helper modules
+  - helpers/system-messages
+  - helpers/file
+  - helpers/string
+  - helpers/retry
+  - helpers/prombservable
+  - helpers/dynamic-array-map
   - helpers/di-current-user
   - helpers/di-file-store
   - helpers/di-contact-store
+  - helpers/field-validation
+  - helpers/user-validators
+  - name: NETWORK
+  - socket
+  - SocketClient
+  - name: COMMON LOGIC
+  - ClientApp
+  - PhraseDictionary
+  - ServerSettings
+  - update-tracker
+  - name: SYSTEM WARNINGS
+  - name: USER
+  - name: CONTACTS
+  - name: CHATS
+  - name: FILES
+  - name: KEGS
+

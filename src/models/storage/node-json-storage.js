@@ -1,3 +1,4 @@
+
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -5,10 +6,16 @@ const errors = require('../../errors');
 
 const fileOptions = { encoding: 'utf8' };
 
-class KeyValueStorage {
+/**
+ * This is a StorageEngine implementation that can be used in any nodejs-based apps (cli, electron).
+ *
+ * It uses os.homedir() or NodeJsonStorage.storageFolder to store JSON files.
+ * @public
+*/
+class NodeJsonStorage {
     constructor(name) {
         this.name = name;
-        this.folder = path.join(KeyValueStorage.storageFolder || os.homedir());
+        this.folder = path.join(NodeJsonStorage.storageFolder || os.homedir());
         this.filePath = path.join(this.folder, `${name}_tinydb.json`);
         this._createDbFile();
     }
@@ -70,4 +77,4 @@ class KeyValueStorage {
 }
 
 
-module.exports = KeyValueStorage;
+module.exports = NodeJsonStorage;

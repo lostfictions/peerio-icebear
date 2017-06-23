@@ -1,20 +1,16 @@
 
-/**
- * Passphrase dictionary module
- * @module models/phrase-dictionary
- */
-
 const util = require('../crypto/util');
 
+/**
+ * Passphrase dictionary module.
+ * @param {string} locale - locale code for dict
+ * @param {string} dictString - '\n' separated word list
+ * @public
+ */
 class PhraseDictionary {
     locale;
     dict;
 
-    /**
-     * Creates new PhraseDictionaryCollection
-     * @param {string} locale - locale code for dict
-     * @param {string} dictString - '\n' separated word list
-     */
     constructor(locale, dictString) {
         this.locale = locale;
         this._buildDict(dictString);
@@ -22,7 +18,8 @@ class PhraseDictionary {
 
     /**
      * Returns a random passphrase of chosen word length
-     * @length - passphrase word count
+     * @param {number} length - passphrase word count
+     * @public
      */
     getPassphrase(length) {
         if (!this.dict) throw new Error('no dictionary available');
@@ -34,7 +31,10 @@ class PhraseDictionary {
         return ret.trim(' ');
     }
 
-    /** Free RAM by deleting cached dictionary */
+    /**
+     * Free RAM by removing cached dictionary
+     * @public
+     */
     dispose() {
         this.dict = null;
     }
@@ -52,9 +52,22 @@ class PhraseDictionary {
             }
         }
     }
-
+    /**
+     * Last chosen dictionary.
+     * @member {PhraseDictionary}
+     * @memberof PhraseDictionary
+     * @public
+     */
     static current;
 
+    /**
+     * Simple management of dictionaries: this function sets the PhraseDictionary.current property so it's accessible
+     * whenever you need without re-creating the dictionary every time.
+     * @param {string} localeCode
+     * @param {string} rawData
+     * @memberof PhraseDictionary
+     * @public
+     */
     static setDictionary(localeCode, rawData) {
         if (PhraseDictionary.current) PhraseDictionary.current.dispose();
         PhraseDictionary.current = new PhraseDictionary(localeCode, rawData);
