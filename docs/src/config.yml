@@ -52,11 +52,16 @@ toc:
   - ClientApp
   - PhraseDictionary
   - ServerSettings
-  - update-tracker
+  - UpdateTracker
   - name: SYSTEM WARNINGS
+    file: warnings.md
+  - SystemWarning
+  - ServerWarning
+  - Warnings
   - name: USER
   - name: CONTACTS
   - name: CHATS
   - name: FILES
   - name: KEGS
+  - name: LOCALIZATION
 
