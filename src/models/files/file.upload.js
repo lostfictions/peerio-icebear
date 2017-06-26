@@ -1,6 +1,6 @@
-/*
- * Upload module for File model, extracted for readability sake.
- */
+//
+// Upload module for File model, extracted for readability sake.
+//
 
 const config = require('../../config');
 const warnings = require('./../warnings');

@@ -9,9 +9,9 @@ const socket = require('../../network/socket');
 const validators = require('../../helpers/validation/field-validation').validators;
 const contactStore = require('../contacts/contact-store');
 
-/*
- * These are still members of User class, they're just split across several mixins to make User file size sensible.
- */
+//
+// These are still members of User class, they're just split across several mixins to make User file size sensible.
+//
 module.exports = function mixUserProfileModule() {
     const _profileKeg = new Profile(this);
     const _quotaKeg = new Quota(this);

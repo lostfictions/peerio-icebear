@@ -111,7 +111,7 @@
 -   [Clock](#clock)
     -   [now](#now)
     -   [dispose](#dispose)
--   [default](#default)
+    -   [default](#default)
 -   [Timer](#timer)
     -   [counter](#counter)
     -   [countUp](#countup)
@@ -128,32 +128,237 @@
     -   [addValidation](#addvalidation)
 -   [helpers/user-validators](#helpersuser-validators)
 -   [index](#index)
+-   [ChatHead](#chathead)
+    -   [chatName](#chatname)
+-   [ChatStore](#chatstore)
+    -   [events](#events)
+    -   [chats](#chats)
+    -   [unreadChatsAlwaysOnTop](#unreadchatsalwaysontop)
+    -   [loading](#loading)
+    -   [activeChat](#activechat)
+    -   [hidingChat](#hidingchat)
+    -   [loaded](#loaded)
+    -   [unreadMessages](#unreadmessages)
+    -   [addChat](#addchat)
+    -   [loadAllChats](#loadallchats)
+    -   [startChat](#startchat)
+    -   [activate](#activate)
+    -   [startChatAndShareFiles](#startchatandsharefiles)
+    -   [unloadChat](#unloadchat)
+-   [ChatFileHandler](#chatfilehandler)
+    -   [uploadAndShare](#uploadandshare)
+-   [Chat](#chat)
+    -   [id](#id)
+    -   [messages](#messages)
+    -   [limboMessages](#limbomessages)
+    -   [participant](#participant)
+    -   [loadingMeta](#loadingmeta)
+    -   [metaLoaded](#metaloaded)
+    -   [loadingInitialPage](#loadinginitialpage)
+    -   [initialPageLoaded](#initialpageloaded)
+    -   [mostRecentMessageLoaded](#mostrecentmessageloaded)
+    -   [loadingTopPage](#loadingtoppage)
+    -   [loadingBottomPage](#loadingbottompage)
+    -   [canGoUp](#cangoup)
+    -   [canGoDown](#cangodown)
+    -   [active](#active)
+    -   [isFavorite](#isfavorite)
+    -   [changingFavState](#changingfavstate)
+    -   [uploadQueue](#uploadqueue)
+    -   [unreadCount](#unreadcount)
+    -   [newMessagesMarkerPos](#newmessagesmarkerpos)
+    -   [chatHead](#chathead-1)
+    -   [isReadOnly](#isreadonly)
+    -   [participantUsernames](#participantusernames)
+    -   [name](#name)
+    -   [canSendAck](#cansendack)
+    -   [showNewMessagesMarker](#shownewmessagesmarker)
+    -   [mostRecentMessage](#mostrecentmessage)
+    -   [removeMessage](#removemessage)
+    -   [sendAck](#sendack)
+    -   [uploadAndShareFile](#uploadandsharefile)
+    -   [shareFiles](#sharefiles)
+    -   [loadPreviousPage](#loadpreviouspage)
+    -   [loadNextPage](#loadnextpage)
+    -   [rename](#rename)
+    -   [toggleFavoriteState](#togglefavoritestate)
+    -   [hide](#hide)
+    -   [unhide](#unhide)
+    -   [reset](#reset)
+-   [Message](#message)
+    -   [sending](#sending)
+    -   [sendError](#senderror)
+    -   [receipts](#receipts)
+    -   [userMentions](#usermentions)
+    -   [firstOfTheDay](#firstoftheday)
+    -   [groupWithPrevious](#groupwithprevious)
+    -   [inlineImages](#inlineimages)
+    -   [dayFingerprint](#dayfingerprint)
+    -   [messageTimestampText](#messagetimestamptext)
+    -   [sender](#sender)
+    -   [text](#text)
+    -   [systemData](#systemdata)
+    -   [timestamp](#timestamp)
+    -   [files](#files)
+    -   [isMention](#ismention)
+-   [MyChats](#mychats)
+    -   [favorites](#favorites)
+    -   [hidden](#hidden)
+    -   [addFavorite](#addfavorite)
+    -   [removeFavorite](#removefavorite)
+    -   [addHidden](#addhidden)
+    -   [removeHidden](#removehidden)
+-   [ReadReceipt](#readreceipt)
+    -   [chatPosition](#chatposition)
+    -   [receiptError](#receipterror)
 -   [ClientApp](#clientapp)
     -   [isFocused](#isfocused)
     -   [isInChatsView](#isinchatsview)
     -   [isInFilesView](#isinfilesview)
+-   [ContactStore](#contactstore)
+    -   [contacts](#contacts)
+    -   [addedContacts](#addedcontacts)
+    -   [invitedContacts](#invitedcontacts)
+    -   [uiViewSortBy](#uiviewsortby)
+    -   [uiViewFilter](#uiviewfilter)
+    -   [uiViewSearchQuery](#uiviewsearchquery)
+    -   [uiView](#uiview)
+    -   [addContact](#addcontact)
+    -   [addContactBatch](#addcontactbatch)
+    -   [importContacts](#importcontacts)
+    -   [removeContact](#removecontact)
+    -   [removeInvite](#removeinvite)
+    -   [removeReceivedInvite](#removereceivedinvite)
+    -   [getContact](#getcontact)
+    -   [invite](#invite)
+    -   [filter](#filter)
+-   [Contact](#contact)
+    -   [loading](#loading-1)
+    -   [username](#username)
+    -   [usernameTag](#usernametag)
+    -   [firstName](#firstname)
+    -   [lastName](#lastname)
+    -   [encryptionPublicKey](#encryptionpublickey)
+    -   [signingPublicKey](#signingpublickey)
+    -   [tofuError](#tofuerror)
+    -   [isAdded](#isadded)
+    -   [urlSalt](#urlsalt)
+    -   [profileVersion](#profileversion)
+    -   [hasAvatar](#hasavatar)
+    -   [isDeleted](#isdeleted)
+    -   [color](#color)
+    -   [letter](#letter)
+    -   [fullName](#fullname)
+    -   [fullNameLower](#fullnamelower)
+    -   [fingerprint](#fingerprint)
+    -   [largeAvatarUrl](#largeavatarurl)
+    -   [mediumAvatarUrl](#mediumavatarurl)
+    -   [fingerprintSkylarFormatted](#fingerprintskylarformatted)
+    -   [notFound](#notfound)
+    -   [load](#load)
+    -   [whenLoaded](#whenloaded)
+    -   [ensureLoaded](#ensureloaded)
+    -   [ensureAllLoaded](#ensureallloaded)
+-   [Invites](#invites)
+    -   [issued](#issued)
+-   [Tofu](#tofu)
+    -   [username](#username-1)
+    -   [firstName](#firstname-1)
+    -   [lastName](#lastname-1)
+    -   [encryptionPublicKey](#encryptionpublickey-1)
+    -   [signingPublicKey](#signingpublickey-1)
+    -   [getByUsername](#getbyusername)
+-   [FileStore](#filestore)
+    -   [files](#files-1)
+    -   [loading](#loading-2)
+    -   [currentFilter](#currentfilter)
+    -   [updating](#updating)
+    -   [uploadQueue](#uploadqueue-1)
+    -   [hasSelectedFiles](#hasselectedfiles)
+    -   [canShareSelectedFiles](#canshareselectedfiles)
+    -   [allVisibleSelected](#allvisibleselected)
+    -   [selectedCount](#selectedcount)
+    -   [getSelectedFiles](#getselectedfiles)
+    -   [getShareableSelectedFiles](#getshareableselectedfiles)
+    -   [clearSelection](#clearselection)
+    -   [selectAll](#selectall)
+    -   [deselectUnshareableFiles](#deselectunshareablefiles)
+    -   [filterByName](#filterbyname)
+    -   [clearFilter](#clearfilter)
+    -   [loadAllFiles](#loadallfiles)
+    -   [getById](#getbyid)
+    -   [upload](#upload)
+-   [FileStreamAbstract](#filestreamabstract)
+    -   [filePath](#filepath)
+    -   [mode](#mode)
+    -   [pos](#pos)
+    -   [read](#read-1)
+    -   [write](#write)
+    -   [seek](#seek)
+    -   [open](#open)
+    -   [close](#close)
+    -   [getFullPath](#getfullpath)
+    -   [exists](#exists)
+    -   [launchViewer](#launchviewer)
+    -   [getStat](#getstat)
+    -   [getCacheList](#getcachelist)
+    -   [delete](#delete)
+-   [File](#file)
+    -   [download](#download)
+    -   [cancelDownload](#canceldownload)
+    -   [key](#key)
+    -   [nonce](#nonce)
+    -   [fileId](#fileid)
+    -   [name](#name-1)
+    -   [size](#size)
+    -   [uploadedAt](#uploadedat)
+    -   [fileOwner](#fileowner)
+    -   [readyForDownload](#readyfordownload)
+    -   [uploading](#uploading)
+    -   [downloading](#downloading)
+    -   [progress](#progress)
+    -   [progressMax](#progressmax)
+    -   [cached](#cached)
+    -   [selected](#selected)
+    -   [show](#show)
+    -   [uploadCancelled](#uploadcancelled)
+    -   [shared](#shared)
+    -   [ext](#ext)
+    -   [cachePath](#cachepath)
+    -   [sizeFormatted](#sizeformatted)
+    -   [chunksCount](#chunkscount)
+    -   [canShare](#canshare)
+    -   [sizeWithOverhead](#sizewithoverhead)
+    -   [share](#share)
+    -   [launchViewer](#launchviewer-1)
+    -   [deleteCache](#deletecache)
+    -   [remove](#remove)
+    -   [rename](#rename-1)
+    -   [upload](#upload-1)
+    -   [cancelUpload](#cancelupload)
+-   [NodeFileStream](#nodefilestream)
 -   [BootKeg](#bootkeg)
     -   [signKeys](#signkeys)
     -   [encryptionKeys](#encryptionkeys)
     -   [kegKey](#kegkey)
 -   [ChatBootKeg](#chatbootkeg)
 -   [ChatKegDb](#chatkegdb)
-    -   [id](#id)
-    -   [key](#key)
+    -   [id](#id-1)
+    -   [key](#key-1)
     -   [boot](#boot)
     -   [participants](#participants)
     -   [dbIsBroken](#dbisbroken)
 -   [KegDb](#kegdb)
-    -   [id](#id-1)
-    -   [key](#key-1)
+    -   [id](#id-2)
+    -   [key](#key-2)
     -   [boot](#boot-1)
 -   [Keg](#keg)
     -   [signatureError](#signatureerror)
     -   [sharedKegError](#sharedkegerror)
-    -   [id](#id-2)
+    -   [id](#id-3)
     -   [tempId](#tempid)
     -   [deleted](#deleted)
-    -   [loading](#loading)
+    -   [loading](#loading-3)
     -   [saving](#saving)
     -   [lastLoadHadError](#lastloadhaderror)
     -   [type](#type)
@@ -169,15 +374,15 @@
     -   [isEmpty](#isempty)
     -   [assignTemporaryId](#assigntemporaryid)
     -   [saveToServer](#savetoserver)
-    -   [load](#load)
-    -   [remove](#remove)
+    -   [load](#load-1)
+    -   [remove](#remove-1)
     -   [loadFromKeg](#loadfromkeg)
     -   [serializeKegPayload](#serializekegpayload)
     -   [deserializeKegPayload](#deserializekegpayload)
     -   [serializeProps](#serializeprops)
     -   [deserializeProps](#deserializeprops)
 -   [SyncedKeg](#syncedkeg)
-    -   [loaded](#loaded)
+    -   [loaded](#loaded-1)
     -   [reload](#reload)
     -   [save](#save)
 -   [PhraseDictionary](#phrasedictionary)
@@ -205,9 +410,9 @@
     -   [setPasscode](#setpasscode)
     -   [validatePasscode](#validatepasscode)
     -   [hasPasscode](#haspasscode)
-    -   [username](#username)
-    -   [firstName](#firstname)
-    -   [lastName](#lastname)
+    -   [username](#username-2)
+    -   [firstName](#firstname-2)
+    -   [lastName](#lastname-2)
     -   [email](#email)
     -   [locale](#locale)
     -   [passcodeIsSet](#passcodeisset)
@@ -218,7 +423,7 @@
     -   [savingAvatar](#savingavatar)
     -   [autologinEnabled](#autologinenabled)
     -   [secureWithTouchID](#securewithtouchid)
-    -   [fullName](#fullname)
+    -   [fullName](#fullname-1)
     -   [createdAt](#createdat)
     -   [passphrase](#passphrase)
     -   [authSalt](#authsalt)
@@ -276,10 +481,11 @@
     -   [onceStarted](#oncestarted)
     -   [onAuthenticated](#onauthenticated)
     -   [onDisconnect](#ondisconnect)
-    -   [close](#close)
-    -   [open](#open)
-    -   [reset](#reset)
+    -   [close](#close-1)
+    -   [open](#open-1)
+    -   [reset](#reset-1)
 -   [socket](#socket)
+-   [InvitedContact](#invitedcontact)
 -   [Address](#address)
 -   [KeyPair](#keypair)
 -   [util](#util)
@@ -416,7 +622,7 @@ File stream implementation class.
 
 **Client app is required to set this property before using Icebear SDK.**
 
-Type: FileStreamAbstract
+Type: [FileStreamAbstract](#filestreamabstract)
 
 ### StorageEngine
 
@@ -1302,7 +1508,7 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Stops the clock, it can't be restarted after this.
 
-## default
+### default
 
 Default clock instance with `config.observableClockEventFrequency` interval
 
@@ -1395,7 +1601,7 @@ Checks message object for system data and returns translated string to render fo
 
 **Parameters**
 
--   `msg` **Message** 
+-   `msg` **[Message](#message)** 
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system messge
 
@@ -1428,6 +1634,531 @@ performs some global configuration such as:
     will still return native Promise.
 -   extends Uint8Array prototype. See [extensions/uint8array](#extensionsuint8array).
 
+## ChatHead
+
+**Extends SyncedKeg**
+
+Chat head keg is open for any chat participant to update.
+
+**Parameters**
+
+-   `db` **[ChatKegDb](#chatkegdb)** 
+
+### chatName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+## ChatStore
+
+Chat store.
+
+### events
+
+Currently emits just one event - 'messagesReceived' (1 sec. throttled)
+
+Type: EventEmitter
+
+### chats
+
+Working set of chats. Server might have more, but we display only these at any time.
+
+Type: ObservableArray&lt;[Chat](#chat)>
+
+### unreadChatsAlwaysOnTop
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### loading
+
+True when chat list loading is in progress.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### activeChat
+
+currently selected/focused chat.
+
+Type: [Chat](#chat)
+
+### hidingChat
+
+Chats set this flag and UI should use it to prevent user from spam-clicking the 'hide' button
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### loaded
+
+True when loadAllChats() was called and finished once already.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### unreadMessages
+
+Total unread messages in all chats.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### addChat
+
+Adds chat to the list.
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
+-   `unhide` **bool** this flag helps us to force unhiding chat when we detected that addChat was called as
+    a result of new messages in the chat (but not other new/updated kegs)
+
+### loadAllChats
+
+Initial chats list loading, call once after login.
+
+Logic:
+
+-   load all favorite chats
+-   see if we have some limit left and load other unhidden chats
+-   see if digest contains some new chats that are not hidden
+
+ORDER OF THE STEPS IS IMPORTANT ON MANY LEVELS
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### startChat
+
+Starts new chat or loads existing one and activates it.
+
+**Parameters**
+
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+
+Returns **any** 
+
+### activate
+
+Activates the chat.
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
+
+### startChatAndShareFiles
+
+Can be used from file view.
+
+**Parameters**
+
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+-   `fileOrFiles` **([File](#file) \| [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[File](#file)>)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### unloadChat
+
+Removes chat from working set.
+
+**Parameters**
+
+-   `chat` **[Chat](#chat)** 
+
+## ChatFileHandler
+
+File handling module for Chat. Extracted for readability.
+
+**Parameters**
+
+-   `chat` **[Chat](#chat)** chat creates an instance and passes itself to it.
+
+### uploadAndShare
+
+Initiates file upload and shares it to the chat afterwards.
+Note that if app session ends before this is done - files will be only uploaded by resume logic.
+But chat message will not be sent.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** full file path
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** override file name, specify to store the file keg with this name
+-   `deleteAfterUpload` **bool** delete local file after successful upload (optional, default `false`)
+
+Returns **[File](#file)** 
+
+## Chat
+
+at least one of two arguments should be set
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** chat participants
+-   `store` **[ChatStore](#chatstore)** 
+
+### id
+
+Chat id
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
+### messages
+
+Render these messages.
+
+Type: ObservableArray&lt;[Message](#message)>
+
+### limboMessages
+
+Render these messages at the bottom of the chat, they don't have Id yet, you can use tempId.
+
+Type: ObservableArray&lt;[Message](#message)>
+
+### participant
+
+Does not include current user.
+
+Type: ObservableArray&lt;[Contact](#contact)>
+
+### loadingMeta
+
+If true - chat is not ready for anything yet.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### metaLoaded
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### loadingInitialPage
+
+This can happen when chat was just added or after reset()
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### initialPageLoaded
+
+Ready to render messages.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### mostRecentMessageLoaded
+
+Ready to render most recent message contents in chat list.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### loadingTopPage
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### loadingBottomPage
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### canGoUp
+
+can we go back in history from where we are? (load older messages)
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### canGoDown
+
+can we go forward in history or we have the most recent data loaded
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### active
+
+currently selected/focused in UI
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isFavorite
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### changingFavState
+
+Prevent spamming 'Favorite' button in GUI.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### uploadQueue
+
+list of files being uploaded to this chat.
+
+Type: ObservableArray&lt;[File](#file)>
+
+### unreadCount
+
+Unread message count in this chat.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### newMessagesMarkerPos
+
+when user is not looking but chat is active and receiving updates,
+chat briefly sets this value to the id of last seen message so client can render separator marker.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### chatHead
+
+Chat head keg.
+Observable, because `this.name` relies on it
+
+Type: [ChatHead](#chathead)?
+
+### isReadOnly
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### participantUsernames
+
+Excluding current user.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### name
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### canSendAck
+
+User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### showNewMessagesMarker
+
+Don't render message marker if this is false.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### mostRecentMessage
+
+Type: [Message](#message)?
+
+### removeMessage
+
+todo: this is temporary, for messages that failed to send.
+When we have message delete - it should be unified process.
+
+**Parameters**
+
+-   `message` **[Message](#message)** 
+
+### sendAck
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### uploadAndShareFile
+
+Note that file will not be shared if session ends, but it will be uploaded because of upload resume logic.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+-   `deleteAfterUpload` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)**  (optional, default `false`)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### shareFiles
+
+**Parameters**
+
+-   `files` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[File](#file)>** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### loadPreviousPage
+
+### loadNextPage
+
+### rename
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** pass empty string to remove chat name
+
+### toggleFavoriteState
+
+### hide
+
+### unhide
+
+### reset
+
+Reloads most recent page of the chat like it was just added.
+
+## Message
+
+**Extends Keg**
+
+Message keg and model
+
+**Parameters**
+
+-   `db` **[ChatStore](#chatstore)** chat db
+
+### sending
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### sendError
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### receipts
+
+array of usernames to render receipts for
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### userMentions
+
+Which usernames are mentioned in this message.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### firstOfTheDay
+
+Is this message first in the day it was sent (and loaded message page)
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### groupWithPrevious
+
+whether or not to group this message with previous one in message list.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### inlineImages
+
+for UI use
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### dayFingerprint
+
+used to compare calendar days
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### messageTimestampText
+
+TODO: mobile uses this, but desktop uses
+TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+TODO: resolve/unify this in favor of most performant method
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### sender
+
+Type: [Contact](#contact)
+
+### text
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### systemData
+
+For system messages like chat rename fact.
+
+Type: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+### timestamp
+
+Type: [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+
+### files
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### isMention
+
+Does this message mention current user.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+## MyChats
+
+**Extends SyncedKeg**
+
+MyChats keg holds chat groups for user.
+
+### favorites
+
+Favorite chat ids
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### hidden
+
+Hidden chat ids
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### addFavorite
+
+Adds favorite chat and removes it from hidden list if it was there.
+
+**Parameters**
+
+-   `chatId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** true if added, false if already had been in the list
+
+### removeFavorite
+
+Removes favorite chat,
+
+**Parameters**
+
+-   `chatId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** true if removed, false if couldn't find it in the favorites list
+
+### addHidden
+
+Adds hidden chat and removes it from favorites list if it was there.
+
+**Parameters**
+
+-   `chatId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** true if added, false if already had been in the list
+
+### removeHidden
+
+Removes hidden chat.
+
+**Parameters**
+
+-   `chatId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** true if removed, false if couldn't find it in the hidden list
+
+## ReadReceipt
+
+**Extends Keg**
+
+Holds read position (kegId) for a user in a chat. Named keg, names contain usernames.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `db` **[ChatKegDb](#chatkegdb)** 
+
+### chatPosition
+
+Id of the last read message
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### receiptError
+
+true if this receipt's name doesn't match keg owner.
+
+Type: bool
+
 ## ClientApp
 
 This is the place where Icebear can get various state information about client
@@ -1452,6 +2183,807 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 Use this to let Icebear know if your app is currently showing main file view.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+## ContactStore
+
+Contact store handles all Peerio users you(your app) are in some contact with,
+not just the ones you add to favorites explicitly.
+
+### contacts
+
+All peerio users your app encounters end up here (except invited by email, they're non-peerio users).
+
+Type: ObservableArray&lt;[Contact](#contact)>
+
+### addedContacts
+
+Favorite Contacts.
+
+Type: ObservableArray&lt;[Contact](#contact)>
+
+### invitedContacts
+
+Invited contacts.
+
+Type: ObservableArray&lt;InvitedContacts>
+
+### uiViewSortBy
+
+options: firstName, lastName, username
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### uiViewFilter
+
+options: added, all
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### uiViewSearchQuery
+
+Any string to search in user's names.
+Set to `''` to clear search.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### uiView
+
+Helper data view to simplify sorting and filtering.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;{letter: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), items: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>}>
+
+### addContact
+
+Tries to add contact to favorites.
+
+**Parameters**
+
+-   `val` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))** username, email or Contact
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;bool>** true: added, false: not found
+
+### addContactBatch
+
+Accepts array of preloaded contacts, and adds them to favorites.
+WARNING: doesn't not wait for passed contacts to load.
+
+**Parameters**
+
+-   `contacts` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### importContacts
+
+Looks up by email and adds contacts to favorites list.
+
+**Parameters**
+
+-   `emails` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** 
+
+### removeContact
+
+Removes contact from favorites.
+
+**Parameters**
+
+-   `usernameOrContact` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))** 
+
+### removeInvite
+
+Removes invitation.
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### removeReceivedInvite
+
+Removes incoming invitation. This is useful for new users, logic automatically adds authors of received invites
+to favorites and then removes received invites.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### getContact
+
+Returns Contact object ether from cache or server.
+It is important to be aware about `loading` state of contact, it is not guaranteed it will be loaded
+after this function returns contact.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `prefetchedData` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** 
+
+Returns **[Contact](#contact)** 
+
+### invite
+
+Sends an invite
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### filter
+
+Filters contacts by username and First Last name based on passed token
+
+**Parameters**
+
+-   `token` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** search query string
+-   `list` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** optional list to search in, by default it will search in contact store
+-   `nosort`   (optional, default `false`)
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+
+## Contact
+
+Contact object represents any Peerio user, including currently authenticated user.
+
+Possible states and how to read them:
+loading === true - trying to load contact, will make many attempts in case of connection issues
+loading === false && notFound === false - success
+loading === false && notFound === true  - fail
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** this can also be an email which will be replaced with username if user found
+-   `prefetchedData` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** if, for some reason you have the contact data from server, feed it here
+-   `noAutoLoad` **bool?** don't automatically call this.load() in constructor (needed for tests only)
+
+### loading
+
+This flag means that we are making attempts to load contact
+once it's 'false' it means that we are done trying with ether positive (notFound=false) result
+or negative result. It's set to true by default, right after it exits constructor.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### username
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### usernameTag
+
+'@username'
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### firstName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### lastName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### encryptionPublicKey
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### signingPublicKey
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### tofuError
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isAdded
+
+Wether or not user added this contact to his address book
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### urlSalt
+
+Some server-generated random chars to prevent enumeration of user-specific urls
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### profileVersion
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### hasAvatar
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isDeleted
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### color
+
+RGB string built based on hashed signing public key, not cryptographically strong, just for better UX
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### letter
+
+First letter of first name or username.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fullName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fullNameLower
+
+Lower cased full name for search/filter optimization
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fingerprint
+
+Cryptographically strong User fingerprint based on signing public key.
+Looks like '12345-12345-12345-12345-12345', empty value is '00000-00000-00000-00000-00000-00000'
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### largeAvatarUrl
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### mediumAvatarUrl
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fingerprintSkylarFormatted
+
+Same as [fingerprint](fingerprint), but formatted as: '1234 5123 4512\\n3451 2345 1234 5123 45'
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### notFound
+
+Server said it couldn't find this user.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### load
+
+Loads user data from server (or applies prefetched data)
+
+**Parameters**
+
+-   `prefetchedData` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** 
+
+### whenLoaded
+
+Helper function to execute callback when contact is loaded.
+Executes immediately if already loaded.
+
+**Parameters**
+
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+### ensureLoaded
+
+Helper function to get a promise that resolves when contact is loaded.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### ensureAllLoaded
+
+Helper function to get a promise that resolves when all contacts in passed collection are loaded.
+
+**Parameters**
+
+-   `contacts` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## Invites
+
+**Extends SyncedKeg**
+
+Named readonly server-controlled keg. Invite data can be modified via separate api.
+
+### issued
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[InvitedContact](#invitedcontact)>
+
+## Tofu
+
+**Extends Keg**
+
+Tofu keg.
+
+**Parameters**
+
+-   `db` **[KegDb](#kegdb)** 
+
+### username
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### firstName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### lastName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### encryptionPublicKey
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### signingPublicKey
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### getByUsername
+
+Finds Tofu keg by username property.
+
+**Parameters**
+
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Tofu](#tofu)?>** tofu keg, if any
+
+## FileStore
+
+File store.
+
+### files
+
+Full list of user's files.
+
+Type: ObservableArray&lt;[File](#file)>
+
+### loading
+
+Store is loading full file list for the first time.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### currentFilter
+
+Readonly, shows which keyword was used with last call to `filter()`, this need refactoring.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### updating
+
+Currently updating file list from server, this is not observable property.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### uploadQueue
+
+Readonly
+
+Type: [Queue](#queue)
+
+### hasSelectedFiles
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### canShareSelectedFiles
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### allVisibleSelected
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### selectedCount
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### getSelectedFiles
+
+Returns currently selected files (file.selected == true)
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[File](#file)>** 
+
+### getShareableSelectedFiles
+
+Returns currently selected files that are also shareable.
+
+Returns **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[File](#file)>** 
+
+### clearSelection
+
+Deselects all files
+
+### selectAll
+
+Selects all files
+
+### deselectUnshareableFiles
+
+Deselects unshareable files
+
+### filterByName
+
+Applies filter to files.
+
+**Parameters**
+
+-   `query` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### clearFilter
+
+Resets filter
+
+### loadAllFiles
+
+Call at least once from UI.
+
+### getById
+
+Finds file by fileId.
+
+**Parameters**
+
+-   `fileId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[File](#file)?** 
+
+### upload
+
+Start new file upload and get the file keg for it.
+
+**Parameters**
+
+-   `filePath` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** full path with name
+-   `fileName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** if u want to override name in filePath
+
+## FileStreamAbstract
+
+Abstract File Stream class. Icebear wants to read/write files,
+but doesn't know how exactly that would work on your platform.
+
+1.  create you own class and inherit from FileStreamAbstract.
+2.  override required functions.
+3.  set config.FileStream = YourFileStreamImplementation.
+
+**Parameters**
+
+-   `filePath` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** will be used by 'open' function
+-   `mode` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 'read' or 'write' or 'append'
+
+### filePath
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### mode
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### pos
+
+File stream pointer
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### read
+
+Reads a chunk of data from file stream.
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes to read (if possible)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** resolves with a number of bytes written to buffer
+
+### write
+
+Writes a chunk of data to file stream
+
+**Parameters**
+
+-   `buffer` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** resolves when chunk is written out
+
+### seek
+
+Move file position pointer.
+
+**Parameters**
+
+-   `pos` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** new position
+
+### open
+
+Override. This function has to set 'size' property.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[FileStreamAbstract](#filestreamabstract)>** this
+
+### close
+
+Override. Called when done working with file, should flush all buffers and dispose resources.
+
+### getFullPath
+
+Override. Returns full path for file when there's a default cache path implemented in the app.
+Currently only mobile.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** normalized file name (deterministically generated)
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** actual device path for file
+
+### exists
+
+Override.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** true if path exists on device
+
+### launchViewer
+
+Override. Launch external viewer.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** file path to open in a viewer.
+
+### getStat
+
+Override. Get file stat object.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **{size: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}** 
+
+### getCacheList
+
+Override. Currently mobile only.
+
+Returns **any** Promise&lt;string\[]> - array of absolute paths to cached items.
+
+### delete
+
+Override. Removes file by path.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## File
+
+**Extends Keg**
+
+File keg and model.
+
+**Parameters**
+
+-   `db` **[KegDb](#kegdb)** 
+
+### download
+
+Starts download.
+
+**Parameters**
+
+-   `filePath` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** where to store file (including name)
+-   `resume` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** for system use
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### cancelDownload
+
+Cancels download and removes impartially downloaded file.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### key
+
+Blob key
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### nonce
+
+Blob nonce. It's separate because this is a base nonce, every chunk adds its number to it to decrypt.
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### fileId
+
+System-wide unique client-generated id
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### name
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### size
+
+Bytes
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### uploadedAt
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileOwner
+
+Username uploaded this file.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### readyForDownload
+
+When this is 'true' file is ready to be downloaded. Upload finishes before that,
+then server needs some time to process file.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### uploading
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### downloading
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### progress
+
+Upload or download progress value in bytes. Note that when uploading it doesn't count overhead.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### progressMax
+
+File size with overhead for downloads and without overhead for uploads.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### cached
+
+currently mobile only: flag means file was downloaded and is available locally
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### selected
+
+Is this file selected in file pickers for group operations.
+It's a bit weird mix of UI state and logic, but it works fine at the moment,
+we'll rethink it when we implement folders.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### show
+
+Is this file visible or filtered by search. Also weird, needs refactor.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### uploadCancelled
+
+If upload cancel is initiated by user
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### shared
+
+Is this file currently shared with anyone.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### ext
+
+file extension
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### cachePath
+
+currently mobile only: Full path to locally stored file
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### sizeFormatted
+
+Human readable file size
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### chunksCount
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### canShare
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### sizeWithOverhead
+
+Bytes
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### share
+
+Share file with contacts
+
+**Parameters**
+
+-   `contactOrContacts` **([Contact](#contact) \| [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)> | ObservableArray&lt;[Contact](#contact)>)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### launchViewer
+
+Open file with system's default file type handler app.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** tries this.cachePath if path is not passed
+
+### deleteCache
+
+Remove locally stored file copy. Currently only mobile uses this.
+
+### remove
+
+Remove file from cloud and unshare with everyone.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### rename
+
+Safe to call any time after upload has been started (keg created).
+Retries a few times in case of error.
+
+**Parameters**
+
+-   `newName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### upload
+
+Starts file upload.
+
+**Parameters**
+
+-   `filePath` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `fileName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** if you'd like to override this.name or filePath
+-   `resume` **bool?** system sets this param to true when it detects unfinished upload
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### cancelUpload
+
+Cancels ongoing upload. This will also remove file keg.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## NodeFileStream
+
+**Extends FileStreamAbstract**
+
+FileStreamAbstract implementation for nodejs, see [FileStreamAbstract](#filestreamabstract) for docs.
 
 ## BootKeg
 
@@ -1543,7 +3075,7 @@ At least one of 2 parameters should be passed
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** or specific id for shared databases
--   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;Contact>?** participants list, EXCLUDING own username
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>?** participants list, EXCLUDING own username
 
 ### id
 
@@ -1565,7 +3097,7 @@ Type: [BootKeg](#bootkeg)
 
 All participants except current user.
 
-Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;Contact>
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>
 
 ### dbIsBroken
 
@@ -2476,6 +4008,19 @@ Main connection SocketClient instance.
 Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## Address
 

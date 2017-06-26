@@ -1,6 +1,6 @@
-/*
- * Download module for File model, for code file length sake
- */
+//
+// Download module for File model, for code file length sake
+//
 
 const config = require('../../config');
 const warnings = require('./../warnings');
@@ -119,7 +119,7 @@ function _resetDownloadState(stream) {
     }
 }
 
-module.exports = function (File) {
+module.exports = function(File) {
     File.prototype._getDlResumeParams = _getDlResumeParams;
     File.prototype.download = download;
     File.prototype.cancelDownload = cancelDownload;

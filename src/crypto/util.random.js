@@ -1,6 +1,6 @@
-/*
- * Random things generator part of Peerio crypto utilities module.
- */
+//
+// Random things generator part of Peerio crypto utilities module.
+//
 
 const { InvalidArgumentError } = require('../errors');
 const convert = require('./util.conversion');
@@ -10,7 +10,7 @@ const hashing = require('./util.hashing');
  * Generates random bytes suitable for crypto use
  * @param {number} num - byte count to return
  * @returns {Uint8Array} - random bytes array of `num` size
- * @function
+ * @function getRandomBytes
  * @memberof crypto/util
  * @public
  */

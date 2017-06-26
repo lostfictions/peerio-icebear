@@ -1,6 +1,6 @@
-/**
- * Module takes care of listening to chat updates and loading updated data
- */
+//
+// Module takes care of listening to chat updates and loading updated data
+//
 
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
@@ -10,14 +10,12 @@ const { reaction, action } = require('mobx');
 const clientApp = require('../client-app');
 const _ = require('lodash');
 
+/**
+ *
+ * @param {Chat} chat - chat creates instance and passes itself to the constructor.
+ * @protected
+ */
 class ChatMessageHandler {
-
-    maxUpdateId = '';
-    downloadedUpdateId = '';
-    _loadingUpdates = false; // todo: make this observable in Chat
-    _reCheckUpdates = false;
-
-    _reactionsToDispose = [];
 
     constructor(chat) {
         this.chat = chat;
@@ -48,6 +46,13 @@ class ChatMessageHandler {
             }
         }));
     }
+
+    maxUpdateId = '';
+    downloadedUpdateId = '';
+    _loadingUpdates = false; // todo: make this observable in Chat
+    _reCheckUpdates = false;
+
+    _reactionsToDispose = [];
 
     cancelTimers() {
         if (this._markAsSeenTimer !== null) {

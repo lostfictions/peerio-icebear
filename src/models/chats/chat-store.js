@@ -1,4 +1,3 @@
-
 const { observable, action, computed, reaction, autorunAsync, isObservableArray } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
@@ -11,34 +10,12 @@ const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 const { asPromise } = require('../../helpers/prombservable');
 
+/**
+ * Chat store.
+ * @namespace
+ * @public
+ */
 class ChatStore {
-    // todo: not sure this little event emitter experiment should live
-    EVENT_TYPES = {
-        messagesReceived: 'messagesReceived'
-    };
-    events = new EventEmitter();
-
-    @observable chats = observable.shallowArray([]);
-
-    @observable unreadChatsAlwaysOnTop = false;
-
-    myChats;
-
-    // to prevent duplicates
-    chatMap = {};
-    // when chat list loading is in progress
-    @observable loading = false;
-    // currently selected/focused chat
-    @observable activeChat = null;
-    // chats set this flag and UI should use it to prevent user from spam-clicking the 'hide' button
-    @observable hidingChat = false;
-    // loadAllChats() was called and finished once already
-    @observable loaded = false;
-
-    @computed get unreadMessages() {
-        return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
-    }
-
     constructor() {
         reaction(() => this.activeChat, chat => {
             if (chat) chat.loadMessages();
@@ -55,6 +32,96 @@ class ChatStore {
         });
     }
 
+    // todo: not sure this little event emitter experiment should live
+    EVENT_TYPES = {
+        messagesReceived: 'messagesReceived'
+    };
+    /**
+     * Currently emits just one event - 'messagesReceived' (1 sec. throttled)
+     * @member {EventEmitter}
+     * @public
+     */
+    events = new EventEmitter();
+
+    /**
+     * Working set of chats. Server might have more, but we display only these at any time.
+     * @member {ObservableArray<Chat>} chats
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable chats = observable.shallowArray([]);
+
+    /**
+     * @member {boolean} unreadChatsAlwaysOnTop
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable unreadChatsAlwaysOnTop = false;
+
+    /**
+     * MyChats Keg
+     * @member {MyChats} myChats
+     * @protected
+     */
+    myChats;
+
+    /**
+     * To prevent duplicates
+     * @member {{chatId:Chat}}
+     * @private
+     */
+    chatMap = {};
+    /**
+     * True when chat list loading is in progress.
+     * @member {boolean} loading
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable loading = false;
+    /**
+     * currently selected/focused chat.
+     * @member {Chat} activeChat
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable activeChat = null;
+    /**
+     * Chats set this flag and UI should use it to prevent user from spam-clicking the 'hide' button
+     * @member {boolean} hidingChat
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable hidingChat = false;
+    /**
+     * True when loadAllChats() was called and finished once already.
+     * @member {boolean} loaded
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @observable loaded = false;
+
+    /**
+     * Total unread messages in all chats.
+     * @member {number} unreadMessages
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @computed get unreadMessages() {
+        return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
+    }
+
+    /**
+     * Does smart and efficient 'in-place' sorting of observable array.
+     * Note that ObservableArray#sort creates copy of the array. This function sorts in place.
+     * @protected
+     */
     sortChats() {
         const array = this.chats;
         for (let i = 1; i < array.length; i++) {
@@ -70,6 +137,15 @@ class ChatStore {
         }
     }
 
+    /**
+     * Chat comparison function. Takes into account favorite status of the chat, timestamp and user preferences.
+     * @static
+     * @param {Chat} a
+     * @param {Chat} b
+     * @param {bool} unreadOnTop
+     * @returns {number} -1, 0 or 1
+     * @protected
+     */
     static compareChats(a, b, unreadOnTop) {
         if (a.isFavorite) {
             // favorite chats are sorted by name
@@ -105,6 +181,14 @@ class ChatStore {
         this.events.emit(this.EVENT_TYPES.messagesReceived, props);
     }, 1000);
 
+    /**
+     * Adds chat to the list.
+     * @function addChat
+     * @param {string} id - chat id
+     * @param {bool} unhide - this flag helps us to force unhiding chat when we detected that addChat was called as
+     * a result of new messages in the chat (but not other new/updated kegs)
+     * @public
+     */
     addChat = (id, unhide) => {
         if (!id) throw new Error(`Invalid chat id. ${id}`);
         if (id === 'SELF' || !!this.chatMap[id]) return;
@@ -159,12 +243,21 @@ class ChatStore {
     }
 
 
-    // initial fill chats list
-    // Logic:
-    // - load all favorite chats
-    // - see if we have some limit left and load other unhidden chats
-    // - see if digest contains some new chats that are not hidden
-    // ORDER OF THE STEPS IS IMPORTANT ON MANY LEVELS
+    /**
+     * Initial chats list loading, call once after login.
+     *
+     * Logic:
+     * - load all favorite chats
+     * - see if we have some limit left and load other unhidden chats
+     * - see if digest contains some new chats that are not hidden
+     *
+     * ORDER OF THE STEPS IS IMPORTANT ON MANY LEVELS
+     * @function loadAllChats
+     * @returns {Promise}
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
     @action async loadAllChats() {
         if (this.loaded || this.loading) return;
         this.loading = true;
@@ -224,6 +317,13 @@ class ChatStore {
         return participants.filter(p => !p.isMe);
     }
 
+    /**
+     * When starting new chat for a list of participants we need a way to check if it already is loaded without knowing
+     * the chatId.
+     * @param {Array<Contact>} participants
+     * @returns {?Chat} if found
+     * @private
+     */
     findCachedChatWithParticipants(participants) {
         // validating participants
         if (!participants || !participants.length) {
@@ -243,7 +343,15 @@ class ChatStore {
         }
         return null;
     }
-    //
+    /**
+     * Starts new chat or loads existing one and activates it.
+     * @function startChat
+     * @param {Array<Contact>} participants
+     * @returns
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
     @action startChat(participants) {
         const cached = this.findCachedChatWithParticipants(participants);
         if (cached) {
@@ -259,6 +367,14 @@ class ChatStore {
         return chat;
     }
 
+    /**
+     * Activates the chat.
+     * @function activate
+     * @param {string} id - chat id
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
     @action activate(id) {
         const chat = this.chatMap[id];
         if (!chat) return;
@@ -272,6 +388,16 @@ class ChatStore {
         this.activeChat = chat;
     }
 
+    /**
+     * Can be used from file view.
+     * @function startChatAndShareFiles
+     * @param {Array<Contact>} participants
+     * @param {File|Array<File>} fileOrFiles
+     * @returns {Promise}
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
     @action startChatAndShareFiles(participants, fileOrFiles) {
         const files = (Array.isArray(fileOrFiles) || isObservableArray(fileOrFiles)) ? fileOrFiles : [fileOrFiles];
         const chat = this.startChat(participants);
@@ -281,7 +407,15 @@ class ChatStore {
         });
     }
 
-    @action _unloadChat(chat) {
+    /**
+     * Removes chat from working set.
+     * @function unloadChat
+     * @param {Chat} chat
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @action unloadChat(chat) {
         if (chat.active) {
             if (this.chats.length > 1) {
                 this.activate(this.chats.find(c => c.id !== chat.id).id);

@@ -1,4 +1,4 @@
-/**
+/*
  Calls involving the non-kegs API of ghost and
  corresponding asymmetric encryption
  */
@@ -10,7 +10,7 @@ const fileStore = require('../files/file-store');
 
 const ghostAPI = {};
 
-/**
+/*
  * Derive ephemeral keys.
  * Mutates1 ghost -- adds keypair.
  *
@@ -24,7 +24,7 @@ ghostAPI.deriveKeys = function(ghost) {
         });
 };
 
-/**
+/*
  * to be sent to ephemeral recipient, encrypted asymmetrically
  *
  * @param {Ghost} ghost
@@ -51,7 +51,7 @@ ghostAPI.serialize = function(ghost, user) {
 };
 
 
-/**
+/*
  * Encrypt for the ephemeral keypair and signs the ciphertext.
  *
  * @param {Ghost} ghost
@@ -77,7 +77,7 @@ ghostAPI.encrypt = function(ghost, user, serializedGhost) {
     }
 };
 
-/**
+/*
  * Use ghost API to send ghost to external/ephemeral recipients.
  *
  * @param {Ghost} ghost
@@ -99,7 +99,7 @@ ghostAPI.send = function(ghost, asymEncryptionRes) {
     });
 };
 
-/**
+/*
  * Destroy the public-facing ghost.
  * @returns {Promise}
  */

@@ -134,12 +134,12 @@ const lastNameReserved = pair(isValidSignupLastName, 'error_invalidName');
 const valueEquality = pair(areEqualValues, 'error_mustMatch');
 
 const validators = {
-    /** available validators:
+    /* available validators:
      * {
      *      message: 'error message (string)',
      *      action: function
      * }
-     **/
+     */
     emailFormat,
     emailAvailability,
     usernameFormat,

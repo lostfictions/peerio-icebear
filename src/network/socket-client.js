@@ -1,8 +1,8 @@
 
-/*
- * WebSocket client module.
- * This module exports SocketClient class that can be instantiated as many times as needed.
- */
+//
+// WebSocket client module.
+// This module exports SocketClient class that can be instantiated as many times as needed.
+//
 
 const io = require('socket.io-client/dist/socket.io');
 const { ServerError, DisconnectedError, NotAuthenticatedError } = require('../errors');

@@ -76,6 +76,9 @@ class Queue {
 
     /**
      * Runs the next task in queue if it is possible
+     * @function runTask
+     * @memberof Queue
+     * @instance
      * @private
      */
     @action.bound runTask() {
@@ -106,6 +109,9 @@ class Queue {
 
     /**
      * Performs necessary actions when a task is finished
+     * @function onTaskComplete
+     * @memberof Queue
+     * @instance
      * @private
      */
     @action.bound onTaskComplete() {

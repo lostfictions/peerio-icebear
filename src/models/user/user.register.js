@@ -5,9 +5,9 @@ const socket = require('../../network/socket');
 const util = require('../../util');
 
 
-/*
- * Registration mixin for User model.
- */
+//
+// Registration mixin for User model.
+//
 module.exports = function mixUserRegisterModule() {
     this._createAccount = () => {
         console.log('Generating keys.');

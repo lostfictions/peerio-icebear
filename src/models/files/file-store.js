@@ -355,7 +355,7 @@ class FileStore {
 
     /**
      * Start new file upload and get the file keg for it.
-     * @function
+     * @function upload
      * @param {string} filePath - full path with name
      * @param {string} [fileName] - if u want to override name in filePath
      * @public

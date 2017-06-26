@@ -1,6 +1,6 @@
-/*
- * Hashing part of Peerio crypto utilities module.
- */
+//
+// Hashing part of Peerio crypto utilities module.
+//
 
 const BLAKE2s = require('blake2s-js');
 const getScrypt = require('./scrypt-proxy').getScrypt;

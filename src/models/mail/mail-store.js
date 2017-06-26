@@ -43,7 +43,7 @@ class MailStore {
         return this.mails.reduce((count, m) => count + (m.selected ? 1 : 0));
     }
 
-    /**
+    /*
      * Returns currently selected mails (mail.selected == true)
      * @returns {Array<Mail>}
      */
@@ -51,7 +51,7 @@ class MailStore {
         return this.mails.filter(MailStore.isMailSelected);
     }
 
-    /**
+    /*
      * Returns all incoming mails.
      * @returns {Array<Mail>}
      */
@@ -59,7 +59,7 @@ class MailStore {
         return this.mails.filter(MailStore.isMailIncoming);
     }
 
-    /**
+    /*
      * Returns all outgoing mails.
      * @returns {Array<Mail>}
      */
@@ -67,7 +67,7 @@ class MailStore {
         return this.mails.filter(MailStore.isMailOutgoing);
     }
 
-    /**
+    /*
      * Deselects all mails
      */
     @action clearSelection() {
@@ -197,7 +197,7 @@ class MailStore {
         return null;
     }
 
-    /**
+    /*
      * Send a message.
      *
      * @param {Array<Contact>} recipients

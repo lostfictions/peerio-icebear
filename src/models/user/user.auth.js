@@ -5,10 +5,10 @@ const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 
-/*
- * Authentication mixin for User model.
- * TODO: authentication code is a bit hard to read and follow, needs refactoring
- */
+//
+// Authentication mixin for User model.
+// TODO: authentication code is a bit hard to read and follow, needs refactoring
+//
 module.exports = function mixUserAuthModule() {
     this._authenticateConnection = () => {
         console.log('Starting connection auth sequence.');
@@ -111,12 +111,12 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /*
-     * Derive a passphrase and set it for future authentications (only called if applicable on first login).
-     * Won't throw if the passcode is incorrect -- login will proceed treating the same user input
-     * as a passphrase instead of a passcode, allowing users who have a passcode set to still
-     * use their passphrases.
-     */
+    //
+    // Derive a passphrase and set it for future authentications (only called if applicable on first login).
+    // Won't throw if the passcode is incorrect -- login will proceed treating the same user input
+    // as a passphrase instead of a passcode, allowing users who have a passcode set to still
+    // use their passphrases.
+    //
     this._derivePassphraseFromPasscode = (passcodeSecret) => {
         console.log('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, passcodeSecret)

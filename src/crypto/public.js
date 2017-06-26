@@ -64,7 +64,7 @@ function decrypt(cipher, theirPublicKey, mySecretKey) {
  * @param {Uint8Array} theirPublicKey - other user's public key
  * @param {Uint8Array} mySecretKey - current user's secret key
  * @returns {Uint8Array} 32 bytes shared key
- * @function
+ * @function computeSharedKey
  * @memberof crypto/public
  * @public
  */

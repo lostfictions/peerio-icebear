@@ -1,8 +1,3 @@
-/**
- * Base class for kegs
- * @module models/keg
- */
-
 const socket = require('../../network/socket');
 const { secret, sign, cryptoUtil } = require('../../crypto');
 const { AntiTamperError, ServerError } = require('../../errors');

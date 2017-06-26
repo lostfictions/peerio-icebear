@@ -25,7 +25,7 @@ class GhostStore {
         this.loadAllGhosts = this.loadAllGhosts.bind(this);
     }
 
-    /**
+    /*
      * Fetch ghosts from the server.
      *
      * @param minCollectionVersion
@@ -42,7 +42,7 @@ class GhostStore {
         });
     }
 
-    /**
+    /*
      * Load all ghosts.
      */
     loadAllGhosts() {
@@ -67,7 +67,7 @@ class GhostStore {
         }));
     }
 
-    /**
+    /*
      * Update when server sends an update to the collection.
      * @returns {Promise}
      */
@@ -91,7 +91,7 @@ class GhostStore {
             }));
     }
 
-    /**
+    /*
      * Create a new ghost.
      *
      * @returns {*}
@@ -104,7 +104,7 @@ class GhostStore {
         return g;
     }
 
-    /**
+    /*
      * Send a new ghost
      */
     send(g, text) {
@@ -116,7 +116,7 @@ class GhostStore {
             .finally(() => g.sendError && this.remove(g));
     }
 
-    /**
+    /*
      * Just remove from kegs.
      *
      * @param {Ghost} ghost
@@ -132,7 +132,7 @@ class GhostStore {
         return g.remove();
     }
 
-    /**
+    /*
      * Get a ghost by its ghostId.
      *
      * @param {string} ghostId
@@ -142,7 +142,7 @@ class GhostStore {
         return this.ghostMap.get(ghostId);
     }
 
-    /**
+    /*
      * Apply a sort
      *
      * @param {string} value ['date']
@@ -162,7 +162,7 @@ class GhostStore {
         this.selectedId = this.ghosts[0].ghostId;
     }
 
-    /**
+    /*
      * Sort by sent date, descending.
      */
     sortByDate() {
@@ -170,7 +170,7 @@ class GhostStore {
         this.selectedSort = 'date';
     }
 
-    /**
+    /*
      * Sort by whether files have attachments.
      */
     sortByAttachments() {
@@ -178,7 +178,7 @@ class GhostStore {
         this.selectedSort = 'attachment';
     }
 
-    /**
+    /*
      * Sort by the first recipient.
      * @fixme this doesn't make much sense?
      */

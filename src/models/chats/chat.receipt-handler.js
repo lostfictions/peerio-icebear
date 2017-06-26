@@ -1,4 +1,3 @@
-
 const { action, reaction } = require('mobx');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
@@ -6,6 +5,12 @@ const socket = require('../../network/socket');
 const ReadReceipt = require('./read-receipt');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const Queue = require('../../helpers/queue');
+
+/**
+ *
+ * @param {Chat} chat - chat creates instance and passes itself to the constructor.
+ * @protected
+ */
 
 class ChatReceiptHandler {
     // receipts cache {username: ReadReceipt}
@@ -33,7 +38,11 @@ class ChatReceiptHandler {
     onDigestUpdate = () => {
         this.loadQueue.addTask(this.loadReceipts);
     };
-
+    /**
+     * Sends receipt for message id seen
+     * @param {string} pos
+     * @protected
+     */
     sendReceipt(pos) {
         // console.debug(`sendReceipt(${pos})`);
         if (typeof pos !== 'number') throw new Error(`Attempt to send invalid receipt position ${pos}`);

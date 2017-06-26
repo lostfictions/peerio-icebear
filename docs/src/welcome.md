@@ -8,3 +8,6 @@ _HTML version_ of this documentation contains all documented members.
 
 
 _Markdown version_ contains only items marked as `@public` and is not as well organized as HTML version, sort order is different.
+
+LOCALIZATION DOCS:
+Peerio uses its own localization library, see documentation here https://github.com/PeerioTechnologies/peerio-translator/tree/icebear

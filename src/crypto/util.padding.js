@@ -1,6 +1,6 @@
-/*
- * Padding part of Peerio crypto utilities module.
- */
+//
+// Padding part of Peerio crypto utilities module.
+//
 
 /**
  * @const

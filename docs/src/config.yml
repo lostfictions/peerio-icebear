@@ -11,6 +11,7 @@ toc:
     description: Miscellaneous items
   - KeyPair
   - Address
+  - InvitedContact
   - extensions/uint8array
   - errors
   - util
@@ -85,13 +86,16 @@ toc:
   - ReadReceipt
   - MyChats
   - ChatStore
+  - ChatFileHandler
+  - ChatMessageHandler
+  - ChatReceiptHandler
   - name: FILES
   - File
   - FileDownloader
   - FileUploader
   - FileStore
   - FileStreamAbstract
+  - FileProcessor
+  - FileNonceGenerator
   - NodeFileStream
-  - name: LOCALIZATION
-  - file: localization.md
 

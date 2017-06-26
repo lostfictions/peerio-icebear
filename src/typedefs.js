@@ -1,6 +1,6 @@
-/*
- * JSDoc virtually defined types. They don't really exist in code, but we define them in JSDoc for clarity.
- */
+//
+// JSDoc virtually defined types. They don't really exist in code, but we define them in JSDoc for clarity.
+//
 
 /**
  * Virtual type representing asymmetric key pair.
@@ -30,4 +30,5 @@
  * @property {string} email
  * @property {number} added
  * @property {string} [username]
+ * @public
  */
