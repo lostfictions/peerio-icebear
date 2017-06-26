@@ -9,15 +9,35 @@ const socket = require('../../network/socket');
 const validators = require('../../helpers/validation/field-validation').validators;
 const contactStore = require('../contacts/contact-store');
 
-module.exports = function mixUserRegisterModule() {
+/*
+ * These are still members of User class, they're just split across several mixins to make User file size sensible.
+ */
+module.exports = function mixUserProfileModule() {
     const _profileKeg = new Profile(this);
     const _quotaKeg = new Quota(this);
+    /**
+     * User settings from settings keg.
+     * @instance
+     * @member {Settings}
+     * @memberof User
+     * @public
+     */
     this.settings = new Settings(this);
 
+    /**
+     * @instance
+     * @memberof User
+     * @protected
+     */
     this.loadSettings = () => {
         loadSimpleKeg(this.settings);
     };
 
+    /**
+     * @instance
+     * @memberof User
+     * @protected
+     */
     this.saveSettings = () => {
         return this.settings.saveToServer().tapCatch(err => {
             console.error(err);
@@ -25,10 +45,20 @@ module.exports = function mixUserRegisterModule() {
         });
     };
 
+    /**
+     * @instance
+     * @memberof User
+     * @protected
+     */
     this.loadProfile = () => {
         loadSimpleKeg(_profileKeg);
     };
 
+    /**
+     * @instance
+     * @memberof User
+     * @protected
+     */
     this.loadQuota = () => {
         loadSimpleKeg(_quotaKeg);
     };
@@ -49,6 +79,11 @@ module.exports = function mixUserRegisterModule() {
     tracker.onKegTypeUpdated('SELF', 'quotas', this.loadQuota);
     tracker.onKegTypeUpdated('SELF', 'settings', this.loadSettings);
 
+    /**
+     * @instance
+     * @memberof User
+     * @protected
+     */
     this.saveProfile = function() {
         return _profileKeg.saveToServer().tapCatch(err => {
             console.error(err);
@@ -56,6 +91,13 @@ module.exports = function mixUserRegisterModule() {
         });
     };
 
+    /**
+     * @param {string} email
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
     this.resendEmailConfirmation = function(email) {
         return socket.send('/auth/address/resend-confirmation', {
             address: {
@@ -72,6 +114,13 @@ module.exports = function mixUserRegisterModule() {
             });
     };
 
+    /**
+     * @param {string} email
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
     this.removeEmail = function(email) {
         return socket.send('/auth/address/remove', {
             address: {
@@ -84,6 +133,13 @@ module.exports = function mixUserRegisterModule() {
         });
     };
 
+    /**
+     * @param {string} email
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
     this.addEmail = function(email) {
         return validators.emailAvailability.action(email).then(available => {
             if (!available) {
@@ -105,6 +161,13 @@ module.exports = function mixUserRegisterModule() {
         });
     };
 
+    /**
+     * @param {string} email
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
     this.makeEmailPrimary = function(email) {
         return socket.send('/auth/address/make-primary', {
             address: {
@@ -127,8 +190,14 @@ module.exports = function mixUserRegisterModule() {
         }
         return true;
     };
+
     /**
-     * Pass null to delete avatar
+     * @param {Array<ArrayBuffer>} [blobs] - 2 elements, 0-large, 1-medium avatar. Omit parameter
+     * or pass null to delete avatar
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
      */
     this.saveAvatar = function(blobs) {
         if (this.savingAvatar) return Promise.reject(new Error('Already saving avatar, wait for it to finish.'));
@@ -153,7 +222,14 @@ module.exports = function mixUserRegisterModule() {
             this.savingAvatar = false;
         });
     };
+
+    /**
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
     this.deleteAvatar = function() {
-        this.saveAvatar(null);
+        return this.saveAvatar(null);
     };
 };

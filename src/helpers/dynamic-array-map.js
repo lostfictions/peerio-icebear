@@ -11,7 +11,7 @@ let a;//eslint-disable-line
  * Doesn't watch for map key property change.
  * @param {ObservableArray<object>} array - array to create map for
  * @param {any} keyProp - property of the items in the array that will be used as key for the map
- * @returns {Object} - map object
+ * @returns {object} - map object
  * @memberof helpers/dynamic-array-map
  * @protected
  */

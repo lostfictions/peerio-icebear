@@ -1,11 +1,13 @@
 const Keg = require('./keg');
 const util = require('../../crypto/util');
 
+/**
+ * Named plaintext Boot keg for 'SELF' databases.
+ * @param {KegDb} db - owner instance
+ * @param {Uint8Array} bootKey
+ * @public
+ */
 class BootKeg extends Keg {
-    /**
-     * @param {KegDb} db - owner instance
-     * @param {Uint8Array} bootKey
-     */
     constructor(db, bootKey) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
         super('boot', 'boot', db);
@@ -14,12 +16,24 @@ class BootKeg extends Keg {
     }
 
     deserializeKegPayload(data) {
+        /**
+         * @member {KeyPair}
+         * @public
+         */
         this.signKeys = {};
         this.signKeys.publicKey = util.b64ToBytes(data.signKeys.publicKey);
         this.signKeys.secretKey = util.b64ToBytes(data.signKeys.secretKey);
+        /**
+         * @member {KeyPair}
+         * @public
+         */
         this.encryptionKeys = {};
         this.encryptionKeys.publicKey = util.b64ToBytes(data.encryptionKeys.publicKey);
         this.encryptionKeys.secretKey = util.b64ToBytes(data.encryptionKeys.secretKey);
+        /**
+         * @member {Uint8Array}
+         * @public
+         */
         this.kegKey = util.b64ToBytes(data.kegKey);
     }
 

@@ -43,10 +43,10 @@ const serverValidationStore = { request: {} };
 /**
  * Throttled & promisified call to validation API.
  *
- * @param {String} context -- context for field, e.g "signup"
- * @param {String} name -- field name
+ * @param {string} context -- context for field, e.g "signup"
+ * @param {string} name -- field name
  * @param {*} value
- * @returns {Promise<Boolean>}
+ * @returns {Promise<boolean>}
  * @memberof helpers/user-validators
  * @private
  */

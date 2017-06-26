@@ -1,26 +1,42 @@
-/**
- * Keg database module.
- */
 
 const BootKeg = require('./boot-keg');
-// const socket = require('../../network/socket');;
 
+/**
+ * Keg database.
+ * This class is for user's own database ('SELF')
+ * @public
+ */
 class KegDb {
     /**
-     * Creates new database instance.
-     * This class is for user's own database ('SELF')
+     * Always equals 'SELF'
+     * @member {string}
+     * @public
      */
+    id;
+    /**
+     * Database key to use for keg encryption.
+     * @member {Uint8Array}
+     * @public
+     */
+    key;
+    /**
+     * @member {BootKeg}
+     * @public
+     */
+    boot;
+
     constructor() {
         this.id = 'SELF';
     }
 
     /**
-     * Create boot keg for this database
+     * Creates boot keg for this database.
      * todo: when we will have key change, we'll need update operation load()->update() because of keg version
      * @param {Uint8Array} bootKey
-     * @param {{publicKey: Uint8Array, secretKey: Uint8Array}} signKeys
-     * @param {{publicKey: Uint8Array, secretKey: Uint8Array}} encryptionKeys
+     * @param {KeyPair} signKeys
+     * @param {KeyPair} encryptionKeys
      * @param {Uint8Array} kegKey
+     * @protected
      */
     createBootKeg(bootKey, signKeys, encryptionKeys, kegKey) {
         console.log('Creating boot keg of "SELF".');
@@ -37,6 +53,8 @@ class KegDb {
 
     /**
      * Retrieves boot keg for the db and initializes this KegDb instance with required data.
+     * @param {Uint8Array} bootKey
+     * @protected
      */
     loadBootKeg(bootKey) {
         console.log('Loading boot keg of "SELF".');

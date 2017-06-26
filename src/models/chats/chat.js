@@ -183,7 +183,7 @@ class Chat {
     _parseMessageKeg(keg, accumulator) {
         const msg = new Message(this.db);
         // no payload for some reason. probably because of connection break after keg creation
-        if (msg.isEmpty || !msg.loadFromKeg(keg)) {
+        if (!msg.loadFromKeg(keg) || msg.isEmpty) {
             console.debug('empty message keg', keg);
             return;
         }

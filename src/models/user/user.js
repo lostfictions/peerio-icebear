@@ -1,7 +1,3 @@
-/**
- * @module models/user
- */
-
 const socket = require('../../network/socket');
 const mixUserProfileModule = require('./user.profile.js');
 const mixUserRegisterModule = require('./user.register.js');
@@ -20,9 +16,24 @@ const warnings = require('../warnings');
 
 let currentUser;
 
+/**
+ * Class represents application user, you have to create and instance and assign it to `User.current`
+ * on sign in. All systems depend on `User.current` to be set at the moment socket is authenticated.
+ *
+ * User has a lot of members and they all appear to be in the same place in documentation, but in sources
+ * members are grouped by theme in several files. That said, User class and registration/authentication code
+ * specifically requires refactoring to improve readability and reduce state-mutating functions amount.
+ *
+ * Many private and protected members are not documented with jsdoc tags to avoid clutter.
+ * @public
+ */
 class User {
 
     _username = '';
+    /**
+     * @member {string} username
+     * @public
+     */
     get username() {
         return this._username;
     }
@@ -31,23 +42,120 @@ class User {
         this._username = typeof (v) === 'string' ? v.trim().toLowerCase() : '';
     }
     // -- profile data
+    /**
+     * @member {string} firstName
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable firstName = '';
+    /**
+     * @member {string} lastName
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable lastName = '';
+    /**
+     * @member {string} email
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable email = '';
+    /**
+     * @member {string} locale
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable locale = 'en';
+    /**
+     * Currently unused, maybe we will bring passcodes back eventually
+     * @member {boolean} passcodeIsSet
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable passcodeIsSet = false;
+    /**
+     * Quota object as received from server, it has complex and weird format.
+     * You don't need to use this directly, use computed properties that are based on this.
+     * @member {object} quota
+     * @memberof User
+     * @instance
+     * @protected
+     */
     @observable quota = null;
+    /**
+     * Sets to `true` when profile is loaded for the first time and is not empty anymore.
+     * @member {boolean} profileLoaded
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable profileLoaded = false;
+    /**
+     * Quota object as received from server, it has complex and weird format.
+     * You don't need to use this directly, use computed properties that are based on this.
+     * @member {Array<Address>} addresses
+     * @memberof User
+     * @instance
+     * @protected
+     */
     @observable.ref addresses;
+    /**
+     * @member {boolean} primaryAddressConfirmed
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable primaryAddressConfirmed;
+    /**
+     * @member {boolean} deleted
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable deleted = false;
+    /**
+     * @member {boolean} blacklisted
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable blacklisted = false;
-
+    /**
+     * Don't try to upload another avatar while this is `true`
+     * @member {boolean} savingAvatar
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable savingAvatar = false;
-    // ui flags
+    /**
+     * UI-controlled flag, Icebear doesn't use it
+     * @member {boolean} autologinEnabled
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable autologinEnabled = false;
+    /**
+     * UI-controlled flag, Icebear doesn't use it
+     * @member {boolean} secureWithTouchID
+     * @memberof User
+     * @instance
+     * @public
+     */
     @observable secureWithTouchID = false;
-
+    /**
+     * Computed `firstName+' '+lastName`
+     * @member {string} fullName
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fullName() {
         let ret = '';
         if (this.firstName) ret = this.firstName;
@@ -57,21 +165,58 @@ class User {
         }
         return ret;
     }
-
+    /**
+     * Account creation timestamp. Is null until `profileLoaded != true`.
+     * @member {number}
+     * @public
+     */
     createdAt = null;
-    deleted = false;
-    blacklisted = false;
     // -- key data
+    /**
+     * @member {string}
+     * @public
+     */
     passphrase;
+    /**
+     * @member {Uint8Array}
+     * @public
+     */
     authSalt;
+    /**
+     * Key for SELF database boot keg.
+     * @member {Uint8Array}
+     * @protected
+     */
     bootKey;
+    /**
+     * @member {KeyPair}
+     * @public
+     */
     authKeys;
+    /**
+     * @member {KeyPair}
+     * @public
+     */
     signKeys;
+    /**
+     * @member {KeyPair}
+     * @public
+     */
     encryptionKeys;
+    /**
+     * Key for SELF keg database.
+     * @member {Uint8Array}
+     * @protected
+     */
     kegKey;
     // -- flags
     _firstLoginInSession = true;
 
+    /**
+     * Most recently used emoji.
+     * @member {MRUList}
+     * @public
+     */
     emojiMRU = new MRUList('emojiPicker', 30);
 
     constructor() {
@@ -84,6 +229,13 @@ class User {
         mixUserRegisterModule.call(this);
     }
 
+    /**
+     * Total amounts of bytes user can upload.
+     * @member {number} fileQuotaTotal
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaTotal() {
         if (this.quota == null || !this.quota.resultingQuotas
             || !this.quota.resultingQuotas.file || !this.quota.resultingQuotas.file.length) return 0;
@@ -96,10 +248,24 @@ class User {
         return found.limit;
     }
 
+    /**
+     * Formatted total amounts of bytes user can upload.
+     * @member {string} fileQuotaTotalFmt
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaTotalFmt() {
         return formatBytes(this.fileQuotaTotal);
     }
 
+    /**
+     * Free bytes left for uploads.
+     * @member {number} fileQuotaLeft
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaLeft() {
         if (this.quota == null || !this.quota.quotasLeft
             || !this.quota.quotasLeft.file || !this.quota.quotasLeft.file.length) return 0;
@@ -111,22 +277,58 @@ class User {
         return found.limit;
     }
 
+    /**
+     * Formatted bytes left for uploads.
+     * @member {string} fileQuotaLeftFmt
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaLeftFmt() {
         return formatBytes(this.fileQuotaLeft);
     }
 
+    /**
+     * Used bytes in storage.
+     * @member {number} fileQuotaUsed
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaUsed() {
         return this.fileQuotaTotal - this.fileQuotaLeft;
     }
 
+    /**
+     * Formatted used bytes in storage.
+     * @member {number} fileQuotaUsedFmt
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaUsedFmt() {
         return formatBytes(this.fileQuotaUsed);
     }
 
+    /**
+     * Amount of % used bytes in storage.
+     * @member {number} fileQuotaUsedPercent
+     * @memberof User
+     * @instance
+     * @public
+     */
     @computed get fileQuotaUsedPercent() {
         return this.fileQuotaTotal === 0 ? 0 : Math.round(this.fileQuotaUsed / (this.fileQuotaTotal / 100));
     }
 
+    /**
+     * Checks if there's enough storage to upload a file.
+     * @param {number} size - amount of bytes user wants to upload.
+     * @returns {boolean} is there enough storage left to upload.
+     * @memberof User
+     * @instance
+     * @public
+     */
     canUploadFileSize = (size) => {
         const chunkSize = config.upload.getChunkSize(size);
         const chunkCount = Math.ceil(size / chunkSize);
@@ -137,6 +339,7 @@ class User {
      * Full registration process.
      * Initial login after registration differs a little.
      * @returns {Promise}
+     * @public
      */
     createAccountAndLogin = () => {
         console.log('Starting account registration sequence.');
@@ -151,12 +354,6 @@ class User {
             .tapCatch(socket.reset);
     };
 
-    /**
-     * Before login.
-     *
-     * @returns {*}
-     * @private
-     */
     _preAuth() {
         if (this._firstLoginInSession) {
             return this._checkForPasscode();
@@ -166,6 +363,8 @@ class User {
 
     /**
      * Authenticates connection and makes necessary initial requests.
+     * @returns {Promise}
+     * @public
      */
     login() {
         console.log('Starting login sequence');
@@ -194,11 +393,6 @@ class User {
             });
     }
 
-    /**
-     * Subscribe to events after auth
-     *
-     * @returns {Promise}
-     */
     _postAuth() {
         socket.setAuthenticatedState();
         if (this._firstLoginInSession) {
@@ -206,10 +400,11 @@ class User {
             TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
             this.emojiMRU.loadCache();
-            // new accounts don't have digest for this kegs (they are created on first access)
+            // new accounts don't have digest for these kegs (they are created on first access)
             // so loading of these kegs will not get triggered automatically
             // we really need to call this here only once - after account is created, but there's no harm
-            // in repeating calls every login and it's safer this way
+            // in repeating calls every login and it's safer this way because we don't have to account
+            // for failures like we would do if we called it just once at registration.
             this.loadProfile();
             this.loadQuota();
             this.loadSettings();
@@ -226,16 +421,13 @@ class User {
         this.stopReauthenticator = socket.subscribe(socket.SOCKET_EVENTS.connect, this.login);
     };
 
-    static validateUsername(username) {
-        if (typeof (username) === 'string' && username.trim().length === 0) return Promise.resolve(false);
-        return socket.send('/noauth/validateUsername', { username })
-            .then(resp => !!resp && resp.available)
-            .catch(err => {
-                console.error(err);
-                return false;
-            });
-    }
-
+    /**
+     * Currently authenticated user.
+     * @static
+     * @member {User}
+     * @memberof User
+     * @public
+     */
     static get current() {
         return currentUser;
     }
@@ -246,20 +438,18 @@ class User {
     }
 
     /**
-     * (Eventually) gets the username of the last authenticated user.
-     *
-     * @returns {Promise<String>}
+     * Gets the last authenticated user.
+     * @returns {Promise<?{username:string,firstName:string,lastName:string}>}
+     * @public
      */
     static getLastAuthenticated() {
-        return TinyDb.system.getValue(`last_user_authenticated`)
-            .then(obj => {
-                return obj;
-            });
+        return TinyDb.system.getValue(`last_user_authenticated`);
     }
 
     /**
      * Saves the data of the last authenticated user.
      * @returns {Promise}
+     * @public
      */
     setAsLastAuthenticated() {
         return TinyDb.system.setValue(`last_user_authenticated`, {
@@ -270,8 +460,9 @@ class User {
     }
 
     /**
-     * (Eventually) removes the username of the last authenticated user.
-     * @returns {Promise<String>}
+     * Removes last authenticated user information.
+     * @returns {Promise}
+     * @public
      */
     static removeLastAuthenticated() {
         return TinyDb.system.removeValue(`last_user_authenticated`);
@@ -283,8 +474,10 @@ class User {
     _sharedKeyCache = {};
 
     /**
+     * Computes or gets from cache shared encryption key for a public key.
      * @param {Uint8Array} theirPublicKey
      * @return {Uint8Array}
+     * @protected
      */
     getSharedKey(theirPublicKey) {
         if (!(theirPublicKey instanceof Uint8Array)) throw new Error('Invalid argument type');

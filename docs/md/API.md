@@ -100,6 +100,10 @@
     -   [peek](#peek)
     -   [read](#read)
     -   [length](#length)
+-   [helpers/file](#helpersfile)
+    -   [getFileName](#getfilename)
+    -   [getFileNameWithoutExtension](#getfilenamewithoutextension)
+    -   [getFileExtension](#getfileextension)
 -   [MRUList](#mrulist)
     -   [list](#list)
     -   [loadCache](#loadcache)
@@ -107,15 +111,177 @@
 -   [Clock](#clock)
     -   [now](#now)
     -   [dispose](#dispose)
-    -   [default](#default)
+-   [default](#default)
+-   [Timer](#timer)
+    -   [counter](#counter)
+    -   [countUp](#countup)
+    -   [countDown](#countdown)
+    -   [stop](#stop)
 -   [Queue](#queue)
     -   [tasks](#tasks)
     -   [runningTasks](#runningtasks)
     -   [length](#length-1)
     -   [addTask](#addtask)
+-   [helpers/system-messages](#helperssystem-messages)
+    -   [getSystemMessageText](#getsystemmessagetext)
+-   [helpers/field-validation](#helpersfield-validation)
+    -   [addValidation](#addvalidation)
+-   [helpers/user-validators](#helpersuser-validators)
 -   [index](#index)
--   [typedefs](#typedefs)
-    -   [KeyPair](#keypair)
+-   [ClientApp](#clientapp)
+    -   [isFocused](#isfocused)
+    -   [isInChatsView](#isinchatsview)
+    -   [isInFilesView](#isinfilesview)
+-   [BootKeg](#bootkeg)
+    -   [signKeys](#signkeys)
+    -   [encryptionKeys](#encryptionkeys)
+    -   [kegKey](#kegkey)
+-   [ChatBootKeg](#chatbootkeg)
+-   [ChatKegDb](#chatkegdb)
+    -   [id](#id)
+    -   [key](#key)
+    -   [boot](#boot)
+    -   [participants](#participants)
+    -   [dbIsBroken](#dbisbroken)
+-   [KegDb](#kegdb)
+    -   [id](#id-1)
+    -   [key](#key-1)
+    -   [boot](#boot-1)
+-   [Keg](#keg)
+    -   [signatureError](#signatureerror)
+    -   [sharedKegError](#sharedkegerror)
+    -   [id](#id-2)
+    -   [tempId](#tempid)
+    -   [deleted](#deleted)
+    -   [loading](#loading)
+    -   [saving](#saving)
+    -   [lastLoadHadError](#lastloadhaderror)
+    -   [type](#type)
+    -   [db](#db)
+    -   [plaintext](#plaintext)
+    -   [keyId](#keyid)
+    -   [overrideKey](#overridekey)
+    -   [version](#version)
+    -   [collectionVersion](#collectionversion)
+    -   [props](#props)
+    -   [forceSign](#forcesign)
+    -   [allowEmpty](#allowempty)
+    -   [isEmpty](#isempty)
+    -   [assignTemporaryId](#assigntemporaryid)
+    -   [saveToServer](#savetoserver)
+    -   [load](#load)
+    -   [remove](#remove)
+    -   [loadFromKeg](#loadfromkeg)
+    -   [serializeKegPayload](#serializekegpayload)
+    -   [deserializeKegPayload](#deserializekegpayload)
+    -   [serializeProps](#serializeprops)
+    -   [deserializeProps](#deserializeprops)
+-   [SyncedKeg](#syncedkeg)
+    -   [loaded](#loaded)
+    -   [reload](#reload)
+    -   [save](#save)
+-   [PhraseDictionary](#phrasedictionary)
+    -   [getPassphrase](#getpassphrase)
+    -   [dispose](#dispose-1)
+    -   [current](#current)
+    -   [setDictionary](#setdictionary)
+-   [ServerSettings](#serversettings)
+    -   [avatarServer](#avatarserver)
+    -   [acceptableClientVersions](#acceptableclientversions)
+    -   [tag](#tag)
+-   [NodeJsonStorage](#nodejsonstorage)
+-   [Settings](#settings)
+    -   [contactNotifications](#contactnotifications)
+    -   [contactRequestNotifications](#contactrequestnotifications)
+    -   [messageNotifications](#messagenotifications)
+    -   [errorTracking](#errortracking)
+    -   [dataCollection](#datacollection)
+    -   [subscribeToPromoEmails](#subscribetopromoemails)
+-   [User](#user-1)
+    -   [serializeAuthData](#serializeauthdata)
+    -   [deserializeAuthData](#deserializeauthdata)
+    -   [disablePasscode](#disablepasscode)
+    -   [passcodeIsDisabled](#passcodeisdisabled)
+    -   [setPasscode](#setpasscode)
+    -   [validatePasscode](#validatepasscode)
+    -   [hasPasscode](#haspasscode)
+    -   [username](#username)
+    -   [firstName](#firstname)
+    -   [lastName](#lastname)
+    -   [email](#email)
+    -   [locale](#locale)
+    -   [passcodeIsSet](#passcodeisset)
+    -   [profileLoaded](#profileloaded)
+    -   [primaryAddressConfirmed](#primaryaddressconfirmed)
+    -   [deleted](#deleted-1)
+    -   [blacklisted](#blacklisted)
+    -   [savingAvatar](#savingavatar)
+    -   [autologinEnabled](#autologinenabled)
+    -   [secureWithTouchID](#securewithtouchid)
+    -   [fullName](#fullname)
+    -   [createdAt](#createdat)
+    -   [passphrase](#passphrase)
+    -   [authSalt](#authsalt)
+    -   [authKeys](#authkeys)
+    -   [signKeys](#signkeys-1)
+    -   [encryptionKeys](#encryptionkeys-1)
+    -   [emojiMRU](#emojimru)
+    -   [fileQuotaTotal](#filequotatotal)
+    -   [fileQuotaTotalFmt](#filequotatotalfmt)
+    -   [fileQuotaLeft](#filequotaleft)
+    -   [fileQuotaLeftFmt](#filequotaleftfmt)
+    -   [fileQuotaUsed](#filequotaused)
+    -   [fileQuotaUsedFmt](#filequotausedfmt)
+    -   [fileQuotaUsedPercent](#filequotausedpercent)
+    -   [canUploadFileSize](#canuploadfilesize)
+    -   [createAccountAndLogin](#createaccountandlogin)
+    -   [login](#login)
+    -   [setAsLastAuthenticated](#setaslastauthenticated)
+    -   [settings](#settings-1)
+    -   [resendEmailConfirmation](#resendemailconfirmation)
+    -   [removeEmail](#removeemail)
+    -   [addEmail](#addemail)
+    -   [makeEmailPrimary](#makeemailprimary)
+    -   [saveAvatar](#saveavatar)
+    -   [deleteAvatar](#deleteavatar)
+    -   [current](#current-1)
+    -   [getLastAuthenticated](#getlastauthenticated)
+    -   [removeLastAuthenticated](#removelastauthenticated)
+-   [Warnings](#warnings)
+    -   [add](#add)
+    -   [addSevere](#addsevere)
+    -   [current](#current-2)
+-   [SocketClient](#socketclient)
+    -   [started](#started)
+    -   [url](#url)
+    -   [connected](#connected)
+    -   [authenticated](#authenticated)
+    -   [throttled](#throttled)
+    -   [reconnectAttempt](#reconnectattempt)
+    -   [reconnecting](#reconnecting)
+    -   [latency](#latency)
+    -   [reconnectTimer](#reconnecttimer)
+    -   [bytesReceived](#bytesreceived)
+    -   [bytesSent](#bytessent)
+    -   [STATES](#states)
+    -   [SOCKET_EVENTS](#socket_events)
+    -   [APP_EVENTS](#app_events)
+    -   [start](#start)
+    -   [state](#state)
+    -   [subscribe](#subscribe)
+    -   [unsubscribe](#unsubscribe)
+    -   [send](#send)
+    -   [onceConnected](#onceconnected)
+    -   [onceAuthenticated](#onceauthenticated)
+    -   [onceStarted](#oncestarted)
+    -   [onAuthenticated](#onauthenticated)
+    -   [onDisconnect](#ondisconnect)
+    -   [close](#close)
+    -   [open](#open)
+    -   [reset](#reset)
+-   [socket](#socket)
+-   [Address](#address)
+-   [KeyPair](#keypair)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -314,7 +480,7 @@ Deterministically derives symmetrical boot key and auth key pair.
 -   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 -   `randomSalt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 random bytes
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;{bootKey: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array), authKeyPair: KeyPair}>** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;{bootKey: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array), authKeyPair: [KeyPair](#keypair)}>** 
 
 ### deriveEphemeralKeys
 
@@ -325,7 +491,7 @@ Derive keys for a ghost/ephemeral user.
 -   `salt` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** e.g. ephemeral ID
 -   `passphrase` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;KeyPair>** 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[KeyPair](#keypair)>** 
 
 ### deriveKeyFromPasscode
 
@@ -340,13 +506,13 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 Generates new random signing (ed25519) key pair.
 
-Returns **KeyPair** 32 byte public key and 64 byte secret key.
+Returns **[KeyPair](#keypair)** 32 byte public key and 64 byte secret key.
 
 ### generateEncryptionKeyPair
 
 Generates new random asymmetric (curve25519) key pair.
 
-Returns **KeyPair** 32 byte keys
+Returns **[KeyPair](#keypair)** 32 byte keys
 
 ### generateEncryptionKey
 
@@ -393,7 +559,7 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 Encrypt using public key crypto.
 WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
-to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](User)
+to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](#user)
 
 **Parameters**
 
@@ -407,7 +573,7 @@ Returns **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/R
 
 Decrypt using public key crypto.
 WARNING: this function is ok to use for occasional operations, but for performance-critical parts it's better
-to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](User)
+to use crypto/secret.encrypt [crypto/secret:encrypt](crypto/secret:encrypt) with precalculated shared key from User class [User](#user)
 
 **Parameters**
 
@@ -1051,6 +1217,40 @@ Current stream length (from current position to the end of stream)
 
 Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** available byte length
 
+## helpers/file
+
+Various file helpers
+
+### getFileName
+
+Extracts file name+extension portion from any path.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** file name and extension without any parent folders.
+
+### getFileNameWithoutExtension
+
+Extracts file name without extension from any path
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** file name without extension
+
+### getFileExtension
+
+Extracts file extension from any path.
+
+**Parameters**
+
+-   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** file extension
+
 ## MRUList
 
 Base class for any Most Recently Used implementations.
@@ -1102,11 +1302,41 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Stops the clock, it can't be restarted after this.
 
-### default
+## default
 
 Default clock instance with `config.observableClockEventFrequency` interval
 
 Type: [Clock](#clock)
+
+## Timer
+
+Observable timer counter up/down.
+
+### counter
+
+Observable counter you want to watch.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### countUp
+
+Starts counting from 0 to passed seconds amount, updates every second.
+
+**Parameters**
+
+-   `seconds` **any** number of seconds to count to
+
+### countDown
+
+Starts counting from passed seconds amount to 0, updates every second.
+
+**Parameters**
+
+-   `seconds` **any** number of seconds to count from
+
+### stop
+
+Stops counting and resets counter to 0
 
 ## Queue
 
@@ -1151,6 +1381,44 @@ after returned promise is fulfilled.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
+## helpers/system-messages
+
+Helpers for dealing with chat system messages. For UI use.
+
+Some chat messages are in fact sent automatically by client and instead of text they carry special systemData codes.
+We don't want clients to repeat handling logic of those codes when system message has to be rendered, this
+module should be used instead.
+
+### getSystemMessageText
+
+Checks message object for system data and returns translated string to render for the system data.
+
+**Parameters**
+
+-   `msg` **Message** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system messge
+
+## helpers/field-validation
+
+### addValidation
+
+Takes an observable store for a form, a field name, as well as validators
+and an optional position of the field relative to the form, and
+attaches validation handlers and triggers for validation.
+
+onChange and onBlur handlers must be manually attached to the input
+in peerio-desktop, the ValidatedInput can be used
+
+**Parameters**
+
+-   `store` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+-   `fName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** field name
+-   `validatorOrArray` **([Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> | [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object))** 
+-   `positionInForm` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)?** 
+
+## helpers/user-validators
+
 ## index
 
 In addition to exporting public API, entry point, when first required,
@@ -1160,20 +1428,1078 @@ performs some global configuration such as:
     will still return native Promise.
 -   extends Uint8Array prototype. See [extensions/uint8array](#extensionsuint8array).
 
-## typedefs
+## ClientApp
 
-JSDoc virtually defined types. They don't really exist in code, but we define them in JSDoc for clarity.
+This is the place where Icebear can get various state information about client
+and client can provide such information.
 
-### KeyPair
+### isFocused
+
+Set this flag when to help Icebear know if user is currently interacting with your app or not.
+One example of how this affects Icebear behavior:
+messages will not be marked as 'read' unless isFocused == true
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isInChatsView
+
+Use this to let Icebear know if your app is currently showing any of the chats.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isInFilesView
+
+Use this to let Icebear know if your app is currently showing main file view.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+## BootKeg
+
+**Extends Keg**
+
+Named plaintext Boot keg for 'SELF' databases.
+
+**Parameters**
+
+-   `db` **[KegDb](#kegdb)** owner instance
+-   `bootKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+### signKeys
+
+Type: [KeyPair](#keypair)
+
+### encryptionKeys
+
+Type: [KeyPair](#keypair)
+
+### kegKey
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+## ChatBootKeg
+
+**Extends Keg**
+
+Named plaintext Boot keg for shared keg databases.
+
+Payload format:
+
+    {
+      publicKey: buffer,
+      encryptedKeys: {
+              username: buffer, // encrypted for user's PK
+              username1: buffer1
+            }
+    }
+
+Server locks chat boot keg after it was updated first.
+
+**Parameters**
+
+-   `db` **[KegDb](#kegdb)** owner instance
+-   `user` **[User](#user)** currently authenticated user
+-   `participantPublicKeys` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** username:publicKey map, pass when creating a new keg
+
+## ChatKegDb
+
+Class for shared keg databases.
+Chat is not really created until boot keg is updated for the first time.
+Multiple people might try to create boot keg for the same chat at the same time.
+We have a special logic to resolve this kind of situations.
+
+ChatKegDb is similar to [KegDb](#kegdb) in a sense that it has same `id`, `boot` and `key`
+properties, but the logic is too different to extract a base class. Although when saving and loading Kegs,
+you can use both databases, the properties mentioned is all Kegs can care about.
+
+Chat loading logic
+
+    retryUntilSuccess(
+    1. Do we have ID for the chat?
+    - 1.1 NO:
+         - create-chat
+         - if resolved: now we have chat meta data, GOTO (2.)
+         - if rejected: retry is triggered
+    - 1.2 YES:
+         - get metadata
+         - if resolved: now we have chat meta data, GOTO (2.)
+         - if rejected: retry is triggered
+    2. Parse chat metadata
+    3. Does boot keg exist? (load it and check if keg version > 1)
+    - 3.1 YES:
+         - load boot keg
+         - resolved: is it valid ?
+             - YES: FINISH. Promise.resolve(true)
+             - NO: FINISH. Promise.resolve(false) for retry to not trigger
+         - rejected: retry is triggered
+    - 3.2 NO:
+         - create boot keg.
+             - resolved: FINISH. Promise.resolve(true)
+             - rejected: retry is triggered
+    - 3.3 load failed: retry is triggered
+    , 'Unique retry id')
+
+At least one of 2 parameters should be passed
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** or specific id for shared databases
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;Contact>?** participants list, EXCLUDING own username
+
+### id
+
+System-wide unique database id generated by server
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### key
+
+Database key to use for keg encryption.
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### boot
+
+Type: [BootKeg](#bootkeg)
+
+### participants
+
+All participants except current user.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;Contact>
+
+### dbIsBroken
+
+if true -  something is wrong with boot keg, most likely it was maliciously created and can't be used
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+## KegDb
+
+Keg database.
+This class is for user's own database ('SELF')
+
+### id
+
+Always equals 'SELF'
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### key
+
+Database key to use for keg encryption.
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### boot
+
+Type: [BootKeg](#bootkeg)
+
+## Keg
+
+Base class with common metadata and operations.
+
+**Parameters**
+
+-   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** kegId, or null for new kegs
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** keg type
+-   `db` **[KegDb](#kegdb)** keg database instance owning this keg
+-   `plaintext` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** should keg be encrypted (optional, default `false`)
+-   `forceSign` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** plaintext kegs are not normally signed unless forceSign is true (optional, default `false`)
+-   `allowEmpty` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** normally client doesn't expect empty keg when calling `.load()` and will throw (optional, default `false`)
+
+### signatureError
+
+null when signature has not been verified yet (it's async) or it will never be because this keg is not supposed
+to be signed.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+
+### sharedKegError
+
+Indicates failure to process received/shared keg.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+
+### id
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
+### tempId
+
+If this keg wasn't created yet, but you need to use it in a list somewhere like chat, you can call
+`assignTempId()` and use this field as identification.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
+### deleted
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+
+### loading
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+
+### saving
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+
+### lastLoadHadError
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### type
+
+Keg type
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### db
+
+Owner KegDb instance
+
+Type: [KegDb](#kegdb)
+
+### plaintext
+
+Is the payload of this keg encrypted or not
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### keyId
+
+Reserved for future keys change feature
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### overrideKey
+
+Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?
+
+### version
+
+Keg version, when first created and empty, keg has version === 1
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### collectionVersion
+
+Keg collection (all kegs with this.type) version, snowflake string id.
+null means we don't know the version yet, need to fetch keg at least once.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
+### props
+
+Default props object for default props serializers. More advanced logic usually ignores this property.
+
+Type: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+### forceSign
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### allowEmpty
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isEmpty
+
+Kegs with version==1 were just created and don't have any data
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+
+### assignTemporaryId
+
+Creates unique (for session) temporary id and puts it into `tempId`
+
+### saveToServer
+
+Saves keg to server, creates keg (reserves id) first if needed
+
+**Parameters**
+
+-   `cleanShareData` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** removes shared/sent keg metadata that is not needed after keg is re-encrypted.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### load
+
+(Re)populates this keg instance with data from server
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Keg](#keg)>** 
+
+### remove
+
+Deletes the keg.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### loadFromKeg
+
+Synchronous function to rehydrate current Keg instance with data from server.
+`load()` uses this function, you don't need to call it if you use `load()`, but in case you are requesting
+multiple kegs from server and want to instantiate them use this function
+after creating appropriate keg instance.
+
+**Parameters**
+
+-   `keg` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** data as received from server
+
+Returns **([Keg](#keg) \| [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean))** returns false if keg data could not have been loaded. This function doesn't throw,
+you have to check error flags if you received false return value.
+
+### serializeKegPayload
+
+Generic version that provides empty keg payload.
+Override in child classes to.
+
+Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+### deserializeKegPayload
+
+Generic version that does nothing.
+Override in child classes to convert raw keg data into object properties.
+
+**Parameters**
+
+-   `payload`  
+
+### serializeProps
+
+Generic version that uses this.props object as-is
+
+Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+### deserializeProps
+
+Generic version that puts props object as-is to this.prop
+
+**Parameters**
+
+-   `props` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** 
+
+## SyncedKeg
+
+**Extends Keg**
+
+This class allows named kegs to share sync/save logic.
+This is for named kegs only! Named kegs assume there's just one instance of it.
+
+**Parameters**
+
+-   `kegName` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** kegName === kegType currently
+-   `db` **([KegDb](#kegdb) \| [ChatKegDb](#chatkegdb))** this keg owner database
+-   `plaintext` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** encrypted or not (optional, default `false`)
+-   `forceSign` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** force signature of plaintext kegs or not (optional, default `false`)
+
+### loaded
+
+Sets to true when keg is loaded for the first time.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### reload
+
+Forces updating keg data from server
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### save
+
+Enqueues Save task.
+
+**Parameters**
+
+-   `dataChangeFn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;bool>** function that will be called right before keg save,
+    it has to mutate keg's state. Return false to cancel save.
+-   `dataRestoreFn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** function that will be called to restore keg state to the point before
+    dataChangeFn mutated it. Default implementation will rely on keg serialization functions. dataRestoreFn will only
+    get called if version of the keg didn't change after save failed. This will make sure we won't overwrite
+    freshly received data from server.
+-   `errorLocaleKey` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional error to show in snackbar
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## PhraseDictionary
+
+Passphrase dictionary module.
+
+**Parameters**
+
+-   `locale` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** locale code for dict
+-   `dictString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** '\\n' separated word list
+
+### getPassphrase
+
+Returns a random passphrase of chosen word length
+
+**Parameters**
+
+-   `length` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** passphrase word count
+
+### dispose
+
+Free RAM by removing cached dictionary
+
+### current
+
+Last chosen dictionary.
+
+Type: [PhraseDictionary](#phrasedictionary)
+
+### setDictionary
+
+Simple management of dictionaries: this function sets the PhraseDictionary.current property so it's accessible
+whenever you need without re-creating the dictionary every time.
+
+**Parameters**
+
+-   `localeCode` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `rawData` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+## ServerSettings
+
+Some client configuration details can't be hardcoded to clients or stored in every user database.
+This module takes care of these settings by loading them from server every time client connects.
+There's no need for 'updated' events from server because when these settings change server always resets connection.
+
+### avatarServer
+
+Observable base url for avatars https service
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### acceptableClientVersions
+
+Observable client version range this server can work with.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### tag
+
+Observable git tag for this server build
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+## NodeJsonStorage
+
+This is a StorageEngine implementation that can be used in any nodejs-based apps (cli, electron).
+
+It uses os.homedir() or NodeJsonStorage.storageFolder to store JSON files.
+
+**Parameters**
+
+-   `name`  
+
+## Settings
+
+**Extends Keg**
+
+Plaintext named system keg, server controlled.
+User can update this keg, but server verifies contract.
+
+**Parameters**
+
+-   `user` **[User](#user)** 
+
+### contactNotifications
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### contactRequestNotifications
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### messageNotifications
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### errorTracking
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### dataCollection
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### subscribeToPromoEmails
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+## User
+
+Class represents application user, you have to create and instance and assign it to `User.current`
+on sign in. All systems depend on `User.current` to be set at the moment socket is authenticated.
+
+User has a lot of members and they all appear to be in the same place in documentation, but in sources
+members are grouped by theme in several files. That said, User class and registration/authentication code
+specifically requires refactoring to improve readability and reduce state-mutating functions amount.
+
+Many private and protected members are not documented with jsdoc tags to avoid clutter.
+
+### serializeAuthData
+
+Creates an object with key authentication data that can be used for login
+with minimal time waste on key derivation.
+You can use this to store auth data locally in keychain or protected with shorter password.
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### deserializeAuthData
+
+Applies serialized auth data to user object. Just call `login()` after this and user will get authenticated
+faster then when you just provide username and passphrase.
+
+**Parameters**
+
+-   `data` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### disablePasscode
+
+Removes passcode for a user if it exists, and disables using passcodes.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### passcodeIsDisabled
+
+Checks if user disabled passcode.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** 
+
+### setPasscode
+
+Given a passcode and a populated User model, gets a passcode-encrypted
+secret containing the username and passphrase as a JSON string and stores
+it to the local db.
+
+**Parameters**
+
+-   `passcode` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### validatePasscode
+
+Validates passcode.
+
+**Parameters**
+
+-   `passcode` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** 
+
+### hasPasscode
+
+Checks if user has a passcode saved.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** 
+
+### username
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### firstName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### lastName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### email
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### locale
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### passcodeIsSet
+
+Currently unused, maybe we will bring passcodes back eventually
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### profileLoaded
+
+Sets to `true` when profile is loaded for the first time and is not empty anymore.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### primaryAddressConfirmed
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### deleted
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### blacklisted
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### savingAvatar
+
+Don't try to upload another avatar while this is `true`
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### autologinEnabled
+
+UI-controlled flag, Icebear doesn't use it
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### secureWithTouchID
+
+UI-controlled flag, Icebear doesn't use it
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### fullName
+
+Computed `firstName+' '+lastName`
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### createdAt
+
+Account creation timestamp. Is null until `profileLoaded != true`.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### passphrase
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### authSalt
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+
+### authKeys
+
+Type: [KeyPair](#keypair)
+
+### signKeys
+
+Type: [KeyPair](#keypair)
+
+### encryptionKeys
+
+Type: [KeyPair](#keypair)
+
+### emojiMRU
+
+Most recently used emoji.
+
+Type: [MRUList](#mrulist)
+
+### fileQuotaTotal
+
+Total amounts of bytes user can upload.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileQuotaTotalFmt
+
+Formatted total amounts of bytes user can upload.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fileQuotaLeft
+
+Free bytes left for uploads.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileQuotaLeftFmt
+
+Formatted bytes left for uploads.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fileQuotaUsed
+
+Used bytes in storage.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileQuotaUsedFmt
+
+Formatted used bytes in storage.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileQuotaUsedPercent
+
+Amount of % used bytes in storage.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### canUploadFileSize
+
+Checks if there's enough storage to upload a file.
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes user wants to upload.
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** is there enough storage left to upload.
+
+### createAccountAndLogin
+
+Full registration process.
+Initial login after registration differs a little.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### login
+
+Authenticates connection and makes necessary initial requests.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### setAsLastAuthenticated
+
+Saves the data of the last authenticated user.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### settings
+
+User settings from settings keg.
+
+Type: [Settings](#settings)
+
+### resendEmailConfirmation
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### removeEmail
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### addEmail
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### makeEmailPrimary
+
+**Parameters**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### saveAvatar
+
+**Parameters**
+
+-   `blobs` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)>?** 2 elements, 0-large, 1-medium avatar. Omit parameter
+    or pass null to delete avatar
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### deleteAvatar
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### current
+
+Currently authenticated user.
+
+Type: [User](#user)
+
+### getLastAuthenticated
+
+Gets the last authenticated user.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;{username: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), firstName: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), lastName: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)}?>** 
+
+### removeLastAuthenticated
+
+Removes last authenticated user information.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## Warnings
+
+Public API for Warnings system.
+
+### add
+
+General method to add warnings. More specialized shortcuts are available.
+Severe warnings will always get added to the top of the queue.
+
+**Parameters**
+
+-   `content` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translation key.
+-   `title` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional translation key for title, will not be shown in snackbars.
+-   `data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** variables to pass to translator.
+-   `level` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** severity level. (optional, default `'medium'`)
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** executes when warning is dismissed
+
+### addSevere
+
+Shortcut to add severe warnings without specifying severity level explicitly.
+Severe warnings will always get added to the top of the queue.
+
+**Parameters**
+
+-   `content` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translation key.
+-   `title` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** optional translation key for title, will not be shown in snackbars.
+-   `data` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** variables to pass to translator.
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** executes when warning is dismissed
+
+### current
+
+Observable. Clients should watch this and render new snackbar/dialog on change.
+
+Type: SystemWarning
+
+## SocketClient
+
+Use socket.js to get the default instance of SocketClient, unless you do need a separate connection for some reason.
+
+SocketClient emits many events, main ones are:
+
+-   **started** - whenever socket.start() is called the first time.
+-   **connect** - every time connection has been established.
+-   **authenticated** - when connection is fully authenticated and ready to work.
+-   **disconnect** - every time connection has been broken.
+
+The rest you can find in sources:
+
+-   **SOCKET_EVENTS** - whatever is happening with socket.io instance
+-   **APP_EVENTS** - server emits them
+
+### started
+
+Was socket started or not
+
+### url
+
+Connection url this socket uses. Readonly.
+
+### connected
+
+Observable connection state.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### authenticated
+
+Observable. Normally you want to use socket when it's authenticated rather then just connected.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### throttled
+
+Observable. Is the connection currently throttled by server.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### reconnectAttempt
+
+Observable. In case reconnection attempt failed, this property will reflect current attempt number.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### reconnecting
+
+Observable. Shows if reconnecting process is in progress.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### latency
+
+Observable. Shows current server response time in milliseconds. This is not a network ping,
+this is a time needed for a websocket message to do a round trip.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### reconnectTimer
+
+Countdown to the next reconnect attempt.
+
+Type: [Timer](#timer)
+
+### bytesReceived
+
+Total amount of bytes received since socket was created.
+Note that this is not including file downloads, because downloads go through https.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### bytesSent
+
+Total amount of bytes sent since socket was created.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### STATES
+
+Possible connection states
+
+### SOCKET_EVENTS
+
+Socket lifecycle events
+
+### APP_EVENTS
+
+Application server events
+
+### start
+
+Initializes the SocketClient instance, creates wrapped socket.io instance and so on.
+
+**Parameters**
+
+-   `url` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### state
+
+Returns connection state, one of [STATES](STATES)
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### subscribe
+
+Subscribes a listener to one of the socket or app events.
+
+**Parameters**
+
+-   `event` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** event name, one of SOCKET_EVENTS or APP_EVENTS
+-   `listener` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** event handler
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** function you can call to unsubscribe
+
+### unsubscribe
+
+Unsubscribes socket or app events listener.
+
+**Parameters**
+
+-   `event` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** event name, one of SOCKET_EVENTS or APP_EVENTS
+-   `listener` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** event handler
+
+### send
+
+Send a message to server
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** api method name
+-   `data` **any** data to send
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** server response, always returns `{}` if response is empty
+
+### onceConnected
+
+Executes a callback only once when socket will connect.
+If socket is already connected, callback will be scheduled to run ASAP.
+
+**Parameters**
+
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+### onceAuthenticated
+
+Executes a callback only once when socket will authenticate.
+If socket is already authenticated, callback will be scheduled to run ASAP.
+
+**Parameters**
+
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+### onceStarted
+
+Executes a callback once socket is started.
+If socket is already started, callback will be scheduled to run ASAP.
+
+**Parameters**
+
+-   `callback` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+### onAuthenticated
+
+Shortcut to frequently used 'authenticated' subscription.
+Does not call handler if socket is already authenticated, only subscribes to future events.
+
+**Parameters**
+
+-   `handler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** unsubscribe function
+
+### onDisconnect
+
+Shortcut to frequently used 'disconnect' subscription.
+Does not call handler if socket is already disconnected, only subscribes to future events.
+
+**Parameters**
+
+-   `handler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+Returns **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** unsubscribe function
+
+### close
+
+Closes current connection and disables reconnects until open() is called.
+
+### open
+
+Opens a new connection. (Or does nothing if already open)
+
+### reset
+
+Closes connection and opens it again.
+
+## socket
+
+Main connection SocketClient instance.
+
+Normally this is the only instance you should use.
+It gets connection url from config and you have to call socket.start()
+once everything is ready.
+
+## Address
+
+Virtual type representing address as server sends it.
+
+Type: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `address` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+-   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## KeyPair
 
 Virtual type representing asymmetric key pair.
 
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+Type: [object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
 -   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## util
 

@@ -207,7 +207,7 @@ class FileStore {
                         this.files.remove(existing);
                         continue;
                     }
-                    if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
+                    if (!file.loadFromKeg(keg) || file.isEmpty) continue;
                     if (!file.deleted && !existing) {
                         dirty = true;
                         this.files.unshift(file);

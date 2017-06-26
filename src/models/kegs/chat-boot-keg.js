@@ -2,10 +2,11 @@
 const Keg = require('./keg');
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
 
-// todo: we need more reliable - server controlled participant info
-// todo: or some kind of protection from peers corrupting data
 /**
- * payload format
+ * Named plaintext Boot keg for shared keg databases.
+ *
+ * Payload format:
+ * ```
  * {
  *   publicKey: buffer,
  *   encryptedKeys: {
@@ -13,14 +14,16 @@ const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
  *           username1: buffer1
  *         }
  * }
+ * ```
+ *
+ * Server locks chat boot keg after it was updated first.
+ *
+ * @param {KegDb} db - owner instance
+ * @param {User} user - currently authenticated user
+ * @param {object} [participantPublicKeys] - username:publicKey map, pass when creating a new keg
+ * @public
  */
-
 class ChatBootKeg extends Keg {
-    /**
-     * @param {KegDb} db - owner instance
-     * @param {User} user - currently authenticated user
-     * @param {object} [participantPublicKeys] - username:publicKey map, pass when creating new keg
-     */
     constructor(db, user, participantPublicKeys) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
         super('boot', 'boot', db, true, false, true);
@@ -29,12 +32,6 @@ class ChatBootKeg extends Keg {
         this.participantPublicKeys = participantPublicKeys;
     }
 
-    /**
-     * As we don't expect updates to bootkeg after initial creation yet,
-     * this function just extracts what's needed - kegKey
-     * @param data
-     * @returns {Object}
-     */
     deserializeKegPayload(data) {
         // keys for every participant
         this.encryptedKeys = data.encryptedKeys;
@@ -52,12 +49,6 @@ class ChatBootKeg extends Keg {
         this.kegKey = kegKey;
     }
 
-    /**
-     * Expected data format
-     *  kegKey: buffer,
-     *  encryptedKeys: {username: publicKey, username: publicKey}
-     * @returns {{publicKey, encryptedKeys: {}}}
-     */
     serializeKegPayload() {
         // if there's no keg key - we need to create it, it's a new bootkeg
         if (!this.kegKey) this.kegKey = keys.generateEncryptionKey();

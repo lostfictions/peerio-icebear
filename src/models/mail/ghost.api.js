@@ -81,8 +81,8 @@ ghostAPI.encrypt = function(ghost, user, serializedGhost) {
  * Use ghost API to send ghost to external/ephemeral recipients.
  *
  * @param {Ghost} ghost
- * @param {Object} asymEncryptionRes
- * @param {String} asymEncryptionRes.signature (base64)
+ * @param {object} asymEncryptionRes
+ * @param {string} asymEncryptionRes.signature (base64)
  * @param {Uint8Array} asymEncryptionRes.body
  * @returns {Promise}
  */

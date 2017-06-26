@@ -1,12 +1,55 @@
 const Keg = require('../kegs/keg');
 const { observable } = require('mobx');
 
+/**
+ * Plaintext named system keg, server controlled.
+ * User can update this keg, but server verifies contract.
+ * @extends {Keg}
+ * @param {User} user
+ * @public
+ */
 class Settings extends Keg {
+    /**
+     * @member {boolean} contactNotifications
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable contactNotifications = false;
+    /**
+     * @member {boolean} contactRequestNotifications
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable contactRequestNotifications = false;
+    /**
+     * @member {boolean} messageNotifications
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable messageNotifications = false;
+    /**
+     * @member {boolean} errorTracking
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable errorTracking = false;
+    /**
+     * @member {boolean} dataCollection
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable dataCollection = false;
+    /**
+     * @member {boolean} subscribeToPromoEmails
+     * @memberof Settings
+     * @instance
+     * @public
+     */
     @observable subscribeToPromoEmails = false;
 
     constructor(user) {

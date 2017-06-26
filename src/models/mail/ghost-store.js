@@ -82,7 +82,7 @@ class GhostStore {
                     if (keg.collectionVersion > this.knownCollectionVersion) {
                         this.knownCollectionVersion = keg.collectionVersion;
                     }
-                    if (keg.isEmpty || !g.loadFromKeg(keg)) continue;
+                    if (!g.loadFromKeg(keg) || g.isEmpty) continue;
                     if (!g.deleted && !inCollection) this.ghostMap.set(g.ghostId, g);
                     if (g.deleted && inCollection) delete this.ghostMap.delete(keg.ghostId);
                 }
@@ -135,7 +135,7 @@ class GhostStore {
     /**
      * Get a ghost by its ghostId.
      *
-     * @param {String} ghostId
+     * @param {string} ghostId
      * @returns {Ghost}
      */
     getById(ghostId) {
@@ -145,7 +145,7 @@ class GhostStore {
     /**
      * Apply a sort
      *
-     * @param {String} value ['date']
+     * @param {string} value ['date']
      */
     @action sort(value) {
         switch (value) {

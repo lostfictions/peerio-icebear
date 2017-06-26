@@ -174,7 +174,7 @@ class MailStore {
                         this.mails.remove(existing);
                         continue;
                     }
-                    if (keg.isEmpty || !mail.loadFromKeg(keg)) continue;
+                    if (!mail.loadFromKeg(keg) || mail.isEmpty) continue;
                     if (!mail.deleted && !existing) this.mails.unshift(mail);
                 }
                 this.updating = false;

@@ -1,5 +1,11 @@
 const Keg = require('../kegs/keg');
 
+/**
+ * Plaintext system named keg. Server verifies contract on update.
+ * Some properties (addresses) can be changed only via separate api.
+ * @extends {Keg}
+ * @protected
+ */
 class Profile extends Keg {
     constructor(user) {
         super('profile', 'profile', user.kegDb, true);
@@ -20,8 +26,9 @@ class Profile extends Keg {
         this.user.createdAt = data.created;
         this.user.locale = data.locale;
         this.user.isDeleted = data.deleted;
-        this.user.primaryAddress = data.primaryAddressValue;
-        this.user.primaryAddressType = data.primaryAddressType;
+        this.user.email = data.primaryAddressValue;
+        // don't needs this currently
+        // this.user.primaryAddressType = data.primaryAddressType;
         (data.addresses || []).forEach(a => {
             if (a.address === data.primaryAddressValue) a.primary = true;
         });

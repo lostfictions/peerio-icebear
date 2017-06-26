@@ -17,7 +17,7 @@ const errors = require('../errors');
  * Promisified scrypt call.
  * @param {string|Uint8Array|Array} value - the value that needs to be hashed
  * @param {string|Uint8Array|Array} salt
- * @param {Object} options - scrypt options, see {@link https://github.com/dchest/scrypt-async-js#options}
+ * @param {object} options - scrypt options, see {@link https://github.com/dchest/scrypt-async-js#options}
  * @returns {Promise<Uint8Array>} hashed value
  * @memberof crypto/keys
  * @private

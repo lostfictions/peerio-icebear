@@ -17,8 +17,8 @@ const userValidators = require('./user-validators');
  * onChange and onBlur handlers must be manually attached to the input
  * in peerio-desktop, the ValidatedInput can be used
  *
- * @param {Object} store
- * @param {String} fName - field name
+ * @param {object} store
+ * @param {string} fName - field name
  * @param {Array<Object>|Object} validatorOrArray
  * @param {Number} [positionInForm]
  * @memberof helpers/field-validation

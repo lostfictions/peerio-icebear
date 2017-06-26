@@ -86,7 +86,7 @@ class Ghost extends Keg {
     /**
      * To be saved to kegs.
      *
-     * @returns {Object}
+     * @returns {object}
      */
     serializeKegPayload() {
         return {
@@ -109,7 +109,7 @@ class Ghost extends Keg {
     /**
      * Load existing (sent) ghost from keg storage.
      *
-     * @param {Object} data
+     * @param {object} data
      */
     @action deserializeKegPayload(data) {
         this.body = data.body;
@@ -126,7 +126,7 @@ class Ghost extends Keg {
     /**
      * Send a ghost.
      *
-     * @param {String} text - message content
+     * @param {string} text - message content
      */
     send(text) {
         this.sending = true;

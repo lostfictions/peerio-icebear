@@ -9,7 +9,8 @@ toc:
   - index
   - name: MISC
     description: Miscellaneous items
-  - typedefs
+  - KeyPair
+  - Address
   - extensions/uint8array
   - errors
   - util
@@ -58,10 +59,38 @@ toc:
   - SystemWarning
   - ServerWarning
   - Warnings
+  - name: KEGS ENGINE
+  - file: kegs.md
+  - Keg
+  - BootKeg
+  - ChatBootKeg
+  - KegDb
+  - ChatKegDb
+  - SyncedKeg
   - name: USER
+  - User
+  - Settings
+  - Quota
+  - Profile
   - name: CONTACTS
+  - Contact
+  - ContactStore
+  - MyContacts
+  - Invites
+  - Tofu
   - name: CHATS
+  - Chat
+  - Message
+  - ChatHead
+  - ReadReceipt
+  - MyChats
+  - ChatStore
   - name: FILES
-  - name: KEGS
+  - File
+  - FileDownloader
+  - FileUploader
+  - FileStore
+  - FileStreamAbstract
+  - NodeFileStream
   - name: LOCALIZATION
 
