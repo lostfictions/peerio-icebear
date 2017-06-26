@@ -21,3 +21,13 @@
  * @property {string} type - currently always == 'email'
  * @public
  */
+
+/**
+ * Virtual type representing invited contact.
+ * Username appears when invited contact joins Peerio.
+ * @name InvitedContact
+ * @typedef {object} InvitedContact
+ * @property {string} email
+ * @property {number} added
+ * @property {string} [username]
+ */

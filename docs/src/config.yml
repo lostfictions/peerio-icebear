@@ -93,4 +93,5 @@ toc:
   - FileStreamAbstract
   - NodeFileStream
   - name: LOCALIZATION
+  - file: localization.md
 

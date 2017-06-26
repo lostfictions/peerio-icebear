@@ -11,7 +11,7 @@ class FileProcessor {
     // process stopped and promise resolved/rejected
     processFinished = false;
 
-    /**
+    /*
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator

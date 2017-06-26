@@ -26,8 +26,13 @@ function _getDlResumeParams(path) {
 }
 
 /**
- * @param {string} [filePath] - file path (optional)
- * @param {boolean} resume
+ * Starts download.
+ * @param {string} filePath - where to store file (including name)
+ * @param {boolean} [resume] - for system use
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
  */
 function download(filePath, resume) {
     if (this.downloading || this.uploading) {
@@ -77,6 +82,13 @@ function download(filePath, resume) {
     }
 }
 
+/**
+ * Cancels download and removes impartially downloaded file.
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
+ */
 function cancelDownload() {
     this._saveDownloadEndFact();
     this._resetDownloadState();
@@ -107,7 +119,7 @@ function _resetDownloadState(stream) {
     }
 }
 
-module.exports = function(File) {
+module.exports = function (File) {
     File.prototype._getDlResumeParams = _getDlResumeParams;
     File.prototype.download = download;
     File.prototype.cancelDownload = cancelDownload;

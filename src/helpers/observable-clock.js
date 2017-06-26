@@ -6,6 +6,7 @@ const config = require('../config');
  * Provides clock.now property that is mobx observable and changes at specified time interval.
  * Doesn't tick when no one is observing.
  * Create your own clock or use default one.
+ * @class Clock
  * @param {number} interval - clock update interval in seconds
  * @public
  */
@@ -13,6 +14,13 @@ class Clock {
     _atom;
     _intervalHandler = null;
     _lastTickValue;
+    /**
+     * Default clock instance with `config.observableClockEventFrequency` interval
+     * @member {Clock}
+     * @static
+     * @public
+     */
+    static default;
 
     constructor(interval) {
         this._atom = new Atom('Clock', this._startTicking, this._stopTicking);
@@ -56,12 +64,6 @@ class Clock {
     }
 }
 
-/**
- * Default clock instance with `config.observableClockEventFrequency` interval
- * @member {Clock}
- * @memberof {Clock}
- * @public
- */
 Clock.default = new Clock(config.observableClockEventFrequency);
 
 module.exports = Clock;

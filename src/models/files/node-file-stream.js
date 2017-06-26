@@ -2,6 +2,11 @@ const FileStreamAbstract = require('./file-stream-abstract');
 const errors = require('../../errors');
 const fs = require('fs');
 
+/**
+ * FileStreamAbstract implementation for nodejs, see {@link FileStreamAbstract} for docs.
+ * @extends {FileStreamAbstract}
+ * @public
+ */
 class NodeFileStream extends FileStreamAbstract {
 
     checkForError(err, rejectFn) {
@@ -54,10 +59,6 @@ class NodeFileStream extends FileStreamAbstract {
         });
     }
 
-    /**
-     * @param {Uint8Array} buffer
-     * @return {Promise}
-     */
     writeInternal(buffer) {
         return new Promise((resolve, reject) => {
             fs.write(this.fileDescriptor, Buffer.from(buffer), 0, buffer.length, null,

@@ -1,3 +1,7 @@
+/*
+    WARNING: this file should not have js-doc compatible comments (/**)
+             because it's too low-level and doesn't need to be in the docs.
+ */
 const socket = require('../../network/socket');
 const secret = require('../../crypto/secret');
 const config = require('../../config');
@@ -17,7 +21,7 @@ class FileDownloader extends FileProcessor {
     // blob was fully read
     downloadEof = false;
 
-    /**
+    /*
      * @param {File} file
      * @param {FileStream} stream
      * @param {FileNonceGenerator} nonceGenerator

@@ -1,10 +1,22 @@
 const SyncedKeg = require('../kegs/synced-keg');
 const { getUser } = require('../../helpers/di-current-user');
 const _ = require('lodash');
-// List of user's chats macro data/flags
-class Invites extends SyncedKeg {
 
+/**
+ * Named readonly server-controlled keg. Invite data can be modified via separate api.
+ * @extends {SyncedKeg}
+ * @public
+ */
+class Invites extends SyncedKeg {
+    /**
+     * @member {Array<InvitedContact>}
+     * @public
+     */
     issued = [];
+    /**
+     * Usernames of users invited us before we created an account.
+     * @member {Array<string>}
+     */
     received = [];
     constructor() {
         super('invites', getUser().kegDb, true);
@@ -15,7 +27,7 @@ class Invites extends SyncedKeg {
     }
 
     deserializeKegPayload(payload) {
-        this.issued = _.uniqWith(payload.issued, this._compareinvites);
+        this.issued = _.uniqWith(payload.issued, this._compareInvites);
         this.received = _.uniq(
             Object.keys(payload.received)
                 .reduce((acc, email) => acc.concat(payload.received[email]), [])
@@ -23,7 +35,7 @@ class Invites extends SyncedKeg {
         );
     }
 
-    _compareinvites(a, b) {
+    _compareInvites(a, b) {
         return a.email === b.email;
     }
 
