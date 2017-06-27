@@ -64,6 +64,17 @@ class KegDb {
             this.key = boot.kegKey;
         });
     }
+
+    /**
+     * Custom JSON representation to avoid cycles when
+     * doing JSON.stringify() on kegs.
+     */
+    toJSON() {
+        return {
+            id: this.id,
+            key: this.key
+        };
+    }
 }
 
 module.exports = KegDb;
