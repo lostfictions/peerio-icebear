@@ -18,7 +18,7 @@ const nullFingerprint = '00000-00000-00000-00000-00000-00000';
  * loading === false && notFound === false - success
  * loading === false && notFound === true  - fail
  * @param {string} username - this can also be an email which will be replaced with username if user found
- * @param {object} [prefetchedData] - if, for some reason you have the contact data from server, feed it here
+ * @param {Object} [prefetchedData] - if, for some reason you have the contact data from server, feed it here
  * @param {bool} [noAutoLoad] - don't automatically call this.load() in constructor (needed for tests only)
  * @public
  */
@@ -255,7 +255,7 @@ class Contact {
 
     /**
      * Loads user data from server (or applies prefetched data)
-     * @param {object} [prefetchedData]
+     * @param {Object} [prefetchedData]
      * @public
      */
     load(prefetchedData) {

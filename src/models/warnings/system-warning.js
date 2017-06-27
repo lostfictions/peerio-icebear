@@ -6,7 +6,7 @@ const { observable } = require('mobx');
  * @class
  * @param {string} content - localization string key
  * @param {string} [title] - localization string key
- * @param {object} [data] - variables to pass to peerio-translator when resolving content
+ * @param {Object} [data] - variables to pass to peerio-translator when resolving content
  * @param {string} [level='medium'] - severity level, options (medium, severe)
  * @protected
  */

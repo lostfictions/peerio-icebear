@@ -372,9 +372,9 @@ class Chat {
 
     /**
      * Alert UI hooks of new messages/mentions.
-     * @param {Number} freshBatchMentionCount -- # of new/freshly loaded messages
-     * @param {Number} freshBatchMessageCount -- # of new/freshly loaded mentions
-     * @param {Number} lastMentionId -- id of last mention message, if exists
+     * @param {number} freshBatchMentionCount -- # of new/freshly loaded messages
+     * @param {number} freshBatchMessageCount -- # of new/freshly loaded mentions
+     * @param {number} lastMentionId -- id of last mention message, if exists
      * @private
      */
     onNewMessageLoad(freshBatchMentionCount, freshBatchMessageCount, lastMentionId) {

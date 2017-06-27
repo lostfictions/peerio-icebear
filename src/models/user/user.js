@@ -81,7 +81,7 @@ class User {
     /**
      * Quota object as received from server, it has complex and weird format.
      * You don't need to use this directly, use computed properties that are based on this.
-     * @member {object} quota
+     * @member {Object} quota
      * @memberof User
      * @instance
      * @protected

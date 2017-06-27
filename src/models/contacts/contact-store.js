@@ -246,7 +246,7 @@ class ContactStore {
     /**
      * Looks up by email and adds contacts to favorites list.
      * @param {Array<string>} emails
-     * @returns {imported:Array<string>, notFound: Array<string>}
+     * @returns {{imported:Array<string>, notFound: Array<string>}}
      * @public
      */
     importContacts(emails) {
@@ -342,7 +342,7 @@ class ContactStore {
      * It is important to be aware about `loading` state of contact, it is not guaranteed it will be loaded
      * after this function returns contact.
      * @param {string} username
-     * @param {object} [prefetchedData]
+     * @param {Object} [prefetchedData]
      * @returns {Contact}
      * @public
      */

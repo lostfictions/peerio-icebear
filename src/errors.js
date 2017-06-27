@@ -95,7 +95,6 @@ module.exports.getGenericCustomError = getGenericCustomError;
 /**
  * Check sources for the list of codes.
  * You can look up this enum both by integer code and by string error name.
- * @enum serverErrorCodes
  * @memberof errors
  * @public
  */

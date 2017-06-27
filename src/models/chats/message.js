@@ -183,7 +183,7 @@ class Message extends Keg {
         this.text = payload.text;
         /**
          * For system messages like chat rename fact.
-         * @member {object} systemData
+         * @member {Object} systemData
          * @public
          */
         this.systemData = payload.systemData;
