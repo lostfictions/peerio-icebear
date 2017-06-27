@@ -1,14 +1,13 @@
-/**
- * Registration module for User model.
- * @module models/user
- */
-
 const keys = require('../../crypto/keys');
 const publicCrypto = require('../../crypto/public');
 const signCrypto = require('../../crypto/sign');
 const socket = require('../../network/socket');
 const util = require('../../util');
 
+
+//
+// Registration mixin for User model.
+//
 module.exports = function mixUserRegisterModule() {
     this._createAccount = () => {
         console.log('Generating keys.');

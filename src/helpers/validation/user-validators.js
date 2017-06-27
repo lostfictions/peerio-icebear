@@ -1,7 +1,8 @@
 /**
+ * @todo @seavan @flohdot
  * Validation functions for user-related fields, used in field validation.
  *
- * On *peerio-desktop* they are used in conuction with the ValidatedInput and OrderedFormStore
+ * On *peerio-desktop* they are used in conjunction with the ValidatedInput and OrderedFormStore
  * components. ValidatedInputs expect validators of the format below as parameters,
  * and will run through them on change & blur as needed.
  *
@@ -26,6 +27,9 @@
  *
  *  if the function does not return a message, the default message provided by the
  *  validator will be used.
+ *
+ * @module helpers/user-validators
+ * @public
  */
 const socket = require('../../network/socket');
 
@@ -39,10 +43,11 @@ const serverValidationStore = { request: {} };
 /**
  * Throttled & promisified call to validation API.
  *
- * @param {String} context -- context for field, e.g "signup"
- * @param {String} name -- field name
+ * @param {string} context -- context for field, e.g "signup"
+ * @param {string} name -- field name
  * @param {*} value
- * @returns {Promise<Boolean>}
+ * @returns {Promise<boolean>}
+ * @memberof helpers/user-validators
  * @private
  */
 function _callServer(context, name, value) {
@@ -129,12 +134,12 @@ const lastNameReserved = pair(isValidSignupLastName, 'error_invalidName');
 const valueEquality = pair(areEqualValues, 'error_mustMatch');
 
 const validators = {
-    /** available validators:
+    /* available validators:
      * {
      *      message: 'error message (string)',
      *      action: function
      * }
-     **/
+     */
     emailFormat,
     emailAvailability,
     usernameFormat,

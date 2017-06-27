@@ -1,10 +1,10 @@
-/**
- * Keg update handling module
- */
 
 const socket = require('../network/socket');
 
-/*
+/**
+ * Data update tracking module. This is an internal module that allows Icebear to get and report new data as it arrives
+ * and is needed by your client.
+ *
  * How does update tracking work:
  *
  * 1. Update Tracker interacts with application logic via
@@ -16,18 +16,38 @@ const socket = require('../network/socket');
  *    a potential to grow really big.
  *      a. SELF database info is always reloaded
  *      b. anything that is {unread: true} is reloaded
- *      c. anything that contains {kegType: 'critical keg type(we don't have them yet)'} is reloaded
+ *      c. anything that contains {kegType: 'important keg type'} is reloaded
  *      d. anything that is currently active in the UI (chat) is reloaded
+ *
+ * @namespace UpdateTracker
+ * @protected
  */
 class UpdateTracker {
-    // listeners to new keg db added event
+    /**
+     * listeners to new keg db added event
+     * @member {Array<function>}
+     * @private
+     */
     dbAddedHandlers = [];
-    // listeners to changes in existing keg dbs
+    /**
+     * Listeners to changes in existing keg databases.
+     * @member {{kegDbId: {kegType: function}}}
+     * @private
+     */
     updateHandlers = {};
-    // keg databases that are currently 'active' in UI (user interacts with them directly)
-    // we need this to make sure we update them on reconnect
+    /**
+     * Keg databases that are currently 'active' in UI (user interacts with them directly)
+     * we need this to make sure we update them on reconnect
+     * @member {Array<string>}
+     * @private
+     */
     activeKegDbs = ['SELF'];
-    // tracker data
+
+    /**
+     * Current digest
+     * @member {kegDbId:{ kegType: { maxUpdateId: string, knownUpdateId: string, newKegsCount: number }}
+     * @protected
+     */
     digest = {};
 
     // a list of existing db instances for tracker to not generate dbadded event for them
@@ -59,6 +79,7 @@ class UpdateTracker {
      * so we want to avoid null reference. This function will return zeroes in case of null.
      * @param {string} id - keg db id
      * @param {string} type - keg type
+     * @protected
      */
     getDigest(id, type) {
         if (!this.digest[id]) return this.zeroDigest;
@@ -70,6 +91,7 @@ class UpdateTracker {
     /**
      * Subscribes handler to an event of new keg db created for this user
      * @param {function} handler
+     * @protected
      */
     onKegDbAdded(handler) {
         if (this.dbAddedHandlers.includes(handler)) {
@@ -84,6 +106,7 @@ class UpdateTracker {
      * @param {string} kegDbId - id of the db to watch
      * @param {string} kegType - keg type to watch
      * @param {function} handler
+     * @protected
      */
     onKegTypeUpdated(kegDbId, kegType, handler) {
         if (!this.updateHandlers[kegDbId]) {
@@ -103,17 +126,22 @@ class UpdateTracker {
     /**
      * Lets Update Tracker know that user is interested in this database full updates even after reconnect
      * @param {string} id - keg db id
+     * @protected
      */
     activateKegDb(id) {
         if (this.activeKegDbs.includes(id)) return;
         this.activeKegDbs.push(id);
         // eslint-disable-next-line
         return socket.send('/auth/kegs/updates/digest', { kegDbIds: [id] })
-            .then(this._processDigestResponse)
-            .then(this._flushAccumulatedEvents);
+            .then(this.processDigestResponse)
+            .then(this.flushAccumulatedEvents);
     }
 
-
+    /**
+     * Opposite of activateKegDb()
+     * @param {any} id
+     * @protected
+     */
     deactivateKegDb(id) {
         const ind = this.activeKegDbs.indexOf(id);
         if (ind < 0) return;
@@ -123,6 +151,7 @@ class UpdateTracker {
     /**
      * Unsubscribes handler from all events (onKegTypeUpdated, onKegDbAdded)
      * @param {function} handler
+     * @protected
      */
     unsubscribe(handler) {
         let ind = this.dbAddedHandlers.indexOf(handler);
@@ -142,7 +171,7 @@ class UpdateTracker {
         ev.knownUpdateId = ev.knownUpdateId || '';
         // === HACK:
         // this is a temporary hack to make sure boot kegs don't produce unread keg databases
-        // It's too much hussle to create handlers for this in the kegdb logic
+        // It's too much hassle to create handlers for this in the kegdb logic
         // when we introduce key change which can change boot keg - this should go away
         if (ev.type === 'boot' && ev.maxUpdateId !== ev.knownUpdateId) {
             this.seenThis(ev.kegDbId, 'boot', ev.maxUpdateId);
@@ -205,6 +234,10 @@ class UpdateTracker {
         }
     }
 
+    /**
+     * Emits event informing about new database getting loaded into runtime
+     * @private
+     */
     emitKegDbAddedEvent(id) {
         if (id === 'SELF') return;
         this.dbAddedHandlers.forEach(handler => {
@@ -216,6 +249,12 @@ class UpdateTracker {
         });
     }
 
+    /**
+     * Emits one update event for a keg type in specific database.
+     * @param {string} id
+     * @param {string} type
+     * @private
+     */
     emitKegTypeUpdatedEvent(id, type) {
         if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return;
         this.updateHandlers[id][type].forEach(handler => {
@@ -227,7 +266,11 @@ class UpdateTracker {
         });
     }
 
-    _flushAccumulatedEvents = () => {
+    /**
+     * Emits events in the end of digest reloading cycle.
+     * @private
+     */
+    flushAccumulatedEvents = () => {
         this.eventCache.add.forEach(id => {
             this.emitKegDbAddedEvent(id);
         });
@@ -240,7 +283,11 @@ class UpdateTracker {
         this.accumulateEvents = false;
     };
 
-    _processDigestResponse = digest => {
+    /**
+     * Handles server response to digest query.
+     * @private
+     */
+    processDigestResponse = digest => {
         console.debug('Processing digest response');
         for (let i = 0; i < digest.length; i++) {
             // console.debug(JSON.stringify(digest[i], null, 1));
@@ -249,16 +296,17 @@ class UpdateTracker {
     };
 
     /**
-     * Fills this.data with full update info from server.
-     * Initial call, reads only unread data.
+     * Fills digest with full update info from server.
+     * Is optimized to load only what is needed or is unread.
+     * @private
      */
     loadDigest = () => {
         console.log(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
         socket.send('/auth/kegs/updates/digest', { unread: true })
-            .then(this._processDigestResponse)
+            .then(this.processDigestResponse)
             .then(() => socket.send('/auth/kegs/updates/digest', { kegDbIds: this.activeKegDbs }))
-            .then(this._processDigestResponse)
-            .then(this._flushAccumulatedEvents);
+            .then(this.processDigestResponse)
+            .then(this.flushAccumulatedEvents);
     }
 
     /**
@@ -266,6 +314,7 @@ class UpdateTracker {
      * @param {string} id - keg db id
      * @param {string} type - keg type
      * @param {string} updateId - max known update id
+     * @protected
      */
     seenThis(id, type, updateId) {
         if (!updateId) return;
@@ -277,12 +326,22 @@ class UpdateTracker {
             lastKnownVersion: updateId
         });
     }
-    // marks database as 'existing' in current client session so tracker knows
-    // when to generate 'dbAdded' event and when not
+
+    /**
+     * Marks database as 'existing' in current client session so tracker knows
+     * when to generate 'dbAdded' event and when not
+     * @param {string} id
+     * @protected
+     */
     registerDbInstance(id) {
         this.knownDbInstances[id] = true;
     }
 
+    /**
+     * Opposite of registerDbInstance()
+     * @param {string} id
+     * @protected
+     */
     unregisterDbInstance(id) {
         this.knownDbInstances[id] = false;
     }

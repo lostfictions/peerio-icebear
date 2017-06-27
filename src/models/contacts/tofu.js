@@ -3,16 +3,42 @@ const { AntiTamperError } = require('../../errors');
 const socket = require('../../network/socket');
 const { getUser } = require('../../helpers/di-current-user');
 
+/**
+ * Tofu keg.
+ * @param {KegDb} db
+ * @extends {Keg}
+ * @public
+ */
 class Tofu extends Keg {
-    username;
-    firstName;
-    lastName;
-    encryptionPublicKey;
-    signingPublicKey;
-
     constructor(db) {
         super(null, 'tofu', db);
     }
+
+    /**
+     * @member {string}
+     * @public
+     */
+    username;
+    /**
+     * @member {string}
+     * @public
+     */
+    firstName;
+    /**
+     * @member {string}
+     * @public
+     */
+    lastName;
+    /**
+     * @member {Uint8Array}
+     * @public
+     */
+    encryptionPublicKey;
+    /**
+     * @member {Uint8Array}
+     * @public
+     */
+    signingPublicKey;
 
     serializeKegPayload() {
         return {
@@ -48,6 +74,14 @@ class Tofu extends Keg {
                 + `Inner: ${payload.username}. Outer: ${this.username}`);
         }
     }
+    /**
+     * Finds Tofu keg by username property.
+     * @static
+     * @param {string} username
+     * @returns {Promise<?Tofu>} tofu keg, if any
+     * @memberof Tofu
+     * @public
+     */
     static getByUsername(username) {
         return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: 'SELF',

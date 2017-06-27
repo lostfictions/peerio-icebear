@@ -1,4 +1,3 @@
-
 const { observable, action, when, reaction, computed } = require('mobx');
 const socket = require('../../network/socket');
 const User = require('../user/user');
@@ -13,38 +12,111 @@ const clientApp = require('../client-app');
 const Queue = require('../../helpers/queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 
+/**
+ * File store.
+ * @namespace
+ * @public
+ */
 class FileStore {
+    constructor() {
+        tracker.onKegTypeUpdated('SELF', 'file', () => {
+            console.log('Files update event received');
+            this.onFileDigestUpdate();
+        });
+    }
+    /**
+     * Full list of user's files.
+     * @member {ObservableArray<File>} files
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @observable files = observable.shallowArray([]);
+    /**
+     * Store is loading full file list for the first time.
+     * @member {boolean} loading
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @observable loading = false;
+    /**
+     * Readonly, shows which keyword was used with last call to `filter()`, this need refactoring.
+     * @member {string} currentFilter
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @observable currentFilter = '';
+    /**
+     * Initial file list was loaded, this is not observable property.
+     * @member {boolean}
+     * @protected
+     */
     loaded = false;
+    /**
+     * Currently updating file list from server, this is not observable property.
+     * @member {boolean}
+     * @public
+     */
     updating = false;
+
     maxUpdateId = '';
     knownUpdateId = '';
-
+    /**
+     * Readonly
+     * @member {Queue}
+     * @public
+     */
     uploadQueue = new Queue(1);
 
+    /**
+     * @ignore
+     * This will go away soon.
+     */
     @observable unreadFiles = 0;// tracker.getDigest('SELF', 'file').newKegsCount;
 
+    // optimization to avoid creating functions every time
     static isFileSelected(file) {
         return file.selected;
     }
 
+    // optimization to avoid creating functions every time
     static isSelectedFileShareable(file) {
         return !file.selected ? true : file.canShare;
     }
 
+    // optimization to avoid creating functions every time
     static isFileShareable(file) {
         return file.canShare;
     }
 
+    /**
+     * @member {boolean} hasSelectedFiles
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @computed get hasSelectedFiles() {
         return this.files.some(FileStore.isFileSelected);
     }
 
+    /**
+     * @member {boolean} canShareSelectedFiles
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @computed get canShareSelectedFiles() {
         return this.hasSelectedFiles && this.files.every(FileStore.isSelectedFileShareable);
     }
+
+    /**
+     * @member {boolean} allVisibleSelected
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @computed get allVisibleSelected() {
         for (let i = 0; i < this.files.length; i++) {
             if (!this.files[i].show) continue;
@@ -52,6 +124,13 @@ class FileStore {
         }
         return true;
     }
+
+    /**
+     * @member {number} selectedCount
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @computed get selectedCount() {
         let ret = 0;
         for (let i = 0; i < this.files.length; i++) {
@@ -63,17 +142,27 @@ class FileStore {
     /**
      * Returns currently selected files (file.selected == true)
      * @returns {Array<File>}
+     * @public
      */
     getSelectedFiles() {
         return this.files.filter(FileStore.isFileSelected);
     }
 
+    /**
+     * Returns currently selected files that are also shareable.
+     * @returns {Array<File>}
+     * @public
+     */
     getShareableSelectedFiles() {
         return this.files.filter(FileStore.isFileSelectedAndShareable);
     }
 
     /**
      * Deselects all files
+     * @function clearSelection
+     * @memberof FileStore
+     * @instance
+     * @public
      */
     @action clearSelection() {
         for (let i = 0; i < this.files.length; i++) {
@@ -81,6 +170,13 @@ class FileStore {
         }
     }
 
+    /**
+     * Selects all files
+     * @function selectAll
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @action selectAll() {
         for (let i = 0; i < this.files.length; i++) {
             const file = this.files[i];
@@ -89,6 +185,13 @@ class FileStore {
         }
     }
 
+    /**
+     * Deselects unshareable files
+     * @function deselectUnshareableFiles
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @action deselectUnshareableFiles() {
         for (let i = 0; i < this.files.length; i++) {
             const file = this.files[i];
@@ -97,6 +200,14 @@ class FileStore {
         }
     }
 
+    /**
+     * Applies filter to files.
+     * @function filterByName
+     * @param {string} query
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @action filterByName(query) {
         this.currentFilter = query;
         const regex = new RegExp(_.escapeRegExp(query), 'i');
@@ -106,23 +217,18 @@ class FileStore {
         }
     }
 
+    /**
+     * Resets filter
+     * @function clearFilter
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
     @action clearFilter() {
         this.currentFilter = '';
         for (let i = 0; i < this.files.length; i++) {
             this.files[i].show = true;
         }
-    }
-
-
-    /**
-     * Attach handlers that will alert the user when a busy upload queue is
-     * consumed.
-     */
-    constructor() {
-        tracker.onKegTypeUpdated('SELF', 'file', () => {
-            console.log('Files update event received');
-            this.onFileDigestUpdate();
-        });
     }
 
     onFileDigestUpdate = _.throttle(() => {
@@ -148,6 +254,10 @@ class FileStore {
         });
     }
 
+    /**
+     * Call at least once from UI.
+     * @public
+     */
     loadAllFiles() {
         if (this.loading || this.loaded) return;
         this.loading = true;
@@ -207,7 +317,7 @@ class FileStore {
                         this.files.remove(existing);
                         continue;
                     }
-                    if (keg.isEmpty || !file.loadFromKeg(keg)) continue;
+                    if (!file.loadFromKeg(keg) || file.isEmpty) continue;
                     if (!file.deleted && !existing) {
                         dirty = true;
                         this.files.unshift(file);
@@ -230,6 +340,12 @@ class FileStore {
     };
 
     // todo: file map
+    /**
+     * Finds file by fileId.
+     * @param {string} fileId
+     * @returns {?File}
+     * @public
+     */
     getById(fileId) {
         for (let i = 0; i < this.files.length; i++) {
             if (this.files[i].fileId === fileId) return this.files[i];
@@ -238,10 +354,11 @@ class FileStore {
     }
 
     /**
-     * Upload a file and keep track of its uploading state.
-     *
-     * @param {string} filePath
-     * @param {string} fileName
+     * Start new file upload and get the file keg for it.
+     * @function upload
+     * @param {string} filePath - full path with name
+     * @param {string} [fileName] - if u want to override name in filePath
+     * @public
      */
     upload = (filePath, fileName) => {
         const keg = new File(User.current.kegDb);
@@ -268,6 +385,10 @@ class FileStore {
         return keg;
     }
 
+    /**
+     * Resumes interrupted downloads if any.
+     * @protected
+     */
     resumeBrokenDownloads() {
         console.log('Checking for interrupted downloads.');
         const regex = /^DOWNLOAD:(.*)$/;
@@ -285,6 +406,10 @@ class FileStore {
             });
     }
 
+    /**
+     * Resumes interrupted uploads if any.
+     * @protected
+     */
     resumeBrokenUploads() {
         console.log('Checking for interrupted uploads.');
         const regex = /^UPLOAD:(.*)$/;
@@ -303,7 +428,7 @@ class FileStore {
                 }
             });
     }
-
+    // sets file.cached flag for mobile
     detectCachedFiles() {
         if (!config.isMobile || this.files.length === 0) return;
         let c = this.files.length - 1;

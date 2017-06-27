@@ -10,26 +10,78 @@ const createMap = require('../../helpers/dynamic-array-map');
 const { getFirstLetterUpperCase } = require('./../../helpers/string');
 
 /**
- * Contact(Peerio user) information store.
- * Currently provides access to any public profiles and caches lookups.
+ * Contact store handles all Peerio users you(your app) are in some contact with,
+ * not just the ones you add to favorites explicitly.
+ * @namespace
+ * @public
  */
 class ContactStore {
-    /** @type {Array<Contact>} - This is a source of all contacts (except invited, non-peerio users) */
+    /**
+     * All peerio users your app encounters end up here (except invited by email, they're non-peerio users).
+     * @memberof ContactStore
+     * @member {ObservableArray<Contact>} contacts
+     * @instance
+     * @public
+     */
     @observable.shallow contacts = [];
+    /**
+     * My contacts keg.
+     * @member {MyContacts}
+     * @protected
+     */
     myContacts;
+    /**
+     * Invites keg.
+     * @member {MyContacts}
+     * @protected
+     */
     invites;
     _requestMap = {};
 
+    /**
+     * Favorite Contacts.
+     * @memberof ContactStore
+     * @member {ObservableArray<Contact>} addedContacts
+     * @instance
+     * @public
+     */
     @computed get addedContacts() {
         return this.contacts.filter(c => c.isAdded);
     }
 
+    /**
+     * Invited contacts.
+     * @memberof ContactStore
+     * @member {ObservableArray<InvitedContacts>} invitedContacts
+     * @instance
+     * @public
+     */
     @observable.shallow invitedContacts = [];
 
-    // options: firstName, lastName, username
+    /**
+     * options: firstName, lastName, username
+     * @memberof ContactStore
+     * @member {string} uiViewSortBy
+     * @instance
+     * @public
+     */
     @observable uiViewSortBy = 'firstName';
-    // options: added, all
+    /**
+     * options: added, all
+     * @memberof ContactStore
+     * @member {string} uiViewFilter
+     * @instance
+     * @public
+     */
     @observable uiViewFilter = 'added';
+    /**
+     * Any string to search in user's names.
+     * Set to `''` to clear search.
+     * @memberof ContactStore
+     * @member {string} uiViewSearchQuery
+     * @instance
+     * @public
+     */
     @observable uiViewSearchQuery = '';
 
     _checkSortValue(change) {
@@ -55,7 +107,13 @@ class ContactStore {
         }
     }
 
-
+    /**
+     * Helper data view to simplify sorting and filtering.
+     * @memberof ContactStore
+     * @member {Array<{letter:string, items:Array<Contact>}>} uiView
+     * @instance
+     * @public
+     */
     @computed get uiView() {
         let ret;
         switch (this.uiViewFilter) {
@@ -140,9 +198,10 @@ class ContactStore {
     });
 
     /**
-     *
+     * Tries to add contact to favorites.
      * @param {string|Contact} val - username, email or Contact
      * @returns {Promise<bool>} - true: added, false: not found
+     * @public
      */
     addContact(val) {
         const c = typeof val === 'string' ? this.getContact(val) : val;
@@ -168,10 +227,11 @@ class ContactStore {
     }
 
     /**
-     * Accepts array of preloaded contacts, doesn't not wait for passed contacts to load
+     * Accepts array of preloaded contacts, and adds them to favorites.
+     * WARNING: doesn't not wait for passed contacts to load.
      * @param {Array<Contact>} contacts
-     * @returns
-     * @memberof ContactStore
+     * @returns {Promise}
+     * @public
      */
     addContactBatch(contacts) {
         return this.myContacts.save(
@@ -187,7 +247,7 @@ class ContactStore {
      * Looks up by email and adds contacts to favorites list.
      * @param {Array<string>} emails
      * @returns {imported:Array<string>, notFound: Array<string>}
-     * @memberof ContactStore
+     * @public
      */
     importContacts(emails) {
         if (!Array.isArray(emails) && !isObservableArray(emails)) {
@@ -231,6 +291,11 @@ class ContactStore {
         return socket.send('/auth/user/lookup', { string: emails.slice(pos, pos + 15) });
     }
 
+    /**
+     * Removes contact from favorites.
+     * @param {string|Contact} usernameOrContact
+     * @public
+     */
     removeContact(usernameOrContact) {
         const c = typeof usernameOrContact === 'string' ? this.getContact(usernameOrContact) : usernameOrContact;
         if (!this.myContacts.contacts[c.username]) return;
@@ -251,19 +316,35 @@ class ContactStore {
         });
     }
 
+    /**
+     * Removes invitation.
+     * @param {string} email
+     * @returns {Promise}
+     * @public
+     */
     removeInvite(email) {
         return socket.send('/auth/contacts/issued-invites/remove', { email });
     }
 
+    /**
+     * Removes incoming invitation. This is useful for new users, logic automatically adds authors of received invites
+     * to favorites and then removes received invites.
+     * @param {string} username
+     * @returns {Promise}
+     * @public
+     */
     removeReceivedInvite(username) {
-        socket.send('/auth/contacts/received-invites/remove', { username });
+        return socket.send('/auth/contacts/received-invites/remove', { username });
     }
 
     /**
      * Returns Contact object ether from cache or server.
-     * Reactive.
+     * It is important to be aware about `loading` state of contact, it is not guaranteed it will be loaded
+     * after this function returns contact.
      * @param {string} username
+     * @param {object} [prefetchedData]
      * @returns {Contact}
+     * @public
      */
     getContact(username, prefetchedData) {
         let existing = this._contactMap[username];
@@ -278,11 +359,18 @@ class ContactStore {
             delete this._requestMap[username];
             if (!c.notFound && !this._contactMap[username]) {
                 this.contacts.unshift(c);
+                c.isAdded = !!this.myContacts.contacts[c.username];
             }
         });
         return c;
     }
 
+    /**
+     * Sends an invite
+     * @param {string} email
+     * @returns {Promise}
+     * @public
+     */
     invite(email) {
         return socket.send('/auth/contacts/invite', { email })
             .then(() => {
@@ -305,7 +393,11 @@ class ContactStore {
                 list && list.length && this._merge(list);
             });
     }
-
+    /**
+     * Populates contact store with contact list from tofu kegs.
+     * Any contact that your app ever encountered has a tofu keg.
+     * @protected
+     */
     loadContactsFromTOFUKegs() {
         socket.send('/auth/kegs/db/list-ext', {
             kegDbId: 'SELF',
@@ -321,6 +413,8 @@ class ContactStore {
      * Filters contacts by username and First Last name based on passed token
      * @param {string} token - search query string
      * @param {Array<Contact>} list - optional list to search in, by default it will search in contact store
+     * @returns {Array<Contact>}
+     * @public
      */
     filter(token, list, nosort = false) {
         token = token.toLocaleLowerCase(); // eslint-disable-line
@@ -340,11 +434,13 @@ class ContactStore {
         return ret.sort((c1, c2) => {
             if (c1.isAdded && !c2.isAdded) return -1;
             if (c2.isAdded && !c1.isAdded) return 1;
-            if (c1.username.startsWith(token)) return -1;
-            if (c2.username.startsWith(token)) return 1;
-            if (c1.fullNameLower.startsWith(token)) return -1;
-            if (c2.fullNameLower.startsWith(token)) return 1;
-            return 0;
+            if (token) {
+                if (c1.username.startsWith(token)) return -1;
+                if (c2.username.startsWith(token)) return 1;
+                if (c1.fullNameLower.startsWith(token)) return -1;
+                if (c2.fullNameLower.startsWith(token)) return 1;
+            }
+            return c1.username.localeCompare(c2.username);
         });
     }
 }

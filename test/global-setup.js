@@ -7,4 +7,8 @@ chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
+if (!console.debug) {
+    console.debug = console.log.bind(console);
+}
+
 global.expect = chai.expect;

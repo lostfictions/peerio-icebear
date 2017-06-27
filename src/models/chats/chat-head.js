@@ -1,13 +1,25 @@
 const SyncedKeg = require('../kegs/synced-keg');
 const { observable } = require('mobx');
 
-// Chat head keg is open for any chat participant to update.
+/**
+ * Chat head keg is open for any chat participant to update.
+ * @param {ChatKegDb} db
+ * @extends SyncedKeg
+ * @public
+ */
 class ChatHead extends SyncedKeg {
-    @observable chatName = '';
-
     constructor(db) {
         super('chat_head', db);
     }
+
+    /**
+     * @member {string} chatName
+     * @memberof ChatHead
+     * @instance
+     * @public
+     */
+    @observable chatName = '';
+
 
     serializeKegPayload() {
         return {

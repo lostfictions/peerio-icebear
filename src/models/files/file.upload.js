@@ -1,6 +1,6 @@
-/**
- * Upload module for File model, for code file length sake
- */
+//
+// Upload module for File model, extracted for readability sake.
+//
 
 const config = require('../../config');
 const warnings = require('./../warnings');
@@ -40,6 +40,16 @@ function _getUlResumeParams(path) {
         });
 }
 
+/**
+ * Starts file upload.
+ * @param {string} filePath
+ * @param {string} [fileName] - if you'd like to override this.name or filePath
+ * @param {bool} [resume] - system sets this param to true when it detects unfinished upload
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
+ */
 function upload(filePath, fileName, resume) {
     if (this.downloading || this.uploading) {
         return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
@@ -110,6 +120,13 @@ function upload(filePath, fileName, resume) {
     }
 }
 
+/**
+ * Cancels ongoing upload. This will also remove file keg.
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
+ */
 function cancelUpload() {
     if (this.readyForDownload) return Promise.reject();
     console.log('file.uploads.js: upload cancelled');

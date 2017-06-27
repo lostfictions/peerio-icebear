@@ -15,9 +15,9 @@
     "validate": "npm-run-all --serial lint",
     "lint": "eslint . --fix --ext .js,.jsx",
     "release": "standard-version && git push --follow-tags origin master",
-    "doc:serve": "documentation serve -w src/**",
-    "doc:lint": "documentation lint src/**",
-    "doc:build": "documentation build src/** -f md -o API.md"
+    "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
+    "doc:lint": "documentation lint src",
+    "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html"
   },
   "repository": {
     "type": "git",

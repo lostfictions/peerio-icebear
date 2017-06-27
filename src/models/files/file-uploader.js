@@ -1,33 +1,19 @@
-/**
- * Skynet's little brother who tries hard to remove bottlenecks in the whole
- * "read -> encrypt -> upload" process to maximize upload speed.
- */
-
 const socket = require('../../network/socket');
 const errors = require('../../errors');
 const secret = require('../../crypto/secret');
 const config = require('../../config');
 const FileProcessor = require('./file-processor');
 
+/**
+ * Handles file upload process
+ * @param {File} file
+ * @param {FileStreamAbstract} stream
+ * @param {FileNonceGenerator} nonceGenerator
+ * @param {number} startFromChunk - in case of resume, start uploading from the chunk after this one
+ * @extends {FileProcessor}
+ * @protected
+ */
 class FileUploader extends FileProcessor {
-    // read chunks go here
-    encryptQueue = [];
-    // encrypted chunks go here
-    uploadQueue = [];
-    // end of file reached while reading file
-    eofReached = false;
-
-    readingChunk = false;
-    lastReadChunkId = -1;
-    // amount of chunks that currently wait for response from server
-    chunksWaitingForResponse = 0;
-
-    /**
-     * @param {File} file
-     * @param {FileStream} stream
-     * @param {FileNonceGenerator} nonceGenerator
-     * @param {[number]} startFromChunk - in case of resume, start uploading from the chunk after this one
-     */
     constructor(file, stream, nonceGenerator, startFromChunk) {
         super(file, stream, nonceGenerator, 'upload');
         // amount of bytes to read and to send
@@ -43,6 +29,42 @@ class FileUploader extends FileProcessor {
         }
         socket.onDisconnect(this._error);
     }
+
+    /**
+     * read chunks go here
+     * @member {Array<Uint8Array>}
+     * @protected
+     */
+    encryptQueue = [];
+    /**
+     * encrypted chunks go here
+     * @member {Array<Uint8Array>}
+     * @protected
+     */
+    uploadQueue = [];
+    /**
+     * end of file reached while reading file
+     * @member {boolean}
+     * @protected
+     */
+    eofReached = false;
+    /**
+     * avoid parallel reads
+     * @member {boolean}
+     * @protected
+     */
+    readingChunk = false;
+    /**
+     * @member {number}
+     * @protected
+     */
+    lastReadChunkId = -1;
+    /**
+     * amount of chunks that currently wait for response from server
+     * @member {number}
+     * @protected
+     */
+    chunksWaitingForResponse = 0;
 
     cleanup() {
         socket.unsubscribe(socket.SOCKET_EVENTS.disconnect, this._error);

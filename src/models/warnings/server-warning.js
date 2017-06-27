@@ -6,6 +6,14 @@ const socket = require('../../network/socket');
 
 /**
  * Server warning. Server sends locale key and severity level for client to display.
+ * You don't need to create instances of this class, Icebear takes care of it.
+ * @param {object} obj - warning object as received from server
+ * @param {string} obj.msg - translation key starting with `serverWarning_` for security any other keys will be ignored
+ * @param {string} obj.title - same as 'msg' but for dialog title
+ * @param {string} obj.level - 'medium' or 'severe'
+ * @param {string} obj.token - unique id of this warning to send it back and dismiss this warning
+ * @param {function} onClear - callback will be called when warning is successfully dismissed on server
+ * @protected
  */
 class ServerWarning extends SystemWarning {
     constructor(obj, onClear) {
@@ -14,7 +22,7 @@ class ServerWarning extends SystemWarning {
             throw new Error('Invalid/unknown warning key received from server.');
         }
         super(obj.msg, obj.title, null, obj.level);
-        this.token = obj.token; // to use when dismissing/acknowleging server message
+        this.token = obj.token; // to use when dismissing/acknowledging server message
         this.onClear = onClear;
     }
 

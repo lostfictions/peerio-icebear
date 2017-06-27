@@ -58,7 +58,7 @@ class Ghost extends Keg {
         this.keypair = kp;
     }
 
-    /**
+    /*
      * Constructor.
      *
      * NOTE: ghost IDs are in hex for browser compatibility.
@@ -73,7 +73,7 @@ class Ghost extends Keg {
         this.ghostId = cryptoUtil.getRandomUserSpecificIdHex(User.current.username);
     }
 
-    /**
+    /*
      * ghost id
      * @returns {{ghostId: (String|*)}}
      */
@@ -83,10 +83,10 @@ class Ghost extends Keg {
         };
     }
 
-    /**
+    /*
      * To be saved to kegs.
      *
-     * @returns {Object}
+     * @returns {object}
      */
     serializeKegPayload() {
         return {
@@ -106,10 +106,10 @@ class Ghost extends Keg {
         this.ghostId = props.ghostId;
     }
 
-    /**
+    /*
      * Load existing (sent) ghost from keg storage.
      *
-     * @param {Object} data
+     * @param {object} data
      */
     @action deserializeKegPayload(data) {
         this.body = data.body;
@@ -123,10 +123,10 @@ class Ghost extends Keg {
         this.revoked = data.revoked;
     }
 
-    /**
+    /*
      * Send a ghost.
      *
-     * @param {String} text - message content
+     * @param {string} text - message content
      */
     send(text) {
         this.sending = true;
@@ -152,7 +152,7 @@ class Ghost extends Keg {
             });
     }
 
-    /**
+    /*
      * Attaches files.
      *
      * @param {Array<File>} files
@@ -166,7 +166,7 @@ class Ghost extends Keg {
         return files.slice();
     }
 
-    /**
+    /*
      * Destroy the public-facing ghost.
      * @returns {Promise}
      */

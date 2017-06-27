@@ -1,5 +1,12 @@
 /**
- * Icebear client lib entry point
+ * Icebear client lib entry point.
+ * @desc In addition to exporting public API, entry point, when first required,
+ * performs some global configuration such as:
+ * - replaces global Promise object with bluebird implementation. Note that native(not transpiled) async functions
+ *  will still return native Promise.
+ * - extends Uint8Array prototype. See {@link extensions/uint8array}.
+ * @module index
+ * @public
  */
 
 // replacing native Promise with bluebird implementation
@@ -24,6 +31,9 @@ Promise.config({
 // extending native classes
 require('./extensions/uint8array');
 
+// for JSDoc's sake
+require('./typedefs');
+
 // exporting Icebear Library Interface
 const socket = require('./network/socket');
 const User = require('./models/user/user');
@@ -42,14 +52,12 @@ const util = require('./util');
 const warnings = require('./models/warnings');
 const crypto = require('./crypto');
 const TinyDb = require('./db/tiny-db');
-const defaultClock = require('./helpers/observable-clock').default;
-const Clock = require('./helpers/observable-clock').Clock;
+const Clock = require('./helpers/observable-clock');
 const fileHelpers = require('./helpers/file');
 const MRUList = require('./helpers/mru-list');
 const warningStates = require('./models/warnings/system-warning').STATES;
 const clientApp = require('./models/client-app');
 const systemMessages = require('./helpers/system-messages');
-
 const serverSettings = require('./models/server-settings');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
@@ -72,7 +80,6 @@ module.exports = {
     util,
     warnings,
     warningStates,
-    defaultClock,
     Clock,
     fileHelpers,
     MRUList,

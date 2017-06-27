@@ -1,6 +1,6 @@
-/**
- * Download module for File model, for code file length sake
- */
+//
+// Download module for File model, for code file length sake
+//
 
 const config = require('../../config');
 const warnings = require('./../warnings');
@@ -26,8 +26,13 @@ function _getDlResumeParams(path) {
 }
 
 /**
- * @param {string} [filePath] - file path (optional)
- * @param {boolean} resume
+ * Starts download.
+ * @param {string} filePath - where to store file (including name)
+ * @param {boolean} [resume] - for system use
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
  */
 function download(filePath, resume) {
     if (this.downloading || this.uploading) {
@@ -77,6 +82,13 @@ function download(filePath, resume) {
     }
 }
 
+/**
+ * Cancels download and removes impartially downloaded file.
+ * @returns {Promise}
+ * @instance
+ * @memberof File
+ * @public
+ */
 function cancelDownload() {
     this._saveDownloadEndFact();
     this._resetDownloadState();

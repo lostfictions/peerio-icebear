@@ -6,11 +6,25 @@ const Keg = require('./keg.js');
 const warnings = require('../warnings');
 const { observable } = require('mobx');
 
-// This is for named kegs only.
-// Named kegs assume there's just one instance of it.
+/**
+ * This class allows named kegs to share sync/save logic.
+ * This is for named kegs only! Named kegs assume there's just one instance of it.
+ * @param {string} kegName - kegName === kegType currently
+ * @param {KegDb|ChatKegDb} db - this keg owner database
+ * @param {boolean} [plaintext=false] - encrypted or not
+ * @param {boolean} [forceSign=false] - force signature of plaintext kegs or not
+ * @extends {Keg}
+ * @public
+ */
 class SyncedKeg extends Keg {
     _syncQueue = new Queue(1, 0);
-    // sets to true when keg is loaded for the first time
+    /**
+     * Sets to true when keg is loaded for the first time.
+     * @member {boolean} loaded
+     * @memberof SyncedKeg
+     * @instance
+     * @public
+     */
     @observable loaded = false;
 
     constructor(kegName, db, plaintext = false, forceSign = false) {
@@ -36,6 +50,11 @@ class SyncedKeg extends Keg {
         return this.reload();
     });
 
+    /**
+     * Forces updating keg data from server
+     * @returns {Promise}
+     * @public
+     */
     reload() {
         return this.load()
             .then(() => {
@@ -52,14 +71,13 @@ class SyncedKeg extends Keg {
      *
      * @param {function<bool>} dataChangeFn - function that will be called right before keg save,
      * it has to mutate keg's state. Return false to cancel save.
-     * @param {[function]} dataRestoreFn - function that will be called to restore keg state to the point before
+     * @param {function} [dataRestoreFn] - function that will be called to restore keg state to the point before
      * dataChangeFn mutated it. Default implementation will rely on keg serialization functions. dataRestoreFn will only
      * get called if version of the keg didn't change after save failed. This will make sure we won't overwrite
      * freshly received data from server.
-     * @param {[string]} errorLocaleKey - optinal error to show in snackbar
+     * @param {string} [errorLocaleKey] - optional error to show in snackbar
      * @returns {Promise}
-     *
-     * @memberof SyncedKeg
+     * @public
      */
     save(dataChangeFn, dataRestoreFn, errorLocaleKey) {
         return new Promise((resolve, reject) => {
@@ -77,7 +95,7 @@ class SyncedKeg extends Keg {
                     };
                 }
 
-                if (!dataChangeFn()) {
+                if (dataChangeFn() === false) {
                     // dataChangeFn decided not to save changes
                     return null;
                 }
@@ -92,12 +110,21 @@ class SyncedKeg extends Keg {
         });
     }
 
-    // override to perform actions after keg data has been updated from server
+    /**
+     * Override to perform actions after keg data has been updated from server.
+     * @protected
+     * @abstract
+     */
     onUpdated() {
         // abstract function
     }
 
-    // override if required
+    /**
+     * Override if required. Default implementation generates medium warning if locale key is provided.
+     * @param {string} [localeKey]
+     * @protected
+     * @abstract
+     */
     onSaveError(localeKey) {
         if (!localeKey) return;
         warnings.add(localeKey);

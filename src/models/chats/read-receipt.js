@@ -1,6 +1,26 @@
 const Keg = require('../kegs/keg');
 
+/**
+ * Holds read position (kegId) for a user in a chat. Named keg, names contain usernames.
+ * @param {string} username
+ * @param {ChatKegDb} db
+ * @extends {Keg}
+ * @public
+ */
 class ReadReceipt extends Keg {
+    /**
+     * Id of the last read message
+     * @member {string}
+     * @public
+     */
+    chatPosition;
+    /**
+     * true if this receipt's name doesn't match keg owner.
+     * @member {bool}
+     * @public
+     */
+    receiptError;
+
 
     constructor(username, db) {
         super(username ? `read_receipt-${username}` : null, 'read_receipt', db, false, false, true);

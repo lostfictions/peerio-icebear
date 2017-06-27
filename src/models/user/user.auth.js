@@ -1,11 +1,3 @@
-/**
- * Authentication module for User model.
- *
- * @todo DeviceTokens
- * @todo local storage of authSalt
- * @module models/user
- */
-
 const socket = require('../../network/socket');
 const { keys, publicCrypto, secret, cryptoUtil } = require('../../crypto/index');
 const util = require('../../util');
@@ -13,12 +5,11 @@ const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 
+//
+// Authentication mixin for User model.
+// TODO: authentication code is a bit hard to read and follow, needs refactoring
+//
 module.exports = function mixUserAuthModule() {
-    /**
-     * Authentication sequence.
-     * @returns {Promise}
-     * @private
-     */
     this._authenticateConnection = () => {
         console.log('Starting connection auth sequence.');
         return this._loadAuthSalt()
@@ -38,12 +29,6 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /**
-     * Derive the boot key and auth keypair from the passphrase and set them.
-     *
-     * @returns {Promise}
-     * @private
-     */
     this._deriveKeys = () => {
         if (!this.username) return Promise.reject(new Error('Username is required to derive keys'));
         if (!this.passphrase) return Promise.reject(new Error('Passphrase is required to derive keys'));
@@ -56,13 +41,6 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /**
-     * Get the authentication salt from the server if not stored locally.
-     *
-     * @todo store locally
-     * @returns {Promise}
-     * @private
-     */
     this._loadAuthSalt = () => {
         console.log('Loading auth salt');
         if (this.authSalt) return Promise.resolve();
@@ -71,13 +49,6 @@ module.exports = function mixUserAuthModule() {
                 this.authSalt = new Uint8Array(response.authSalt);
             });
     };
-
-    /**
-     * Get an authToken from the server.
-     *
-     * @returns {Promise}
-     * @private
-     */
     this._getAuthToken = () => {
         console.log('Requesting auth token.');
         return TinyDb.system.getValue(`${this.username}:deviceToken`)
@@ -96,12 +67,6 @@ module.exports = function mixUserAuthModule() {
             .then(resp => util.convertBuffers(resp));
     };
 
-    /**
-     * Decrypt authToken, verify its format and send it back to the server.
-     * @param data
-     * @returns {*}
-     * @private
-     */
     this._authenticateAuthToken = data => {
         console.log('Sending auth token back.');
         const decrypted = publicCrypto.decryptCompat(data.token, data.nonce,
@@ -118,12 +83,6 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /**
-     * Checks storage for passcode.
-     *
-     * @returns {Promise}
-     * @private
-     */
     this._checkForPasscode = (skipCache) => {
         if (!skipCache && this.authKeys) {
             console.log('user.auth.js: auth keys already loaded');
@@ -152,16 +111,12 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /**
-     * Derive a passphrase and set it for future authentications (only called if applicable on first login).
-     * Won't throw if the passcode is incorrect -- login will proceed treating the same user input
-     * as a passphrase instead of a passcode, allowing users who have a passcode set to still
-     * use their passphrases.
-     *
-     * @param {Uint8Array} passcodeSecret
-     * @returns {Promise}
-     * @private
-     */
+    //
+    // Derive a passphrase and set it for future authentications (only called if applicable on first login).
+    // Won't throw if the passcode is incorrect -- login will proceed treating the same user input
+    // as a passphrase instead of a passcode, allowing users who have a passcode set to still
+    // use their passphrases.
+    //
     this._derivePassphraseFromPasscode = (passcodeSecret) => {
         console.log('Deriving passphrase from passcode.');
         return this._getAuthDataFromPasscode(this.passphrase, passcodeSecret)
@@ -172,36 +127,51 @@ module.exports = function mixUserAuthModule() {
             });
     };
 
-    /**
-     * Utility to get an object containing username, passphrase.
-     **
-     * @param {String} passcode
-     * @param {Uint8Array} passcodeSecret
-     * @returns {Object}
-     */
     this._getAuthDataFromPasscode = (passcode, passcodeSecret) => {
         return keys.deriveKeyFromPasscode(this.username, passcode)
             .then(passcodeKey => secret.decryptString(passcodeSecret, passcodeKey))
             .then(authDataJSON => JSON.parse(authDataJSON));
     };
 
+    /**
+     * Creates an object with key authentication data that can be used for login
+     * with minimal time waste on key derivation.
+     * You can use this to store auth data locally in keychain or protected with shorter password.
+     * @returns {string}
+     * @memberof User
+     * @instance
+     * @public
+     */
     this.serializeAuthData = () => {
-        const { username, passphrase } = this;
+        const username = this.username;
+        const paddedPassphrase = cryptoUtil.padPassphrase(this.passphrase);
         const authSalt = cryptoUtil.bytesToB64(this.authSalt);
         const bootKey = cryptoUtil.bytesToB64(this.bootKey);
         const secretKey = cryptoUtil.bytesToB64(this.authKeys.secretKey);
         const publicKey = cryptoUtil.bytesToB64(this.authKeys.publicKey);
         const data = JSON.stringify({
-            username, passphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
+            username, paddedPassphrase, authSalt, bootKey, authKeys: { secretKey, publicKey }
         });
         return data;
     };
-
+    /**
+     * Applies serialized auth data to user object. Just call `login()` after this and user will get authenticated
+     * faster then when you just provide username and passphrase.
+     * @param {string} data
+     * @memberof User
+     * @instance
+     * @public
+     */
     this.deserializeAuthData = (data) => {
         // console.log(data);
-        const { username, passphrase, authSalt, bootKey, authKeys } = data;
+        const { username, authSalt, bootKey, authKeys } = data;
         this.username = username;
-        this.passphrase = passphrase;
+        if (data.paddedPassphrase) {
+            this.passphrase = cryptoUtil.unpadPassphrase(data.paddedPassphrase);
+        } else {
+            // Compatibility with old versions that didn't pad passhprase.
+            this.passphrase = data.passphrase;
+        }
         this.authSalt = authSalt && cryptoUtil.b64ToBytes(authSalt);
         this.bootKey = bootKey && cryptoUtil.b64ToBytes(bootKey);
         if (authKeys) {
@@ -216,8 +186,10 @@ module.exports = function mixUserAuthModule() {
 
     /**
      * Removes passcode for a user if it exists, and disables using passcodes.
-     *
-     * @returns {Promise<Boolean>}
+     * @returns {Promise}
+     * @memberof User
+     * @instance
+     * @public
      */
     this.disablePasscode = () => {
         return TinyDb.system.setValue(`${this.username}:passcode:disabled`, true)
@@ -234,8 +206,10 @@ module.exports = function mixUserAuthModule() {
 
     /**
      * Checks if user disabled passcode.
-     *
-     * @returns {Promise<Boolean>}
+     * @returns {Promise<boolean>}
+     * @memberof User
+     * @instance
+     * @public
      */
     this.passcodeIsDisabled = () => {
         return TinyDb.system.getValue(`${this.username}:passcode:disabled`)
@@ -246,9 +220,11 @@ module.exports = function mixUserAuthModule() {
      * Given a passcode and a populated User model, gets a passcode-encrypted
      * secret containing the username and passphrase as a JSON string and stores
      * it to the local db.
-     *
-     * @param {String} passcode
+     * @param {string} passcode
      * @returns {Promise}
+     * @memberof User
+     * @instance
+     * @public
      */
     this.setPasscode = (passcode) => {
         if (!this.username) return Promise.reject(new Error('Username is required to derive keys'));
@@ -275,12 +251,15 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Checks for passcode.
-     *
-     * @param {String} passcode
-     * @returns {Promise<Boolean>}
+     * Validates passcode.
+     * @param {string} passcode
+     * @returns {Promise<boolean>}
+     * @memberof User
+     * @instance
+     * @public
      */
     this.validatePasscode = (passcode) => {
+        // creating temporary user obj to do that without affecting current instance's state
         const u = new this.constructor(); // eslint-disable-line
         u.passphrase = passcode;
         u.username = this.username;
@@ -293,9 +272,11 @@ module.exports = function mixUserAuthModule() {
     };
 
     /**
-     * Checks if user has a passcode saved
-     * USED BY MOBILE PLEASE DO NOT REMOVE
-     * @returns {Promise}
+     * Checks if user has a passcode saved.
+     * @returns {Promise<boolean>}
+     * @memberof User
+     * @instance
+     * @public
      */
     this.hasPasscode = () => {
         return TinyDb.system.getValue(`${this.username}:passcode`).then(result => !!result);

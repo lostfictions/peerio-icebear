@@ -1,5 +1,8 @@
 /**
+ * @todo @seavan @flohdot
  * Validates fields in a form.
+ * @module helpers/field-validation
+ * @public
  */
 
 import { reaction, extendObservable, computed } from 'mobx';
@@ -14,10 +17,12 @@ const userValidators = require('./user-validators');
  * onChange and onBlur handlers must be manually attached to the input
  * in peerio-desktop, the ValidatedInput can be used
  *
- * @param {Object} store
- * @param {String} fName -- field name
+ * @param {object} store
+ * @param {string} fName - field name
  * @param {Array<Object>|Object} validatorOrArray
- * @param {Number|undefined} positionInForm [optional]
+ * @param {Number} [positionInForm]
+ * @memberof helpers/field-validation
+ * @public
  */
 function addValidation(store, fName, validatorOrArray, positionInForm) {
     const byName = store.byName || {};
@@ -114,7 +119,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         })
             .catch(error => {
                 // console.log(`${fName} is invalid`);
-                // note computed message will only how up if field is dirty
+                // note computed message will only show up if field is dirty
                 store[fValid] = false;
                 store[fieldValidationMessageText] = error.message;
             });

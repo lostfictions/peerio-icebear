@@ -5,24 +5,16 @@ const FileProcessor = require('./file-processor');
 
 const CHUNK_OVERHEAD = config.CHUNK_OVERHEAD;
 
+/**
+ * Manages file download process.
+ * @param {File} file
+ * @param {FileStreamAbstract} stream
+ * @param {FileNonceGenerator} nonceGenerator
+ * @param {{partialChunkSize:number, wholeChunks:number}} resumeParams
+ * @extends {FileProcessor}
+ * @protected
+ */
 class FileDownloader extends FileProcessor {
-    // chunks as they were uploaded
-    decryptQueue = [];
-    // flag to indicate that chunk is currently waiting for write promise resolve
-    writing = false;
-    // prevent parallel downloads
-    downloading = false;
-    // position of the blob as it is stored in the cloud
-    downloadPos = 0;
-    // blob was fully read
-    downloadEof = false;
-
-    /**
-     * @param {File} file
-     * @param {FileStream} stream
-     * @param {FileNonceGenerator} nonceGenerator
-     * @param {{partialChunkSize, wholeChunks}} resumeParams
-     */
     constructor(file, stream, nonceGenerator, resumeParams) {
         super(file, stream, nonceGenerator, 'download');
         // total amount to download and save to disk
@@ -39,6 +31,38 @@ class FileDownloader extends FileProcessor {
         }
         socket.onDisconnect(this._abortXhr);
     }
+
+    /**
+     * Chunks as they were uploaded
+     * @member {Array<Uint8Array>}
+     * @protected
+     */
+    decryptQueue = [];
+    /**
+     * Flag to indicate that chunk is currently waiting for write promise resolve to avoid parallel writes.
+     * @member {boolean}
+     * @protected
+     */
+    writing = false;
+    /**
+     * Avoid parallel downloads
+     * @member {boolean}
+     * @protected
+     */
+    downloading = false;
+    /**
+     *  position of the blob as it is stored in the cloud
+     * @member {number}
+     * @protected
+     */
+    downloadPos = 0;
+    /**
+     * blob was fully read
+     * @member {boolean}
+     * @protected
+     */
+    downloadEof = false;
+
 
     get _isDecryptQueueFull() {
         return (this.decryptQueue.length * (this.chunkSizeWithOverhead + 1))

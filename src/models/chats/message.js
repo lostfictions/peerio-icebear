@@ -6,27 +6,89 @@ const Keg = require('./../kegs/keg');
 const moment = require('moment');
 const _ = require('lodash');
 
+/**
+ * Message keg and model
+ * @param {ChatStore} db - chat db
+ * @extends {Keg}
+ * @public
+ */
 class Message extends Keg {
+    constructor(db) {
+        super(null, 'message', db);
+    }
+    /**
+     * @member {boolean} sending
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable sending = false;
+    /**
+     * @member {boolean} sendError
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable sendError = false;
-    @observable receipts; // array of usernames
+    /**
+     * array of usernames to render receipts for
+     * @member {Array<string>} receipts
+     * @memberof Message
+     * @instance
+     * @public
+     */
+    @observable receipts;
+    /**
+     * Which usernames are mentioned in this message.
+     * @member {Array<string>} userMentions
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable.shallow userMentions = [];
     // ----- calculated in chat store, used in ui
-    // is this message first in the day it was sent (and loaded message page)
+    /**
+     * Is this message first in the day it was sent (and loaded message page)
+     * @member {boolean} firstOfTheDay
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable firstOfTheDay;
-    // whether or not to group this message with previous one in message list
+    /**
+     * whether or not to group this message with previous one in message list.
+     * @member {boolean} groupWithPrevious
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable groupWithPrevious;
 
-    // for UI use
+    /**
+     * for UI use
+     * @member {Array<string>} inlineImages
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @observable.shallow inlineImages = [];
 
-    // some properties are filly cotrolled by UI and when SDK replaces obect with it's updated equivalent copy
-    // we want to retain those properties
+    /**
+     * Some properties are filly controlled by UI and when SDK replaces object with its updated equivalent copy
+     * we want to retain those properties.
+     * @protected
+     */
     setUIPropsFrom(msg) {
         this.inlineImages = msg.inlineImages;
     }
     // -----
-    // used to compare calendar days
+    /**
+     * used to compare calendar days
+     * @member {string} dayFingerprint
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @computed get dayFingerprint() {
         if (!this.timestamp) return null;
         return this.timestamp.getDate().toString() +
@@ -34,21 +96,24 @@ class Message extends Keg {
             this.timestamp.getFullYear().toString();
     }
 
-    // TODO: mobile uses this, but desktop uses
-    // TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
-    // TODO: resolve/unify this in favor of most performant method
+    /**
+     * TODO: mobile uses this, but desktop uses
+     * TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+     * TODO: resolve/unify this in favor of most performant method
+     * @member {string} messageTimestampText
+     * @memberof Message
+     * @instance
+     * @public
+     */
     @computed get messageTimestampText() {
         const { timestamp } = this;
         return timestamp ? moment(timestamp).format('LT') : null;
     }
-
     /**
-     * @param {ChatStore} db - chat db
+     * Sends current message (saves the keg)
+     * @returns {Promise}
+     * @protected
      */
-    constructor(db) {
-        super(null, 'message', db);
-    }
-
     send() {
         this.sending = true;
         this.sendError = false;
@@ -67,6 +132,11 @@ class Message extends Keg {
             });
     }
 
+    /**
+     * Creates system metadata indicating chat rename.
+     * @param {string} newName
+     * @protected
+     */
     setRenameFact(newName) {
         this.systemData = {
             action: 'rename',
@@ -74,6 +144,10 @@ class Message extends Keg {
         };
     }
 
+    /**
+     * Creates system metadata indicating chat creation fact.
+     * @protected
+     */
     setChatCreationFact() {
         this.systemData = {
             action: 'create'
@@ -97,13 +171,38 @@ class Message extends Keg {
     }
 
     deserializeKegPayload(payload) {
+        /**
+         * @member {Contact} sender
+         * @public
+         */
         this.sender = contactStore.getContact(this.owner);
+        /**
+         * @member {string} text
+         * @public
+         */
         this.text = payload.text;
+        /**
+         * For system messages like chat rename fact.
+         * @member {object} systemData
+         * @public
+         */
         this.systemData = payload.systemData;
+        /**
+         * @member {Date} timestamp
+         * @public
+         */
         this.timestamp = new Date(payload.timestamp);
         this.userMentions = payload.userMentions;
+        /**
+         * @member {Array<string>} files
+         * @public
+         */
         this.files = payload.files ? JSON.parse(payload.files) : null;
-
+        /**
+         * Does this message mention current user.
+         * @member {boolean} isMention
+         * @public
+         */
         this.isMention = this.userMentions ? this.userMentions.includes(User.current.username) : false;
     }
 

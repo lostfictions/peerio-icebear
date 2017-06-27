@@ -1,10 +1,8 @@
 
-/**
- * Peerio network socket client module.
- * This module exports SocketClient class that can be instantiated as many times as needed.
- * Other modules contain singleton instances for general use.
- * @module network/socket-client
- */
+//
+// WebSocket client module.
+// This module exports SocketClient class that can be instantiated as many times as needed.
+//
 
 const io = require('socket.io-client/dist/socket.io');
 const { ServerError, DisconnectedError, NotAuthenticatedError } = require('../errors');
@@ -12,6 +10,7 @@ const { observable } = require('mobx');
 const config = require('../config');
 const util = require('../util');
 const Timer = require('../helpers/observable-timer');
+const { getUser } = require('../helpers/di-current-user');
 
 const STATES = {
     open: 'open',
@@ -20,6 +19,7 @@ const STATES = {
     closing: 'closing'
 };
 
+// socket.io event
 const SOCKET_EVENTS = {
     connect: 'connect',
     connect_error: 'connect_error',
@@ -37,6 +37,7 @@ const SOCKET_EVENTS = {
     authenticated: 'authenticated'
 };
 
+// application events sent by app server
 const APP_EVENTS = {
     twoFA: 'twoFA',
     kegsUpdate: 'kegsUpdate',
@@ -44,42 +45,159 @@ const APP_EVENTS = {
     clearWaring: 'clearWarning'
 };
 
-/** Create an instance of Socket per connection. */
+/**
+ * Use socket.js to get the default instance of SocketClient, unless you do need a separate connection for some reason.
+ *
+ * SocketClient emits many events, main ones are:
+ * - **started** - whenever socket.start() is called the first time.
+ * - **connect** - every time connection has been established.
+ * - **authenticated** - when connection is fully authenticated and ready to work.
+ * - **disconnect** - every time connection has been broken.
+ *
+ * The rest you can find in sources:
+ * - **SOCKET_EVENTS** - whatever is happening with socket.io instance
+ * - **APP_EVENTS** - server emits them
+ * @public
+ */
 class SocketClient {
+    /**
+     * Socket.io client instance
+     * @private
+     */
     socket = null;
+    /**
+     * Was socket started or not
+     * @public
+     */
     started = false;
+    /**
+     * Connection url this socket uses. Readonly.
+     * @public
+     */
     url = null;
+    /**
+     * Observable connection state.
+     * @member {boolean} connected
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable connected = false;
-    // this flag means that connection has technically been authenticated from server's perspective
-    // but client is still initializing, loading boot keg and other important data needed before starting any other
-    // processes and setting socket.authenticated to true
+    /**
+     * This flag means that connection has technically been authenticated from server's perspective,
+     * but client is still initializing, loading boot keg and other important data needed before starting any other
+     * processes and setting socket.authenticated to true.
+     * @member {boolean}
+     * @private
+     */
     preauthenticated = false;
+    /**
+     * Observable. Normally you want to use socket when it's authenticated rather then just connected.
+     * @member {boolean} authenticated
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable authenticated = false;
+    /**
+     * Observable. Is the connection currently throttled by server.
+     * @member {boolean} throttled
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable throttled = false;
+    /**
+     * Observable. In case reconnection attempt failed, this property will reflect current attempt number.
+     * @member {number} reconnectAttempt
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable reconnectAttempt = 0;
+    /**
+     * Observable. Shows if reconnecting process is in progress.
+     * @member {boolean} reconnecting
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable reconnecting = false;
+    /**
+     * Observable. Shows current server response time in milliseconds. This is not a network ping,
+     * this is a time needed for a websocket message to do a round trip.
+     * @member {number} latency
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
     @observable latency = 0;
+    /**
+     * Countdown to the next reconnect attempt.
+     * @member {Timer}
+     * @public
+     */
     reconnectTimer = new Timer();
 
     // for debug (if enabled)
     // DON'T MAKE THIS OBSERVABLE
     // At some conditions it creates cyclic reactions with autorun
+    /**
+     * Total amount of bytes received since socket was created.
+     * Note that this is not including file downloads, because downloads go through https.
+     * @member {number}
+     * @public
+     */
     bytesReceived = 0;
+    /**
+     * Total amount of bytes sent since socket was created.
+     * @member {number}
+     * @public
+     */
     bytesSent = 0;
-
+    /**
+     * Just an incrementing with every request number to be able to identify server responses.
+     * @private
+     */
     requestId = 0;
+    /**
+     * Awaiting requests map.
+     * @private
+     */
     awaitingRequests = {}; // {number: function}
 
+    /**
+     * List of 'authenticated' event handlers.
+     * @private
+     */
     authenticatedEventListeners = [];
+    /**
+     * List of 'started' event handlers.
+     * @private
+     */
     startedEventListeners = [];
     // following properties are not static for access convenience
-    /** Possible connection states */
+    /**
+     * Possible connection states
+     * @public
+     */
     STATES = STATES;
-    /** System events */
+    /**
+     * Socket lifecycle events
+     * @public
+     */
     SOCKET_EVENTS = SOCKET_EVENTS;
-    /** Application events */
+    /**
+     * Application server events
+     * @public
+     */
     APP_EVENTS = APP_EVENTS;
 
+    /**
+     * Initializes the SocketClient instance, creates wrapped socket.io instance and so on.
+     * @param {string} url
+     * @public
+     */
     start(url) {
         if (this.started) return;
         console.log(`Starting socket: ${url}`);
@@ -180,12 +298,20 @@ class SocketClient {
         }
     }
 
-    /** Returns connection state */
+    /**
+     * Returns connection state, one of {@link STATES}
+     * @member {string}
+     * @public
+     */
     get state() {
         // unknown states translated to 'closed' for safety
         return STATES[this.socket.io.readyState] || STATES.closed;
     }
 
+    /**
+     * Internal function to do what it says
+     * @private
+     */
     setAuthenticatedState() {
         // timeout to make sure code that call this does what it needs to before mobx reaction triggers
         setTimeout(() => {
@@ -197,7 +323,11 @@ class SocketClient {
         });
     }
 
-    _validateSubscription(event, listener) {
+    /**
+     * Internal function to do what it says
+     * @private
+     */
+    validateSubscription(event, listener) {
         if (!SOCKET_EVENTS[event] && !APP_EVENTS[event]) {
             throw new Error('Attempt to un/subscribe from/to unknown socket event.');
         }
@@ -209,10 +339,11 @@ class SocketClient {
      * Subscribes a listener to one of the socket or app events.
      * @param {string} event - event name, one of SOCKET_EVENTS or APP_EVENTS
      * @param {function} listener - event handler
-     * @returns {function} - function you can call to unsubscribe
+     * @returns {function} function you can call to unsubscribe
+     * @public
      */
     subscribe(event, listener) {
-        this._validateSubscription(event, listener);
+        this.validateSubscription(event, listener);
         if (event === SOCKET_EVENTS.authenticated) {
             // maybe this listener was subscribed already
             if (this.authenticatedEventListeners.indexOf(listener) < 0) {
@@ -224,9 +355,14 @@ class SocketClient {
         return () => this.unsubscribe(event, listener);
     }
 
-    /** Unsubscribes a listener to socket or app events */
+    /**
+     * Unsubscribes socket or app events listener.
+     * @param {string} event - event name, one of SOCKET_EVENTS or APP_EVENTS
+     * @param {function} listener - event handler
+     * @public
+     */
     unsubscribe(event, listener) {
-        this._validateSubscription(event, listener);
+        this.validateSubscription(event, listener);
         if (event === SOCKET_EVENTS.authenticated) {
             const ind = this.authenticatedEventListeners.indexOf(listener);
             if (ind < 0) return;
@@ -236,7 +372,13 @@ class SocketClient {
         }
     }
 
-    /** Send a message to server */
+    /**
+     * Send a message to server
+     * @param {string} name - api method name
+     * @param {any} data - data to send
+     * @returns {Promise<object>} - server response, always returns `{}` if response is empty
+     * @public
+     */
     send(name, data) {
         const id = this.requestId++;
         return new Promise((resolve, reject) => {
@@ -252,11 +394,16 @@ class SocketClient {
                 return;
             }
             function handler(resp) {
+                this.throttled = (resp.error === 425);
                 if (resp && resp.error) {
                     if (resp.error === ServerError.codes.accountClosed) {
+                        getUser().deleted = true;
                         this.close();
                     }
-                    this.throttled = this.throttled || (resp.error === 425);
+                    if (resp.error === ServerError.codes.accountBlacklisted) {
+                        getUser().blacklisted = true;
+                        this.close();
+                    }
                     reject(new ServerError(resp.error, resp.message));
                     return;
                 }
@@ -270,6 +417,10 @@ class SocketClient {
             });
     }
 
+    /**
+     * Rejects promises and clears all awaiting requests (in case of disconnect)
+     * @private
+     */
     cancelAwaitingRequests() {
         const err = new DisconnectedError();
         for (const id in this.awaitingRequests) {
@@ -278,7 +429,12 @@ class SocketClient {
         this.awaitingRequests = {};
     }
 
-    /** Executes a callback only once when socket will connect, or immediately if socket is connected already */
+    /**
+     * Executes a callback only once when socket will connect.
+     * If socket is already connected, callback will be scheduled to run ASAP.
+     * @param {function} callback
+     * @public
+     */
     onceConnected(callback) {
         if (this.socket.connected) {
             setTimeout(callback, 0);
@@ -291,6 +447,12 @@ class SocketClient {
         this.subscribe(SOCKET_EVENTS.connect, handler);
     }
 
+    /**
+     * Executes a callback only once when socket will authenticate.
+     * If socket is already authenticated, callback will be scheduled to run ASAP.
+     * @param {function} callback
+     * @public
+     */
     onceAuthenticated(callback) {
         if (this.authenticated) {
             setTimeout(callback, 0);
@@ -303,36 +465,72 @@ class SocketClient {
         this.subscribe(SOCKET_EVENTS.authenticated, handler);
     }
 
-    /** Executes a callback once socket is started */
+    /**
+     * Executes a callback once socket is started.
+     * If socket is already started, callback will be scheduled to run ASAP.
+     * @param {function} callback
+     * @public
+     */
     onceStarted(callback) {
+        if (this.started) {
+            setTimeout(callback, 0);
+            return;
+        }
         this.startedEventListeners.push(callback);
     }
 
-    /** Shortcut to frequently used 'authenticated' subscription */
+    /**
+     * Shortcut to frequently used 'authenticated' subscription.
+     * Does not call handler if socket is already authenticated, only subscribes to future events.
+     * @param {function} handler
+     * @returns {function} unsubscribe function
+     * @public
+     */
     onAuthenticated(handler) {
-        this.subscribe(SOCKET_EVENTS.authenticated, handler);
+        return this.subscribe(SOCKET_EVENTS.authenticated, handler);
     }
 
-    /** Shortcut to frequently used 'disconnect' subscription */
+    /**
+     * Shortcut to frequently used 'disconnect' subscription.
+     * Does not call handler if socket is already disconnected, only subscribes to future events.
+     * @param {function} handler
+     * @returns {function} unsubscribe function
+     * @public
+     */
     onDisconnect(handler) {
-        this.subscribe(SOCKET_EVENTS.disconnect, handler);
+        return this.subscribe(SOCKET_EVENTS.disconnect, handler);
     }
 
-    /** Closes current connection and disables reconnects. */
+    /**
+     * Closes current connection and disables reconnects until open() is called.
+     * @public
+     */
     close = () => {
         this.socket.close();
     };
 
+    /**
+     * Opens a new connection. (Or does nothing if already open)
+     * @public
+     */
     open = () => {
         this.socket.open();
     };
 
+    /**
+     * Internal function to do what it says
+     * @private
+     */
     resetReconnectTimer = () => {
         if (this.connected || this.reconnecting || this.reconnectTimer.counter < 2) return;
         this.backupAttempts = this.socket.io.backoff.attempts;
         this.reset();
     }
 
+    /**
+     * Closes connection and opens it again.
+     * @public
+     */
     reset = () => {
         this.reconnecting = true;
         this.reconnectTimer.stop();

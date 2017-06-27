@@ -1,4 +1,3 @@
-
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -22,48 +21,199 @@ function getTemporaryChatId() {
 // Know that it's not a whitespace, it's unicode :thumb_up: emoji
 const ACK_MSG = '👍';
 
+/**
+ * at least one of two arguments should be set
+ * @param {string} id - chat id
+ * @param {Array<Contact>} participants - chat participants
+ * @param {ChatStore} store
+ * @public
+ */
 class Chat {
+    constructor(id, participants, store) {
+        this.id = id;
+        this.store = store;
+        if (!id) this.tempId = getTemporaryChatId();
+        this.participants = participants;
+        this.db = new ChatKegDb(id, participants);
+        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
+            shouldSendReceipt => {
+                if (shouldSendReceipt) this._sendReceipt();
+            }));
+    }
 
+    /**
+     * Chat id
+     * @member {?string} id
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable id = null;
 
-    // Message objects
+    /**
+     * Render these messages.
+     * @member {ObservableArray<Message>} messages
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable messages = observable.shallowArray([]);
-    // Messages that do not have Id yet
+    /**
+     * Render these messages at the bottom of the chat, they don't have Id yet, you can use tempId.
+     * @member {ObservableArray<Message>} limboMessages
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable limboMessages = observable.shallowArray([]);
+
     // performance helper, to lookup messages by id and avoid duplicates
     _messageMap = {};
 
-    /** @type {Array<Contact>} */
+    /**
+     * Does not include current user.
+     * @member {ObservableArray<Contact>} participant
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable participants = [];
 
-    // initial metadata loading
-    @observable loadingMeta = false;
-    metaLoaded = false;
 
-    // initial messages loading
+    /**
+     * If true - chat is not ready for anything yet.
+     * @member {boolean} loadingMeta
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable loadingMeta = false;
+    /**
+     * @member {boolean} metaLoaded
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable metaLoaded = false;
+
+
+    /**
+     * This can happen when chat was just added or after reset()
+     * @member {boolean} loadingInitialPage
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable loadingInitialPage = false;
+    /**
+     * Ready to render messages.
+     * @member {boolean} initialPageLoaded
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable initialPageLoaded = false;
+    /**
+     * Ready to render most recent message contents in chat list.
+     * @member {boolean} mostRecentMessageLoaded
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable mostRecentMessageLoaded = false;
+    /**
+     * @member {boolean} loadingTopPage
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable loadingTopPage = false;
+    /**
+     * @member {boolean} loadingBottomPage
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable loadingBottomPage = false;
 
-    @observable canGoUp = false; // can we go back in history from where we are? (load older messages)
-    @observable canGoDown = false; // can we go forward in history or we have the most recent data loaded
-    // currently selected/focused in UI
+
+    /**
+     * can we go back in history from where we are? (load older messages)
+     * @member {boolean} canGoUp
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable canGoUp = false;
+    /**
+     * can we go forward in history or we have the most recent data loaded
+     * @member {boolean} canGoDown
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable canGoDown = false;
+    /**
+     * currently selected/focused in UI
+     * @member {boolean} active
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable active = false;
 
+    /**
+     * @member {boolean} isFavorite
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable isFavorite = false;
 
+    /**
+     * Prevent spamming 'Favorite' button in GUI.
+     * @member {boolean} changingFavState
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable changingFavState = false;
 
-    // list of files being uploaded to this chat
+    /**
+     * list of files being uploaded to this chat.
+     * @member {ObservableArray<File>} uploadQueue
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable uploadQueue = observable.shallowArray([]);
+    /**
+     * Unread message count in this chat.
+     * @member {number} unreadCount
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable unreadCount = 0;
-    // when user is not looking but chat is active and recieving updates,
-    // chat briefly sets this value to the id of last seen message so client can render separator marker
+    /**
+     * when user is not looking but chat is active and receiving updates,
+     * chat briefly sets this value to the id of last seen message so client can render separator marker.
+     * @member {string} newMessagesMarkerPos
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @observable newMessagesMarkerPos = '';
 
-    @observable.ref chatHead; // observable bcs this.name relies on it
+    /**
+     * Chat head keg.
+     * Observable, because `this.name` relies on it
+     * @member {?ChatHead} chatHead
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable.ref chatHead;
     _messageHandler = null;
     _receiptHandler = null;
     _fileHandler = null;
@@ -72,12 +222,35 @@ class Chat {
     _addMessageQueue = new Queue(1, config.chat.decryptQueueThrottle || 0);
 
     _reactionsToDispose = [];
+    /**
+     * @member {boolean} isReadOnly
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get isReadOnly() {
+        return this.participants.length > 0
+            && this.participants.filter(p => p.isDeleted).length === this.participants.length;
+    }
 
+    /**
+     * Excluding current user.
+     * @member {Array<string>} participantUsernames
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @computed get participantUsernames() {
-        if (!this.participants) return null;
+        // if (!this.participants) return null;
         return this.participants.map(p => p.username);
     }
 
+    /**
+     * @member {string} name
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @computed get name() {
         if (this.chatHead && this.chatHead.chatName) return this.chatHead.chatName;
         if (!this.participants) return '';
@@ -86,6 +259,13 @@ class Chat {
             : this.participants.map(p => p.fullName || p.username).join(', ');
     }
 
+    /**
+     * User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
+     * @member {boolean} canSendAck
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @computed get canSendAck() {
         if (this.limboMessages.length) {
             for (let i = 0; i < this.limboMessages.length; i++) {
@@ -101,6 +281,13 @@ class Chat {
         return true;
     }
 
+    /**
+     * Don't render message marker if this is false.
+     * @member {boolean} showNewMessagesMarker
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @computed get showNewMessagesMarker() {
         if (!this.newMessagesMarkerPos) return false;
         for (let i = this.messages.length - 1; i >= 0 && this.messages[i].id !== this.newMessagesMarkerPos; i--) {
@@ -109,25 +296,19 @@ class Chat {
         return false;
     }
 
-    @observable mostRecentMessage;
     /**
-     * @param {string} id - chat id
-     * @param {Array<Contact>} participants - chat participants
-     * @param {ChatStore} store
-     * @summary at least one of two arguments should be set
+     * @member {?Message} mostRecentMessage
+     * @memberof Chat
+     * @instance
+     * @public
      */
-    constructor(id, participants, store) {
-        this.id = id;
-        this.store = store;
-        if (!id) this.tempId = getTemporaryChatId();
-        this.participants = participants;
-        this.db = new ChatKegDb(id, participants);
-        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
-            shouldSendReceipt => {
-                if (shouldSendReceipt) this._sendReceipt();
-            }));
-    }
+    @observable mostRecentMessage;
+
     _metaPromise = null;
+    /**
+     * @returns {Promise}
+     * @private
+     */
     loadMetadata() {
         if (this.metaLoaded || this.loadingMeta) return this._metaPromise;
         this.loadingMeta = true;
@@ -160,7 +341,11 @@ class Chat {
     /**
      * Adds messages to current message list.
      * @param {Array<Object|Message>} kegs - list of messages to add
-     * @param prepend - add message to top of bottom
+     * @param {boolean} [prepend=false] - add message to top of bottom
+     * @function addMessages
+     * @memberof Chat
+     * @instance
+     * @protected
      */
     @action addMessages(kegs, prepend = false) {
         if (!kegs || !kegs.length) return Promise.resolve();
@@ -178,7 +363,7 @@ class Chat {
     _parseMessageKeg(keg, accumulator) {
         const msg = new Message(this.db);
         // no payload for some reason. probably because of connection break after keg creation
-        if (msg.isEmpty || !msg.loadFromKeg(keg)) {
+        if (!msg.loadFromKeg(keg) || msg.isEmpty) {
             console.debug('empty message keg', keg);
             return;
         }
@@ -187,10 +372,10 @@ class Chat {
 
     /**
      * Alert UI hooks of new messages/mentions.
-     *
      * @param {Number} freshBatchMentionCount -- # of new/freshly loaded messages
      * @param {Number} freshBatchMessageCount -- # of new/freshly loaded mentions
      * @param {Number} lastMentionId -- id of last mention message, if exists
+     * @private
      */
     onNewMessageLoad(freshBatchMentionCount, freshBatchMessageCount, lastMentionId) {
         // fresh batch could mean app/page load rather than unreads,
@@ -276,8 +461,11 @@ class Chat {
         this._receiptHandler.applyReceipts();
     }
 
-    // sorts messages in-place
-    // we use insertion sorting because it's optimal for our mostly always sorted small array
+    /**
+     * Sorts messages in-place as opposed to ObservableArray#sort that returns a copy of array.
+     * We use insertion sorting because it's optimal for our mostly always sorted small array.
+     * @protected
+     */
     sortMessages() {
         const array = this.messages;
         for (let i = 1; i < array.length; i++) {
@@ -317,6 +505,13 @@ class Chat {
         return promise;
     }
 
+    /**
+     * @function sendMessage
+     * @param {string} text
+     * @param {Array<File>} [files]
+     * @returns {Promise}
+     * @memberof Chat
+     */
     @action sendMessage(text, files) {
         const m = new Message(this.db);
         m.files = files;
@@ -324,20 +519,33 @@ class Chat {
         return this._sendMessage(m);
     }
 
-    // todo: this is temporary, for failed messages. When we have message delete - it should be unified process.
+    /**
+     * todo: this is temporary, for messages that failed to send.
+     * When we have message delete - it should be unified process.
+     * @function removeMessage
+     * @param {Message} message
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @action removeMessage(message) {
         this.limboMessages.remove(message);
         this.messages.remove(message);
         delete this._messageMap[message.id];
     }
-
+    /**
+     * @returns {Promise}
+     * @public
+     */
     sendAck() {
         return this.sendMessage(ACK_MSG);
     }
 
     /**
-     * Checks if this chat's participants are the same one that are passed
+     * Checks if this chat's participants are the same with ones that are passed
      * @param participants
+     * @returns boolean
+     * @protected
      */
     hasSameParticipants(participants) {
         if (this.participants.length !== participants.length) return false;
@@ -348,35 +556,65 @@ class Chat {
         return true;
     }
 
-    uploadAndShareFile(path, name, deleteAfterUpload) {
+    /**
+     * Note that file will not be shared if session ends, but it will be uploaded because of upload resume logic.
+     * @param {string} path
+     * @param {string} [name]
+     * @param {boolean} [deleteAfterUpload=false]
+     * @returns {Promise}
+     * @public
+     */
+    uploadAndShareFile(path, name, deleteAfterUpload = false) {
         return this._fileHandler.uploadAndShare(path, name, deleteAfterUpload);
     }
 
+    /**
+     * @param {Array<File>} files
+     * @returns {Promise}
+     * @public
+     */
     shareFiles(files) {
         return this._fileHandler.share(files);
     }
 
+    /**
+     * @returns {Promise}
+     * @protected
+     */
     loadMostRecentMessage() {
         return this._messageHandler.loadMostRecentMessage();
     }
 
+    /**
+     * @returns {Promise}
+     * @protected
+     */
     async loadMessages() {
         if (!this.metaLoaded) await this.loadMetadata();
         this._messageHandler.getInitialPage()
             .then(() => this._messageHandler.onMessageDigestUpdate());
     }
 
-
+    /**
+     * @public
+     */
     loadPreviousPage() {
         if (!this.canGoUp) return;
         this._messageHandler.getPage(true);
     }
 
+    /**
+     * @public
+     */
     loadNextPage() {
         if (!this.canGoDown) return;
         this._messageHandler.getPage(false);
     }
 
+    /**
+     * @param {string} name - pass empty string to remove chat name
+     * @public
+     */
     rename(name) {
         let validated = name || '';
         validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
@@ -386,7 +624,7 @@ class Chat {
         }
         return this.chatHead.save(() => {
             this.chatHead.chatName = validated;
-        }, 'error_chatRename')
+        }, null, 'error_chatRename')
             .then(() => {
                 const m = new Message(this.db);
                 m.setRenameFact(validated);
@@ -394,6 +632,10 @@ class Chat {
             });
     }
 
+    /**
+     * @function toggleFavoriteState
+     * @public
+     */
     toggleFavoriteState = () => {
         this.changingFavState = true;
         const myChats = this.store.myChats;
@@ -409,20 +651,32 @@ class Chat {
             .finally(() => { this.changingFavState = false; });
     }
 
+    /**
+     * @function hide
+     * @public
+     */
     hide = () => {
-        this.store._unloadChat(this);
+        this.store.unloadChat(this);
         this.store.hidingChat = true;
         return this.store.myChats.save(() => {
             this.store.myChats.addHidden(this.id);
         }).finally(() => { this.store.hidingChat = false; });
     };
 
+    /**
+     * @function unhide
+     * @public
+     */
     unhide = () => {
         return this.store.myChats.save(() => {
             this.store.myChats.removeHidden(this.id);
         });
     };
 
+    /**
+     * Reloads most recent page of the chat like it was just added.
+     * @public
+     */
     reset() {
         this.loadingInitialPage = false;
         this.initialPageLoaded = false;

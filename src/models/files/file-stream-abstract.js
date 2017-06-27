@@ -2,17 +2,34 @@
 const { AbstractCallError } = require('../../errors');
 
 /**
- * Abstract File Stream class
- *  1. inherit you own
- *  2. override required functions
- *  3. set FileStreamAbstract.FileStream = YourFileStreamImplementation
+ * Abstract File Stream class. Icebear wants to read/write files,
+ * but doesn't know how exactly that would work on your platform.
+ *
+ * 1. create you own class and inherit from FileStreamAbstract.
+ * 2. override required functions.
+ * 3. set config.FileStream = YourFileStreamImplementation.
+ * @param {string} filePath - will be used by 'open' function
+ * @param {string} mode - 'read' or 'write' or 'append'
+ * @public
  */
 class FileStreamAbstract {
-
     /**
-     * @param {string} filePath - will be used by 'open' function
-     * @param {string} mode - 'read' or 'write' or 'append'
+     * @member {string}
+     * @public
      */
+    filePath;
+    /**
+     * @member {string}
+     * @public
+     */
+    mode;
+    /**
+     * File stream pointer
+     * @member {number}
+     * @public
+     */
+    pos;
+
     constructor(filePath, mode) {
         this.filePath = filePath;
         if (mode !== 'read' && mode !== 'write' && mode !== 'append') {
@@ -23,9 +40,11 @@ class FileStreamAbstract {
     }
 
     /**
-     * Reads a chunk of data from file stream
+     * Reads a chunk of data from file stream.
+     * @function read
      * @param {number} size - amount of bytes to read (if possible)
      * @return {Promise<Uint8Array>} - resolves with a number of bytes written to buffer
+     * @public
      */
     read = (size) => {
         if (this.mode !== 'read') {
@@ -39,14 +58,23 @@ class FileStreamAbstract {
         return buf;
     };
 
-    readInternal() {
+    /**
+     * Override this in your implementation.
+     * @param {number} size - bytes
+     * @returns {Promise<Uint8Array}
+     * @abstract
+     * @protected
+     */
+    readInternal(size) {
         throw new AbstractCallError();
     }
 
     /**
      * Writes a chunk of data to file stream
+     * @function write
      * @param {Uint8Array} buffer
-     * @returns {Promise} - resolves when chunk is written out,
+     * @returns {Promise} - resolves when chunk is written out
+     * @public
      */
     write = (buffer) => {
         if (this.mode !== 'write' && this.mode !== 'append') {
@@ -57,14 +85,23 @@ class FileStreamAbstract {
         return this.writeInternal(buffer).then(this._increasePosition);
     };
 
+    /**
+     * Override this in your implementation.
+     * @param {Uint8Array} buffer
+     * @returns {Promise<Uint8Array>} buffer, same one as was passed
+     * @abstract
+     * @protected
+     */
     writeInternal(buffer) {
         throw new AbstractCallError();
     }
 
     /**
-     * Move file position pointer
+     * Move file position pointer.
+     * @function seek
      * @param {number} pos
-     * @returns {number} new position immediately
+     * @returns {number} new position
+     * @public
      */
     seek = (pos) => {
         if (this.mode !== 'read') throw new Error('Seek only on read streams');
@@ -72,65 +109,102 @@ class FileStreamAbstract {
     };
 
     /**
-     * Move file position pointer
+     * Override this in your implementation. Move file position pointer.
      * @param {number} pos
+     * @returns {number} new position
+     * @protected
      */
-    // eslint-disable-next-line
     seekInternal(pos) {
         throw new AbstractCallError();
     }
 
 
     /**
-     * This function has to set 'size' property
+     * Override. This function has to set 'size' property.
      * @returns {Promise<FileStreamAbstract>} - this
+     * @abstract
+     * @public
      */
     open() {
         throw new AbstractCallError();
     }
 
     /**
-     * Called when done working with file, should flush all buffers and dispose resources.
+     * Override. Called when done working with file, should flush all buffers and dispose resources.
+     * @abstract
+     * @public
      */
     close() {
         throw new AbstractCallError();
     }
 
     /**
+     * Override. Returns full path for file when there's a default cache path implemented in the app.
+     * Currently only mobile.
      * @param {string} name - normalized file name (deterministically generated)
      * @returns {string} - actual device path for file
+     * @abstract
+     * @public
      */
     static getFullPath(name) {
         throw new AbstractCallError();
     }
 
     /**
+     * Override.
      * @param {string} path
-     * @returns Promise<boolean> - true if path exists on device
+     * @returns {Promise<boolean>} - true if path exists on device
+     * @abstract
+     * @public
      */
     static exists(path) {
         throw new AbstractCallError();
     }
 
     /**
-     * Launch external viewer
-     * @param {string} path - file path to open in a viewer
+     * Override. Launch external viewer.
+     * @param {string} path - file path to open in a viewer.
+     * @abstract
+     * @public
      */
     static launchViewer(path) {
         throw new AbstractCallError();
     }
 
+    /**
+     * Override. Get file stat object.
+     * @static
+     * @param {string} path
+     * @returns {{size:number}}
+     * @memberof FileStreamAbstract
+     * @abstract
+     * @public
+     */
     static getStat(path) {
         throw new AbstractCallError();
     }
 
     /**
-     * @returns Promise<string[]> - array of absolute paths to cache items
+     * Override. Currently mobile only.
+     * @returns Promise<string[]> - array of absolute paths to cached items.
+     * @static
+     * @memberof FileStreamAbstract
+     * @abstract
+     * @public
      */
     static getCacheList() {
         throw new AbstractCallError();
     }
 
+    /**
+     * Override. Removes file by path.
+     * @static
+     * @param {string} path
+     * @returns {Promise}
+     * @memberof FileStreamAbstract
+     * @abstract
+     * @public
+     */
     static delete(path) {
         throw new AbstractCallError();
     }
