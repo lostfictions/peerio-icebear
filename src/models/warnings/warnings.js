@@ -77,7 +77,7 @@ class Warnings {
      * Severe warnings will always get added to the top of the queue.
      * @param {string} content - translation key.
      * @param {string} [title] - optional translation key for title, will not be shown in snackbars.
-     * @param {object} [data] - variables to pass to translator.
+     * @param {Object} [data] - variables to pass to translator.
      * @param {string} [level='medium'] - severity level.
      * @param {function} [callback] - executes when warning is dismissed
      * @function add
@@ -94,7 +94,7 @@ class Warnings {
      * Severe warnings will always get added to the top of the queue.
      * @param {string} content - translation key.
      * @param {string} [title] - optional translation key for title, will not be shown in snackbars.
-     * @param {object} [data] - variables to pass to translator.
+     * @param {Object} [data] - variables to pass to translator.
      * @param {function} [callback] - executes when warning is dismissed
      * @function addSevere
      * @instance
@@ -107,7 +107,7 @@ class Warnings {
 
     /**
      * Adds server warning to the queue.
-     * @param {object} serverObj - as received from server
+     * @param {Object} serverObj - as received from server
      * @function addServerWarning
      * @instance
      * @memberof Warnings

@@ -23,7 +23,7 @@ For decorated functions replace `@member {type} name` tag with `@function name`.
 Incorrect: `@param {Array.<string>} name`
 Correct: `@param {Array<string>} name`
 - More > less, if you wonder if some tag is necessary or will be inferred ether check it or just add it.
-- Don't use `@type` tag, id doesn't get parsed, use `@member {type}` or `@member {type} name`.
+- Don't use `@type` tag, it doesn't get parsed, use `@member {type}` or `@member {type} name`.
 - Document class static properties inside class, even if you initialize them outside, otherwise weird global copies
 will be created in the documentation.
 - If you export singleton from a module, mark the class as `@namespace`
@@ -32,3 +32,4 @@ will be created in the documentation.
 - Arrow function class properties require `@function` tag
 - Carefully document nullable types, add question mark in the beginning to define nullable - `@param {?string}`
 - Always define optional params and default values like so `@param {string} [name='']`
+- Many tags are ignored, check if not sure.

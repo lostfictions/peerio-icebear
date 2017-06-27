@@ -46,7 +46,7 @@ class Queue {
      * after returned promise is fulfilled.
      * @function addTask
      * @param {function} task - function to run
-     * @param {object} [context] - 'this' context to execute the task with
+     * @param {Object} [context] - 'this' context to execute the task with
      * @param {Array<any>} [args] - arguments to pass to the task
      * @param {callback} [onSuccess] - callback will be executed as soon as task is finished without error
      * @param {callback<Error>} [onError] - callback will be executed if task throws or rejects promise

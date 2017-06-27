@@ -7,7 +7,7 @@ const { when } = require('mobx');
 
 /**
  * Makes a promise out of observable.
- * @param {object} object - any object
+ * @param {Object} object - any object
  * @param {string} observableProperty - observable property name inside object
  * @param {any} expectedValue - resolve promise when observable property has this value (strict equality ===)
  * @returns {Promise}

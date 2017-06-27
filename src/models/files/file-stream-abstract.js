@@ -61,7 +61,7 @@ class FileStreamAbstract {
     /**
      * Override this in your implementation.
      * @param {number} size - bytes
-     * @returns {Promise<Uint8Array}
+     * @returns {Promise<Uint8Array>}
      * @abstract
      * @protected
      */

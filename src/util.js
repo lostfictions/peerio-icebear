@@ -10,8 +10,8 @@ let a;// eslint-disable-line
 
 /**
  * Finds all ArrayBuffer type properties recursively and changes them to Uint8Array created with the same ArrayBuffer.
- * @param {object} obj - object to check for ArrayBuffers.
- * @returns {object} same object that was passed but with some property values changed.
+ * @param {Object} obj - object to check for ArrayBuffers.
+ * @returns {Object} same object that was passed but with some property values changed.
  * @memberof util
  * @public
  */

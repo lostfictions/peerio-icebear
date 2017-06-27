@@ -7,7 +7,7 @@ const socket = require('../../network/socket');
 /**
  * Server warning. Server sends locale key and severity level for client to display.
  * You don't need to create instances of this class, Icebear takes care of it.
- * @param {object} obj - warning object as received from server
+ * @param {Object} obj - warning object as received from server
  * @param {string} obj.msg - translation key starting with `serverWarning_` for security any other keys will be ignored
  * @param {string} obj.title - same as 'msg' but for dialog title
  * @param {string} obj.level - 'medium' or 'severe'

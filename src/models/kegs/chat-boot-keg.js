@@ -20,7 +20,7 @@ const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
  *
  * @param {KegDb} db - owner instance
  * @param {User} user - currently authenticated user
- * @param {object} [participantPublicKeys] - username:publicKey map, pass when creating a new keg
+ * @param {Object} [participantPublicKeys] - username:publicKey map, pass when creating a new keg
  * @public
  */
 class ChatBootKeg extends Keg {

@@ -129,7 +129,7 @@ class Keg {
         this.collectionVersion = null;
         /**
          * Default props object for default props serializers. More advanced logic usually ignores this property.
-         * @member {object}
+         * @member {Object}
          * @public
          */
         this.props = {};
@@ -318,7 +318,7 @@ class Keg {
      * `load()` uses this function, you don't need to call it if you use `load()`, but in case you are requesting
      * multiple kegs from server and want to instantiate them use this function
      * after creating appropriate keg instance.
-     * @param {object} keg data as received from server
+     * @param {Object} keg data as received from server
      * @returns {Keg|boolean} - returns false if keg data could not have been loaded. This function doesn't throw,
      * you have to check error flags if you received false return value.
      * @public
@@ -394,7 +394,7 @@ class Keg {
     /**
      * Shared/received kegs are encrypted by sender and this function checks if keg is valid and secure
      * and re-encrypts it with own KegDb key removing sharing metadata props that's not needed anymore
-     * @param {object} kegProps
+     * @param {Object} kegProps
      * @private
      */
     validateAndReEncryptSharedKeg(kegProps) {
@@ -439,7 +439,7 @@ class Keg {
     /**
      * Generic version that provides empty keg payload.
      * Override in child classes to.
-     * @returns {object}
+     * @returns {Object}
      * @public
      * @abstract
      */
@@ -458,7 +458,7 @@ class Keg {
 
     /**
      * Generic version that uses this.props object as-is
-     * @returns {object}
+     * @returns {Object}
      * @public
      * @abstract
      */
@@ -468,7 +468,7 @@ class Keg {
 
     /**
      * Generic version that puts props object as-is to this.prop
-     * @param {object} props
+     * @param {Object} props
      * @public
      * @abstract
      */
@@ -479,7 +479,7 @@ class Keg {
 
     /**
      * Compares keg metadata with encrypted payload to make sure server didn't change metadata.
-     * @param payload {object} - decrypted keg payload
+     * @param payload {Object} - decrypted keg payload
      * @throws AntiTamperError
      * @private
      */
