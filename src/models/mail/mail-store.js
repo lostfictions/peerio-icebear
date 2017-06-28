@@ -206,26 +206,24 @@ class MailStore {
      * @param {Array<File>?} optional, file kegs to attach
      * @param {string?} optional, messageId of message to reply to
      */
-    async send(recipients, subject, body, files, replyId) {
+    send(recipients, subject, body, files, replyId) {
         const keg = new Mail(User.current.kegDb);
+        keg.sending = true; // XXX: it's also set in keg.send(), but we need it here
+                            // because we're sharing files before calling send.
         keg.recipients = recipients;
         keg.subject = subject;
         keg.body = body;
-        keg.files = await this._shareFileKegs(recipients, files);
         keg.replyId = replyId;
 
-        keg.send(recipients);
-        this.mails.unshift(keg);
-
-        // XXX: what is this?
-        // const disposer = when(() => keg.deleted, () => {
-        //     this.mails.remove(keg);
-        // });
-        // when(() => keg.sent, () => { disposer(); });
+        // Share files from the keg
+        this._shareFileKegs(recipients, files).then(files => {
+            keg.files = files;
+            keg.send(recipients);
+            this.mails.unshift(keg);
+        });
 
         return keg;
     }
-
     /**
      * Shares existing Peerio files with contacts, returning a Promise resolving
      * to the shared file ids.
