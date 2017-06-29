@@ -16,6 +16,7 @@ if [ $branch != "master" ]; then
 
     git checkout master
     git status -uall
+    git diff --name-status master..dev
 fi
 
 
