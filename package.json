@@ -20,7 +20,7 @@
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html"
   },
   "files": [
-    "./src"
+    "src"
   ],
   "repository": {
     "type": "git",
