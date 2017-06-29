@@ -60,7 +60,7 @@ case "$choice" in
   * ) exit;;
 esac
 
-git push --follow-tags origin master && npm publish
+git push --follow-tags origin master && npm publish --access public
 
 # no reason to stay in master
 git checkout dev
