@@ -1,5 +1,5 @@
 {
-  "name": "peerio-icebear",
+  "name": "@peerio/peerio-icebear",
   "version": "1.1.2",
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
@@ -19,6 +19,9 @@
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html"
   },
+  "files": [
+    "./src"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PeerioTechnologies/peerio-icebear.git"

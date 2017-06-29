@@ -1,13 +1,17 @@
-if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
+set -e
+export NODE_ENV=production
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [ branch != "master" ]; then
     echo "---------------------------------------------------------------------------------------"
-    echo "Can't release from $(git rev-parse --abbrev-ref HEAD) branch. Switch to master and merge latest release branch to it.";
+    echo "Can't release from $branch branch. Switch to master and merge latest release branch to it.";
     echo "---------------------------------------------------------------------------------------"
     exit;
 fi
 
 npm run validate
 
-read -p "Did you merger to master everything that was needed? Confirm release? (y/n)" choice
+read -p "Did you merge to master everything that was needed? Confirm release? (y/n)" choice
 case "$choice" in
   y|Y ) echo "yes";;
   n|N ) exit;;
