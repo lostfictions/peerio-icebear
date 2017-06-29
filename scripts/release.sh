@@ -1,11 +1,12 @@
 set -e
 export NODE_ENV=production
 
+git status -uall
 
 # offer to switch to master
 branch="$(git rev-parse --abbrev-ref HEAD)"
-if [ branch != "master" ]; then
-    git status -uall
+
+if [ $branch != "master" ]; then
     read -p "Can't release from $branch branch. Switch to master? (y/n)" choice
     case "$choice" in
     y|Y ) echo "yes";;
@@ -14,6 +15,7 @@ if [ branch != "master" ]; then
     esac
 
     git checkout master
+    git status -uall
 fi
 
 
@@ -24,6 +26,7 @@ case "$choice" in
   * ) exit;;
 esac
 
+git status -uall
 # check the state of the branch before anythig
 npm run validate
 
