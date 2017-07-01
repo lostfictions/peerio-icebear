@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.2.1"></a>
+## [1.2.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.2.0...v1.2.1) (2017-07-01)
+
+
+### Bug Fixes
+
+* converted __sdk.json to __sdk.js to avoid copying in on clients when compiling icebear ([d69c2c4](https://github.com/PeerioTechnologies/peerio-icebear/commit/d69c2c4))
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.1.5...v1.2.0) (2017-07-01)
 
