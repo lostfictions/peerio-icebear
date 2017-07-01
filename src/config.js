@@ -1,4 +1,4 @@
-const _sdkVersion = require('./__sdk.json');
+const _sdkVersion = require('./__sdk');
 /**
  * Configuration module.
  * Exists just to collect most of the app configuration aspects in one place.
