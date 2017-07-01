@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "prepush": "npm run validate",
-    "postcheckout": "opt --out npm-update --exec \"npm update\"",
-    "postmerge": "opt --out npm-update --exec \"npm update\"",
+    "postcheckout": "opt --out npm-update --exec \"npm install && npm update\"",
+    "postmerge": "opt --out npm-update --exec \"npm install && npm update\"",
     "precommit": "opt --out lint --exec \"npm run lint\"",
     "commitmsg": "validate-commit-msg",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --check-leaks --timeout 15000",
