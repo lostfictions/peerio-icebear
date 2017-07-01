@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.2.1...v1.3.0) (2017-07-01)
+
+
+### Features
+
+* **contact:** added Contact#isLegacy property to see if user was not found because migration is pending ([7351154](https://github.com/PeerioTechnologies/peerio-icebear/commit/7351154))
+* **files:** enabled file re-sharing ([68f17b6](https://github.com/PeerioTechnologies/peerio-icebear/commit/68f17b6))
+
+
+
 <a name="1.2.1"></a>
 ## [1.2.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.2.0...v1.2.1) (2017-07-01)
 
