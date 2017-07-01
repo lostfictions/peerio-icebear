@@ -69,7 +69,8 @@ module.exports = function mixUserAuthModule() {
                     deviceToken,
                     platform: config.platform,
                     arch: config.arch,
-                    clientVersion: config.appVersion
+                    clientVersion: config.appVersion,
+                    sdkVersion: config.sdkVersion
                 });
             })
             .then(resp => util.convertBuffers(resp));
