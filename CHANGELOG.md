@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.1.5...v1.2.0) (2017-07-01)
+
+
+### Bug Fixes
+
+* build script fixed to make docs show correct version + update __sdk.json file ([bddbf3a](https://github.com/PeerioTechnologies/peerio-icebear/commit/bddbf3a))
+* hooks do `npm install` now too ([b1509a7](https://github.com/PeerioTechnologies/peerio-icebear/commit/b1509a7))
+
+
+### Features
+
+* **auth:** client sends sdk version on auth attempt ([7191c21](https://github.com/PeerioTechnologies/peerio-icebear/commit/7191c21))
+* **auth:** support for server auth deny due to client deprecation ([73888c7](https://github.com/PeerioTechnologies/peerio-icebear/commit/73888c7))
+
+
+
 <a name="1.1.5"></a>
 ## [1.1.5](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.1.4...v1.1.5) (2017-06-29)
 

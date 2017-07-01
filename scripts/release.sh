@@ -20,11 +20,11 @@ if [ $branch != "master" ]; then
 fi
 
 
-read -p "Merge dev => master? (y/n)" choice
+read -p "Merge dev => master before proceeding next? (y/n)" choice
 case "$choice" in
   y|Y ) git merge dev;;
-  n|N ) exit;;
-  * ) exit;;
+ # n|N ) exit;;
+#  * ) exit;;
 esac
 
 git status -uall

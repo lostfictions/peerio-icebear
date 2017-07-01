@@ -215,6 +215,7 @@
     -   [isFocused](#isfocused)
     -   [isInChatsView](#isinchatsview)
     -   [isInFilesView](#isinfilesview)
+    -   [clientVersionDeprecated](#clientversiondeprecated)
 -   [ContactStore](#contactstore)
     -   [contacts](#contacts)
     -   [addedContacts](#addedcontacts)
@@ -485,9 +486,9 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [InvitedContact](#invitedcontact)
--   [Address](#address)
 -   [KeyPair](#keypair)
+-   [Address](#address)
+-   [InvitedContact](#invitedcontact)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -2181,6 +2182,12 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 ### isInFilesView
 
 Use this to let Icebear know if your app is currently showing main file view.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### clientVersionDeprecated
+
+Icebear sets this flag.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -4011,18 +4018,16 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## InvitedContact
+## KeyPair
 
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
+Virtual type representing asymmetric key pair.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## Address
 
@@ -4037,16 +4042,18 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
 
-## KeyPair
+## InvitedContact
 
-Virtual type representing asymmetric key pair.
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## util
 
