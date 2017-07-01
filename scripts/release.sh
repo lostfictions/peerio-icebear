@@ -39,19 +39,7 @@ case "$choice" in
   * ) exit;;
 esac
 
-echo "------------------------"
-echo "1. Builing documentation"
-echo "------------------------"
-
-npm run doc:build
-git add -A
-git commit -a -m "docs: build"
-
-echo "---------------------------"
-echo "2. Running standard-version"
-echo "---------------------------"
-
-standard-version
+standard-version -a
 
 # last confirmation before release push
 read -p "All good? Push to git and publish to npm? (y/n)" choice

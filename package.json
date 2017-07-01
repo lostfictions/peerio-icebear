@@ -111,6 +111,11 @@
       "helpMessage": "Convention: https://goo.gl/3TgTsh"
     }
   },
+  "standard-version": {
+    "scripts": {
+      "postbump": "node ./scripts/postbump.js"
+    }
+  },
   "devEngines": {
     "node": "7.x",
     "npm": "4.x"
