@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.4.0"></a>
+# [1.4.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.3.0...v1.4.0) (2017-07-02)
+
+
+### Features
+
+* **signup:** signup sends client version information according to the new api signature ([755088d](https://github.com/PeerioTechnologies/peerio-icebear/commit/755088d))
+
+
+### Performance Improvements
+
+* **files:** file map added to file store to use instead of linear search ([2d4f9f0](https://github.com/PeerioTechnologies/peerio-icebear/commit/2d4f9f0))
+
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.2.1...v1.3.0) (2017-07-01)
 
