@@ -11,6 +11,7 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const clientApp = require('../client-app');
 const Queue = require('../../helpers/queue');
 const { setFileStore } = require('../../helpers/di-file-store');
+const createMap = require('../../helpers/dynamic-array-map');
 
 /**
  * File store.
@@ -19,6 +20,8 @@ const { setFileStore } = require('../../helpers/di-file-store');
  */
 class FileStore {
     constructor() {
+        this.fileMap = createMap(this.files, 'fileId');
+
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');
             this.onFileDigestUpdate();
@@ -339,7 +342,6 @@ class FileStore {
             }));
     };
 
-    // todo: file map
     /**
      * Finds file by fileId.
      * @param {string} fileId
@@ -347,10 +349,7 @@ class FileStore {
      * @public
      */
     getById(fileId) {
-        for (let i = 0; i < this.files.length; i++) {
-            if (this.files[i].fileId === fileId) return this.files[i];
-        }
-        return null;
+        return this.fileMap[fileId];
     }
 
     /**

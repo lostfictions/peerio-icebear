@@ -63,7 +63,7 @@ function upload(filePath, fileName, resume) {
         if (resume) {
             p = this._getUlResumeParams(filePath);
         }
-        // we need fileId to be set before fucntion returns
+        // we need fileId to be set before function returns
         if (!this.fileId) {
             this.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
         }
