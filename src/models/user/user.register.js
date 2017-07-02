@@ -3,7 +3,7 @@ const publicCrypto = require('../../crypto/public');
 const signCrypto = require('../../crypto/sign');
 const socket = require('../../network/socket');
 const util = require('../../util');
-
+const config = require('../../config');
 
 //
 // Registration mixin for User model.
@@ -27,7 +27,11 @@ module.exports = function mixUserRegisterModule() {
                     email: this.email.trim(),
                     firstName: this.firstName.trim() || '',
                     lastName: this.lastName.trim() || '',
-                    localeCode: this.locale.trim()
+                    localeCode: this.locale.trim(),
+                    platform: config.platform,
+                    clientVersion: config.appVersion,
+                    sdkVersion: config.sdkVersion
+
                 };
                 return socket.send('/noauth/register', request);
             })
