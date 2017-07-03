@@ -250,6 +250,13 @@ class Contact {
      * @public
      */
     notFound = false;
+    /**
+     * Legacy contacts can't be used so they should treated as 'notFound' but clients can inform user about legacy
+     * contact pending migration if this flag is `true` after loading is done.
+     * @member {boolean}
+     * @public
+     */
+    isLegacy = false;
     // to avoid parallel queries
     _waitingForResponse = false;
 
@@ -270,14 +277,14 @@ class Contact {
                 : socket.send('/auth/user/lookup', { string: this.username })
         )
             .then(action(resp => {
-                // currently there are old users in the system that don't have encryption public keys
-                if (!resp || !resp.length || !resp[0].length || !resp[0][0].profile.encryptionPublicKey) {
+                const profile = resp && resp[0] && resp[0][0] && resp[0][0].profile || null;
+                if (!profile || profile.legacy) {
                     this.notFound = true;
+                    this.isLegacy = !!(profile ? profile.legacy : false);
                     this._waitingForResponse = false;
                     this.loading = false;
                     return;
                 }
-                const profile = resp[0][0].profile;
                 this.username = profile.username;
                 this.usernameTag = `@${this.username}`;
                 this.firstName = profile.firstName || '';
@@ -299,7 +306,11 @@ class Contact {
             }))
             .catch(err => {
                 this._waitingForResponse = false;
-                if (!prefetchedData) socket.onceAuthenticated(() => this.load());
+                if (!prefetchedData) {
+                    setTimeout(() => {
+                        socket.onceAuthenticated(() => this.load());
+                    }, 3000);
+                }
                 console.log(err);
             });
     }

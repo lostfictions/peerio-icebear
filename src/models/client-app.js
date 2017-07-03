@@ -30,6 +30,14 @@ class ClientApp {
      * @public
      */
     @observable isInFilesView = false;
+
+    /**
+     * Icebear sets this flag.
+     * @member {boolean} clientVersionDeprecated
+     * @memberof ClientApp
+     * @public
+     */
+    @observable clientVersionDeprecated = false;
 }
 
 module.exports = new ClientApp();

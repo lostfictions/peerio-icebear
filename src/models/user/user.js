@@ -13,6 +13,7 @@ const MRUList = require('../../helpers/mru-list');
 const migrator = require('../../legacy/account_migrator');
 const { ServerError } = require('../../errors');
 const warnings = require('../warnings');
+const clientApp = require('../client-app');
 
 let currentUser;
 
@@ -386,7 +387,7 @@ class User {
                             return this.createAccountAndLogin();
                         });
                 }
-                if (!socket.authenticated) {
+                if (!socket.authenticated && !clientApp.clientVersionDeprecated) {
                     socket.reset();
                 }
                 return Promise.reject(e);

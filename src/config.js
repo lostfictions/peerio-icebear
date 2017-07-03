@@ -1,3 +1,4 @@
+const _sdkVersion = require('./__sdk');
 /**
  * Configuration module.
  * Exists just to collect most of the app configuration aspects in one place.
@@ -89,6 +90,8 @@ class UploadConfig {
 }
 
 const config = new class {
+
+    sdkVersion = _sdkVersion;
 
     debug = {
         /**

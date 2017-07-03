@@ -1,12 +1,12 @@
 {
-  "name": "peerio-icebear",
-  "version": "1.0.0",
+  "name": "@peerio/peerio-icebear",
+  "version": "1.4.0",
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
   "scripts": {
     "prepush": "npm run validate",
-    "postcheckout": "opt --out npm-update --exec \"npm update\"",
-    "postmerge": "opt --out npm-update --exec \"npm update\"",
+    "postcheckout": "opt --out npm-update --exec \"npm install && npm update\"",
+    "postmerge": "opt --out npm-update --exec \"npm install && npm update\"",
     "precommit": "opt --out lint --exec \"npm run lint\"",
     "commitmsg": "validate-commit-msg",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --check-leaks --timeout 15000",
@@ -14,11 +14,14 @@
     "test": "nyc --reporter=text --reporter=html npm run mocha",
     "validate": "npm-run-all --serial lint",
     "lint": "eslint . --fix --ext .js,.jsx",
-    "release": "standard-version && git push --follow-tags origin master",
+    "release": "./scripts/release.sh",
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html"
   },
+  "files": [
+    "src"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PeerioTechnologies/peerio-icebear.git"
@@ -80,7 +83,7 @@
     "nyc": "11.0.3",
     "opt-cli": "1.5.1",
     "rimraf": "2.6.1",
-    "sinon": "2.3.5",
+    "sinon": "2.3.6",
     "sinon-chai": "2.11.0",
     "source-map-support": "0.4.15",
     "standard-version": "4.2.0",
@@ -106,6 +109,11 @@
       "maxSubjectLength": 120,
       "subjectPattern": ".+",
       "helpMessage": "Convention: https://goo.gl/3TgTsh"
+    }
+  },
+  "standard-version": {
+    "scripts": {
+      "postbump": "node ./scripts/postbump.js"
     }
   },
   "devEngines": {

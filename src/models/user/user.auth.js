@@ -4,7 +4,8 @@ const util = require('../../util');
 const errors = require('../../errors');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
-
+const warnings = require('../warnings');
+const clientApp = require('../client-app');
 //
 // Authentication mixin for User model.
 // TODO: authentication code is a bit hard to read and follow, needs refactoring
@@ -17,10 +18,17 @@ module.exports = function mixUserAuthModule() {
             .then(this._getAuthToken)
             .then(this._authenticateAuthToken)
             .catch(e => {
-                if (e.code === 412) {
-                    console.log('Bad deviceToken, reauthenticating without one.');
-                    return TinyDb.system.removeValue(`${this.username}:deviceToken`)
-                        .then(() => this._authenticateConnection());
+                // eslint-disable-next-line default-case
+                switch (e.code) {
+                    case errors.ServerError.codes.invalidDeviceToken:
+                        console.log('Bad deviceToken, reauthenticating without one.');
+                        return TinyDb.system.removeValue(`${this.username}:deviceToken`)
+                            .then(() => this._authenticateConnection());
+                    case errors.ServerError.codes.sdkVersionDeprecated:
+                    case errors.ServerError.codes.clientVersionDeprecated:
+                        warnings.addSevere('warning_deprecated');
+                        clientApp.clientVersionDeprecated = true;
+                        break;
                 }
                 return Promise.reject(e);
             })
@@ -61,7 +69,8 @@ module.exports = function mixUserAuthModule() {
                     deviceToken,
                     platform: config.platform,
                     arch: config.arch,
-                    clientVersion: config.appVersion
+                    clientVersion: config.appVersion,
+                    sdkVersion: config.sdkVersion
                 });
             })
             .then(resp => util.convertBuffers(resp));

@@ -209,7 +209,7 @@ class File extends Keg {
      * @public
      */
     @computed get canShare() {
-        return getUser().username === this.fileOwner;
+        return true; // getUser().username === this.fileOwner;
     }
     /**
      * Bytes

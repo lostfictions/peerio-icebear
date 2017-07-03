@@ -99,10 +99,14 @@ module.exports.getGenericCustomError = getGenericCustomError;
  * @public
  */
 const serverErrorCodes = {
+    genericServerError: 400,
     notFound: 404,
     malformedRequest: 406,
-    apiVersionError: 410,
+    sdkVersionTooHigh: 408,
+    clientVersionDeprecated: 409,
+    sdkVersionDeprecated: 410,
     incorrectPublicKey: 411,
+    invalidDeviceToken: 412,
     quotaExceeded: 413,
     authError: 423,
     twoFAAuthRequired: 424,
@@ -110,9 +114,8 @@ const serverErrorCodes = {
     accountBlacklisted: 426,
     accountMigrationRequired: 434,
     captchaPending: 435,
-    accountClosed: 488,
     incorrectTimestamp: 442,
-    genericServerError: 400
+    accountClosed: 488
 };
 // reverse map
 const serverErrorMap = {};
