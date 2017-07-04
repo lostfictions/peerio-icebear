@@ -153,12 +153,15 @@ class Mail extends Keg {
         // this properties should not be blindly trusted, recipient verifies them
         data.keg.props.sharedKegSenderPK = cryptoUtil.bytesToB64(getUser().encryptionKeys.publicKey);
 
+        // The message is now encrypted and serialized in data,
+        // and this keg will represent an outgoing copy,
+        // which has a different messageId.
+        this.sentId = this.messageId;
+        this.messageId = cryptoUtil.getRandomUserSpecificIdB64(this.sender);
+
         return retryUntilSuccess(() => socket.send('/auth/kegs/send', data))
             .then(() => {
                 this.sent = true;
-                // Save an outgoing copy, changing ids.
-                this.sentId = this.messageId;
-                this.messageId = cryptoUtil.getRandomUserSpecificIdB64(this.sender);
                 return retryUntilSuccess(() => this.saveToServer(true));
             })
             .finally(action(() => {
