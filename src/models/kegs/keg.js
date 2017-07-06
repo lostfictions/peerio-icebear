@@ -121,6 +121,12 @@ class Keg {
          */
         this.version = 0;
         /**
+         * Keg format version, client tracks kegs structure changes with this property
+         * @member {number}
+         * @public
+         */
+        this.format = 0;
+        /**
          * Keg collection (all kegs with this.type) version, snowflake string id.
          * null means we don't know the version yet, need to fetch keg at least once.
          * @member {?string}
@@ -244,7 +250,8 @@ class Keg {
                 type: this.type,
                 payload: this.plaintext ? payload : payload.buffer,
                 props,
-                version: lastVersion + 1
+                version: lastVersion + 1,
+                format: this.format
             }
         })).then(resp => {
             this.collectionVersion = resp.collectionVersion;
@@ -333,6 +340,7 @@ class Keg {
             }
             this.id = keg.kegId;
             this.version = keg.version;
+            this.format = keg.format || 0; // this is a new field so older kegs might not have it
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion || ''; // protect from potential server bugs sending null
