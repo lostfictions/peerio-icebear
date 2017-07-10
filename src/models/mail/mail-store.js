@@ -219,7 +219,7 @@ class MailStore {
         this._shareFileKegs(recipients, files).then(files => {
             keg.files = files;
             keg.send(recipients);
-            this.mails.unshift(keg);
+            if (!this.getById(keg.messageId)) this.mails.unshift(keg);
         });
 
         return keg;
