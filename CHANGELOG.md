@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.5.0"></a>
+# [1.5.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.4.0...v1.5.0) (2017-07-11)
+
+
+### Features
+
+* **plans:** get the list of active paid plans ([#26](https://github.com/PeerioTechnologies/peerio-icebear/issues/26)) ([2ce915e](https://github.com/PeerioTechnologies/peerio-icebear/commit/2ce915e))
+
+
+
 <a name="1.4.0"></a>
 # [1.4.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.3.0...v1.4.0) (2017-07-02)
 
