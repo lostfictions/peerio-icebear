@@ -46,6 +46,7 @@ class KegDb {
             encryptionKeys,
             kegKey
         });
+        boot.keys['0'] = { key: kegKey, createdAt: Date.now() };
         this.key = kegKey;
         this.boot = boot;
         return boot.saveToServer();

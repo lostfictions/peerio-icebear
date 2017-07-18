@@ -8,6 +8,9 @@ const util = require('../../crypto/util');
  * @public
  */
 class BootKeg extends Keg {
+    keys = {};
+    kegKey;
+
     constructor(db, bootKey) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
         super('boot', 'boot', db);
@@ -35,6 +38,7 @@ class BootKeg extends Keg {
          * @public
          */
         this.kegKey = util.b64ToBytes(data.kegKey);
+        this.keys['0'] = { key: this.kegKey, createdAt: Date.now() };
     }
 
     serializeKegPayload() {

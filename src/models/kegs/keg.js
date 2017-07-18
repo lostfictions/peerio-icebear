@@ -82,6 +82,14 @@ class Keg {
      */
     lastLoadHadError = false;
 
+    /**
+     * Some kegs don't need anti-tamper checks.
+     * @member {boolean} ignoreAntiTamperProtection
+     * @memberof Keg
+     * @instance
+     */
+    ignoreAntiTamperProtection;
+
     constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
         this.id = id;
         /**
@@ -217,7 +225,7 @@ class Keg {
                 props.encryptedPayloadKey = null;
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
-            if (!this.plaintext || this.forceSign) {
+            if (!this.ignoreAntiTamperProtection && (!this.plaintext || this.forceSign)) {
                 payload._sys = {
                     kegId: this.id,
                     type: this.type
@@ -246,7 +254,7 @@ class Keg {
             kegDbId: this.db.id,
             update: {
                 kegId: this.id,
-                keyId: '0',
+                keyId: this.db.keyId,
                 type: this.type,
                 payload: this.plaintext ? payload : payload.buffer,
                 props,
@@ -361,32 +369,37 @@ class Keg {
             if (this.forceSign || (!this.plaintext && this.db.id !== 'SELF')) {
                 this.verifyKegSignature(payload, keg.props.signature);
             }
+            const pendingReEncryption = !!(keg.props.sharedBy && keg.props.sharedKegSenderPK);
             // is this keg shared with us and needs re-encryption?
             // sharedKegSenderPK is used here to detect keg that still needs re-encryption
             // the property will get deleted after re-encryption
             // we can't introduce additional flag bcs props are not being deleted on keg delete
             // to allow re-sharing of the same file keg
-            if (!this.plaintext && keg.props.sharedBy && keg.props.sharedKegSenderPK) {
+            if (!this.plaintext && pendingReEncryption) {
                 // async call, changes state of the keg in case of issues
                 this.validateAndReEncryptSharedKeg(keg.props);
-                // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
+                // todo: when we'll have key change, this should use secret key corresponding to sharedKegRecipientPK
                 const sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
 
                 if (keg.props.encryptedPayloadKey) {
                     // Payload was encrypted with a symmetric key, which was encrypted
                     // for our public key and stored in encryptedPayloadKey prop.
                     payloadKey = secret.decrypt(cryptoUtil.b64ToBytes(keg.props.encryptedPayloadKey), sharedKey);
-                } else {
-                    // TODO: @dchest u think we might need this?
-                    // Payload key is the shared key.
-                    payloadKey = sharedKey;
                 }
             }
             if (!this.plaintext) {
-                payload = secret.decryptString(payload, payloadKey || this.overrideKey || this.db.key);
+                let decryptionKey = payloadKey || this.overrideKey;
+                if (!decryptionKey) {
+                    decryptionKey = this.db.boot.keys[keg.keyId || '0'];
+                    if (decryptionKey) {
+                        decryptionKey = decryptionKey.key;
+                    }
+                    if (!decryptionKey) throw new Error(`Failed to resolve decryption key for ${this.id}`);
+                }
+                payload = secret.decryptString(payload, decryptionKey);
             }
             payload = JSON.parse(payload);
-            if (this.forceSign || !(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {
+            if (!this.ignoreAntiTamperProtection && (this.forceSign || !(this.plaintext || pendingReEncryption))) {
                 this.detectTampering(payload);
             }
             this.deserializeKegPayload(payload);

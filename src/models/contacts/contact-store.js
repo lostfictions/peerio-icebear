@@ -162,11 +162,11 @@ class ContactStore {
         intercept(this, 'uiViewFilter', this._checkFilterValue);
         this._contactMap = createMap(this.contacts, 'username');
         socket.onceAuthenticated(() => {
-            this.loadContactsFromTOFUKegs();
             this.myContacts = new MyContacts();
             this.myContacts.onUpdated = this.applyMyContactsData;
             this.invites = new Invites();
             this.invites.onUpdated = this.applyInvitesData;
+            this.loadContactsFromTOFUKegs();
         });
     }
 

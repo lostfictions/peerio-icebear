@@ -29,7 +29,7 @@ const ACK_MSG = '👍';
  * @public
  */
 class Chat {
-    constructor(id, participants, store) {
+    constructor(id, participants = [], store) {
         this.id = id;
         this.store = store;
         if (!id) this.tempId = getTemporaryChatId();
@@ -321,7 +321,7 @@ class Chat {
                     throw new Error(errmsg);
                 }
                 this.id = this.db.id;
-                this.participants = this.db.participants;// todo computed
+                this.participants = this.db.participants || [];// todo computed
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);

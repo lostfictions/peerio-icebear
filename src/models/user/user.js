@@ -398,6 +398,7 @@ class User {
         socket.setAuthenticatedState();
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
+            // TODO: when we introduce key change feature - this will fail to decrypt
             TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
             this.emojiMRU.loadCache();
