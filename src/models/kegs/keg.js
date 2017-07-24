@@ -349,6 +349,7 @@ class Keg {
             this.id = keg.kegId;
             this.version = keg.version;
             this.format = keg.format || 0; // this is a new field so older kegs might not have it
+            this.type = keg.type; // so anti-tamper can detect it
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion || ''; // protect from potential server bugs sending null

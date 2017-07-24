@@ -274,7 +274,20 @@ class FileStore {
                     if (keg.collectionVersion > this.knownUpdateId) {
                         this.knownUpdateId = keg.collectionVersion;
                     }
-                    if (file.loadFromKeg(keg)) this.files.unshift(file);
+                    if (file.loadFromKeg(keg)) {
+                        if (!file.fileId) {
+                            console.error("File keg missing fileId", file.id);
+                            continue;
+                        }
+                        if (this.fileMap[file.fileId]) {
+                            console.error('File keg has duplicate fileId', file.id);
+                            continue;
+                        }
+                        this.files.unshift(file);
+                    } else {
+                        console.error('Failed to load file keg', keg.kegId);
+                        continue;
+                    }
                 }
                 this.loading = false;
                 this.loaded = true;
@@ -314,10 +327,14 @@ class FileStore {
                     if (keg.collectionVersion > this.knownUpdateId) {
                         this.knownUpdateId = keg.collectionVersion;
                     }
+                    if (!keg.props.fileId) {
+                        console.error("File keg missing fileId", keg.kegId);
+                        continue;
+                    }
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
-                    if (keg.deleted && existing) {
-                        this.files.remove(existing);
+                    if (keg.deleted) {
+                        if (existing) this.files.remove(existing);
                         continue;
                     }
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
