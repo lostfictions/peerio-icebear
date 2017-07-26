@@ -54,26 +54,35 @@ class Keg {
      */
     @observable tempId;
     /**
-     * @member {?boolean} deleted
+     * @member {boolean} deleted
      * @memberof Keg
      * @instance
      * @public
      */
     @observable deleted = false;
     /**
-     * @member {?boolean} loading
+     * @member {boolean} loading
      * @memberof Keg
      * @instance
      * @public
      */
     @observable loading = false;
     /**
-     * @member {?boolean} saving
+     * @member {boolean} saving
      * @memberof Keg
      * @instance
      * @public
      */
     @observable saving = false;
+    /**
+     * Subclasses can set this to 'true' on data modification and subscribe to the flag resetting to 'false'
+     * after keg is saved.
+     * @member {boolean} dirty
+     * @memberof Keg
+     * @instance
+     * @public
+     */
+    @observable dirty = false;
     /**
      * @member {boolean} lastLoadHadError
      * @memberof Keg
@@ -81,6 +90,7 @@ class Keg {
      * @public
      */
     lastLoadHadError = false;
+
 
     /**
      * Some kegs don't need anti-tamper checks.
@@ -262,6 +272,7 @@ class Keg {
                 format: this.format
             }
         })).then(resp => {
+            this.dirty = false;
             this.collectionVersion = resp.collectionVersion;
             // in case this keg was already updated through other code paths we change version in a smart way
             this.version = Math.max(lastVersion + 1, this.version);
