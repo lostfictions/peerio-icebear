@@ -402,7 +402,7 @@ class Chat {
         }
     }
 
-    // all kegs are decrypted and parsend, now we just push them to the observable array
+    // all kegs are decrypted and parsed, now we just push them to the observable array
     @action _finishAddMessages(accumulator, prepend) {
         let newMessageCount = 0;
         let newMentionCount = 0;
@@ -416,7 +416,7 @@ class Chat {
                 this.messages.remove(msg);
                 continue;
             }
-            // todo: maybe compare collection vesions? Although sending message's collection version is not confirmed
+            // todo: maybe compare collection versions? Although sending message's collection version is not confirmed
             // changed message case
             const existing = this._messageMap[msg.id];
             if (existing) {

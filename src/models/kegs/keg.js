@@ -460,7 +460,7 @@ class Keg {
             contact.notFound ? Promise.resolve(false) :
                 sign.verifyDetached(
                     this.plaintext ? cryptoUtil.strToBytes(payload) : payload, signature, contact.signingPublicKey
-                ).then(r => (this.signatureError = !r));
+                ).then(r => { this.signatureError = !r; });
         });
     }
 

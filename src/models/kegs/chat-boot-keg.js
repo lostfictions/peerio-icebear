@@ -218,10 +218,10 @@ class ChatBootKeg extends Keg {
 
         // we iterate key history and decrypt keys that were encrypted for our user
         for (const keyId in data.encryptedKeys) {
-            let keyObj = data.encryptedKeys[keyId];
-            if (!keyObj) continue; //todo: err log
-            let usersKey = keyObj.keys[this.user.username];
-            if (!usersKey) continue; //todo: err log
+            const keyObj = data.encryptedKeys[keyId];
+            if (!keyObj) continue; // todo: err log
+            const usersKey = keyObj.keys[this.user.username];
+            if (!usersKey) continue; // todo: err log
             // currently we ignore keyObj.publicKey, but when we add key change feature for users, we'll need it
             let kegKey = cryptoUtil.b64ToBytes(usersKey);
             kegKey = publicCrypto.decrypt(kegKey, data.publicKey, this.user.encryptionKeys.secretKey);

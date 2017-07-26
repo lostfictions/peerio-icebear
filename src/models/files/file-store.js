@@ -276,7 +276,7 @@ class FileStore {
                     }
                     if (file.loadFromKeg(keg)) {
                         if (!file.fileId) {
-                            console.error("File keg missing fileId", file.id);
+                            console.error('File keg missing fileId', file.id);
                             continue;
                         }
                         if (this.fileMap[file.fileId]) {
@@ -328,7 +328,7 @@ class FileStore {
                         this.knownUpdateId = keg.collectionVersion;
                     }
                     if (!keg.props.fileId) {
-                        console.error("File keg missing fileId", keg.kegId);
+                        console.error('File keg missing fileId', keg.kegId);
                         continue;
                     }
                     const existing = this.getById(keg.props.fileId);
@@ -348,7 +348,7 @@ class FileStore {
                     this.resumeBrokenDownloads();
                     this.resumeBrokenUploads();
                 }
-                // need this bcs if u delete all files knownUpdateId won't be set at all after initial load
+                // need this because if u delete all files knownUpdateId won't be set at all after initial load
                 if (this.knownUpdateId < maxId) this.knownUpdateId = maxId;
                 // in case we missed another event while updating
                 if (kegs.length || (this.maxUpdateId && this.knownUpdateId < this.maxUpdateId)) {
@@ -453,7 +453,7 @@ class FileStore {
             const file = this.files[c];
             if (file && !file.downloading) {
                 config.FileStream.exists(file.cachePath)
-                    .then(v => (file.cached = !!v));
+                    .then(v => { file.cached = !!v; });
             }
             c--;
             setTimeout(checkFile);

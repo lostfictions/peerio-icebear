@@ -203,7 +203,7 @@ class ChatStore {
                         this.addChat(chat);
                         return;
                     }
-                    // still not unhidden, should we unhide it bcs of new messages?
+                    // still not unhidden, should we unhide it because of new messages?
                     const digest = tracker.getDigest(chat, 'message');
                     // nope, nothing new
                     if (digest.maxUpdateId <= digest.knownUpdateId) return;
@@ -214,9 +214,9 @@ class ChatStore {
             c = new Chat(chat, undefined, this);
         } else {
             c = chat;
-            if (!!this.chatMap[c.id]) {
+            if (this.chatMap[c.id]) {
                 console.error('Trying to add an instance of a chat that already exists.', c.id);
-                //todo: this is questionable. Works for current usage, but might create issues later.
+                // todo: this is questionable. Works for current usage, but might create issues later.
                 // The only realistic case of how we can end up here is if someone creates a chat milliseconds earlier
                 // then us.
                 c.added = true;
@@ -309,7 +309,7 @@ class ChatStore {
         // this should always happen right after adding chats from digest, synchronously,
         // so that there's no new chats that can slip away
         tracker.onKegDbAdded(id => {
-            // we do this with delay, because there's possibily of receiving this event
+            // we do this with delay, because there's a possibility of receiving this event
             // as a reaction to our own request to create a chat (no id yet so can't look it up in the map)
             // and while it's not an issue and is not going to break anything,
             // we still want to avoid wasting time on useless routine
