@@ -184,37 +184,52 @@ class ChatStore {
     /**
      * Adds chat to the list.
      * @function addChat
-     * @param {string} id - chat id
+     * @param {string | Chat} chat - chat id or Chat instance
      * @param {bool} unhide - this flag helps us to force unhiding chat when we detected that addChat was called as
      * a result of new messages in the chat (but not other new/updated kegs)
      * @public
      */
-    addChat = (id, unhide) => {
-        if (!id) throw new Error(`Invalid chat id. ${id}`);
-        if (id === 'SELF' || !!this.chatMap[id]) return;
+    addChat = (chat, unhide) => {
+        if (!chat) throw new Error(`Invalid chat id. ${chat}`);
+        let c;
+        if (typeof chat === 'string') {
+            if (chat === 'SELF' || !!this.chatMap[chat]) return;
 
-        if (!unhide && this.myChats.hidden.includes(id)) {
-            // this might be a chat unhidden on another device, give unhidden state some time to propagate
-            setTimeout(() => {
-                // ok, unhidden by other device, adding chat
-                if (!this.myChats.hidden.includes(id)) {
-                    this.addChat(id);
-                    return;
-                }
-                // still not unhidden, should we unhide it bcs of new messages?
-                const digest = tracker.getDigest(id, 'message');
-                // nope, nothing new
-                if (digest.maxUpdateId <= digest.knownUpdateId) return;
-                this.addChat(id, true);
-            }, 2000);
-            return;
+            if (!unhide && this.myChats.hidden.includes(chat)) {
+                // this might be a chat unhidden on another device, give unhidden state some time to propagate
+                setTimeout(() => {
+                    // ok, unhidden by other device, adding chat
+                    if (!this.myChats.hidden.includes(chat)) {
+                        this.addChat(chat);
+                        return;
+                    }
+                    // still not unhidden, should we unhide it bcs of new messages?
+                    const digest = tracker.getDigest(chat, 'message');
+                    // nope, nothing new
+                    if (digest.maxUpdateId <= digest.knownUpdateId) return;
+                    this.addChat(chat, true);
+                }, 2000);
+                return;
+            }
+            c = new Chat(chat, undefined, this);
+        } else {
+            c = chat;
+            if (!!this.chatMap[c.id]) {
+                console.error('Trying to add an instance of a chat that already exists.', c.id);
+                //todo: this is questionable. Works for current usage, but might create issues later.
+                // The only realistic case of how we can end up here is if someone creates a chat milliseconds earlier
+                // then us.
+                c.added = true;
+                return;
+            }
         }
-        const c = new Chat(id, undefined, this);
-        if (this.myChats.favorites.includes(id)) c.isFavorite = true;
-        this.chatMap[id] = c;
+
+        if (this.myChats.favorites.includes(c.id)) c.isFavorite = true;
+        this.chatMap[c.id] = c;
         this.chats.push(c);
-        tracker.registerDbInstance(id);
-        if (unhide && this.myChats.hidden.includes(id)) c.unhide();
+        c.added = true;
+        tracker.registerDbInstance(c.id);
+        if (unhide && this.myChats.hidden.includes(c.id)) c.unhide();
         c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
 
@@ -361,7 +376,7 @@ class ChatStore {
         const chat = new Chat(null, this.getSelflessParticipants(participants), this);
         chat.loadMetadata()
             .then(() => {
-                this.addChat(chat.id, true);
+                this.addChat(chat, true);
                 this.activate(chat.id);
             });
         return chat;
