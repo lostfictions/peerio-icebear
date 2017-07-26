@@ -65,12 +65,24 @@ class ChatKegDb {
     id;
     /**
      * Database key to use for keg encryption.
-     * @member {Uint8Array}
+     * @member {?Uint8Array}
+     * @readonly
      * @public
      */
     get key() {
         return this.boot ? this.boot.kegKey : null;
     }
+
+    /**
+     * Current key id for the database
+     * @member {?string}
+     * @readonly
+     * @public
+     */
+    get keyId() {
+        return this.boot ? this.boot.kegKeyId : null;
+    }
+
     /**
      * @member {BootKeg}
      * @public
@@ -174,7 +186,7 @@ class ChatKegDb {
                 });
 
                 // saving bootkeg
-                return boot.saveToServer().then(() => boot.load()).return([boot, true]);
+                return boot.saveToServer().return([boot, true]);
             });
     }
 

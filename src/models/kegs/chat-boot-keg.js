@@ -1,6 +1,6 @@
 const Keg = require('./keg');
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
-const { observable, action } = require('mobx');
+const { observable, action, when } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
 
 /**
@@ -140,16 +140,28 @@ class ChatBootKeg extends Keg {
      * @memberof ChatBootKeg
      */
     addKey() {
-        // NOTE: we intentionally do not update `this.kegKey`, because it's dangerous to encrypt
-        // with the key that has not been saved yet. `this.kegKey` will be updated after boot keg is reloaded
-        // after save.
+        if (this.dirty) throw new Error('Can not add key to chat boot keg because unsaved key exists.');
+        // NOTE: if this is not the first key, we intentionally do not update `this.kegKey` and `this.kegKeyId`,
+        // because it's dangerous to encrypt with the key that has not been saved yet.
+        // Fields will get updated after boot keg is saved.
         const key = keys.generateEncryptionKey();
         const ids = Object.keys(this.keys).map(id => +id);
-        const maxId = ids.length ? Math.max(...ids) : -1;
-        this.keys[(maxId + 1).toString()] = {
+        const maxId = (ids.length ? Math.max(...ids) + 1 : 0).toString();
+        this.keys[maxId] = {
             createdAt: Date.now(),
             key
         };
+        this.dirty = true;
+        const applyKey = () => {
+            this.kegKey = this.keys[maxId].key;
+            this.kegKeyId = maxId;
+        };
+        if (maxId === '0') {
+            // this is first key
+            applyKey();
+        } else {
+            when(() => this.dirty === false, applyKey);
+        }
     }
 
     /**
@@ -187,7 +199,7 @@ class ChatBootKeg extends Keg {
         }
         this.kegKey = kegKey;
         this.kegKeyId = '0';
-        this.keys['0'] = { key: this.kegKey, createdAt: Date.now() };
+        this.keys[this.kegKeyId] = { key: this.kegKey, createdAt: Date.now() };
     }
 
     @action.bound deserializeKegPayloadFormat1(data) {
@@ -216,8 +228,9 @@ class ChatBootKeg extends Keg {
             this.keys[keyId] = { key: kegKey, createdAt: keyObj.createdAt };
         }
         // we find max key id to assign current key to use for encryption
-        const maxKeyId = Math.max(...Object.keys(data.encryptedKeys).map(id => +id));
+        const maxKeyId = Math.max(...Object.keys(data.encryptedKeys).map(id => +id)).toString();
         this.kegKey = this.keys[maxKeyId];
+        // todo: throw fatal error to stop retries
         if (this.kegKey) this.kegKey = this.kegKey.key;
         this.kegKeyId = maxKeyId;
         // we extract participant list from the current key object
