@@ -153,6 +153,7 @@ class Chat {
      * @public
      */
     @observable canGoDown = false;
+
     /**
      * currently selected/focused in UI
      * @member {boolean} active
@@ -161,6 +162,15 @@ class Chat {
      * @public
      */
     @observable active = false;
+
+    /**
+     * Is this chat instance added to chat list already or not
+     * @member {boolean} active
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable added = false;
 
     /**
      * @member {boolean} isFavorite
