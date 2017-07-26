@@ -121,12 +121,6 @@ class Keg {
          */
         this.plaintext = plaintext;
         /**
-         * Reserved for future keys change feature
-         * @member {string}
-         * @public
-         */
-        this.keyId = '0';
-        /**
          * Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
          * @member {?Uint8Array}
          * @public
