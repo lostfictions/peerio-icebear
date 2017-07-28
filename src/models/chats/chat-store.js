@@ -407,10 +407,8 @@ class ChatStore {
         if (!chat) return;
         TinyDb.user.setValue('lastUsedChat', id);
         if (this.activeChat) {
-            tracker.deactivateKegDb(this.activeChat.id);
             this.activeChat.active = false;
         }
-        tracker.activateKegDb(id);
         chat.active = true;
         this.activeChat = chat;
     }
@@ -452,7 +450,6 @@ class ChatStore {
         }
         chat.dispose();
         chat.active = false;
-        tracker.deactivateKegDb(chat.id);
         tracker.unregisterDbInstance(chat.id);
 
         delete this.chatMap[chat.id];

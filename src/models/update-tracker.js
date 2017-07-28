@@ -35,13 +35,6 @@ class UpdateTracker {
      * @private
      */
     updateHandlers = {};
-    /**
-     * Keg databases that are currently 'active' in UI (user interacts with them directly)
-     * we need this to make sure we update them on reconnect
-     * @member {Array<string>}
-     * @private
-     */
-    activeKegDbs = ['SELF'];
 
     /**
      * Current digest
@@ -124,31 +117,6 @@ class UpdateTracker {
     }
 
     /**
-     * Lets Update Tracker know that user is interested in this database full updates even after reconnect
-     * @param {string} id - keg db id
-     * @protected
-     */
-    activateKegDb(id) {
-        if (this.activeKegDbs.includes(id)) return;
-        this.activeKegDbs.push(id);
-        // eslint-disable-next-line
-        return socket.send('/auth/kegs/updates/digest', { kegDbIds: [id] })
-            .then(this.processDigestResponse)
-            .then(this.flushAccumulatedEvents);
-    }
-
-    /**
-     * Opposite of activateKegDb()
-     * @param {any} id
-     * @protected
-     */
-    deactivateKegDb(id) {
-        const ind = this.activeKegDbs.indexOf(id);
-        if (ind < 0) return;
-        this.activeKegDbs.splice(ind, 1);
-    }
-
-    /**
      * Unsubscribes handler from all events (onKegTypeUpdated, onKegDbAdded)
      * @param {function} handler
      * @protected
@@ -173,10 +141,14 @@ class UpdateTracker {
         // this is a temporary hack to make sure boot kegs don't produce unread keg databases
         // It's too much hassle to create handlers for this in the kegdb logic
         // when we introduce key change which can change boot keg - this should go away
-        if (ev.type === 'boot' && ev.maxUpdateId !== ev.knownUpdateId) {
-            this.seenThis(ev.kegDbId, 'boot', ev.maxUpdateId);
-        }
+        // NOTE: Commented out because of channels, chat migrations and changing the way digest works with unread data.
+        //       Probably we won't need this anymore.
+        // if (ev.type === 'boot' && ev.maxUpdateId !== ev.knownUpdateId) {
+        //     this.seenThis(ev.kegDbId, 'boot', ev.maxUpdateId);
+        // }
+
         // The same for tofu keg, it's never supposed to be updated atm so we always mark it as read
+        // Tofu kegs are named, names are unique per contact.
         if (ev.type === 'tofu' && ev.maxUpdateId !== ev.knownUpdateId) {
             this.seenThis(ev.kegDbId, 'tofu', ev.maxUpdateId);
         }
@@ -297,14 +269,11 @@ class UpdateTracker {
 
     /**
      * Fills digest with full update info from server.
-     * Is optimized to load only what is needed or is unread.
      * @private
      */
     loadDigest = () => {
-        console.log(`Requesting unread digest. And full collections: ${this.activeKegDbs}`);
-        socket.send('/auth/kegs/updates/digest', { unread: true })
-            .then(this.processDigestResponse)
-            .then(() => socket.send('/auth/kegs/updates/digest', { kegDbIds: this.activeKegDbs }))
+        console.log('Requesting full digest');
+        socket.send('/auth/kegs/updates/digest')
             .then(this.processDigestResponse)
             .then(this.flushAccumulatedEvents);
     }
