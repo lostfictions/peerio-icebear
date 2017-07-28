@@ -270,6 +270,16 @@ class Chat {
     }
 
     /**
+     * @member {string} purpose
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get purpose() {
+        return this.chatHead && this.chatHead.purpose || '';
+    }
+
+    /**
      * User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
      * @member {boolean} canSendAck
      * @memberof Chat
@@ -638,6 +648,27 @@ class Chat {
             .then(() => {
                 const m = new Message(this.db);
                 m.setRenameFact(validated);
+                return this._sendMessage(m);
+            });
+    }
+
+    /**
+     * @param {string} purpose - pass empty string to remove chat purpose
+     * @public
+     */
+    changePurpose(purpose) {
+        let validated = purpose || '';
+        validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
+        validated = validated.substr(0, 120);
+        if (this.chatHead.purpose === validated || (!this.chatHead.purpose && !validated)) {
+            return Promise.resolve(); // nothing to change
+        }
+        return this.chatHead.save(() => {
+            this.chatHead.purpose = validated;
+        }, null, 'error_chatPurposeChange')
+            .then(() => {
+                const m = new Message(this.db);
+                m.setPurposeChangeFact(validated);
                 return this._sendMessage(m);
             });
     }

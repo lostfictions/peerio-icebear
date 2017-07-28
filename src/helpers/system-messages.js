@@ -23,6 +23,10 @@ function getSystemMessageText(msg) {
             return msg.systemData.newName
                 ? t('title_chatRenamed', { name: msg.systemData.newName })
                 : t('title_chatNameRemoved');
+        case 'purposeChange':
+            return msg.systemData.newPurpose
+                ? t('title_chatPurposeChanged', { purpose: msg.systemData.newPurpose })
+                : t('title_chatPurposeRemoved');
         case 'create':
             return t('title_chatCreated', { fullName: msg.sender.fullName });
         default:

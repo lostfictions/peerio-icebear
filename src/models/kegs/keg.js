@@ -380,7 +380,7 @@ class Keg {
             // is this keg shared with us and needs re-encryption?
             // sharedKegSenderPK is used here to detect keg that still needs re-encryption
             // the property will get deleted after re-encryption
-            // we can't introduce additional flag bcs props are not being deleted on keg delete
+            // we can't introduce additional flag because props are not being deleted on keg delete
             // to allow re-sharing of the same file keg
             if (!this.plaintext && pendingReEncryption) {
                 // async call, changes state of the keg in case of issues

@@ -19,16 +19,25 @@ class ChatHead extends SyncedKeg {
      * @public
      */
     @observable chatName = '';
+    /**
+     * @member {string} purpose
+     * @memberof ChatHead
+     * @instance
+     * @public
+     */
+    @observable purpose = '';
 
 
     serializeKegPayload() {
         return {
-            chatName: this.chatName
+            chatName: this.chatName,
+            purpose: this.purpose
         };
     }
 
     deserializeKegPayload(payload) {
-        this.chatName = payload.chatName;
+        this.chatName = payload.chatName || '';
+        this.purpose = payload.purpose || '';
     }
 }
 

@@ -367,7 +367,7 @@ class ChatStore {
      * @instance
      * @public
      */
-    @action startChat(participants) {
+    @action startChat(participants, isChannel = false, name, purpose) {
         const cached = this.findCachedChatWithParticipants(participants);
         if (cached) {
             this.activate(cached.id);
@@ -378,6 +378,14 @@ class ChatStore {
             .then(() => {
                 this.addChat(chat, true);
                 this.activate(chat.id);
+            })
+            .then(() => {
+                if (name) return chat.rename(name);
+                return null;
+            })
+            .then(() => {
+                if (purpose) return chat.changePurpose(purpose);
+                return null;
             });
         return chat;
     }
