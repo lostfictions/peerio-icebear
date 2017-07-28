@@ -147,6 +147,12 @@ class ChatStore {
      * @protected
      */
     static compareChats(a, b, unreadOnTop) {
+        if (a.isChannel && !b.isChannel) {
+            return -1;
+        }
+        if (!a.isChannel && b.isChannel) {
+            return 1;
+        }
         if (a.isFavorite) {
             // favorite chats are sorted by name
             if (b.isFavorite) {
@@ -211,7 +217,7 @@ class ChatStore {
                 }, 2000);
                 return;
             }
-            c = new Chat(chat, undefined, this);
+            c = new Chat(chat, undefined, this, chat.startsWith('channel:'));
         } else {
             c = chat;
             if (this.chatMap[c.id]) {
@@ -291,9 +297,13 @@ class ChatStore {
                     .then(action(list => {
                         let k = 0;
                         for (const id of list) {
+                            if (id.startsWith('channel:')) {
+                                this.addChat(id);
+                                continue;
+                            }
                             if (id === 'SELF' || this.myChats.hidden.includes(id)
                                 || this.myChats.favorites.includes(id)) continue;
-                            if (k++ >= rest) break;
+                            if (k++ >= rest) continue;
                             this.addChat(id);
                         }
                     }))
