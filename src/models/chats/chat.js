@@ -25,16 +25,18 @@ const ACK_MSG = '👍';
  * at least one of two arguments should be set
  * @param {string} id - chat id
  * @param {Array<Contact>} participants - chat participants
+ * @param {?bool} isChannel
  * @param {ChatStore} store
  * @public
  */
 class Chat {
-    constructor(id, participants = [], store) {
+    constructor(id, participants = [], store, isChannel = false) {
         this.id = id;
         this.store = store;
+        this.isChannel = isChannel;
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
-        this.db = new ChatKegDb(id, participants);
+        this.db = new ChatKegDb(id, participants, isChannel);
         this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
             shouldSendReceipt => {
                 if (shouldSendReceipt) this._sendReceipt();

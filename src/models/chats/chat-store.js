@@ -358,22 +358,26 @@ class ChatStore {
         }
         return null;
     }
+
     /**
      * Starts new chat or loads existing one and activates it.
      * @function startChat
-     * @param {Array<Contact>} participants
-     * @returns
+     * @param {?Array<Contact>} participants
+     * @param {?bool} isChannel
+     * @param {?string} name
+     * @param {?string} purpose - only for channels, not relevant for DMs
+     * @returns {Chat}
      * @memberof ChatStore
      * @instance
      * @public
      */
     @action startChat(participants, isChannel = false, name, purpose) {
-        const cached = this.findCachedChatWithParticipants(participants);
+        const cached = isChannel ? null : this.findCachedChatWithParticipants(participants);
         if (cached) {
             this.activate(cached.id);
             return cached;
         }
-        const chat = new Chat(null, this.getSelflessParticipants(participants), this);
+        const chat = new Chat(null, this.getSelflessParticipants(participants), this, isChannel);
         chat.loadMetadata()
             .then(() => {
                 this.addChat(chat, true);

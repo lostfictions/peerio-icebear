@@ -16,7 +16,7 @@ const Contact = require('../contacts/contact');
  * properties, but the logic is too different to extract a base class. Although when saving and loading Kegs,
  * you can use both databases, the properties mentioned is all Kegs can care about.
  *
- * Chat loading logic
+ * Chat loading logic // todo: update this with channels logic modifications
  * ```
  * retryUntilSuccess(
  * 1. Do we have ID for the chat?
@@ -52,7 +52,15 @@ const Contact = require('../contacts/contact');
 class ChatKegDb {
     constructor(id, participants = [], isChannel = false) {
         this.id = id;
-        this.participants = participants;
+        this.participants = _.uniq(participants.map(p => p.username));
+        if (this.participants.length !== participants.length) {
+            console.warn('ChatKegDb constructor received participant list containing duplicates.');
+        }
+        const ind = this.participants.indexOf(User.current.username);
+        if (ind >= 0) {
+            this.participants.splice(ind, 1);
+            console.warn('ChatKegDb constructor received participant list containing current user.');
+        }
         this.isChannel = isChannel;
         // Just to prevent parallel load routines. We can't use chat id because we don't always have it.
         this._retryId = Math.random();
@@ -102,7 +110,7 @@ class ChatKegDb {
     dbIsBroken = false;
     /**
      * Is this a channel or DM db.
-     * @member {boolean}
+    * @member {boolean}
      * @public
      */
     isChannel;
@@ -129,14 +137,13 @@ class ChatKegDb {
     }
 
     _createChatMeta() {
-        // creating chat (or loading it by participant list in case we don't have chat id for some weird reason)
-        this.participants = this.participants || [];
-        // duplicate absence should be handled level higher but just to be safe.
-        const arg = { participants: _.uniq(this.participants.map(p => p.username)) };
-        // participants should not include current user, but just to be safe.
-        if (arg.participants.indexOf(User.current.username) < 0) {
-            arg.participants.push(User.current.username);
+        if (this.isChannel) {
+            return socket.send('/auth/kegs/db/create-channel')
+                .then(this._parseMeta)
+                .then(this._resolveBootKeg);
         }
+        const arg = { participants: this.participants.slice() };
+        arg.participants.push(User.current.username);
         // server will return existing chat if it does already exist
         // the logic below takes care of rare collision cases, like when users create chat or boot keg at the same time
         return socket.send('/auth/kegs/db/create-chat', arg)
@@ -148,6 +155,8 @@ class ChatKegDb {
     // fills current object properties from raw keg metadata
     _parseMeta = (meta) => {
         this.id = meta.id;
+        if (this.isChannel) return;
+        // todo: why do we trust server here?
         this.participants = Object.keys(meta.permissions.users)
             .filter(username => username !== User.current.username)
             .map(username => contactStore.getContact(username));
@@ -173,9 +182,10 @@ class ChatKegDb {
      * @private
      */
     createBootKeg() {
-        console.log(`Creating chat boot keg for ${this.id}`);
+        console.log(`Creating chat boot keg for ${this.id}, isChannel:${this.isChannel}`);
         const participants = this.participants.slice();
-        participants.push(contactStore.getContact(User.current.username));
+        const selfContact = contactStore.getContact(User.current.username);
+        participants.push(selfContact);
         return Contact.ensureAllLoaded(participants)
             .then(() => {
                 // keg key for this db
@@ -184,6 +194,9 @@ class ChatKegDb {
                 participants.forEach(p => {
                     boot.addParticipant(p);
                 });
+                if (this.isChannel) {
+                    boot.assignRole(selfContact, 'admin');
+                }
 
                 // saving bootkeg
                 return boot.saveToServer().return([boot, true]);
@@ -197,7 +210,9 @@ class ChatKegDb {
     loadBootKeg() {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
-        return boot.load().return(boot);
+        return boot.load().then(() => {
+            this.participants = boot.participants.filter(c => c.username !== User.current.username); // todo: this will not update with boot syncs
+        }).return(boot);
     }
 }
 
