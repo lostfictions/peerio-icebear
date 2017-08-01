@@ -231,6 +231,20 @@ class User {
     }
 
     /**
+     * All current active plan names
+     * @member {Array<string>} activePlans
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get activePlans() {
+        if (this.quota == null || this.quota.quotas === null) return [];
+        const { quotas } = this.quota;
+        return Object.getOwnPropertyNames(quotas)
+            .map(k => quotas[k].plan).filter(p => !!p);
+    }
+
+    /**
      * Total amounts of bytes user can upload.
      * @member {number} fileQuotaTotal
      * @memberof User

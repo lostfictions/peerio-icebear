@@ -433,6 +433,7 @@
     -   [signKeys](#signkeys-1)
     -   [encryptionKeys](#encryptionkeys-1)
     -   [emojiMRU](#emojimru)
+    -   [activePlans](#activeplans)
     -   [fileQuotaTotal](#filequotatotal)
     -   [fileQuotaTotalFmt](#filequotatotalfmt)
     -   [fileQuotaLeft](#filequotaleft)
@@ -3644,6 +3645,12 @@ Type: [KeyPair](#keypair)
 Most recently used emoji.
 
 Type: [MRUList](#mrulist)
+
+### activePlans
+
+All current active plan names
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
 ### fileQuotaTotal
 
