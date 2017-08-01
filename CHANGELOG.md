@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.5.1"></a>
+## [1.5.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.5.0...v1.5.1) (2017-08-01)
+
+
+### Bug Fixes
+
+* make sure mobx `when` effect is called asynchronously for sequence-critical logic ([282d121](https://github.com/PeerioTechnologies/peerio-icebear/commit/282d121))
+
+
+
 <a name="1.5.0"></a>
 # [1.5.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.4.0...v1.5.0) (2017-07-11)
 
