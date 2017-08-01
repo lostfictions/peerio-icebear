@@ -20,6 +20,69 @@ function getTemporaryKegId() {
  * @public
  */
 class Keg {
+    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
+        this.id = id;
+        /**
+         * Keg type
+         * @member {string}
+         * @public
+         */
+        this.type = type;
+        /**
+         * Owner KegDb instance
+         * @member {KegDb}
+         * @public
+         */
+        this.db = db;
+        /**
+         * Is the payload of this keg encrypted or not
+         * @member {boolean}
+         * @public
+         */
+        this.plaintext = plaintext;
+        /**
+         * Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
+         * @member {?Uint8Array}
+         * @public
+         */
+        this.overrideKey = null;
+        /**
+         * Keg version, when first created and empty, keg has version === 1
+         * @member {number}
+         * @public
+         */
+        this.version = 0;
+        /**
+         * Keg format version, client tracks kegs structure changes with this property
+         * @member {number}
+         * @public
+         */
+        this.format = 0;
+        /**
+         * Keg collection (all kegs with this.type) version, snowflake string id.
+         * null means we don't know the version yet, need to fetch keg at least once.
+         * @member {?string}
+         * @public
+         */
+        this.collectionVersion = null;
+        /**
+         * Default props object for default props serializers. More advanced logic usually ignores this property.
+         * @member {Object}
+         * @public
+         */
+        this.props = {};
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.forceSign = forceSign;
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.allowEmpty = allowEmpty;
+    }
+
     /**
      * null when signature has not been verified yet (it's async) or it will never be because this keg is not supposed
      * to be signed.
@@ -100,68 +163,6 @@ class Keg {
      */
     ignoreAntiTamperProtection;
 
-    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
-        this.id = id;
-        /**
-         * Keg type
-         * @member {string}
-         * @public
-         */
-        this.type = type;
-        /**
-         * Owner KegDb instance
-         * @member {KegDb}
-         * @public
-         */
-        this.db = db;
-        /**
-         * Is the payload of this keg encrypted or not
-         * @member {boolean}
-         * @public
-         */
-        this.plaintext = plaintext;
-        /**
-         * Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
-         * @member {?Uint8Array}
-         * @public
-         */
-        this.overrideKey = null;
-        /**
-         * Keg version, when first created and empty, keg has version === 1
-         * @member {number}
-         * @public
-         */
-        this.version = 0;
-        /**
-         * Keg format version, client tracks kegs structure changes with this property
-         * @member {number}
-         * @public
-         */
-        this.format = 0;
-        /**
-         * Keg collection (all kegs with this.type) version, snowflake string id.
-         * null means we don't know the version yet, need to fetch keg at least once.
-         * @member {?string}
-         * @public
-         */
-        this.collectionVersion = null;
-        /**
-         * Default props object for default props serializers. More advanced logic usually ignores this property.
-         * @member {Object}
-         * @public
-         */
-        this.props = {};
-        /**
-         * @member {boolean}
-         * @public
-         */
-        this.forceSign = forceSign;
-        /**
-         * @member {boolean}
-         * @public
-         */
-        this.allowEmpty = allowEmpty;
-    }
 
     /**
      * Kegs with version==1 were just created and don't have any data
