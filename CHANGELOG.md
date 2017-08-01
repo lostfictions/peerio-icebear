@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.5.2"></a>
+## [1.5.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.5.1...v1.5.2) (2017-08-01)
+
+
+### Bug Fixes
+
+* regression ([e82c75b](https://github.com/PeerioTechnologies/peerio-icebear/commit/e82c75b))
+
+
+
 <a name="1.5.1"></a>
 ## [1.5.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.5.0...v1.5.1) (2017-08-01)
 
