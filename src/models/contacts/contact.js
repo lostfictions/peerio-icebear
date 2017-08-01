@@ -359,7 +359,7 @@ class Contact {
      */
     whenLoaded(callback) {
         // it is important for this to be async
-        when(() => !this.loading, () => callback(this));
+        when(() => !this.loading, () => setTimeout(() => callback(this)));
     }
     /**
      * Helper function to get a promise that resolves when contact is loaded.

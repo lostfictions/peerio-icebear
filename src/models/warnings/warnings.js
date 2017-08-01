@@ -67,7 +67,7 @@ class Warnings {
     assignNextItem = () => {
         this.current = this.queue.shift();
         if (!this.current) return;
-        when(() => this.current.state === SystemWarning.STATES.DISMISSED, this.assignNextItem);
+        when(() => this.current.state === SystemWarning.STATES.DISMISSED, () => setTimeout(this.assignNextItem));
         if (this.current.level === 'medium' && clientApp.isFocused) this.current.autoDismiss();
         this.current.show();
     }
