@@ -436,7 +436,7 @@ class FileStore {
             const file = this.files[c];
             if (file && !file.downloading) {
                 config.FileStream.exists(file.cachePath)
-                    .then(v => (file.cached = !!v));
+                    .then(v => { file.cached = !!v; });
             }
             c--;
             setTimeout(checkFile);
