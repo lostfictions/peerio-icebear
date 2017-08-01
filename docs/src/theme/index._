@@ -43,7 +43,7 @@
                           <ul class='list-reset py1-ul pl1'>
                             <li class='h5'><span>Static members</span></li>
                             <% doc.members.static.forEach(function(member) { %>
-                              <li><a href='#<%=member.namespace%>' class='regular pre-open'>
+                              <li><a href='#<%=slug(member.namespace)%>' class='regular pre-open'>
                         .<%- member.name %>
                       </a></li>
                               <% }) %>
@@ -53,7 +53,7 @@
                               <ul class='list-reset py1-ul pl1'>
                                 <li class='h5'><span>Instance members</span></li>
                                 <% doc.members.instance.forEach(function(member) { %>
-                                  <li><a href='#<%=member.namespace%>' class='regular pre-open'>
+                                  <li><a href='#<%=slug(member.namespace)%>' class='regular pre-open'>
                         #<%- member.name %>
                       </a></li>
                                   <% }) %>
@@ -63,7 +63,7 @@
                                   <ul class='list-reset py1-ul pl1'>
                                     <li class='h5'><span>Inner members</span></li>
                                     <% doc.members.inner.forEach(function(member) { %>
-                                      <li><a href='#<%=member.namespace%>' class='regular pre-open'>
+                                      <li><a href='#<%=slug(member.namespace)%>' class='regular pre-open'>
                         #<%- member.name %>
                       </a></li>
                                       <% }) %>
@@ -73,7 +73,7 @@
                                       <ul class='list-reset py1-ul pl1'>
                                         <li class='h5'>Events</li>
                                         <% doc.members.events.forEach(function(member) { %>
-                                          <li><a href='#<%=member.namespace%>' class='regular pre-open'>
+                                          <li><a href='#<%=slug(member.namespace)%>' class='regular pre-open'>
                           ⓔ <%- member.name %>
                         </a></li>
                                           <% }) %>
