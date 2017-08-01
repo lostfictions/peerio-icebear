@@ -267,7 +267,6 @@ class Contact {
      */
     load(prefetchedData) {
         if (!this.loading || this._waitingForResponse) return;
-        console.log(`Loading contact: ${this.username}`);
         this.loading = true;
         this._waitingForResponse = true;
 
@@ -321,7 +320,6 @@ class Contact {
      * @protected
      */
     loadTofu() {
-        console.log('Loading tofu:', this.username);
         return Tofu.getByUsername(this.username)
             .then(action(tofu => {
                 this._waitingForResponse = false;
