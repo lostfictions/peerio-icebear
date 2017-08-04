@@ -1,7 +1,7 @@
 const { observable, action } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
-
+const chatStore = require('./chat-store'); // todo: di
 /**
  * Chat invites store. Contains lists of incoming and outgoing invites and operations on them.
  * @namespace
@@ -150,7 +150,16 @@ class ChatInviteStore {
      * @public
      */
     revokeInvite(kegDbId, username) {
-
+        const chat = chatStore.chatMap[kegDbId];
+        if (!chat || !chat.metaLoaded) {
+            console.error(chat ? 'Can not revoke invite on chat that is still loading'
+                : 'Can not find chat in store to revoke invite', kegDbId);
+            warnings.add('error_revokeChannelInvite');
+            return Promise.reject();
+        }
+        return chat.removeParticipant(username).then(() => {
+            // todo: update?
+        });
     }
 }
 
