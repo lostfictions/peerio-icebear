@@ -59,6 +59,7 @@ const warningStates = require('./models/warnings/system-warning').STATES;
 const clientApp = require('./models/client-app');
 const systemMessages = require('./helpers/system-messages');
 const serverSettings = require('./models/server-settings');
+const chatInviteStore = require('./models/chats/chat-invite-store');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
@@ -71,6 +72,7 @@ module.exports = {
     TinyDb,
     contactStore,
     chatStore,
+    chatInviteStore,
     fileStore,
     ghostStore,
     mailStore,

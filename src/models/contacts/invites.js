@@ -3,7 +3,8 @@ const { getUser } = require('../../helpers/di-current-user');
 const _ = require('lodash');
 
 /**
- * Named readonly server-controlled keg. Invite data can be modified via separate api.
+ * Named readonly server-controlled keg. Contains data about contacts invited by email.
+ * Invite data can be modified via separate api.
  * @extends {SyncedKeg}
  * @public
  */

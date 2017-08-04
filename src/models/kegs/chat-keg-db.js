@@ -5,7 +5,7 @@ const contactStore = require('../contacts/contact-store');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const Contact = require('../contacts/contact');
-
+const { observable } = require('mobx');
 /**
  * Class for shared keg databases.
  * Chat is not really created until boot keg is updated for the first time.
@@ -52,15 +52,17 @@ const Contact = require('../contacts/contact');
 class ChatKegDb {
     constructor(id, participants = [], isChannel = false) {
         this.id = id;
-        this.participants = _.uniq(participants.map(p => p.username));
-        if (this.participants.length !== participants.length) {
+        const usernames = _.uniq(participants.map(p => p.username));
+        if (usernames.length !== participants.length) {
             console.warn('ChatKegDb constructor received participant list containing duplicates.');
         }
-        const ind = this.participants.indexOf(User.current.username);
+        const ind = usernames.indexOf(User.current.username);
         if (ind >= 0) {
-            this.participants.splice(ind, 1);
+            usernames.splice(ind, 1);
             console.warn('ChatKegDb constructor received participant list containing current user.');
         }
+        this.participants = usernames.map(p => contactStore.getContact(p));
+
         this.isChannel = isChannel;
         // Just to prevent parallel load routines. We can't use chat id because we don't always have it.
         this._retryId = Math.random();
@@ -92,10 +94,12 @@ class ChatKegDb {
     }
 
     /**
-     * @member {BootKeg}
+     * @member {BootKeg} boot
+     * @memberof ChatKegDb
+     * @instance
      * @public
      */
-    boot;
+    @observable boot;
     /**
      * All participants except current user.
      * @member {Array<Contact>}
@@ -110,7 +114,7 @@ class ChatKegDb {
     dbIsBroken = false;
     /**
      * Is this a channel or DM db.
-    * @member {boolean}
+     * @member {boolean}
      * @public
      */
     isChannel;
@@ -142,7 +146,7 @@ class ChatKegDb {
                 .then(this._parseMeta)
                 .then(this._resolveBootKeg);
         }
-        const arg = { participants: this.participants.slice() };
+        const arg = { participants: this.participants.map(p => p.username) };
         arg.participants.push(User.current.username);
         // server will return existing chat if it does already exist
         // the logic below takes care of rare collision cases, like when users create chat or boot keg at the same time
@@ -211,6 +215,7 @@ class ChatKegDb {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
         return boot.load().then(() => {
+            if (boot.version === 1) return;
             this.participants = boot.participants.filter(c => c.username !== User.current.username); // todo: this will not update with boot syncs
         }).return(boot);
     }

@@ -17,10 +17,13 @@ function getTemporaryKegId() {
  * @param {boolean} [plaintext=false] - should keg be encrypted
  * @param {boolean} [forceSign=false] - plaintext kegs are not normally signed unless forceSign is true
  * @param {boolean} [allowEmpty=false] - normally client doesn't expect empty keg when calling `.load()` and will throw
+ * @param {boolean} [storeSignerData=false] - if the keg is signed, in addition to signature it will store
+ *                                            and then verify over signedByUsername prop instead of `keg.owner`.
  * @public
+ * todo: convert this monstrous constructor params to object
  */
 class Keg {
-    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
+    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false, storeSignerData = false) {
         this.id = id;
         /**
          * Keg type
@@ -81,6 +84,11 @@ class Keg {
          * @public
          */
         this.allowEmpty = allowEmpty;
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.storeSignerData = storeSignerData;
     }
 
     /**
@@ -246,6 +254,9 @@ class Keg {
                 signingPromise = this.signKegPayload(payload)
                     .then(signature => {
                         props.signature = signature;
+                        if (this.storeSignerData) {
+                            props.signedBy = getUser().username;
+                        }
                         this.signatureError = false;
                     })
                     .tapCatch(err => console.error('Failed to sign keg', err));
@@ -375,7 +386,7 @@ class Keg {
             }
             // SELF kegs do not require signing
             if (this.forceSign || (!this.plaintext && this.db.id !== 'SELF')) {
-                this.verifyKegSignature(payload, keg.props.signature);
+                this.verifyKegSignature(payload, keg.props);
             }
             const pendingReEncryption = !!(keg.props.sharedBy && keg.props.sharedKegSenderPK);
             // is this keg shared with us and needs re-encryption?
@@ -445,17 +456,22 @@ class Keg {
     /**
      * Asynchronously checks signature.
      * @param {Uint8Array|string} payload
-     * @param {string} signature
+     * @param {Object} props
      * @private
      */
-    verifyKegSignature(payload, signature) {
+    verifyKegSignature(payload, props) {
         if (!payload || this.lastLoadHadError) return;
+        let signature = props.signature;
         if (!signature) {
             this.signatureError = true;
             return;
         }
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
-        const contact = getContactStore().getContact(this.owner);
+        let signer = this.owner;
+        if (this.storeSignerData && props.signedBy) {
+            signer = props.signedBy;
+        }
+        const contact = getContactStore().getContact(signer);
         contact.whenLoaded(() => {
             if (this.lastLoadHadError) return;
             contact.notFound ? Promise.resolve(false) :

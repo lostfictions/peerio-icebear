@@ -10,6 +10,9 @@ const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
 const DOMPurify = require('dompurify');
 const ChatHead = require('./chat-head');
+const contactStore = require('../contacts/contact-store');
+const socket = require('../../network/socket');
+const warnings = require('../warnings');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -316,6 +319,13 @@ class Chat {
             if (this.messages[i].sender.username !== User.current.username) return true;
         }
         return false;
+    }
+
+    @computed get canIAdmin() {
+        if (!this.db.boot || !this.db.boot.admins.includes(contactStore.getContact(User.current.username))) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -785,6 +795,27 @@ class Chat {
         if (!clientApp.isFocused || !clientApp.isInChatsView || !this.active) return;
 
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
+    }
+
+    /**
+     * Deletes the channel.
+     * @returns {Promise}
+     * @public
+     */
+    delete() {
+        if (!this.isChannel) return Promise.reject('Can not delete DM chat.');
+
+        console.log(`Deleting channel ${this.id}.`);
+        return socket.send('/auth/kegs/channel/delete', { kegDbId: this.id })
+            .then(() => {
+                console.log(`Channel ${this.id} has been deleted.`);
+                warnings.add('title_channelDeleted');
+            })
+            .catch(err => {
+                console.error('Failed to delete channel', err);
+                warnings.add('error_channelDelete');
+                return Promise.reject(err);
+            });
     }
 
     dispose() {

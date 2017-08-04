@@ -2,6 +2,7 @@ const Keg = require('./keg');
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
 const { observable, action, when } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
+const { getUser } = require('../../helpers/di-current-user');
 
 /**
  * Named plaintext Boot keg for shared keg databases.
@@ -21,10 +22,6 @@ const { getContactStore } = require('../../helpers/di-contact-store');
  * ```
  * {
  *   publicKey: b64 encoded buffer, // public key from the encrypting ephemeral pair
- *   signedBy: {
- *      username: 'username1',
- *      publicKey: b64 encoded buffer // signing public key
- *   },
  *   roles: {
  *      admin: ["username", "username1", ...],
  *      some_role_we_will_want_later: ["username"]
@@ -83,7 +80,7 @@ const { getContactStore } = require('../../helpers/di-contact-store');
 class ChatBootKeg extends Keg {
     constructor(db, user) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super('boot', 'boot', db, true, true, true);
+        super('boot', 'boot', db, true, true, true, true);
         this.ignoreAntiTamperProtection = true;
         this.user = user;
         this.version = 1; // pre-created named keg
@@ -264,7 +261,6 @@ class ChatBootKeg extends Keg {
 
         return ret;
     }
-
 }
 
 module.exports = ChatBootKeg;

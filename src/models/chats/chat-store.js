@@ -30,6 +30,9 @@ class ChatStore {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
             }, 2000);
         });
+        socket.onceStarted(() => {
+            socket.subscribe(socket.APP_EVENTS.channelDeleted, this.processChannelDeletedEvent);
+        });
     }
 
     // todo: not sure this little event emitter experiment should live
@@ -110,12 +113,50 @@ class ChatStore {
      * Total unread messages in all chats.
      * @member {number} unreadMessages
      * @memberof ChatStore
+     * @readonly
      * @instance
      * @public
      */
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
+
+    /**
+     * Subset of ChatStore#chats, contains only direct message chats
+     * @member {Array<Chat>} directMessages
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get directMessages() {
+        return this.chats.filter(chat => !chat.isChannel);
+    }
+
+    /**
+     * Subset of ChatStore#chats, contains only channel chats
+     * @member {Array<Chat>} channels
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get channels() {
+        return this.chats.filter(chat => chat.isChannel);
+    }
+
+    /**
+     * Does chat store has any channels or not.
+     * @member {boolean} hasChannels
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get hasChannels() {
+        return !!this.channels.length;
+    }
+
 
     /**
      * Does smart and efficient 'in-place' sorting of observable array.
@@ -182,6 +223,13 @@ class ChatStore {
         return 1;
     }
 
+    processChannelDeletedEvent = data => {
+        const chat = this.chatMap[data.kegDbId];
+        if (!chat) return;
+        chat.dispose();
+        this.chats.remove(chat);
+        delete this.chatMap[data.kegDbId];
+    };
 
     onNewMessages = _.throttle((props) => {
         this.events.emit(this.EVENT_TYPES.messagesReceived, props);
@@ -381,7 +429,7 @@ class ChatStore {
      * @instance
      * @public
      */
-    @action startChat(participants, isChannel = false, name, purpose) {
+    @action startChat(participants = [], isChannel = false, name, purpose) {
         const cached = isChannel ? null : this.findCachedChatWithParticipants(participants);
         if (cached) {
             this.activate(cached.id);
@@ -421,6 +469,19 @@ class ChatStore {
         }
         chat.active = true;
         this.activeChat = chat;
+    }
+
+    /**
+     * Deactivates currently active chat.
+     * @function deactivateCurrentChat
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @action deactivateCurrentChat() {
+        if (!this.activeChat) return;
+        this.activeChat.active = false;
+        this.activeChat = null;
     }
 
     /**
