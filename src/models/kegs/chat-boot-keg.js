@@ -169,7 +169,27 @@ class ChatBootKeg extends Keg {
      */
     assignRole(contact, role) {
         if (role !== 'admin') throw new Error('Only admin role is currently supported');
-        if (!this.admins.includes(contact)) this.admins.push(contact);
+        if (!this.admins.includes(contact)) {
+            // should not happen, but just to be safe
+            const duplicate = this.admins.filter(d => d.username === contact.username);
+            duplicate.forEach(d => this.admins.remove(d));
+
+            this.admins.push(contact);
+        }
+    }
+    /**
+     * Removes role from a participant
+     * @param {Contact} contact
+     * @param {string} role
+     * @memberof ChatBootKeg
+     */
+    unassignRole(contact, role) {
+        if (role !== 'admin') throw new Error('Only admin role is currently supported');
+        // we do it this way to prevent potential errors around contacts that failed to login for whatever reason,
+        // as we don't really need them loaded here.
+        // Also we fix duplicate entries if they exist for whatever buggy reason. This is a critical code, so we do it.
+        const existing = this.admins.filter(c => c.username === contact.username);
+        existing.forEach(c => this.admins.remove(c));
     }
 
     deserializeKegPayload(data) {

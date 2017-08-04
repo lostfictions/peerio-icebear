@@ -21,7 +21,7 @@ class ChatInviteStore {
      * @instance
      * @public
      */
-    @observable received = [];
+    @observable.shallow received = [];
     /**
      * List of channel invites current user has sent.
      * @member {ObservableArray<{kegDbId: string, username: string, timestamp: number}>} sent
@@ -29,7 +29,19 @@ class ChatInviteStore {
      * @instance
      * @public
      */
-    @observable sent = [];
+    @observable.shallow sent = [];
+
+    /**
+     * List of users requested to leave channels. This is normally for internal icebear use.
+     * Icebear will monitor this list and remove keys from boot keg for leavers
+     * if current user is an admin of specific channel. Then icebear will remove an item from this list.
+     * todo: the whole system smells a bit, maybe think of something better
+     * @member {ObservableArray<{kegDbId: string, username: string}>} left
+     * @memberof ChatInviteStore
+     * @instance
+     * @protected
+     */
+    @observable.shallow left = [];
 
     updating = false;
     updateAgain = false;
@@ -66,6 +78,17 @@ class ChatInviteStore {
                     this.received = res.map(i => {
                         return { username: i.username, kegDbId: i/* .kegDbId */, timestamp: i.timestamp };
                     });
+                    return socket.send('/auth/kegs/channel/users-left');
+                }))
+                .then(action(res => {
+                    this.left = [];
+                    for (const kegDbId in res) {
+                        const leavers = res[kegDbId];
+                        if (!leavers || !leavers.length) continue;
+                        leavers.forEach(username => {
+                            this.left.push({ kegDbId, username });
+                        });
+                    }
                 }))
                 .catch(err => {
                     console.error('Error updating invite store', err);

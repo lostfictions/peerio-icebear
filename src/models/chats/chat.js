@@ -13,6 +13,7 @@ const ChatHead = require('./chat-head');
 const contactStore = require('../contacts/contact-store');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
+const Contact = require('../contacts/contact');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -816,6 +817,52 @@ class Chat {
                 warnings.add('error_channelDelete');
                 return Promise.reject(err);
             });
+    }
+
+    /**
+     * Adds participants to a channel.
+     * @param {Array<string|Contact>} - mix of usernames and Contact objects.
+     *                                  Note that this function will ensure contacts are loaded before proceeding.
+     *                                  So if there are some invalid contacts - entire batch will fail.
+     * @public
+     */
+    addParticipants(participants) {
+        if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
+        const contacts = participants.map(p => typeof p === 'string' ? contactStore.getContact(p) : p);
+        return Contact.ensureAllLoaded(contacts).then(() => {
+            contacts.forEach(c => this.db.boot.addParticipant(c));
+            return this.db.boot.saveToServer();
+        }).catch(err => {
+            console.error('Error adding participants to a channel', this.id, err);
+            return Promise.reject(err);
+        });
+    }
+
+    /**
+     * Removes participant from a channel
+     * @param {string | Contact} participant
+     * @public
+     */
+    removeParticipant(participant) {
+        let contact = participant;
+        if (typeof participant === 'string') {
+            // we don't really care if it's loaded or not, we just need Contact instance
+            contact = contactStore.getContact(participant);
+        }
+        this.db.boot.unassignRole(contact, 'admin');
+        this.db.boot.removeParticipant(contact);
+        return this.db.boot.saveToServer();
+    }
+
+    /**
+     * Remove myself from this channel.
+     * @public
+     */
+    leave() {
+        return socket.send('/auth/kegs/channel/leave', { kegDbId: this.id }).then(() => {
+            if (this.store.chats.length) this.store.activate(this.store.chats[0].id);
+            else this.store.activeChat = null;
+        });
     }
 
     dispose() {
