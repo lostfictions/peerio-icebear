@@ -399,7 +399,7 @@ class ChatStore {
      */
     findCachedChatWithParticipants(participants) {
         // validating participants
-        if (!this.isChannel && (!participants || !participants.length)) {
+        if (!participants || !participants.length) {
             throw new Error('Can not start chat with no participants');
         }
         for (const p of participants) {

@@ -1,5 +1,6 @@
 const { observable, action } = require('mobx');
 const socket = require('../../network/socket');
+const warnings = require('../warnings');
 
 /**
  * Chat invites store. Contains lists of incoming and outgoing invites and operations on them.
@@ -86,6 +87,47 @@ class ChatInviteStore {
         this.updating = false;
         if (this.updateAgain === false) return;
         setTimeout(this.update);
+    }
+
+    /**
+     * @param {string} kegDbId
+     * @public
+     */
+    acceptInvite(kegDbId) {
+        return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
+            .then(() => {
+                // todo: not sure if server send an event
+                // this.update();
+            }).catch(err => {
+                console.error('Failed to accept invite', kegDbId, err);
+                warnings.add('error_acceptChannelInvite');
+                return Promise.reject(err);
+            });
+    }
+
+    /**
+     * @param {string} kegDbId
+     * @public
+     */
+    rejectInvite(kegDbId) {
+        return socket.send('/auth/kegs/channel/invite/reject', { kegDbId })
+            .then(() => {
+                // todo: not sure if server send an event
+                // this.update();
+            }).catch(err => {
+                console.error('Failed to accept invite', kegDbId, err);
+                warnings.add('error_rejectChannelInvite');
+                return Promise.reject(err);
+            });
+    }
+
+    /**
+     * @param {string} kegDbId
+     * @param {string} username
+     * @public
+     */
+    revokeInvite(kegDbId, username) {
+
     }
 }
 
