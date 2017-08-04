@@ -411,7 +411,7 @@ class ChatStore {
         // generally ui should assume current user is participant to everything
         const filteredParticipants = this.getSelflessParticipants(participants);
         // maybe we already have this chat cached
-        for (const c of this.chats) {
+        for (const c of this.directMessages) {
             if (c.hasSameParticipants(filteredParticipants)) return c;
         }
         return null;
