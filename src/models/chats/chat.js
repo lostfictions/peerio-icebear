@@ -8,7 +8,6 @@ const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
-const DOMPurify = require('dompurify');
 const ChatHead = require('./chat-head');
 const contactStore = require('../contacts/contact-store');
 const socket = require('../../network/socket');
@@ -650,8 +649,7 @@ class Chat {
      */
     rename(name) {
         let validated = name || '';
-        validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
-        validated = validated.substr(0, 120);
+        validated = validated.trim().substr(0, 120);
         if (this.chatHead.chatName === validated || (!this.chatHead.chatName && !validated)) {
             return Promise.resolve(); // nothing to rename
         }
@@ -671,8 +669,7 @@ class Chat {
      */
     changePurpose(purpose) {
         let validated = purpose || '';
-        validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
-        validated = validated.substr(0, 120);
+        validated = validated.trim().substr(0, 120);
         if (this.chatHead.purpose === validated || (!this.chatHead.purpose && !validated)) {
             return Promise.resolve(); // nothing to change
         }
