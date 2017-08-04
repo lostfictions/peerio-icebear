@@ -859,10 +859,17 @@ class Chat {
      * @public
      */
     leave() {
-        return socket.send('/auth/kegs/channel/leave', { kegDbId: this.id }).then(() => {
-            if (this.store.chats.length) this.store.activate(this.store.chats[0].id);
-            else this.store.activeChat = null;
-        });
+        return socket.send('/auth/kegs/channel/leave', { kegDbId: this.id })
+            .catch(err => {
+                console.error('Failed to leave channel.', this.id, err);
+                warnings.add('error_channelLeave');
+                return Promise.reject(err);
+            })
+            .then(() => {
+                const switchToChat = this.store.chats.find(c => c.id !== this.id);
+                if (switchToChat) this.store.activate(switchToChat.id);
+                else this.store.activeChat = null;
+            });
     }
 
     dispose() {
