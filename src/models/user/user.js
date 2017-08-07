@@ -337,6 +337,22 @@ class User {
     }
 
     /**
+     * Maximum number of channels user can have
+     * @member {number} channelLimit
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get channelLimit() {
+        if (this.quota && this.quota.resultingQuotas
+            && this.quota.resultingQuotas.channel
+            && this.quota.resultingQuotas.channel.length) {
+            return this.quota.resultingQuotas.channel[0].limit
+        }
+        return undefined;
+    }
+
+    /**
      * Checks if there's enough storage to upload a file.
      * @param {number} size - amount of bytes user wants to upload.
      * @returns {boolean} is there enough storage left to upload.
