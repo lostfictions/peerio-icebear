@@ -863,9 +863,7 @@ class Chat {
                 return Promise.reject(err);
             })
             .then(() => {
-                const switchToChat = this.store.chats.find(c => c.id !== this.id);
-                if (switchToChat) this.store.activate(switchToChat.id);
-                else this.store.activeChat = null;
+                this.store.activeChat = null;
             });
     }
 

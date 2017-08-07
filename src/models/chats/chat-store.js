@@ -418,7 +418,7 @@ class ChatStore {
     }
 
     /**
-     * Starts new chat or loads existing one and activates it.
+     * Starts new chat or loads existing one and
      * @function startChat
      * @param {?Array<Contact>} participants
      * @param {?bool} isChannel
