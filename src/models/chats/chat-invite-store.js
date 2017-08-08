@@ -1,7 +1,9 @@
-const { observable, action } = require('mobx');
+const { observable, action, Map } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
-const chatStore = require('./chat-store'); // todo: di
+const chatStore = require('./chat-store'); // todo: DI module
+
+
 /**
  * Chat invites store. Contains lists of incoming and outgoing invites and operations on them.
  * @namespace
@@ -24,12 +26,12 @@ class ChatInviteStore {
     @observable.shallow received = [];
     /**
      * List of channel invites current user has sent.
-     * @member {ObservableArray<{kegDbId: string, username: string, timestamp: number}>} sent
+     * @member {Map<kegDbId: string, [{username: string, timestamp: number}]>} sent
      * @memberof ChatInviteStore
      * @instance
      * @public
      */
-    @observable.shallow sent = [];
+    @observable sent = observable.map();
 
     /**
      * List of users requested to leave channels. This is normally for internal icebear use.
@@ -46,6 +48,47 @@ class ChatInviteStore {
     updating = false;
     updateAgain = false;
 
+    /** @private */
+    updateInvitees = () => {
+        return socket.send('/auth/kegs/channel/invitees')
+            .then(action(res => {
+                res.forEach(item => {
+                    let arr = this.sent.get(item.kegDbId);
+                    if (!arr) {
+                        this.sent.set(item.kegDbId, []);
+                        arr = this.sent.get(item.kegDbId);
+                    }
+                    Object.keys(item.invitees).forEach(username => {
+                        arr.push({ username, timestamp: item.invitees[username] });
+                    });
+                });
+            }));
+    };
+
+    /** @private */
+    updateInvites = () => {
+        return socket.send('/auth/kegs/channel/invites')
+            .then(action(res => {
+                this.received = res.map(i => {
+                    return { username: i.username, kegDbId: i/* .kegDbId */, timestamp: i.timestamp };
+                });
+            }));
+    };
+
+    /** @private */
+    updateLeftUsers = () => {
+        return socket.send('/auth/kegs/channel/users-left')
+            .then(action(res => {
+                this.left = [];
+                for (const kegDbId in res) {
+                    const leavers = res[kegDbId];
+                    if (!leavers || !leavers.length) continue;
+                    leavers.forEach(username => {
+                        this.left.push({ kegDbId, username });
+                    });
+                }
+            }));
+    };
     /**
      * Updates local data from server.
      * @function
@@ -62,34 +105,9 @@ class ChatInviteStore {
         this.updating = true;
 
         try {
-            socket.send('/auth/kegs/channel/invitees')
-                .then(action(res => {
-                    this.sent = [];
-                    res.forEach(item => {
-                        item.invitees.forEach(username => {
-                            this.sent.push({ username, kegDbId: item.kegDbId, timestamp: item.timestamp });
-                        });
-                    });
-                }))
-                .then(() => {
-                    return socket.send('/auth/kegs/channel/invites');
-                })
-                .then(action(res => {
-                    this.received = res.map(i => {
-                        return { username: i.username, kegDbId: i/* .kegDbId */, timestamp: i.timestamp };
-                    });
-                    return socket.send('/auth/kegs/channel/users-left');
-                }))
-                .then(action(res => {
-                    this.left = [];
-                    for (const kegDbId in res) {
-                        const leavers = res[kegDbId];
-                        if (!leavers || !leavers.length) continue;
-                        leavers.forEach(username => {
-                            this.left.push({ kegDbId, username });
-                        });
-                    }
-                }))
+            this.updateInvitees()
+                .then(this.updateInvites)
+                .then(this.updateLeftUsers)
                 .catch(err => {
                     console.error('Error updating invite store', err);
                 })
