@@ -347,9 +347,9 @@ class User {
         if (this.quota && this.quota.resultingQuotas
             && this.quota.resultingQuotas.channel
             && this.quota.resultingQuotas.channel.length) {
-            return this.quota.resultingQuotas.channel[0].limit
+            return this.quota.resultingQuotas.channel[0].limit || 0;
         }
-        return undefined;
+        return 0;
     }
 
     /**
