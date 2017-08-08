@@ -17,9 +17,80 @@ function getTemporaryKegId() {
  * @param {boolean} [plaintext=false] - should keg be encrypted
  * @param {boolean} [forceSign=false] - plaintext kegs are not normally signed unless forceSign is true
  * @param {boolean} [allowEmpty=false] - normally client doesn't expect empty keg when calling `.load()` and will throw
+ * @param {boolean} [storeSignerData=false] - if the keg is signed, in addition to signature it will store
+ *                                            and then verify over signedByUsername prop instead of `keg.owner`.
  * @public
+ * todo: convert this monstrous constructor params to object
  */
 class Keg {
+    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false, storeSignerData = false) {
+        this.id = id;
+        /**
+         * Keg type
+         * @member {string}
+         * @public
+         */
+        this.type = type;
+        /**
+         * Owner KegDb instance
+         * @member {KegDb}
+         * @public
+         */
+        this.db = db;
+        /**
+         * Is the payload of this keg encrypted or not
+         * @member {boolean}
+         * @public
+         */
+        this.plaintext = plaintext;
+        /**
+         * Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
+         * @member {?Uint8Array}
+         * @public
+         */
+        this.overrideKey = null;
+        /**
+         * Keg version, when first created and empty, keg has version === 1
+         * @member {number}
+         * @public
+         */
+        this.version = 0;
+        /**
+         * Keg format version, client tracks kegs structure changes with this property
+         * @member {number}
+         * @public
+         */
+        this.format = 0;
+        /**
+         * Keg collection (all kegs with this.type) version, snowflake string id.
+         * null means we don't know the version yet, need to fetch keg at least once.
+         * @member {?string}
+         * @public
+         */
+        this.collectionVersion = null;
+        /**
+         * Default props object for default props serializers. More advanced logic usually ignores this property.
+         * @member {Object}
+         * @public
+         */
+        this.props = {};
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.forceSign = forceSign;
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.allowEmpty = allowEmpty;
+        /**
+         * @member {boolean}
+         * @public
+         */
+        this.storeSignerData = storeSignerData;
+    }
+
     /**
      * null when signature has not been verified yet (it's async) or it will never be because this keg is not supposed
      * to be signed.
@@ -54,26 +125,35 @@ class Keg {
      */
     @observable tempId;
     /**
-     * @member {?boolean} deleted
+     * @member {boolean} deleted
      * @memberof Keg
      * @instance
      * @public
      */
     @observable deleted = false;
     /**
-     * @member {?boolean} loading
+     * @member {boolean} loading
      * @memberof Keg
      * @instance
      * @public
      */
     @observable loading = false;
     /**
-     * @member {?boolean} saving
+     * @member {boolean} saving
      * @memberof Keg
      * @instance
      * @public
      */
     @observable saving = false;
+    /**
+     * Subclasses can set this to 'true' on data modification and subscribe to the flag resetting to 'false'
+     * after keg is saved.
+     * @member {boolean} dirty
+     * @memberof Keg
+     * @instance
+     * @public
+     */
+    @observable dirty = false;
     /**
      * @member {boolean} lastLoadHadError
      * @memberof Keg
@@ -82,68 +162,15 @@ class Keg {
      */
     lastLoadHadError = false;
 
-    constructor(id, type, db, plaintext = false, forceSign = false, allowEmpty = false) {
-        this.id = id;
-        /**
-         * Keg type
-         * @member {string}
-         * @public
-         */
-        this.type = type;
-        /**
-         * Owner KegDb instance
-         * @member {KegDb}
-         * @public
-         */
-        this.db = db;
-        /**
-         * Is the payload of this keg encrypted or not
-         * @member {boolean}
-         * @public
-         */
-        this.plaintext = plaintext;
-        /**
-         * Reserved for future keys change feature
-         * @member {string}
-         * @public
-         */
-        this.keyId = '0';
-        /**
-         * Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
-         * @member {?Uint8Array}
-         * @public
-         */
-        this.overrideKey = null;
-        /**
-         * Keg version, when first created and empty, keg has version === 1
-         * @member {number}
-         * @public
-         */
-        this.version = 0;
-        /**
-         * Keg collection (all kegs with this.type) version, snowflake string id.
-         * null means we don't know the version yet, need to fetch keg at least once.
-         * @member {?string}
-         * @public
-         */
-        this.collectionVersion = null;
-        /**
-         * Default props object for default props serializers. More advanced logic usually ignores this property.
-         * @member {Object}
-         * @public
-         */
-        this.props = {};
-        /**
-         * @member {boolean}
-         * @public
-         */
-        this.forceSign = forceSign;
-        /**
-         * @member {boolean}
-         * @public
-         */
-        this.allowEmpty = allowEmpty;
-    }
+
+    /**
+     * Some kegs don't need anti-tamper checks.
+     * @member {boolean} ignoreAntiTamperProtection
+     * @memberof Keg
+     * @instance
+     */
+    ignoreAntiTamperProtection;
+
 
     /**
      * Kegs with version==1 were just created and don't have any data
@@ -211,7 +238,7 @@ class Keg {
                 props.encryptedPayloadKey = null;
             }
             // anti-tamper protection, we do it here, so we don't have to remember to do it somewhere else
-            if (!this.plaintext || this.forceSign) {
+            if (!this.ignoreAntiTamperProtection && (!this.plaintext || this.forceSign)) {
                 payload._sys = {
                     kegId: this.id,
                     type: this.type
@@ -227,6 +254,9 @@ class Keg {
                 signingPromise = this.signKegPayload(payload)
                     .then(signature => {
                         props.signature = signature;
+                        if (this.storeSignerData) {
+                            props.signedBy = getUser().username;
+                        }
                         this.signatureError = false;
                     })
                     .tapCatch(err => console.error('Failed to sign keg', err));
@@ -240,13 +270,15 @@ class Keg {
             kegDbId: this.db.id,
             update: {
                 kegId: this.id,
-                keyId: '0',
+                keyId: this.db.keyId,
                 type: this.type,
                 payload: this.plaintext ? payload : payload.buffer,
                 props,
-                version: lastVersion + 1
+                version: lastVersion + 1,
+                format: this.format
             }
         })).then(resp => {
+            this.dirty = false;
             this.collectionVersion = resp.collectionVersion;
             // in case this keg was already updated through other code paths we change version in a smart way
             this.version = Math.max(lastVersion + 1, this.version);
@@ -331,8 +363,11 @@ class Keg {
                 this.lastLoadHadError = true;
                 return false;
             }
+            // empty kegs (esp. named) have a potential to overwrite values so we do it carefully
             this.id = keg.kegId;
             this.version = keg.version;
+            this.format = keg.format || this.format || 0; // this is a new field so older kegs might not have it
+            this.type = keg.type || this.type; // so anti-tamper can detect it
             this.owner = keg.owner;
             this.deleted = keg.deleted;
             this.collectionVersion = keg.collectionVersion || ''; // protect from potential server bugs sending null
@@ -351,34 +386,39 @@ class Keg {
             }
             // SELF kegs do not require signing
             if (this.forceSign || (!this.plaintext && this.db.id !== 'SELF')) {
-                this.verifyKegSignature(payload, keg.props.signature);
+                this.verifyKegSignature(payload, keg.props);
             }
+            const pendingReEncryption = !!(keg.props.sharedBy && keg.props.sharedKegSenderPK);
             // is this keg shared with us and needs re-encryption?
             // sharedKegSenderPK is used here to detect keg that still needs re-encryption
             // the property will get deleted after re-encryption
-            // we can't introduce additional flag bcs props are not being deleted on keg delete
+            // we can't introduce additional flag because props are not being deleted on keg delete
             // to allow re-sharing of the same file keg
-            if (!this.plaintext && keg.props.sharedBy && keg.props.sharedKegSenderPK) {
+            if (!this.plaintext && pendingReEncryption) {
                 // async call, changes state of the keg in case of issues
                 this.validateAndReEncryptSharedKeg(keg.props);
-                // todo: when we have key change, this should use secret key corresponding to sharedKegRecipientPK
+                // todo: when we'll have key change, this should use secret key corresponding to sharedKegRecipientPK
                 const sharedKey = getUser().getSharedKey(cryptoUtil.b64ToBytes(keg.props.sharedKegSenderPK));
 
                 if (keg.props.encryptedPayloadKey) {
                     // Payload was encrypted with a symmetric key, which was encrypted
                     // for our public key and stored in encryptedPayloadKey prop.
                     payloadKey = secret.decrypt(cryptoUtil.b64ToBytes(keg.props.encryptedPayloadKey), sharedKey);
-                } else {
-                    // TODO: @dchest u think we might need this?
-                    // Payload key is the shared key.
-                    payloadKey = sharedKey;
                 }
             }
             if (!this.plaintext) {
-                payload = secret.decryptString(payload, payloadKey || this.overrideKey || this.db.key);
+                let decryptionKey = payloadKey || this.overrideKey;
+                if (!decryptionKey) {
+                    decryptionKey = this.db.boot.keys[keg.keyId || '0'];
+                    if (decryptionKey) {
+                        decryptionKey = decryptionKey.key;
+                    }
+                    if (!decryptionKey) throw new Error(`Failed to resolve decryption key for ${this.id}`);
+                }
+                payload = secret.decryptString(payload, decryptionKey);
             }
             payload = JSON.parse(payload);
-            if (this.forceSign || !(this.plaintext || (keg.props.sharedBy && keg.props.sharedKegSenderPK))) {
+            if (!this.ignoreAntiTamperProtection && (this.forceSign || !(this.plaintext || pendingReEncryption))) {
                 this.detectTampering(payload);
             }
             this.deserializeKegPayload(payload);
@@ -416,17 +456,22 @@ class Keg {
     /**
      * Asynchronously checks signature.
      * @param {Uint8Array|string} payload
-     * @param {string} signature
+     * @param {Object} props
      * @private
      */
-    verifyKegSignature(payload, signature) {
+    verifyKegSignature(payload, props) {
         if (!payload || this.lastLoadHadError) return;
+        let signature = props.signature;
         if (!signature) {
             this.signatureError = true;
             return;
         }
         signature = cryptoUtil.b64ToBytes(signature); // eslint-disable-line no-param-reassign
-        const contact = getContactStore().getContact(this.owner);
+        let signer = this.owner;
+        if (this.storeSignerData && props.signedBy) {
+            signer = props.signedBy;
+        }
+        const contact = getContactStore().getContact(signer);
         contact.whenLoaded(() => {
             if (this.lastLoadHadError) return;
             contact.notFound ? Promise.resolve(false) :

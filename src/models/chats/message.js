@@ -145,6 +145,18 @@ class Message extends Keg {
     }
 
     /**
+     * Creates system metadata indicating chat purpose change.
+     * @param {string} newPurpose
+     * @protected
+     */
+    setPurposeChangeFact(newPurpose) {
+        this.systemData = {
+            action: 'purposeChange',
+            newPurpose
+        };
+    }
+
+    /**
      * Creates system metadata indicating chat creation fact.
      * @protected
      */

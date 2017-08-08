@@ -8,8 +8,11 @@ const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
 const clientApp = require('../client-app');
-const DOMPurify = require('dompurify');
 const ChatHead = require('./chat-head');
+const contactStore = require('../contacts/contact-store');
+const socket = require('../../network/socket');
+const warnings = require('../warnings');
+const Contact = require('../contacts/contact');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -25,16 +28,18 @@ const ACK_MSG = '👍';
  * at least one of two arguments should be set
  * @param {string} id - chat id
  * @param {Array<Contact>} participants - chat participants
+ * @param {?bool} isChannel
  * @param {ChatStore} store
  * @public
  */
 class Chat {
-    constructor(id, participants, store) {
+    constructor(id, participants = [], store, isChannel = false) {
         this.id = id;
         this.store = store;
+        this.isChannel = isChannel;
         if (!id) this.tempId = getTemporaryChatId();
         this.participants = participants;
-        this.db = new ChatKegDb(id, participants);
+        this.db = new ChatKegDb(id, participants, isChannel);
         this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
             shouldSendReceipt => {
                 if (shouldSendReceipt) this._sendReceipt();
@@ -153,6 +158,7 @@ class Chat {
      * @public
      */
     @observable canGoDown = false;
+
     /**
      * currently selected/focused in UI
      * @member {boolean} active
@@ -161,6 +167,15 @@ class Chat {
      * @public
      */
     @observable active = false;
+
+    /**
+     * Is this chat instance added to chat list already or not
+     * @member {boolean} active
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable added = false;
 
     /**
      * @member {boolean} isFavorite
@@ -260,6 +275,16 @@ class Chat {
     }
 
     /**
+     * @member {string} purpose
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get purpose() {
+        return this.chatHead && this.chatHead.purpose || '';
+    }
+
+    /**
      * User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
      * @member {boolean} canSendAck
      * @memberof Chat
@@ -296,6 +321,13 @@ class Chat {
         return false;
     }
 
+    @computed get canIAdmin() {
+        if (!this.db.boot || !this.db.boot.admins.includes(contactStore.getContact(User.current.username))) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @member {?Message} mostRecentMessage
      * @memberof Chat
@@ -321,7 +353,7 @@ class Chat {
                     throw new Error(errmsg);
                 }
                 this.id = this.db.id;
-                this.participants = this.db.participants;// todo computed
+                this.participants = this.db.participants || [];// todo computed
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);
@@ -392,7 +424,7 @@ class Chat {
         }
     }
 
-    // all kegs are decrypted and parsend, now we just push them to the observable array
+    // all kegs are decrypted and parsed, now we just push them to the observable array
     @action _finishAddMessages(accumulator, prepend) {
         let newMessageCount = 0;
         let newMentionCount = 0;
@@ -406,7 +438,7 @@ class Chat {
                 this.messages.remove(msg);
                 continue;
             }
-            // todo: maybe compare collection vesions? Although sending message's collection version is not confirmed
+            // todo: maybe compare collection versions? Although sending message's collection version is not confirmed
             // changed message case
             const existing = this._messageMap[msg.id];
             if (existing) {
@@ -617,8 +649,7 @@ class Chat {
      */
     rename(name) {
         let validated = name || '';
-        validated = DOMPurify.sanitize(validated, { ALLOWED_TAGS: [] }).trim();
-        validated = validated.substr(0, 120);
+        validated = validated.trim().substr(0, 120);
         if (this.chatHead.chatName === validated || (!this.chatHead.chatName && !validated)) {
             return Promise.resolve(); // nothing to rename
         }
@@ -628,6 +659,26 @@ class Chat {
             .then(() => {
                 const m = new Message(this.db);
                 m.setRenameFact(validated);
+                return this._sendMessage(m);
+            });
+    }
+
+    /**
+     * @param {string} purpose - pass empty string to remove chat purpose
+     * @public
+     */
+    changePurpose(purpose) {
+        let validated = purpose || '';
+        validated = validated.trim().substr(0, 120);
+        if (this.chatHead.purpose === validated || (!this.chatHead.purpose && !validated)) {
+            return Promise.resolve(); // nothing to change
+        }
+        return this.chatHead.save(() => {
+            this.chatHead.purpose = validated;
+        }, null, 'error_chatPurposeChange')
+            .then(() => {
+                const m = new Message(this.db);
+                m.setPurposeChangeFact(validated);
                 return this._sendMessage(m);
             });
     }
@@ -742,6 +793,78 @@ class Chat {
         if (!clientApp.isFocused || !clientApp.isInChatsView || !this.active) return;
 
         this._receiptHandler.sendReceipt(+this.messages[this.messages.length - 1].id);
+    }
+
+    /**
+     * Deletes the channel.
+     * @returns {Promise}
+     * @public
+     */
+    delete() {
+        if (!this.isChannel) return Promise.reject('Can not delete DM chat.');
+
+        console.log(`Deleting channel ${this.id}.`);
+        return socket.send('/auth/kegs/channel/delete', { kegDbId: this.id })
+            .then(() => {
+                console.log(`Channel ${this.id} has been deleted.`);
+                warnings.add('title_channelDeleted');
+            })
+            .catch(err => {
+                console.error('Failed to delete channel', err);
+                warnings.add('error_channelDelete');
+                return Promise.reject(err);
+            });
+    }
+
+    /**
+     * Adds participants to a channel.
+     * @param {Array<string|Contact>} - mix of usernames and Contact objects.
+     *                                  Note that this function will ensure contacts are loaded before proceeding.
+     *                                  So if there are some invalid contacts - entire batch will fail.
+     * @public
+     */
+    addParticipants(participants) {
+        if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
+        const contacts = participants.map(p => typeof p === 'string' ? contactStore.getContact(p) : p);
+        return Contact.ensureAllLoaded(contacts).then(() => {
+            contacts.forEach(c => this.db.boot.addParticipant(c));
+            return this.db.boot.saveToServer();
+        }).catch(err => {
+            console.error('Error adding participants to a channel', this.id, err);
+            return Promise.reject(err);
+        });
+    }
+
+    /**
+     * Removes participant from a channel
+     * @param {string | Contact} participant
+     * @public
+     */
+    removeParticipant(participant) {
+        let contact = participant;
+        if (typeof participant === 'string') {
+            // we don't really care if it's loaded or not, we just need Contact instance
+            contact = contactStore.getContact(participant);
+        }
+        this.db.boot.unassignRole(contact, 'admin');
+        this.db.boot.removeParticipant(contact);
+        return this.db.boot.saveToServer();
+    }
+
+    /**
+     * Remove myself from this channel.
+     * @public
+     */
+    leave() {
+        return socket.send('/auth/kegs/channel/leave', { kegDbId: this.id })
+            .catch(err => {
+                console.error('Failed to leave channel.', this.id, err);
+                warnings.add('error_channelLeave');
+                return Promise.reject(err);
+            })
+            .then(() => {
+                this.store.activeChat = null;
+            });
     }
 
     dispose() {

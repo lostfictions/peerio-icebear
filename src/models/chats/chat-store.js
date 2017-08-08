@@ -30,6 +30,9 @@ class ChatStore {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
             }, 2000);
         });
+        socket.onceStarted(() => {
+            socket.subscribe(socket.APP_EVENTS.channelDeleted, this.processChannelDeletedEvent);
+        });
     }
 
     // todo: not sure this little event emitter experiment should live
@@ -110,12 +113,50 @@ class ChatStore {
      * Total unread messages in all chats.
      * @member {number} unreadMessages
      * @memberof ChatStore
+     * @readonly
      * @instance
      * @public
      */
     @computed get unreadMessages() {
         return this.chats.reduce((acc, curr) => acc + curr.unreadCount, 0);
     }
+
+    /**
+     * Subset of ChatStore#chats, contains only direct message chats
+     * @member {Array<Chat>} directMessages
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get directMessages() {
+        return this.chats.filter(chat => !chat.isChannel);
+    }
+
+    /**
+     * Subset of ChatStore#chats, contains only channel chats
+     * @member {Array<Chat>} channels
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get channels() {
+        return this.chats.filter(chat => chat.isChannel);
+    }
+
+    /**
+     * Does chat store has any channels or not.
+     * @member {boolean} hasChannels
+     * @memberof ChatStore
+     * @readonly
+     * @instance
+     * @public
+     */
+    @computed get hasChannels() {
+        return !!this.channels.length;
+    }
+
 
     /**
      * Does smart and efficient 'in-place' sorting of observable array.
@@ -147,6 +188,12 @@ class ChatStore {
      * @protected
      */
     static compareChats(a, b, unreadOnTop) {
+        if (a.isChannel && !b.isChannel) {
+            return -1;
+        }
+        if (!a.isChannel && b.isChannel) {
+            return 1;
+        }
         if (a.isFavorite) {
             // favorite chats are sorted by name
             if (b.isFavorite) {
@@ -176,6 +223,13 @@ class ChatStore {
         return 1;
     }
 
+    processChannelDeletedEvent = data => {
+        const chat = this.chatMap[data.kegDbId];
+        if (!chat) return;
+        chat.dispose();
+        this.chats.remove(chat);
+        delete this.chatMap[data.kegDbId];
+    };
 
     onNewMessages = _.throttle((props) => {
         this.events.emit(this.EVENT_TYPES.messagesReceived, props);
@@ -184,37 +238,52 @@ class ChatStore {
     /**
      * Adds chat to the list.
      * @function addChat
-     * @param {string} id - chat id
+     * @param {string | Chat} chat - chat id or Chat instance
      * @param {bool} unhide - this flag helps us to force unhiding chat when we detected that addChat was called as
      * a result of new messages in the chat (but not other new/updated kegs)
      * @public
      */
-    addChat = (id, unhide) => {
-        if (!id) throw new Error(`Invalid chat id. ${id}`);
-        if (id === 'SELF' || !!this.chatMap[id]) return;
+    addChat = (chat, unhide) => {
+        if (!chat) throw new Error(`Invalid chat id. ${chat}`);
+        let c;
+        if (typeof chat === 'string') {
+            if (chat === 'SELF' || !!this.chatMap[chat]) return;
 
-        if (!unhide && this.myChats.hidden.includes(id)) {
-            // this might be a chat unhidden on another device, give unhidden state some time to propagate
-            setTimeout(() => {
-                // ok, unhidden by other device, adding chat
-                if (!this.myChats.hidden.includes(id)) {
-                    this.addChat(id);
-                    return;
-                }
-                // still not unhidden, should we unhide it bcs of new messages?
-                const digest = tracker.getDigest(id, 'message');
-                // nope, nothing new
-                if (digest.maxUpdateId <= digest.knownUpdateId) return;
-                this.addChat(id, true);
-            }, 2000);
-            return;
+            if (!unhide && this.myChats.hidden.includes(chat)) {
+                // this might be a chat unhidden on another device, give unhidden state some time to propagate
+                setTimeout(() => {
+                    // ok, unhidden by other device, adding chat
+                    if (!this.myChats.hidden.includes(chat)) {
+                        this.addChat(chat);
+                        return;
+                    }
+                    // still not unhidden, should we unhide it because of new messages?
+                    const digest = tracker.getDigest(chat, 'message');
+                    // nope, nothing new
+                    if (digest.maxUpdateId <= digest.knownUpdateId) return;
+                    this.addChat(chat, true);
+                }, 2000);
+                return;
+            }
+            c = new Chat(chat, undefined, this, chat.startsWith('channel:'));
+        } else {
+            c = chat;
+            if (this.chatMap[c.id]) {
+                console.error('Trying to add an instance of a chat that already exists.', c.id);
+                // todo: this is questionable. Works for current usage, but might create issues later.
+                // The only realistic case of how we can end up here is if someone creates a chat milliseconds earlier
+                // then us.
+                c.added = true;
+                return;
+            }
         }
-        const c = new Chat(id, undefined, this);
-        if (this.myChats.favorites.includes(id)) c.isFavorite = true;
-        this.chatMap[id] = c;
+
+        if (this.myChats.favorites.includes(c.id)) c.isFavorite = true;
+        this.chatMap[c.id] = c;
         this.chats.push(c);
-        tracker.registerDbInstance(id);
-        if (unhide && this.myChats.hidden.includes(id)) c.unhide();
+        c.added = true;
+        tracker.registerDbInstance(c.id);
+        if (unhide && this.myChats.hidden.includes(c.id)) c.unhide();
         c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
 
@@ -276,9 +345,13 @@ class ChatStore {
                     .then(action(list => {
                         let k = 0;
                         for (const id of list) {
+                            if (id.startsWith('channel:')) {
+                                this.addChat(id);
+                                continue;
+                            }
                             if (id === 'SELF' || this.myChats.hidden.includes(id)
                                 || this.myChats.favorites.includes(id)) continue;
-                            if (k++ >= rest) break;
+                            if (k++ >= rest) continue;
                             this.addChat(id);
                         }
                     }))
@@ -294,7 +367,7 @@ class ChatStore {
         // this should always happen right after adding chats from digest, synchronously,
         // so that there's no new chats that can slip away
         tracker.onKegDbAdded(id => {
-            // we do this with delay, because there's possibily of receiving this event
+            // we do this with delay, because there's a possibility of receiving this event
             // as a reaction to our own request to create a chat (no id yet so can't look it up in the map)
             // and while it's not an issue and is not going to break anything,
             // we still want to avoid wasting time on useless routine
@@ -338,31 +411,43 @@ class ChatStore {
         // generally ui should assume current user is participant to everything
         const filteredParticipants = this.getSelflessParticipants(participants);
         // maybe we already have this chat cached
-        for (const c of this.chats) {
+        for (const c of this.directMessages) {
             if (c.hasSameParticipants(filteredParticipants)) return c;
         }
         return null;
     }
+
     /**
-     * Starts new chat or loads existing one and activates it.
+     * Starts new chat or loads existing one and
      * @function startChat
-     * @param {Array<Contact>} participants
-     * @returns
+     * @param {?Array<Contact>} participants
+     * @param {?bool} isChannel
+     * @param {?string} name
+     * @param {?string} purpose - only for channels, not relevant for DMs
+     * @returns {Chat}
      * @memberof ChatStore
      * @instance
      * @public
      */
-    @action startChat(participants) {
-        const cached = this.findCachedChatWithParticipants(participants);
+    @action startChat(participants = [], isChannel = false, name, purpose) {
+        const cached = isChannel ? null : this.findCachedChatWithParticipants(participants);
         if (cached) {
             this.activate(cached.id);
             return cached;
         }
-        const chat = new Chat(null, this.getSelflessParticipants(participants), this);
+        const chat = new Chat(null, this.getSelflessParticipants(participants), this, isChannel);
         chat.loadMetadata()
             .then(() => {
-                this.addChat(chat.id, true);
+                this.addChat(chat, true);
                 this.activate(chat.id);
+            })
+            .then(() => {
+                if (name) return chat.rename(name);
+                return null;
+            })
+            .then(() => {
+                if (purpose) return chat.changePurpose(purpose);
+                return null;
             });
         return chat;
     }
@@ -380,12 +465,23 @@ class ChatStore {
         if (!chat) return;
         TinyDb.user.setValue('lastUsedChat', id);
         if (this.activeChat) {
-            tracker.deactivateKegDb(this.activeChat.id);
             this.activeChat.active = false;
         }
-        tracker.activateKegDb(id);
         chat.active = true;
         this.activeChat = chat;
+    }
+
+    /**
+     * Deactivates currently active chat.
+     * @function deactivateCurrentChat
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @action deactivateCurrentChat() {
+        if (!this.activeChat) return;
+        this.activeChat.active = false;
+        this.activeChat = null;
     }
 
     /**
@@ -425,7 +521,6 @@ class ChatStore {
         }
         chat.dispose();
         chat.active = false;
-        tracker.deactivateKegDb(chat.id);
         tracker.unregisterDbInstance(chat.id);
 
         delete this.chatMap[chat.id];

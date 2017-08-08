@@ -337,6 +337,22 @@ class User {
     }
 
     /**
+     * Maximum number of channels user can have
+     * @member {number} channelLimit
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get channelLimit() {
+        if (this.quota && this.quota.resultingQuotas
+            && this.quota.resultingQuotas.channel
+            && this.quota.resultingQuotas.channel.length) {
+            return this.quota.resultingQuotas.channel[0].limit || 0;
+        }
+        return 0;
+    }
+
+    /**
      * Checks if there's enough storage to upload a file.
      * @param {number} size - amount of bytes user wants to upload.
      * @returns {boolean} is there enough storage left to upload.
@@ -412,6 +428,7 @@ class User {
         socket.setAuthenticatedState();
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
+            // TODO: when we introduce key change feature - this will fail to decrypt
             TinyDb.openUserDb(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
             this.emojiMRU.loadCache();

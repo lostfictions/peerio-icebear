@@ -13,12 +13,24 @@ class KegDb {
      * @public
      */
     id;
+
     /**
      * Database key to use for keg encryption.
      * @member {Uint8Array}
      * @public
      */
     key;
+
+    /**
+     * Current key id for the database
+     * @member {?string}
+     * @readonly
+     * @public
+     */
+    get keyId() {
+        return this.boot ? this.boot.kegKeyId : null;
+    }
+
     /**
      * @member {BootKeg}
      * @public
@@ -46,6 +58,7 @@ class KegDb {
             encryptionKeys,
             kegKey
         });
+        boot.keys['0'] = { key: kegKey, createdAt: Date.now() };
         this.key = kegKey;
         this.boot = boot;
         return boot.saveToServer();

@@ -71,6 +71,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
     extendObservable(store, extend);
 
     // mark field (& those before it) as dirty on change
+    // eslint-disable-next-line
     store[fOnChange] = (val) => {
         store[fDirty] = true;
         // store[fName] = val;
