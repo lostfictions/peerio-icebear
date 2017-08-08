@@ -31,8 +31,7 @@ document.getElementById('filter-input').addEventListener('keyup', function (e) {
 
     if (!value.match(/^\s*$/)) {
         match = function (element) {
-            var html = element.firstChild.innerHTML;
-            return html && html.toLowerCase().indexOf(value) !== -1;
+            return element.innerText.toLowerCase().indexOf(value) !== -1;
         };
     }
 
@@ -85,16 +84,14 @@ function toggleSibling() {
 }
 
 function showHashTarget(targetId) {
-    if (targetId) {
-        var hashTarget = document.getElementById(targetId);
-        // new target is hidden
-        if (
-            hashTarget &&
-            hashTarget.offsetHeight === 0 &&
-            hashTarget.parentNode.parentNode.classList.contains('display-none')
-        ) {
-            hashTarget.parentNode.parentNode.classList.remove('display-none');
-        }
+    var hashTarget = document.getElementById(targetId);
+    // new target is hidden
+    if (
+        hashTarget &&
+        hashTarget.offsetHeight === 0 &&
+        hashTarget.parentNode.parentNode.classList.contains('display-none')
+    ) {
+        hashTarget.parentNode.parentNode.classList.remove('display-none');
     }
 }
 

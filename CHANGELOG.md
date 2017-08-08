@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.5.2...v2.0.0) (2017-08-08)
+
+
+### Bug Fixes
+
+* some safety nets for files and fix for anti-tamper protection ([ce20e4a](https://github.com/PeerioTechnologies/peerio-icebear/commit/ce20e4a))
+* **keg:** safe deserilizaton, avoid rewriting values with empty ones from empty keg ([a1d4423](https://github.com/PeerioTechnologies/peerio-icebear/commit/a1d4423))
+* **logs:** remove usernames from logs ([#27](https://github.com/PeerioTechnologies/peerio-icebear/issues/27)) ([c0a458f](https://github.com/PeerioTechnologies/peerio-icebear/commit/c0a458f))
+
+
+### Features
+
+* **channel:** create channel with chat-store ([c2ed205](https://github.com/PeerioTechnologies/peerio-icebear/commit/c2ed205))
+* **chat:** chat gets new observable property `added` ([a6dfa5b](https://github.com/PeerioTechnologies/peerio-icebear/commit/a6dfa5b))
+* **chat:** chat store supports adding chat instance, thus reusing chat instance when creating new chat instead of reloading it ([4541f88](https://github.com/PeerioTechnologies/peerio-icebear/commit/4541f88))
+* **chat:** support for chat and channel 'purpose' property ([2378e7a](https://github.com/PeerioTechnologies/peerio-icebear/commit/2378e7a))
+* **keg:** keg.dirty observable added to react to successful keg save ([3a871aa](https://github.com/PeerioTechnologies/peerio-icebear/commit/3a871aa))
+* **keg:** keyId property removed from keg ([f89873f](https://github.com/PeerioTechnologies/peerio-icebear/commit/f89873f))
+* **kegs:** kegs support 'format' metadata property to track changes in keg payload and props structure ([8e5016e](https://github.com/PeerioTechnologies/peerio-icebear/commit/8e5016e))
+* chat store loads and sorts channels ([0faa2c1](https://github.com/PeerioTechnologies/peerio-icebear/commit/0faa2c1))
+* Merge branch 'feat-channels' into dev ([532f2b0](https://github.com/PeerioTechnologies/peerio-icebear/commit/532f2b0))
+* update tracker doesn't try to minimise traffic and amount of data to process on reconnect anymore ([0e44d16](https://github.com/PeerioTechnologies/peerio-icebear/commit/0e44d16))
+* **quotas:** channel limit ([3522961](https://github.com/PeerioTechnologies/peerio-icebear/commit/3522961))
+
+
+### BREAKING CHANGES
+
+* - Some chats are now channels, your client must support channels or it will confuse them for DMs
+- update-tracker.js: removed `activateKegDb()` `deactivateKegDb()`
+- keg.js: now assumes there's always a list of keys in keg db and uses keyId for crypto
+- chat-keg-db.js: redone to support channels, clarity improvements TBD
+- chat-boot-keg.js: redone to support channels and prepared for DM boot keg format migration
+- system-messages.js: added new system message type - purposeChange
+* **keg:** Keg#keyId is removed. No reason to have it in the keg instance, it's only used during deserialization.
+
+
+
 <a name="1.5.2"></a>
 ## [1.5.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v1.5.1...v1.5.2) (2017-08-01)
 

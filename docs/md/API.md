@@ -130,6 +130,13 @@
 -   [index](#index)
 -   [ChatHead](#chathead)
     -   [chatName](#chatname)
+    -   [purpose](#purpose)
+-   [ChatInviteStore](#chatinvitestore)
+    -   [received](#received)
+    -   [sent](#sent)
+    -   [acceptInvite](#acceptinvite)
+    -   [rejectInvite](#rejectinvite)
+    -   [revokeInvite](#revokeinvite)
 -   [ChatStore](#chatstore)
     -   [events](#events)
     -   [chats](#chats)
@@ -139,10 +146,14 @@
     -   [hidingChat](#hidingchat)
     -   [loaded](#loaded)
     -   [unreadMessages](#unreadmessages)
+    -   [directMessages](#directmessages)
+    -   [channels](#channels)
+    -   [hasChannels](#haschannels)
     -   [addChat](#addchat)
     -   [loadAllChats](#loadallchats)
     -   [startChat](#startchat)
     -   [activate](#activate)
+    -   [deactivateCurrentChat](#deactivatecurrentchat)
     -   [startChatAndShareFiles](#startchatandsharefiles)
     -   [unloadChat](#unloadchat)
 -   [ChatFileHandler](#chatfilehandler)
@@ -162,6 +173,7 @@
     -   [canGoUp](#cangoup)
     -   [canGoDown](#cangodown)
     -   [active](#active)
+    -   [active](#active-1)
     -   [isFavorite](#isfavorite)
     -   [changingFavState](#changingfavstate)
     -   [uploadQueue](#uploadqueue)
@@ -171,6 +183,7 @@
     -   [isReadOnly](#isreadonly)
     -   [participantUsernames](#participantusernames)
     -   [name](#name)
+    -   [purpose](#purpose-1)
     -   [canSendAck](#cansendack)
     -   [showNewMessagesMarker](#shownewmessagesmarker)
     -   [mostRecentMessage](#mostrecentmessage)
@@ -181,10 +194,15 @@
     -   [loadPreviousPage](#loadpreviouspage)
     -   [loadNextPage](#loadnextpage)
     -   [rename](#rename)
+    -   [changePurpose](#changepurpose)
     -   [toggleFavoriteState](#togglefavoritestate)
     -   [hide](#hide)
     -   [unhide](#unhide)
     -   [reset](#reset)
+    -   [delete](#delete)
+    -   [addParticipants](#addparticipants)
+    -   [removeParticipant](#removeparticipant)
+    -   [leave](#leave)
 -   [Message](#message)
     -   [sending](#sending)
     -   [sendError](#senderror)
@@ -304,7 +322,7 @@
     -   [launchViewer](#launchviewer)
     -   [getStat](#getstat)
     -   [getCacheList](#getcachelist)
-    -   [delete](#delete)
+    -   [delete](#delete-1)
 -   [File](#file)
     -   [download](#download)
     -   [cancelDownload](#canceldownload)
@@ -344,17 +362,34 @@
     -   [encryptionKeys](#encryptionkeys)
     -   [kegKey](#kegkey)
 -   [ChatBootKeg](#chatbootkeg)
+    -   [participants](#participants)
+    -   [admins](#admins)
+    -   [addParticipant](#addparticipant)
 -   [ChatKegDb](#chatkegdb)
     -   [id](#id-1)
     -   [key](#key-1)
+    -   [keyId](#keyid)
     -   [boot](#boot)
-    -   [participants](#participants)
+    -   [participants](#participants-1)
     -   [dbIsBroken](#dbisbroken)
+    -   [isChannel](#ischannel)
 -   [KegDb](#kegdb)
     -   [id](#id-2)
     -   [key](#key-2)
+    -   [keyId](#keyid-1)
     -   [boot](#boot-1)
 -   [Keg](#keg)
+    -   [type](#type)
+    -   [db](#db)
+    -   [plaintext](#plaintext)
+    -   [overrideKey](#overridekey)
+    -   [version](#version)
+    -   [format](#format)
+    -   [collectionVersion](#collectionversion)
+    -   [props](#props)
+    -   [forceSign](#forcesign)
+    -   [allowEmpty](#allowempty)
+    -   [storeSignerData](#storesignerdata)
     -   [signatureError](#signatureerror)
     -   [sharedKegError](#sharedkegerror)
     -   [id](#id-3)
@@ -362,17 +397,8 @@
     -   [deleted](#deleted)
     -   [loading](#loading-3)
     -   [saving](#saving)
+    -   [dirty](#dirty)
     -   [lastLoadHadError](#lastloadhaderror)
-    -   [type](#type)
-    -   [db](#db)
-    -   [plaintext](#plaintext)
-    -   [keyId](#keyid)
-    -   [overrideKey](#overridekey)
-    -   [version](#version)
-    -   [collectionVersion](#collectionversion)
-    -   [props](#props)
-    -   [forceSign](#forcesign)
-    -   [allowEmpty](#allowempty)
     -   [isEmpty](#isempty)
     -   [assignTemporaryId](#assigntemporaryid)
     -   [saveToServer](#savetoserver)
@@ -441,6 +467,7 @@
     -   [fileQuotaUsed](#filequotaused)
     -   [fileQuotaUsedFmt](#filequotausedfmt)
     -   [fileQuotaUsedPercent](#filequotausedpercent)
+    -   [channelLimit](#channellimit)
     -   [canUploadFileSize](#canuploadfilesize)
     -   [createAccountAndLogin](#createaccountandlogin)
     -   [login](#login)
@@ -1651,6 +1678,43 @@ Chat head keg is open for any chat participant to update.
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
+### purpose
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+## ChatInviteStore
+
+Chat invites store. Contains lists of incoming and outgoing invites and operations on them.
+
+### received
+
+List of channel ids current user has been invited to.
+
+Type: ObservableArray&lt;{kegDbId: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), username: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), timestamp: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)}>
+
+### sent
+
+List of channel invites current user has sent.
+
+### acceptInvite
+
+**Parameters**
+
+-   `kegDbId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### rejectInvite
+
+**Parameters**
+
+-   `kegDbId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
+### revokeInvite
+
+**Parameters**
+
+-   `kegDbId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+
 ## ChatStore
 
 Chat store.
@@ -1701,13 +1765,31 @@ Total unread messages in all chats.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
+### directMessages
+
+Subset of ChatStore#chats, contains only direct message chats
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Chat](#chat)>
+
+### channels
+
+Subset of ChatStore#chats, contains only channel chats
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Chat](#chat)>
+
+### hasChannels
+
+Does chat store has any channels or not.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### addChat
 
 Adds chat to the list.
 
 **Parameters**
 
--   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
+-   `chat` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Chat](#chat))** chat id or Chat instance
 -   `unhide` **bool** this flag helps us to force unhiding chat when we detected that addChat was called as
     a result of new messages in the chat (but not other new/updated kegs)
 
@@ -1727,13 +1809,16 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 ### startChat
 
-Starts new chat or loads existing one and activates it.
+Starts new chat or loads existing one and
 
 **Parameters**
 
--   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** 
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>?** 
+-   `isChannel` **bool?** 
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+-   `purpose` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** only for channels, not relevant for DMs
 
-Returns **any** 
+Returns **[Chat](#chat)** 
 
 ### activate
 
@@ -1742,6 +1827,10 @@ Activates the chat.
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
+
+### deactivateCurrentChat
+
+Deactivates currently active chat.
 
 ### startChatAndShareFiles
 
@@ -1791,8 +1880,9 @@ at least one of two arguments should be set
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
--   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** chat participants
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** chat participants (optional, default `[]`)
 -   `store` **[ChatStore](#chatstore)** 
+-   `isChannel` **bool?**  (optional, default `false`)
 
 ### id
 
@@ -1872,6 +1962,12 @@ currently selected/focused in UI
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+### active
+
+Is this chat instance added to chat list already or not
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### isFavorite
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
@@ -1919,6 +2015,10 @@ Excluding current user.
 Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
 ### name
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### purpose
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
@@ -1981,6 +2081,12 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** pass empty string to remove chat name
 
+### changePurpose
+
+**Parameters**
+
+-   `purpose` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** pass empty string to remove chat purpose
+
 ### toggleFavoriteState
 
 ### hide
@@ -1990,6 +2096,35 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 ### reset
 
 Reloads most recent page of the chat like it was just added.
+
+### delete
+
+Deletes the channel.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### addParticipants
+
+Adds participants to a channel.
+
+**Parameters**
+
+-   `participants`  
+-   `null-null` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))>** mix of usernames and Contact objects.
+                                     Note that this function will ensure contacts are loaded before proceeding.
+                                     So if there are some invalid contacts - entire batch will fail.
+
+### removeParticipant
+
+Removes participant from a channel
+
+**Parameters**
+
+-   `participant` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))** 
+
+### leave
+
+Remove myself from this channel.
 
 ## Message
 
@@ -2506,7 +2641,8 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 **Extends SyncedKeg**
 
-Named readonly server-controlled keg. Invite data can be modified via separate api.
+Named readonly server-controlled keg. Contains data about contacts invited by email.
+Invite data can be modified via separate api.
 
 ### issued
 
@@ -3032,23 +3168,95 @@ Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 
 Named plaintext Boot keg for shared keg databases.
 
-Payload format:
+Payload format version 1:
 
     {
-      publicKey: buffer,
+      publicKey: b64 encoded buffer,
       encryptedKeys: {
-              username: buffer, // encrypted for user's PK
-              username1: buffer1
+              username: b64 encoded buffer, // encrypted for user's PK
+              username1: b64 encoded buffer
             }
     }
 
+Payload format version 2:
+
+    {
+      publicKey: b64 encoded buffer, // public key from the encrypting ephemeral pair
+      roles: {
+         admin: ["username", "username1", ...],
+         some_role_we_will_want_later: ["username"]
+      },
+      // object key = incremental key id
+      encryptedKeys: {
+         "0": {
+                 createdAt: number
+                 keys: {
+                    // key id
+                    username: {
+                        key: b64 encoded buffer, // encrypted for user's PK
+                        publicKey: b64 encoded buffer // user's public key (so user can still
+                                                      // decrypt this after she changes her keys)
+                    }
+                    username1: {...}
+                 }
+              },
+         "1": {
+              ...
+            }
+      }
+    }
+
+1.  Adding someone to the chat with full history access
+    -   Create new 'username:encryptedKey' record in the most ALL key object
+    -   for this generate new ephemeral key pair, and re-encrypt all the stuff
+    -   Send a system message 'username was invited'
+        At this point, invited user has full normal access to this keg db, BUT doesn't receive any notifications
+        push or keg notifications. As user now has full access to the keg db she will infer invitation status
+        from the special keg described below.
+2.  Revoking invite or removing user from the channel
+    -   Delete the record for this user from ALL keys
+    -   Server deletes invite_status-username keg
+3.  Accepting an invitation
+    -   invited user creates/undeletes invite_status-username keg with accepted:true property in it
+        Server enables notifications when joined:true.
+4.  Leaving a channel
+    -   participant sets joined:false
+    -   admin removes user from boot keg
+
+invite_status keg
+
+    {
+      accepted: boolean
+    }
+
 Server locks chat boot keg after it was updated first.
+TODO: when there will be more then 1 admin in channel, we need to sync boot keg
 
 **Parameters**
 
 -   `db` **[KegDb](#kegdb)** owner instance
 -   `user` **[User](#user)** currently authenticated user
--   `participantPublicKeys` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** username:publicKey map, pass when creating a new keg
+
+### participants
+
+List of usernames who have access to the chat currently.
+This includes users pending join confirmation.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>
+
+### admins
+
+Subset of `this.participants`.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>
+
+### addParticipant
+
+Gives access to chat keys to a contact.
+
+**Parameters**
+
+-   `contact` **[Contact](#contact)** 
 
 ## ChatKegDb
 
@@ -3061,7 +3269,7 @@ ChatKegDb is similar to [KegDb](#kegdb) in a sense that it has same `id`, `boot`
 properties, but the logic is too different to extract a base class. Although when saving and loading Kegs,
 you can use both databases, the properties mentioned is all Kegs can care about.
 
-Chat loading logic
+Chat loading logic // todo: update this with channels logic modifications
 
     retryUntilSuccess(
     1. Do we have ID for the chat?
@@ -3093,7 +3301,8 @@ At least one of 2 parameters should be passed
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** or specific id for shared databases
--   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>?** participants list, EXCLUDING own username
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>?** participants list, EXCLUDING own username (optional, default `[]`)
+-   `isChannel` **bool** does this db belong to a DM or Channel (optional, default `false`)
 
 ### id
 
@@ -3105,7 +3314,13 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Database key to use for keg encryption.
 
-Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?
+
+### keyId
+
+Current key id for the database
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
 
 ### boot
 
@@ -3119,7 +3334,13 @@ Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
 
 ### dbIsBroken
 
-if true -  something is wrong with boot keg, most likely it was maliciously created and can't be used
+if true - something is wrong with boot keg, most likely it was maliciously created and can't be used
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### isChannel
+
+Is this a channel or DM db.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -3140,6 +3361,12 @@ Database key to use for keg encryption.
 
 Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
 
+### keyId
+
+Current key id for the database
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
 ### boot
 
 Type: [BootKeg](#bootkeg)
@@ -3156,6 +3383,69 @@ Base class with common metadata and operations.
 -   `plaintext` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** should keg be encrypted (optional, default `false`)
 -   `forceSign` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** plaintext kegs are not normally signed unless forceSign is true (optional, default `false`)
 -   `allowEmpty` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** normally client doesn't expect empty keg when calling `.load()` and will throw (optional, default `false`)
+-   `storeSignerData` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** if the keg is signed, in addition to signature it will store
+                                               and then verify over signedByUsername prop instead of `keg.owner`. (optional, default `false`)
+
+### type
+
+Keg type
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### db
+
+Owner KegDb instance
+
+Type: [KegDb](#kegdb)
+
+### plaintext
+
+Is the payload of this keg encrypted or not
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### overrideKey
+
+Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
+
+Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?
+
+### version
+
+Keg version, when first created and empty, keg has version === 1
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### format
+
+Keg format version, client tracks kegs structure changes with this property
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### collectionVersion
+
+Keg collection (all kegs with this.type) version, snowflake string id.
+null means we don't know the version yet, need to fetch keg at least once.
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
+
+### props
+
+Default props object for default props serializers. More advanced logic usually ignores this property.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+### forceSign
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### allowEmpty
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### storeSignerData
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 ### signatureError
 
@@ -3183,74 +3473,24 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 ### deleted
 
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 ### loading
 
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 ### saving
 
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### dirty
+
+Subclasses can set this to 'true' on data modification and subscribe to the flag resetting to 'false'
+after keg is saved.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
 ### lastLoadHadError
-
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-### type
-
-Keg type
-
-Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-
-### db
-
-Owner KegDb instance
-
-Type: [KegDb](#kegdb)
-
-### plaintext
-
-Is the payload of this keg encrypted or not
-
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-### keyId
-
-Reserved for future keys change feature
-
-Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-
-### overrideKey
-
-Sometimes this specific key has to be en/decrypted with other then default for this KegDb key.
-
-Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?
-
-### version
-
-Keg version, when first created and empty, keg has version === 1
-
-Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
-
-### collectionVersion
-
-Keg collection (all kegs with this.type) version, snowflake string id.
-null means we don't know the version yet, need to fetch keg at least once.
-
-Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?
-
-### props
-
-Default props object for default props serializers. More advanced logic usually ignores this property.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-### forceSign
-
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-### allowEmpty
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -3691,6 +3931,12 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 ### fileQuotaUsedPercent
 
 Amount of % used bytes in storage.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### channelLimit
+
+Maximum number of channels user can have
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
