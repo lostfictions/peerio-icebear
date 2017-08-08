@@ -395,7 +395,7 @@ class SocketClient {
                 reject(new NotAuthenticatedError());
                 return;
             }
-            function handler(resp) {
+            const handler = (resp) => {
                 this.throttled = (resp.error === 425);
                 if (resp && resp.error) {
                     if (resp.error === ServerError.codes.accountClosed) {
@@ -410,7 +410,7 @@ class SocketClient {
                     return;
                 }
                 resolve(resp);
-            }
+            };
             this.socket.emit(name, data, handler);
         })
             .timeout(60000)
