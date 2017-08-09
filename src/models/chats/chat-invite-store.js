@@ -58,6 +58,7 @@ class ChatInviteStore {
                         this.sent.set(item.kegDbId, []);
                         arr = this.sent.get(item.kegDbId);
                     }
+                    arr.clear();
                     Object.keys(item.invitees).forEach(username => {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });
@@ -70,7 +71,7 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invites')
             .then(action(res => {
                 this.received = res.map(i => {
-                    return { username: i.username, kegDbId: i/* .kegDbId */, timestamp: i.timestamp };
+                    return { username: i.admin, kegDbId: i.channel, timestamp: i.timestamp };
                 });
             }));
     };
@@ -137,8 +138,7 @@ class ChatInviteStore {
     acceptInvite(kegDbId) {
         return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
             .then(() => {
-                // todo: not sure if server send an event
-                // this.update();
+                setTimeout(this.update, 250);
             }).catch(err => {
                 console.error('Failed to accept invite', kegDbId, err);
                 warnings.add('error_acceptChannelInvite');
@@ -153,8 +153,7 @@ class ChatInviteStore {
     rejectInvite(kegDbId) {
         return socket.send('/auth/kegs/channel/invite/reject', { kegDbId })
             .then(() => {
-                // todo: not sure if server send an event
-                // this.update();
+                setTimeout(this.update, 250);
             }).catch(err => {
                 console.error('Failed to accept invite', kegDbId, err);
                 warnings.add('error_rejectChannelInvite');
@@ -176,7 +175,7 @@ class ChatInviteStore {
             return Promise.reject();
         }
         return chat.removeParticipant(username).then(() => {
-            // todo: update?
+            setTimeout(this.update, 250);
         });
     }
 }

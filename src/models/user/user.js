@@ -353,6 +353,22 @@ class User {
     }
 
     /**
+     * Available channel slots left.
+     * @member {number} channelsLeft
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get channelsLeft() {
+        if (this.quota && this.quota.quotasLeft
+            && this.quota.quotasLeft.channel
+            && this.quota.quotasLeft.channel.length) {
+            return this.quota.quotasLeft.channel[0].limit || 0;
+        }
+        return 0;
+    }
+
+    /**
      * Checks if there's enough storage to upload a file.
      * @param {number} size - amount of bytes user wants to upload.
      * @returns {boolean} is there enough storage left to upload.

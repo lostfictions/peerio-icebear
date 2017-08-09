@@ -226,9 +226,7 @@ class ChatStore {
     processChannelDeletedEvent = data => {
         const chat = this.chatMap[data.kegDbId];
         if (!chat) return;
-        chat.dispose();
-        this.chats.remove(chat);
-        delete this.chatMap[data.kegDbId];
+        this.unloadChat(chat);
     };
 
     onNewMessages = _.throttle((props) => {
@@ -513,14 +511,9 @@ class ChatStore {
      */
     @action unloadChat(chat) {
         if (chat.active) {
-            if (this.chats.length > 1) {
-                this.activate(this.chats.find(c => c.id !== chat.id).id);
-            } else {
-                this.activeChat = null;
-            }
+            this.deactivateCurrentChat();
         }
         chat.dispose();
-        chat.active = false;
         tracker.unregisterDbInstance(chat.id);
 
         delete this.chatMap[chat.id];

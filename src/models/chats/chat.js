@@ -27,7 +27,7 @@ const ACK_MSG = '👍';
 /**
  * at least one of two arguments should be set
  * @param {string} id - chat id
- * @param {Array<Contact>} participants - chat participants
+ * @param {Array<Contact>} participants - chat participants, will be used to create chat or find it by participant list
  * @param {?bool} isChannel
  * @param {ChatStore} store
  * @public
@@ -38,7 +38,6 @@ class Chat {
         this.store = store;
         this.isChannel = isChannel;
         if (!id) this.tempId = getTemporaryChatId();
-        this.participants = participants;
         this.db = new ChatKegDb(id, participants, isChannel);
         this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
             shouldSendReceipt => {
@@ -77,12 +76,16 @@ class Chat {
 
     /**
      * Does not include current user.
-     * @member {ObservableArray<Contact>} participant
+     * @member {ObservableArray<Contact>} participants
      * @memberof Chat
      * @instance
      * @public
+     * @readonly
      */
-    @observable participants = [];
+    @computed get participants() {
+        if (!this.db.boot || !this.db.boot.participants) return [];
+        return this.db.boot.participants.filter(p => p.username !== User.current.username);
+    }
 
 
     /**
@@ -244,6 +247,7 @@ class Chat {
      * @public
      */
     @computed get isReadOnly() {
+        if (this.isChannel) return false;
         return this.participants.length > 0
             && this.participants.filter(p => p.isDeleted).length === this.participants.length;
     }
@@ -268,7 +272,6 @@ class Chat {
      */
     @computed get name() {
         if (this.chatHead && this.chatHead.chatName) return this.chatHead.chatName;
-        if (!this.participants) return '';
         return this.participants.length === 0
             ? (User.current.fullName || User.current.username)
             : this.participants.map(p => p.fullName || p.username).join(', ');
@@ -321,12 +324,32 @@ class Chat {
         return false;
     }
 
+    /**
+     * True if current user is an admin of this chat.
+     * @member {boolean} canIAdmin
+     * @memberof Chat
+     * @instance
+     * @public
+     */
     @computed get canIAdmin() {
         if (!this.db.boot || !this.db.boot.admins.includes(contactStore.getContact(User.current.username))) {
             return false;
         }
         return true;
     }
+
+    /**
+     * True if current user can leave the channel. (Last admin usually can't)
+     * @member {boolean} canILeave
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get canILeave() {
+        if (!this.canIAdmin) return true;
+        return this.db.boot.admins.length > 1;
+    }
+
 
     /**
      * @member {?Message} mostRecentMessage
@@ -353,7 +376,6 @@ class Chat {
                     throw new Error(errmsg);
                 }
                 this.id = this.db.id;
-                this.participants = this.db.participants || [];// todo computed
                 this._messageHandler = new ChatMessageHandler(this);
                 this._fileHandler = new ChatFileHandler(this);
                 this._receiptHandler = new ChatReceiptHandler(this);
@@ -827,8 +849,17 @@ class Chat {
         if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
         const contacts = participants.map(p => typeof p === 'string' ? contactStore.getContact(p) : p);
         return Contact.ensureAllLoaded(contacts).then(() => {
-            contacts.forEach(c => this.db.boot.addParticipant(c));
-            return this.db.boot.saveToServer();
+            const boot = this.db.boot;
+            return boot.save(
+                () => {
+                    contacts.forEach(c => boot.addParticipant(c));
+                    return true;
+                },
+                () => {
+                    contacts.forEach(c => boot.removeParticipant(c));
+                },
+                'error_addParticipant'
+            );
         }).catch(err => {
             console.error('Error adding participants to a channel', this.id, err);
             return Promise.reject(err);
@@ -846,9 +877,19 @@ class Chat {
             // we don't really care if it's loaded or not, we just need Contact instance
             contact = contactStore.getContact(participant);
         }
-        this.db.boot.unassignRole(contact, 'admin');
-        this.db.boot.removeParticipant(contact);
-        return this.db.boot.saveToServer();
+        const boot = this.db.boot;
+        return boot.save(
+            () => {
+                boot.unassignRole(contact, 'admin');
+                boot.removeParticipant(contact);
+                return true;
+            },
+            () => {
+                boot.addParticipant(contact);
+                boot.assignRole(contact, 'admin');
+            },
+            'error_removeParticipant'
+        );
     }
 
     /**

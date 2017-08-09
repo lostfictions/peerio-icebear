@@ -17,6 +17,15 @@ const { observable } = require('mobx');
  * @public
  */
 class SyncedKeg extends Keg {
+    constructor(kegName, db, plaintext = false, forceSign = false, allowEmpty = true, storeSignerData = false) {
+        super(kegName, kegName, db, plaintext, forceSign, allowEmpty, storeSignerData);
+        // this will make sure we'll update every time server sends a new digest
+        // it will also happen after reconnect, because digest is always refreshed on reconnect
+        tracker.onKegTypeUpdated(db.id, kegName, this._enqueueLoad);
+        // this will load initial data
+        socket.onceAuthenticated(this._enqueueLoad);
+    }
+
     _syncQueue = new Queue(1, 0);
     /**
      * Sets to true when keg is loaded for the first time.
@@ -26,15 +35,6 @@ class SyncedKeg extends Keg {
      * @public
      */
     @observable loaded = false;
-
-    constructor(kegName, db, plaintext = false, forceSign = false) {
-        super(kegName, kegName, db, plaintext, forceSign, true);
-        // this will make sure we'll update every time server sends a new digest
-        // it will also happen after reconnect, becasue SELF digest is always refreshed on reconnect
-        tracker.onKegTypeUpdated(db.id, kegName, this._enqueueLoad);
-        // this will load initial data
-        socket.onceAuthenticated(this._enqueueLoad);
-    }
 
     _enqueueLoad = () => {
         this._syncQueue.addTask(this._loadKeg);
@@ -100,12 +100,16 @@ class SyncedKeg extends Keg {
                     return null;
                 }
 
-                return this.saveToServer().tapCatch(() => {
-                    this.onSaveError(errorLocaleKey);
-                    // we don't restore unless there was no changes after ours
-                    if (ver !== this.version) return;
-                    dataRestoreFn();
-                });
+                return this.saveToServer()
+                    .then(() => {
+                        this.onSaved();
+                    })
+                    .tapCatch(() => {
+                        this.onSaveError(errorLocaleKey);
+                        // we don't restore unless there was no changes after ours
+                        if (ver !== this.version) return;
+                        dataRestoreFn();
+                    });
             }, this, null, resolve, reject);
         });
     }
@@ -116,6 +120,15 @@ class SyncedKeg extends Keg {
      * @abstract
      */
     onUpdated() {
+        // abstract function
+    }
+
+    /**
+     * Override to perform actions after keg data has been saved.
+     * @protected
+     * @abstract
+     */
+    onSaved() {
         // abstract function
     }
 

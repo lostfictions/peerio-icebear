@@ -1,8 +1,7 @@
-const Keg = require('./keg');
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
 const { observable, action, when } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
-const { getUser } = require('../../helpers/di-current-user');
+const SyncedKeg = require('../kegs/synced-keg');
 
 /**
  * Named plaintext Boot keg for shared keg databases.
@@ -77,10 +76,10 @@ const { getUser } = require('../../helpers/di-current-user');
  * @param {User} user - currently authenticated user
  * @public
  */
-class ChatBootKeg extends Keg {
+class ChatBootKeg extends SyncedKeg {
     constructor(db, user) {
         // named kegs are pre-created, so we know the id already and only going to update boot keg
-        super('boot', 'boot', db, true, true, true, true);
+        super('boot', db, true, true, true, true);
         this.ignoreAntiTamperProtection = true;
         this.user = user;
         this.version = 1; // pre-created named keg
@@ -88,6 +87,8 @@ class ChatBootKeg extends Keg {
 
     /**
      * Extracted from payload, most recent key to use for encryption.
+     * The trick here is that this property will only get updated after new keg key
+     * if it was added, is successfully saved to server.
      * @member {Uint8Array}
      */
     kegKey;
@@ -133,6 +134,15 @@ class ChatBootKeg extends Keg {
     }
 
     /**
+     * Gives access to chat keys to a contact.
+     * @param {Contact} contact
+     * @public
+     */
+    removeParticipant(contact) {
+        this.participants.remove(contact);
+    }
+
+    /**
      * Adds a new key, deprecating current key, or initializes empty boot keg with the first key.
      * @memberof ChatBootKeg
      */
@@ -149,16 +159,21 @@ class ChatBootKeg extends Keg {
             key
         };
         this.dirty = true;
-        const applyKey = () => {
+        if (maxId === '0') {
             this.kegKey = this.keys[maxId].key;
             this.kegKeyId = maxId;
-        };
-        if (maxId === '0') {
-            // this is first key
-            applyKey();
-        } else {
-            when(() => this.dirty === false, applyKey);
         }
+    }
+
+    /**
+     * Overrides SyncedKeg#onSaved
+     * @private
+     */
+    onSaved() {
+        const ids = Object.keys(this.keys).map(id => +id);
+        const maxId = Math.max(...ids).toString();
+        this.kegKey = this.keys[maxId].key;
+        this.kegKeyId = maxId;
     }
 
     /**
@@ -184,12 +199,10 @@ class ChatBootKeg extends Keg {
      * @memberof ChatBootKeg
      */
     unassignRole(contact, role) {
-        if (role !== 'admin') throw new Error('Only admin role is currently supported');
-        // we do it this way to prevent potential errors around contacts that failed to login for whatever reason,
-        // as we don't really need them loaded here.
-        // Also we fix duplicate entries if they exist for whatever buggy reason. This is a critical code, so we do it.
-        const existing = this.admins.filter(c => c.username === contact.username);
-        existing.forEach(c => this.admins.remove(c));
+        if (role !== 'admin') throw new Error('Only admin role is currently supported.');
+        // we do it this way to prevent potential errors around contacts that failed to load for whatever reason,
+        if (this.admins.length < 2) throw new Error('Can not remove last admin from boot keg.');
+        this.admins.remove(contact);
     }
 
     deserializeKegPayload(data) {
@@ -256,8 +269,6 @@ class ChatBootKeg extends Keg {
     }
 
     serializeKegPayload() {
-        // todo: re-encrypt all the things
-        // if(this.format === 0) ...
         this.format = 1;
         const ephemeralKeyPair = keys.generateEncryptionKeyPair();
         const ret = {};

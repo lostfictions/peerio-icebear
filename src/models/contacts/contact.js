@@ -225,7 +225,8 @@ class Contact {
      */
     @computed get mediumAvatarUrl() {
         if (!this.hasAvatar) return null;
-        return `${this._avatarUrl}/medium/?${this.profileVersion}`;
+        // todo: returning large size here to deal with 64px upscaling to 80px on retina mess
+        return `${this._avatarUrl}/large/?${this.profileVersion}`;
     }
 
     /**
