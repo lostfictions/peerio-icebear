@@ -52,13 +52,10 @@ class ChatInviteStore {
     updateInvitees = () => {
         return socket.send('/auth/kegs/channel/invitees')
             .then(action(res => {
+                this.sent.clear();
                 res.forEach(item => {
-                    let arr = this.sent.get(item.kegDbId);
-                    if (!arr) {
-                        this.sent.set(item.kegDbId, []);
-                        arr = this.sent.get(item.kegDbId);
-                    }
-                    arr.clear();
+                    const arr = [];
+                    this.sent.set(item.kegDbId, arr);
                     Object.keys(item.invitees).forEach(username => {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });

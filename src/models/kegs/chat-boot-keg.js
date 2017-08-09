@@ -201,6 +201,7 @@ class ChatBootKeg extends SyncedKeg {
     unassignRole(contact, role) {
         if (role !== 'admin') throw new Error('Only admin role is currently supported.');
         // we do it this way to prevent potential errors around contacts that failed to load for whatever reason,
+        if (!this.admins.includes(contact)) return;
         if (this.admins.length < 2) throw new Error('Can not remove last admin from boot keg.');
         this.admins.remove(contact);
     }
