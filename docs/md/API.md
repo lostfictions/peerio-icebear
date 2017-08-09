@@ -162,7 +162,7 @@
     -   [id](#id)
     -   [messages](#messages)
     -   [limboMessages](#limbomessages)
-    -   [participant](#participant)
+    -   [participants](#participants)
     -   [loadingMeta](#loadingmeta)
     -   [metaLoaded](#metaloaded)
     -   [loadingInitialPage](#loadinginitialpage)
@@ -186,6 +186,8 @@
     -   [purpose](#purpose-1)
     -   [canSendAck](#cansendack)
     -   [showNewMessagesMarker](#shownewmessagesmarker)
+    -   [canIAdmin](#caniadmin)
+    -   [canILeave](#canileave)
     -   [mostRecentMessage](#mostrecentmessage)
     -   [removeMessage](#removemessage)
     -   [sendAck](#sendack)
@@ -362,22 +364,24 @@
     -   [encryptionKeys](#encryptionkeys)
     -   [kegKey](#kegkey)
 -   [ChatBootKeg](#chatbootkeg)
-    -   [participants](#participants)
+    -   [participants](#participants-1)
     -   [admins](#admins)
     -   [addParticipant](#addparticipant)
+    -   [removeParticipant](#removeparticipant-1)
 -   [ChatKegDb](#chatkegdb)
     -   [id](#id-1)
     -   [key](#key-1)
     -   [keyId](#keyid)
     -   [boot](#boot)
-    -   [participants](#participants-1)
+    -   [boot](#boot-1)
+    -   [participantsToCreateWith](#participantstocreatewith)
     -   [dbIsBroken](#dbisbroken)
     -   [isChannel](#ischannel)
 -   [KegDb](#kegdb)
     -   [id](#id-2)
     -   [key](#key-2)
     -   [keyId](#keyid-1)
-    -   [boot](#boot-1)
+    -   [boot](#boot-2)
 -   [Keg](#keg)
     -   [type](#type)
     -   [db](#db)
@@ -468,6 +472,7 @@
     -   [fileQuotaUsedFmt](#filequotausedfmt)
     -   [fileQuotaUsedPercent](#filequotausedpercent)
     -   [channelLimit](#channellimit)
+    -   [channelsLeft](#channelsleft)
     -   [canUploadFileSize](#canuploadfilesize)
     -   [createAccountAndLogin](#createaccountandlogin)
     -   [login](#login)
@@ -516,8 +521,8 @@
     -   [reset](#reset-1)
 -   [socket](#socket)
 -   [InvitedContact](#invitedcontact)
--   [Address](#address)
 -   [KeyPair](#keypair)
+-   [Address](#address)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -1880,7 +1885,7 @@ at least one of two arguments should be set
 **Parameters**
 
 -   `id` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** chat id
--   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** chat participants (optional, default `[]`)
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>** chat participants, will be used to create chat or find it by participant list (optional, default `[]`)
 -   `store` **[ChatStore](#chatstore)** 
 -   `isChannel` **bool?**  (optional, default `false`)
 
@@ -1902,7 +1907,7 @@ Render these messages at the bottom of the chat, they don't have Id yet, you can
 
 Type: ObservableArray&lt;[Message](#message)>
 
-### participant
+### participants
 
 Does not include current user.
 
@@ -2031,6 +2036,18 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 ### showNewMessagesMarker
 
 Don't render message marker if this is false.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### canIAdmin
+
+True if current user is an admin of this chat.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### canILeave
+
+True if current user can leave the channel. (Last admin usually can't)
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -3164,7 +3181,7 @@ Type: [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refer
 
 ## ChatBootKeg
 
-**Extends Keg**
+**Extends SyncedKeg**
 
 Named plaintext Boot keg for shared keg databases.
 
@@ -3258,6 +3275,14 @@ Gives access to chat keys to a contact.
 
 -   `contact` **[Contact](#contact)** 
 
+### removeParticipant
+
+Gives access to chat keys to a contact.
+
+**Parameters**
+
+-   `contact` **[Contact](#contact)** 
+
 ## ChatKegDb
 
 Class for shared keg databases.
@@ -3326,9 +3351,17 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Type: [BootKeg](#bootkeg)
 
-### participants
+### boot
+
+Just a mirror of this.boot.participants
+
+Type: ObservableArray&lt;[Contact](#contact)>
+
+### participantsToCreateWith
 
 All participants except current user.
+This will be used to create chat, if passed.
+For DMs create operation will return existing chat.
 
 Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>
 
@@ -3583,6 +3616,8 @@ This is for named kegs only! Named kegs assume there's just one instance of it.
 -   `db` **([KegDb](#kegdb) \| [ChatKegDb](#chatkegdb))** this keg owner database
 -   `plaintext` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** encrypted or not (optional, default `false`)
 -   `forceSign` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** force signature of plaintext kegs or not (optional, default `false`)
+-   `allowEmpty`   (optional, default `true`)
+-   `storeSignerData`   (optional, default `false`)
 
 ### loaded
 
@@ -3940,6 +3975,12 @@ Maximum number of channels user can have
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
+### channelsLeft
+
+Available channel slots left.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
 ### canUploadFileSize
 
 Checks if there's enough storage to upload a file.
@@ -4292,6 +4333,17 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
 -   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
+## KeyPair
+
+Virtual type representing asymmetric key pair.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+
 ## Address
 
 Virtual type representing address as server sends it.
@@ -4304,17 +4356,6 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
-
-## KeyPair
-
-Virtual type representing asymmetric key pair.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## util
 
