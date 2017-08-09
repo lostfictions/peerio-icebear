@@ -103,13 +103,24 @@ class ChatKegDb {
 
     /**
      * Just a mirror of this.boot.participants
-     * @member {ObservableArray<Contact>} boot
+     * @member {ObservableArray<Contact>} participants
      * @memberof ChatKegDb
      * @instance
      * @public
      */
     @computed get participants() {
         return this.boot && this.boot.participants || [];
+    }
+
+    /**
+     * Just a mirror of this.boot.admins
+     * @member {ObservableArray<Contact>} admins
+     * @memberof ChatKegDb
+     * @instance
+     * @public
+     */
+    @computed get admins() {
+        return this.boot && this.boot.admins || [];
     }
 
     /**
@@ -225,7 +236,7 @@ class ChatKegDb {
     loadBootKeg() {
         // console.log(`Loading chat boot keg for ${this.id}`);
         const boot = new ChatBootKeg(this, User.current);
-        return boot.load().return(boot);
+        return boot._enqueueLoad().return(boot);
     }
 }
 

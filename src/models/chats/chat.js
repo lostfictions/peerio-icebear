@@ -866,6 +866,51 @@ class Chat {
         });
     }
 
+    promoteToAdmin(contact) {
+        if (!this.participants.includes(contact)) {
+            return Promise.reject('Attempt to promote user who is not a participant');
+        }
+        if (this.db.admins.includes(contact)) {
+            return Promise.reject('Attempt to promote user who is already an admin.');
+        }
+        const boot = this.db.boot;
+        return boot.save(
+            () => {
+                boot.assignRole(contact, 'admin');
+                return true;
+            },
+            () => {
+                boot.unassignRole(contact, 'admin');
+            },
+            'error_promoteToAdmin'
+        );
+    }
+
+    demoteAdmin(contact) {
+        if (!this.participants.includes(contact)) {
+            return Promise.reject('Attempt to demote user who is not a participant');
+        }
+        if (!this.db.admins.includes(contact)) {
+            return Promise.reject('Attempt to demote user who is not an admin.');
+        }
+
+        const boot = this.db.boot;
+        return boot.save(
+            () => {
+                boot.unassignRole(contact, 'admin');
+                return true;
+            },
+            () => {
+                boot.assignRole(contact, 'admin');
+            },
+            'error_demoteAdmin'
+        );
+    }
+
+    isAdmin(contact) {
+        return this.db.admins.includes(contact);
+    }
+
     /**
      * Removes participant from a channel
      * @param {string | Contact} participant

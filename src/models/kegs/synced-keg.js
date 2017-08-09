@@ -37,7 +37,7 @@ class SyncedKeg extends Keg {
     @observable loaded = false;
 
     _enqueueLoad = () => {
-        this._syncQueue.addTask(this._loadKeg);
+        return this._syncQueue.addTask(this._loadKeg);
     };
 
     _loadKeg = () => retryUntilSuccess(() => {
