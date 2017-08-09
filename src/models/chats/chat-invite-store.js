@@ -54,8 +54,11 @@ class ChatInviteStore {
             .then(action(res => {
                 this.sent.clear();
                 res.forEach(item => {
-                    const arr = [];
-                    this.sent.set(item.kegDbId, arr);
+                    let arr = this.sent.get(item.kegDbId);
+                    if (!arr) {
+                        this.sent.set(item.kegDbId, []);
+                        arr = this.sent.get(item.kegDbId);
+                    }
                     Object.keys(item.invitees).forEach(username => {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });

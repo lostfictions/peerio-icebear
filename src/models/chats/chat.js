@@ -75,7 +75,7 @@ class Chat {
     _messageMap = {};
 
     /**
-     * Does not include current user.
+     * Does not include current user. Includes participants that are just invited but not joined too.
      * @member {ObservableArray<Contact>} participants
      * @memberof Chat
      * @instance
@@ -86,8 +86,6 @@ class Chat {
         if (!this.db.boot || !this.db.boot.participants) return [];
         return this.db.boot.participants.filter(p => p.username !== User.current.username);
     }
-
-
     /**
      * If true - chat is not ready for anything yet.
      * @member {boolean} loadingMeta
