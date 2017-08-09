@@ -248,7 +248,15 @@ const config = new class {
          * @memberof config
          * @public
          */
-        decryptQueueThrottle: 0
+        decryptQueueThrottle: 0,
+
+        /**
+         * Maximum amount of participants for direct message (including creator)
+         * @member {number} chat.maxDMParticipants
+         * @memberof config
+         * @public
+         */
+        maxDMParticipants: 8
     };
 }();
 
