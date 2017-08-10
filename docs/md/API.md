@@ -25,6 +25,7 @@
     -   [chat.pageSize](#chatpagesize)
     -   [chat.maxLoadedMessages](#chatmaxloadedmessages)
     -   [chat.decryptQueueThrottle](#chatdecryptqueuethrottle)
+    -   [chat.maxDMParticipants](#chatmaxdmparticipants)
 -   [crypto/keys](#cryptokeys)
     -   [deriveAccountKeys](#deriveaccountkeys)
     -   [deriveEphemeralKeys](#deriveephemeralkeys)
@@ -373,7 +374,8 @@
     -   [key](#key-1)
     -   [keyId](#keyid)
     -   [boot](#boot)
-    -   [boot](#boot-1)
+    -   [participants](#participants-2)
+    -   [admins](#admins-1)
     -   [participantsToCreateWith](#participantstocreatewith)
     -   [dbIsBroken](#dbisbroken)
     -   [isChannel](#ischannel)
@@ -381,7 +383,7 @@
     -   [id](#id-2)
     -   [key](#key-2)
     -   [keyId](#keyid-1)
-    -   [boot](#boot-2)
+    -   [boot](#boot-1)
 -   [Keg](#keg)
     -   [type](#type)
     -   [db](#db)
@@ -520,9 +522,9 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [InvitedContact](#invitedcontact)
 -   [KeyPair](#keypair)
 -   [Address](#address)
+-   [InvitedContact](#invitedcontact)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -704,6 +706,12 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Delay (ms) between decryption of individual messages when processing a batch.
 Increase to get more responsiveness, but increase page load time.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxDMParticipants
+
+Maximum amount of participants for direct message (including creator)
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -1909,7 +1917,7 @@ Type: ObservableArray&lt;[Message](#message)>
 
 ### participants
 
-Does not include current user.
+Does not include current user. Includes participants that are just invited but not joined too.
 
 Type: ObservableArray&lt;[Contact](#contact)>
 
@@ -3351,9 +3359,15 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Type: [BootKeg](#bootkeg)
 
-### boot
+### participants
 
 Just a mirror of this.boot.participants
+
+Type: ObservableArray&lt;[Contact](#contact)>
+
+### admins
+
+Just a mirror of this.boot.admins
 
 Type: ObservableArray&lt;[Contact](#contact)>
 
@@ -4320,19 +4334,6 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
-
 ## KeyPair
 
 Virtual type representing asymmetric key pair.
@@ -4356,6 +4357,19 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## util
 

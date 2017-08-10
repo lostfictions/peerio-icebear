@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.0.1...v2.1.0) (2017-08-10)
+
+
+### Bug Fixes
+
+* some channel fixes ([7f71cac](https://github.com/PeerioTechnologies/peerio-icebear/commit/7f71cac))
+
+
+### Features
+
+* admin management ([f5066db](https://github.com/PeerioTechnologies/peerio-icebear/commit/f5066db))
+
+
+
 <a name="2.0.1"></a>
 ## [2.0.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.0.0...v2.0.1) (2017-08-09)
 
