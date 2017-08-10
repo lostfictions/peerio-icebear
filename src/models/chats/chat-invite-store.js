@@ -1,4 +1,4 @@
-const { observable, action, Map } = require('mobx');
+const { observable, action, when } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
 const chatStore = require('./chat-store'); // todo: DI module
@@ -86,6 +86,12 @@ class ChatInviteStore {
                     if (!leavers || !leavers.length) continue;
                     leavers.forEach(username => {
                         this.left.push({ kegDbId, username });
+                        // todo: move somewehre
+                        const chat = chatStore.chatMap[kegDbId];
+                        if (!chat) return;
+                        when(() => chat.metaLoaded, () => {
+                            chat.removeParticipant(username);
+                        });
                     });
                 }
             }));

@@ -94,7 +94,11 @@ class TinyDb {
         if (!key) return Promise.reject(new Error('Invalid TinyDb key'));
         return this.engine.getValue(key)
             .then(this.decrypt)
-            .then(JSON.parse);
+            .then(JSON.parse)
+            .catch(err => {
+                console.error(err);
+                return null;
+            });
     }
 
     /**
