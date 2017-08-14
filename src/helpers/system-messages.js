@@ -13,7 +13,7 @@ const { t } = require('peerio-translator');
 /**
  * Checks message object for system data and returns translated string to render for the system data.
  * @param {Message} msg
- * @returns {string} - translated string to render for this system messge
+ * @returns {string} - translated string to render for this system message
  * @memberof helpers/system-messages
  * @public
  */
@@ -29,8 +29,27 @@ function getSystemMessageText(msg) {
                 : t('title_chatPurposeRemoved');
         case 'create':
             return t('title_chatCreated', { fullName: msg.sender.fullName });
+        case 'join':
+            return t('title_userJoined');
+        case 'leave':
+            return t('title_userLeft');
+        case 'inviteSent':
+            return t('title_inviteSent', { username: msg.systemData.username });
+        case 'kick':
+            return t('title_userKicked', { username: msg.systemData.username });
+        case 'assignRole':
+            return t('title_roleAssigned', { username: msg.systemData.username, role: getRoleName(msg.systemData.role) });
+        case 'unassignRole':
+            return t('title_roleUnassigned', { username: msg.systemData.username, role: getRoleName(msg.systemData.role) });
         default:
             return '';
+    }
+}
+
+function getRoleName(role) {
+    switch (role) {
+        case 'admin': return t('title_admin');
+        default: return '';
     }
 }
 

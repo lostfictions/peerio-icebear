@@ -841,6 +841,7 @@ class Chat {
      * @param {Array<string|Contact>} - mix of usernames and Contact objects.
      *                                  Note that this function will ensure contacts are loaded before proceeding.
      *                                  So if there are some invalid contacts - entire batch will fail.
+     * @returns {Promise}
      * @public
      */
     addParticipants(participants) {
@@ -858,12 +859,21 @@ class Chat {
                 },
                 'error_addParticipant'
             );
-        }).catch(err => {
-            console.error('Error adding participants to a channel', this.id, err);
-            return Promise.reject(err);
-        });
+        })
+            .then(() => {
+                const names = contacts.map(c => c.username);
+                const m = new Message(this.db);
+                m.setChannelInviteFact(names);
+                this._sendMessage(m);
+            });
     }
 
+    /**
+     * Assigns admin role to a contact.
+     * @param {Contact} contact
+     * @returns {Promise}
+     * @public
+     */
     promoteToAdmin(contact) {
         if (!this.participants.includes(contact)) {
             return Promise.reject('Attempt to promote user who is not a participant');
@@ -881,9 +891,19 @@ class Chat {
                 boot.unassignRole(contact, 'admin');
             },
             'error_promoteToAdmin'
-        );
+        ).then(() => {
+            const m = new Message(this.db);
+            m.setRoleAssignFact(contact.username, 'admin');
+            this._sendMessage(m);
+        });
     }
 
+    /**
+     * Unassigns admin role from a contact.
+     * @param {Contact} contact
+     * @returns {Promise}
+     * @public
+     */
     demoteAdmin(contact) {
         if (!this.participants.includes(contact)) {
             return Promise.reject('Attempt to demote user who is not a participant');
@@ -902,37 +922,56 @@ class Chat {
                 boot.assignRole(contact, 'admin');
             },
             'error_demoteAdmin'
-        );
+        ).then(() => {
+            const m = new Message(this.db);
+            m.setRoleUnassignFact(contact.username, 'admin');
+            this._sendMessage(m);
+        });
     }
 
+    /**
+     * Checks if a contact has admin rights to this chat.
+     * @param {Contact} contact
+     * @returns {boolean}
+     * @public
+     */
     isAdmin(contact) {
         return this.db.admins.includes(contact);
     }
 
     /**
-     * Removes participant from a channel
+     * Removes participant from the channel.
      * @param {string | Contact} participant
+     * @param {boolean} isUserKick - this function is called in case admin kicks the user and in case user left and
+     *                                admin needs to remove their keys. Method wants to know which case is it.
+     * @returns {Promise}
      * @public
      */
-    removeParticipant(participant) {
+    removeParticipant(participant, isUserKick = true) {
         let contact = participant;
         if (typeof participant === 'string') {
             // we don't really care if it's loaded or not, we just need Contact instance
             contact = contactStore.getContact(participant);
         }
         const boot = this.db.boot;
+        const wasAdmin = boot.admins.includes(contact);
         return boot.save(
             () => {
-                boot.unassignRole(contact, 'admin');
+                if (wasAdmin) boot.unassignRole(contact, 'admin');
                 boot.removeParticipant(contact);
                 return true;
             },
             () => {
                 boot.addParticipant(contact);
-                boot.assignRole(contact, 'admin');
+                if (wasAdmin) boot.assignRole(contact, 'admin');
             },
             'error_removeParticipant'
-        );
+        ).then(() => {
+            if (!isUserKick) return;
+            const m = new Message(this.db);
+            m.setUserKickFact(contact.username);
+            this._sendMessage(m);
+        });
     }
 
     /**
@@ -940,15 +979,26 @@ class Chat {
      * @public
      */
     leave() {
-        return socket.send('/auth/kegs/channel/leave', { kegDbId: this.id })
-            .catch(err => {
+        const m = new Message(this.db);
+        m.setChannelLeaveFact();
+        this._sendMessage(m)
+            .then(() => socket.send('/auth/kegs/channel/leave', { kegDbId: this.id }))
+            .tapCatch(err => {
                 console.error('Failed to leave channel.', this.id, err);
                 warnings.add('error_channelLeave');
-                return Promise.reject(err);
             })
             .then(() => {
                 this.store.activeChat = null;
             });
+    }
+    /**
+     * Sends '{Current user} joined chat' system message to the chat.
+     * @protected
+     */
+    sendJoinMessage() {
+        const m = new Message(this.db);
+        m.setChannelJoinFact();
+        this._sendMessage(m);
     }
 
     dispose() {

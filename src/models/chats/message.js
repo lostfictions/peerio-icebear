@@ -157,12 +157,80 @@ class Message extends Keg {
     }
 
     /**
-     * Creates system metadata indicating chat creation fact.
+     * Creates system metadata indicating chat creation.
      * @protected
      */
     setChatCreationFact() {
         this.systemData = {
             action: 'create'
+        };
+    }
+    /**
+     * Creates system metadata indicating admin sending user invitation to channel.
+     * @param {Array<string>} usernames - array of invited usernames.
+     * @protected
+     */
+    setChannelInviteFact(usernames) {
+        this.systemData = {
+            action: 'inviteSent',
+            usernames
+        };
+    }
+    /**
+     * Creates system metadata indicating user accepting invite and joining channel.
+     * @protected
+     */
+    setChannelJoinFact() {
+        this.systemData = {
+            action: 'join'
+        };
+    }
+    /**
+     * Creates system metadata indicating user leaving channel.
+     * @protected
+     */
+    setChannelLeaveFact() {
+        this.systemData = {
+            action: 'leave'
+        };
+    }
+    /**
+     * Creates system metadata indicating admin removing user from a channel.
+     * @param {string} username - username kicked from chat.
+     * @protected
+     */
+    setUserKickFact(username) {
+        this.systemData = {
+            action: 'kick',
+            username
+        };
+    }
+
+    /**
+     * Crates system metadata indicating admin assigning a role to user.
+     * @param {string} username
+     * @param {string} role - currently only 'admin'
+     * @memberof Message
+     */
+    setRoleAssignFact(username, role) {
+        this.systemData = {
+            action: 'assignRole',
+            username,
+            role
+        };
+    }
+
+    /**
+     * Crates system metadata indicating admin removing a role from user.
+     * @param {string} username
+     * @param {string} role - currently only 'admin'
+     * @memberof Message
+     */
+    setRoleUnassignFact(username, role) {
+        this.systemData = {
+            action: 'unassignRole',
+            username,
+            role
         };
     }
 

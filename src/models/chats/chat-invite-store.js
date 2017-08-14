@@ -90,7 +90,7 @@ class ChatInviteStore {
                         const chat = chatStore.chatMap[kegDbId];
                         if (!chat) return;
                         when(() => chat.metaLoaded, () => {
-                            chat.removeParticipant(username);
+                            chat.removeParticipant(username, false);
                         });
                     });
                 }
@@ -145,6 +145,16 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
             .then(() => {
                 setTimeout(this.update, 250);
+                when(() => {
+                    const chat = chatStore.chats.find(c => c.id === kegDbId);
+                    if (!chat) return false;
+                    return chat.metaLoaded;
+                }, () => {
+                    chatStore.chatMap[kegDbId].sendJoinMessage();
+                    if (!chatStore.activeChat) {
+                        chatStore.activate(kegDbId);
+                    }
+                });
             }).catch(err => {
                 console.error('Failed to accept invite', kegDbId, err);
                 warnings.add('error_acceptChannelInvite');
