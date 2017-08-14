@@ -192,7 +192,10 @@ class ChatKegDb {
     _resolveBootKeg = () => {
         return this.loadBootKeg()
             .then(boot => {
-                if (boot.version > 1) return [boot, false];
+                if (boot.version > 1) {
+                    if (!boot.format) boot.saveToServer();
+                    return [boot, false];
+                }
                 return this.createBootKeg();
             })
             .spread((boot, justCreated) => {
