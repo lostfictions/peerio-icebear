@@ -194,6 +194,9 @@ class ChatStore {
         if (!a.isChannel && b.isChannel) {
             return 1;
         }
+        if (a.isChannel && b.isChannel) {
+            return a.name.localeCompare(b.name);
+        }
         if (a.isFavorite) {
             // favorite chats are sorted by name
             if (b.isFavorite) {
