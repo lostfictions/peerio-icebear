@@ -186,6 +186,7 @@ class ChatKegDb {
     // fills current object properties from raw keg metadata
     _parseMeta = (meta) => {
         this.id = meta.id;
+        this._metaParticipants = meta.participants;
     }
 
     // figures out if we need to load/create boot keg and does it
@@ -193,7 +194,7 @@ class ChatKegDb {
         return this.loadBootKeg()
             .then(boot => {
                 if (boot.version > 1) {
-                    if (!boot.format) boot.saveToServer();
+                    //if (!boot.format) boot.saveToServer().return([boot, false]);
                     return [boot, false];
                 }
                 return this.createBootKeg();
