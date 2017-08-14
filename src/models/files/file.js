@@ -178,8 +178,9 @@ class File extends Keg {
     @computed get cachePath() {
         if (!config.isMobile) return null;
         // we need constant id to find file in cache, but fileId contains some restricted characters
-        const uid = this.name || cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
-        return config.FileStream.getFullPath(`${uid}.${this.ext}`);
+        const uid = cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
+        const name = `${this.name || uid}.${this.ext}`;
+        return config.FileStream.getFullPath(uid, name);
     }
     /**
      * Human readable file size

@@ -141,12 +141,13 @@ class FileStreamAbstract {
     /**
      * Override. Returns full path for file when there's a default cache path implemented in the app.
      * Currently only mobile.
-     * @param {string} name - normalized file name (deterministically generated)
+     * @param {string} uid - unique identifier
+     * @param {string} name - human-readable file name
      * @returns {string} - actual device path for file
      * @abstract
      * @public
      */
-    static getFullPath(name) {
+    static getFullPath(uid, name) {
         throw new AbstractCallError();
     }
 
