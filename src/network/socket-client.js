@@ -42,7 +42,7 @@ const APP_EVENTS = {
     twoFA: 'twoFA',
     kegsUpdate: 'kegsUpdate',
     serverWarning: 'serverWarning',
-    clearWaring: 'clearWarning',
+    clearWarning: 'clearWarning',
     channelInvitesUpdate: 'channelInvitesUpdate',
     channelDeleted: 'channelDeleted'
 };
