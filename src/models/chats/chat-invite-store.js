@@ -2,7 +2,22 @@ const { observable, action, when } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
 const chatStore = require('./chat-store'); // todo: DI module
+const { ChatBootKeg } = require('../kegs/chat-boot-keg');
+const { cryptoUtil, publicCrypto } = require('../../crypto');
+const User = require('../user/user');
+const Keg = require('../kegs/keg');
 
+// this is not... the most amazing code reuse, but it works, and it's clear
+class ChatHead extends Keg {
+    constructor(db) {
+        super('chat_head', 'chat_head', db);
+    }
+    chatName = '';
+
+    deserializeKegPayload(payload) {
+        this.chatName = payload.chatName || '';
+    }
+}
 
 /**
  * Chat invites store. Contains lists of incoming and outgoing invites and operations on them.
@@ -71,7 +86,8 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invites')
             .then(action(res => {
                 this.received = res.map(i => {
-                    return { username: i.admin, kegDbId: i.channel, timestamp: i.timestamp };
+                    const channelName = this.decryptChannelName(i);
+                    return { username: i.admin, kegDbId: i.channel, timestamp: i.timestamp, channelName };
                 });
             }));
     };
@@ -86,7 +102,7 @@ class ChatInviteStore {
                     if (!leavers || !leavers.length) continue;
                     leavers.forEach(username => {
                         this.left.push({ kegDbId, username });
-                        // todo: move somewehre
+                        // todo: move somewhere
                         const chat = chatStore.chatMap[kegDbId];
                         if (!chat) return;
                         when(() => chat.metaLoaded, () => {
@@ -96,6 +112,32 @@ class ChatInviteStore {
                 }
             }));
     };
+
+    /**
+     * @param {Object} data - invite objects
+     * @returns {string}
+     * @private
+     */
+    decryptChannelName(data) {
+        try {
+            const { bootKeg, chatHeadKeg } = data;
+            bootKeg.payload = JSON.parse(bootKeg.payload);
+            const keyId = (chatHeadKeg.keyId || 0).toString();
+            const publicKey = cryptoUtil.b64ToBytes(bootKeg.payload.publicKey);
+            let encKegKey = bootKeg.payload.encryptedKeys[keyId].keys[User.current.username];
+            encKegKey = cryptoUtil.b64ToBytes(encKegKey);
+
+            const kegKey = publicCrypto.decrypt(encKegKey, publicKey, User.current.encryptionKeys.secretKey);
+            const fakeDb = { id: data.channel };
+            const chatHead = new ChatHead(fakeDb);
+            chatHead.overrideKey = kegKey;
+            chatHead.loadFromKeg(chatHeadKeg);
+            return chatHead.chatName;
+        } catch (ex) {
+            console.error(ex);
+            return '';
+        }
+    }
     /**
      * Updates local data from server.
      * @function
