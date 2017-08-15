@@ -204,6 +204,9 @@
     -   [reset](#reset)
     -   [delete](#delete)
     -   [addParticipants](#addparticipants)
+    -   [promoteToAdmin](#promotetoadmin)
+    -   [demoteAdmin](#demoteadmin)
+    -   [isAdmin](#isadmin)
     -   [removeParticipant](#removeparticipant)
     -   [leave](#leave)
 -   [Message](#message)
@@ -523,8 +526,8 @@
     -   [reset](#reset-1)
 -   [socket](#socket)
 -   [KeyPair](#keypair)
--   [Address](#address)
 -   [InvitedContact](#invitedcontact)
+-   [Address](#address)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -1646,7 +1649,7 @@ Checks message object for system data and returns translated string to render fo
 
 -   `msg` **[Message](#message)** 
 
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system messge
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system message
 
 ## helpers/field-validation
 
@@ -2139,13 +2142,49 @@ Adds participants to a channel.
                                      Note that this function will ensure contacts are loaded before proceeding.
                                      So if there are some invalid contacts - entire batch will fail.
 
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### promoteToAdmin
+
+Assigns admin role to a contact.
+
+**Parameters**
+
+-   `contact` **[Contact](#contact)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### demoteAdmin
+
+Unassigns admin role from a contact.
+
+**Parameters**
+
+-   `contact` **[Contact](#contact)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### isAdmin
+
+Checks if a contact has admin rights to this chat.
+
+**Parameters**
+
+-   `contact` **[Contact](#contact)** 
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+
 ### removeParticipant
 
-Removes participant from a channel
+Removes participant from the channel.
 
 **Parameters**
 
 -   `participant` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))** 
+-   `isUserKick` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** this function is called in case admin kicks the user and in case user left and
+                                   admin needs to remove their keys. Method wants to know which case is it. (optional, default `true`)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
 ### leave
 
@@ -2897,7 +2936,8 @@ Currently only mobile.
 
 **Parameters**
 
--   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** normalized file name (deterministically generated)
+-   `uid` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** unique identifier
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** human-readable file name
 
 Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** actual device path for file
 
@@ -4345,19 +4385,6 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
 -   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
-## Address
-
-Virtual type representing address as server sends it.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `address` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
--   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
--   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
-
 ## InvitedContact
 
 Virtual type representing invited contact.
@@ -4370,6 +4397,19 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 -   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
 -   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
+## Address
+
+Virtual type representing address as server sends it.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `address` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+-   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
 
 ## util
 

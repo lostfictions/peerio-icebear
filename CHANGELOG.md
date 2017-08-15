@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.2.0"></a>
+# [2.2.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.1.0...v2.2.0) (2017-08-15)
+
+
+### Bug Fixes
+
+* channel sort order ([812f53e](https://github.com/PeerioTechnologies/peerio-icebear/commit/812f53e))
+* typo in socket-client event name ([#30](https://github.com/PeerioTechnologies/peerio-icebear/issues/30)) ([08a8b5a](https://github.com/PeerioTechnologies/peerio-icebear/commit/08a8b5a))
+
+
+### Features
+
+* **channels:** system messages ([cfc603f](https://github.com/PeerioTechnologies/peerio-icebear/commit/cfc603f))
+* **files:** unique file paths ([#29](https://github.com/PeerioTechnologies/peerio-icebear/issues/29)) ([1e93995](https://github.com/PeerioTechnologies/peerio-icebear/commit/1e93995))
+* bootkeg migration ([b67371f](https://github.com/PeerioTechnologies/peerio-icebear/commit/b67371f))
+* channel name in invites ([e1f54da](https://github.com/PeerioTechnologies/peerio-icebear/commit/e1f54da))
+* migrate DMs on sight ([d23973c](https://github.com/PeerioTechnologies/peerio-icebear/commit/d23973c))
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.0.1...v2.1.0) (2017-08-10)
 
