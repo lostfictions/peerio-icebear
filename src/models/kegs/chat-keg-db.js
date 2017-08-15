@@ -186,7 +186,9 @@ class ChatKegDb {
     // fills current object properties from raw keg metadata
     _parseMeta = (meta) => {
         this.id = meta.id;
-        this._metaParticipants = meta.participants;
+        if (!this.isChannel && meta.permissions && meta.permissions.users) {
+            this._metaParticipants = Object.keys(meta.permissions.users).map(username => contactStore.getContact(username));
+        }
     }
 
     // figures out if we need to load/create boot keg and does it
@@ -194,7 +196,10 @@ class ChatKegDb {
         return this.loadBootKeg()
             .then(boot => {
                 if (boot.version > 1) {
-                    //if (!boot.format) boot.saveToServer().return([boot, false]);
+                    if (!boot.format) {
+                        boot.participants = this._metaParticipants;// todo
+                        boot.saveToServer().return([boot, false]);
+                    }
                     return [boot, false];
                 }
                 return this.createBootKeg();
