@@ -442,7 +442,9 @@ class ChatStore {
             warnings.add('error_channelLimitReached');
             return null;
         }
-        const chat = new Chat(null, this.getSelflessParticipants(participants), this, isChannel);
+        // we can't add participants before setting channel name because
+        // server will trigger invites and send empty chat name to user
+        const chat = new Chat(null, isChannel ? [] : this.getSelflessParticipants(participants), this, isChannel);
         chat.loadMetadata()
             .then(() => {
                 this.addChat(chat, true);
@@ -455,6 +457,11 @@ class ChatStore {
             .then(() => {
                 if (purpose) return chat.changePurpose(purpose);
                 return null;
+            })
+            .then(() => {
+                if (isChannel) {
+                    chat.addParticipants(this.getSelflessParticipants(participants));
+                }
             });
         return chat;
     }
