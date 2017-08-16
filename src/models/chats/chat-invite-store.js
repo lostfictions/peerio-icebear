@@ -6,6 +6,7 @@ const { ChatBootKeg } = require('../kegs/chat-boot-keg');
 const { cryptoUtil, publicCrypto } = require('../../crypto');
 const User = require('../user/user');
 const Keg = require('../kegs/keg');
+const { getUser } = require('../../helpers/di-current-user');
 
 // this is not... the most amazing code reuse, but it works, and it's clear
 class ChatHead extends Keg {
@@ -184,6 +185,10 @@ class ChatInviteStore {
      * @public
      */
     acceptInvite(kegDbId) {
+        if (getUser().channelsLeft === 0) {
+            warnings.add('error_acceptChannelInvite');
+            return Promise.reject(new Error('Channel limit reached'));
+        }
         return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
             .then(() => {
                 setTimeout(this.update, 250);

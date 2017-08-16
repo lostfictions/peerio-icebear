@@ -258,7 +258,6 @@ class User {
         const found = this.quota.resultingQuotas.file.find(
             item => item.period === 'total' && item.metric === 'storage');
         if (!found) return 0;
-        // we are unlikely to have real-life unlimited accounts, but for test accounts it's fine
         if (found.limit == null) return Number.MAX_SAFE_INTEGER;
         return found.limit;
     }
@@ -287,7 +286,6 @@ class User {
 
         const found = this.quota.quotasLeft.file.find(item => item.period === 'total' && item.metric === 'storage');
         if (!found) return 0;
-        // we are unlikely to have real-life unlimited accounts, but for test accounts it's fine
         if (found.limit == null) return Number.MAX_SAFE_INTEGER;
         return found.limit;
     }
@@ -344,12 +342,14 @@ class User {
      * @public
      */
     @computed get channelLimit() {
-        if (this.quota && this.quota.resultingQuotas
-            && this.quota.resultingQuotas.channel
-            && this.quota.resultingQuotas.channel.length) {
-            return this.quota.resultingQuotas.channel[0].limit || 0;
-        }
-        return 0;
+        if (this.quota == null || !this.quota.resultingQuotas
+            || !this.quota.resultingQuotas.channel || !this.quota.resultingQuotas.channel.length) return 0;
+
+        const found = this.quota.resultingQuotas.channel.find(
+            item => item.period === 'total' && item.metric === 'participate');
+        if (!found) return 0;
+        if (found.limit == null) return Number.MAX_SAFE_INTEGER;
+        return found.limit;
     }
 
     /**
@@ -360,12 +360,13 @@ class User {
      * @public
      */
     @computed get channelsLeft() {
-        if (this.quota && this.quota.quotasLeft
-            && this.quota.quotasLeft.channel
-            && this.quota.quotasLeft.channel.length) {
-            return this.quota.quotasLeft.channel[0].limit || 0;
-        }
-        return 0;
+        if (this.quota == null || !this.quota.quotasLeft
+            || !this.quota.quotasLeft.channel || !this.quota.quotasLeft.channel.length) return 0;
+
+        const found = this.quota.quotasLeft.channel.find(item => item.period === 'total' && item.metric === 'participate');
+        if (!found) return 0;
+        if (found.limit == null) return Number.MAX_SAFE_INTEGER;
+        return found.limit;
     }
 
     /**

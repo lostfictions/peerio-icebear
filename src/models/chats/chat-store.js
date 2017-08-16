@@ -9,6 +9,8 @@ const MyChats = require('../chats/my-chats');
 const TinyDb = require('../../db/tiny-db');
 const config = require('../../config');
 const { asPromise } = require('../../helpers/prombservable');
+const { getUser } = require('../../helpers/di-current-user');
+const warnings = require('../warnings');
 
 /**
  * Chat store.
@@ -425,7 +427,7 @@ class ChatStore {
      * @param {?bool} isChannel
      * @param {?string} name
      * @param {?string} purpose - only for channels, not relevant for DMs
-     * @returns {Chat}
+     * @returns {?Chat} - can return null in case of paywall
      * @memberof ChatStore
      * @instance
      * @public
@@ -435,6 +437,10 @@ class ChatStore {
         if (cached) {
             this.activate(cached.id);
             return cached;
+        }
+        if (isChannel && getUser().channelsLeft === 0) {
+            warnings.add('error_channelLimitReached');
+            return null;
         }
         const chat = new Chat(null, this.getSelflessParticipants(participants), this, isChannel);
         chat.loadMetadata()
@@ -498,6 +504,7 @@ class ChatStore {
     @action startChatAndShareFiles(participants, fileOrFiles) {
         const files = (Array.isArray(fileOrFiles) || isObservableArray(fileOrFiles)) ? fileOrFiles : [fileOrFiles];
         const chat = this.startChat(participants);
+        if (!chat) return Promise.reject(new Error('Failed to create chat'));
         return chat.loadMetadata().then(() => {
             chat.shareFiles(files);
             this.activate(chat.id);

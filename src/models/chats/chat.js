@@ -821,7 +821,7 @@ class Chat {
      * @public
      */
     delete() {
-        if (!this.isChannel) return Promise.reject('Can not delete DM chat.');
+        if (!this.isChannel) return Promise.reject(new Error('Can not delete DM chat.'));
 
         console.log(`Deleting channel ${this.id}.`);
         return socket.send('/auth/kegs/channel/delete', { kegDbId: this.id })
@@ -876,10 +876,10 @@ class Chat {
      */
     promoteToAdmin(contact) {
         if (!this.participants.includes(contact)) {
-            return Promise.reject('Attempt to promote user who is not a participant');
+            return Promise.reject(new Error('Attempt to promote user who is not a participant'));
         }
         if (this.db.admins.includes(contact)) {
-            return Promise.reject('Attempt to promote user who is already an admin.');
+            return Promise.reject(new Error('Attempt to promote user who is already an admin.'));
         }
         const boot = this.db.boot;
         return boot.save(
@@ -906,10 +906,10 @@ class Chat {
      */
     demoteAdmin(contact) {
         if (!this.participants.includes(contact)) {
-            return Promise.reject('Attempt to demote user who is not a participant');
+            return Promise.reject(new Error('Attempt to demote user who is not a participant'));
         }
         if (!this.db.admins.includes(contact)) {
-            return Promise.reject('Attempt to demote user who is not an admin.');
+            return Promise.reject(new Error('Attempt to demote user who is not an admin.'));
         }
 
         const boot = this.db.boot;
