@@ -9,6 +9,7 @@
  */
 
 const { t } = require('peerio-translator');
+const contactStore = require('../models/contacts/contact-store');
 
 /**
  * Checks message object for system data and returns translated string to render for the system data.
@@ -34,17 +35,25 @@ function getSystemMessageText(msg) {
         case 'leave':
             return t('title_userLeft');
         case 'inviteSent':
-            return t('title_inviteSent', { username: msg.systemData.username });
+            return t('title_inviteSent', { fullName: getFullName(msg) });
         case 'kick':
-            return t('title_userKicked', { username: msg.systemData.username });
+            return t('title_userKicked', { fullName: getFullName(msg) });
         case 'assignRole':
-            return t('title_roleAssigned', { username: msg.systemData.username, role: getRoleName(msg.systemData.role) });
+            return t('title_roleAssigned', { fullName: getFullName(msg), role: getRoleName(msg.systemData.role) });
         case 'unassignRole':
-            return t('title_roleUnassigned', { username: msg.systemData.username, role: getRoleName(msg.systemData.role) });
+            return t('title_roleUnassigned', { fullName: getFullName(msg), role: getRoleName(msg.systemData.role) });
         default:
             return '';
     }
 }
+
+function getFullName(msg) {
+    if (msg.systemData.usernames) {
+        return msg.systemData.usernames.map(u => contactStore.getContact(u)).map(c => c.fullNameAndUsername).join(', ');
+    }
+    return contactStore.getContact(msg.systemData.username).fullName;
+}
+
 
 function getRoleName(role) {
     switch (role) {

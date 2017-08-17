@@ -167,6 +167,25 @@ class Contact {
         }
         return ret;
     }
+
+    /**
+     * @memberof Contact
+     * @member {string} fullNameAndUsername
+     * @instance
+     * @public
+     */
+    @computed get fullNameAndUsername() {
+        let ret = '';
+        if (this.firstName) ret = this.firstName;
+        if (this.lastName) {
+            if (ret) ret += ' ';
+            ret += this.lastName;
+        }
+        if (ret) ret += ' ';
+        ret += `(${this.username})`;
+        return ret;
+    }
+
     /**
      * Lower cased full name for search/filter optimization
      * @memberof Contact
@@ -335,7 +354,7 @@ class Contact {
                     newTofu.encryptionPublicKey = cryptoUtil.bytesToB64(this.encryptionPublicKey);
                     newTofu.signingPublicKey = cryptoUtil.bytesToB64(this.signingPublicKey);
                     // todo: this has a potential of creating 2+ tofu kegs for same contact
-                    // todo: add checks similar to reciept keg dedupe
+                    // todo: add checks similar to receipt keg dedupe
                     newTofu.saveToServer();
                     return;
                 }
