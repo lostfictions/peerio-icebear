@@ -43,19 +43,36 @@ class SyncedKeg extends Keg {
     _loadKeg = () => retryUntilSuccess(() => {
         // do we even need to update?
         const digest = tracker.getDigest(this.db.id, this.type);
-        if (this.collectionVersion !== null && this.collectionVersion >= digest.maxUpdateId) {
-            this.loaded = true;
-            return Promise.resolve();
+        if (this.collectionVersion !== null) {
+            const amISpamming = this.amISpammingServerDueToIndexErrors(this.collectionVersion, digest.maxUpdateId);
+            if (this.collectionVersion >= digest.maxUpdateId || amISpamming) {
+                this.loaded = true;
+                return Promise.resolve();
+            }
         }
-        return this.reload();
+        return this.lastRequest && this.lastRequest.requestCount > 0
+            ? Promise.delay(this.lastRequest.requestCount * 500).then(this.reload)
+            : this.reload();
     });
+
+    lastRequest = null;
+    amISpammingServerDueToIndexErrors(collVersion, maxUpdateId) {
+        if (!this.lastRequest
+            || this.lastRequest.collVersion !== collVersion
+            || this.lastRequest.maxUpdateId !== maxUpdateId) {
+            this.lastRequest = { collVersion, maxUpdateId, requestCount: 0 };
+            return false;
+        }
+        if (this.lastRequest.requestCount > 10) return true;
+        return false;
+    }
 
     /**
      * Forces updating keg data from server
      * @returns {Promise}
      * @public
      */
-    reload() {
+    reload = () => {
         return this.load()
             .then(() => {
                 this.loaded = true;
@@ -64,7 +81,7 @@ class SyncedKeg extends Keg {
                 // while finishing current operation
                 this._enqueueLoad();
             });
-    }
+    };
 
     /**
      * Enqueues Save task.
