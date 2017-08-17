@@ -13,6 +13,7 @@ const contactStore = require('../contacts/contact-store');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
 const Contact = require('../contacts/contact');
+const chatInviteStore = require('../chats/chat-invite-store');
 
 // to assign when sending a message and don't have an id yet
 let temporaryChatId = 0;
@@ -84,7 +85,33 @@ class Chat {
      */
     @computed get participants() {
         if (!this.db.boot || !this.db.boot.participants) return [];
-        return this.db.boot.participants.filter(p => p.username !== User.current.username);
+        return this.db.boot.participants.filter(p => p.username !== User.current.username).sort(this.compareContacts);
+    }
+
+    compareContacts(c1, c2) {
+        return c1.fullNameAndUsername.localeCompare(c2.fullNameAndUsername);
+    }
+
+    /**
+     * Does not include current user. Includes participants that are just invited but not joined too.
+     * @member {Array<Contact>} participants
+     * @memberof Chat
+     * @instance
+     * @public
+     * @readonly
+     */
+    @computed get joinedParticipants() {
+        const filtered = this.participants.slice();
+        if (!this.isChannel) return filtered;
+        const invited = chatInviteStore.sent.get(this.id);
+        if (!invited || !invited.length) return filtered;
+        invited.forEach(i => {
+            const ind = filtered.findIndex(p => p.username === i.username);
+            if (ind >= 0) {
+                filtered.splice(ind, 1);
+            }
+        });
+        return filtered;
     }
     /**
      * If true - chat is not ready for anything yet.

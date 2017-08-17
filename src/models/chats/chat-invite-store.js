@@ -79,6 +79,7 @@ class ChatInviteStore {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });
                 });
+                res.sort((i1, i2) => i1.username.localeCompare(i2.username));
             }));
     };
 
