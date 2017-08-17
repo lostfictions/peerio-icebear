@@ -1,8 +1,7 @@
 const { observable, action, when } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
-const chatStore = require('./chat-store'); // todo: DI module
-const { ChatBootKeg } = require('../kegs/chat-boot-keg');
+const { getChatStore } = require('../../helpers/di-chat-store');
 const { cryptoUtil, publicCrypto } = require('../../crypto');
 const User = require('../user/user');
 const Keg = require('../kegs/keg');
@@ -105,7 +104,7 @@ class ChatInviteStore {
                     leavers.forEach(username => {
                         this.left.push({ kegDbId, username });
                         // todo: move somewhere
-                        const chat = chatStore.chatMap[kegDbId];
+                        const chat = getChatStore().chatMap[kegDbId];
                         if (!chat) return;
                         when(() => chat.metaLoaded, () => {
                             chat.removeParticipant(username, false);
@@ -193,15 +192,16 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
             .then(() => {
                 setTimeout(this.update, 250);
-                when(() => {
-                    const chat = chatStore.chats.find(c => c.id === kegDbId);
-                    if (!chat) return false;
-                    return chat.metaLoaded;
-                }, () => {
-                    chatStore.chatMap[kegDbId].sendJoinMessage();
-                    if (!chatStore.activeChat) {
-                        chatStore.activate(kegDbId);
-                    }
+                return new Promise(resolve => {
+                    when(() => {
+                        const chat = getChatStore().chats.find(c => c.id === kegDbId);
+                        if (!chat) return false;
+                        return chat.metaLoaded;
+                    }, () => {
+                        getChatStore().chatMap[kegDbId].sendJoinMessage();
+                        getChatStore().activate(kegDbId);
+                        resolve();
+                    });
                 });
             }).catch(err => {
                 console.error('Failed to accept invite', kegDbId, err);
@@ -231,7 +231,7 @@ class ChatInviteStore {
      * @public
      */
     revokeInvite(kegDbId, username) {
-        const chat = chatStore.chatMap[kegDbId];
+        const chat = getChatStore().chatMap[kegDbId];
         if (!chat || !chat.metaLoaded) {
             console.error(chat ? 'Can not revoke invite on chat that is still loading'
                 : 'Can not find chat in store to revoke invite', kegDbId);

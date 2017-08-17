@@ -11,6 +11,7 @@ const config = require('../../config');
 const { asPromise } = require('../../helpers/prombservable');
 const { getUser } = require('../../helpers/di-current-user');
 const warnings = require('../warnings');
+const { setChatStore } = require('../../helpers/di-chat-store');
 
 /**
  * Chat store.
@@ -538,5 +539,6 @@ class ChatStore {
     }
 
 }
-
-module.exports = new ChatStore();
+const store = new ChatStore();
+setChatStore(store);
+module.exports = store;
