@@ -197,8 +197,14 @@ class ChatKegDb {
             .then(boot => {
                 if (boot.version > 1) {
                     if (!boot.format) {
-                        boot.participants = this._metaParticipants;// todo
-                        boot.saveToServer().return([boot, false]);
+                        boot.participants = this._metaParticipants;
+                        // prevent spamming server on bootkeg migration
+                        return Promise.delay(Math.round(Math.random() * 2000 + 1000))
+                            .then(() => boot.saveToServer())
+                            .catch(err => {
+                                console.error('Failed to migrate boot keg.', this.id, err);
+                            })
+                            .return([boot, false]);
                     }
                     return [boot, false];
                 }
