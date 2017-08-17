@@ -256,7 +256,7 @@ const config = new class {
          * @memberof config
          * @public
          */
-        maxDMParticipants: 8
+        maxDMParticipants: 4
     };
 }();
 
