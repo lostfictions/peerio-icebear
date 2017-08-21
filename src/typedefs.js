@@ -32,3 +32,14 @@
  * @property {string} [username]
  * @public
  */
+
+ /**
+  * Virtual type representing 2fa UI request.
+  * @name TwoFARequest
+  * @typedef {Object} TwoFARequest
+  * @property {bool} cancelable
+  * @property {strong} type - 'login' 'backupCodes' 'disable'
+  * @property {Function<string>} submit
+  * @property {Function} cancel
+  * @public
+  */
