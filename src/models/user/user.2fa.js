@@ -1,6 +1,8 @@
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
 const clientApp = require('../client-app');
+const TinyDb = require('../../db/tiny-db');
+const { cryptoUtil } = require('../../crypto/index');
 
 module.exports = function mixUser2faModule() {
     /**
@@ -79,6 +81,30 @@ module.exports = function mixUser2faModule() {
                 console.error(err);
                 warnings.add('error_reissue2faBackupCodes');
             });
+    };
+
+    /**
+     * When server returns 2fa error (requests 2fa) on login, this function is called from the login handler
+     * to perform 2fa.
+     */
+    this._handle2faOnLogin = () => {
+        return new Promise((resolve, reject) => {
+            clientApp.create2FARequest('login',
+                (code, trustDevice) => {
+                    code = sanitizeCode(code); //eslint-disable-line
+                    const req = {
+                        [code.length === 6 ? 'TOTPCode' : 'backupCode']: code,
+                        trustDevice
+                    };
+                    socket.send('/noauth/2fa/authenticate', req)
+                        .then(resp => {
+                            return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
+                        })
+                        .then(resolve)
+                        .catch(reject);
+                }
+            );
+        });
     };
 
     function verifyProtectedAction(type) {

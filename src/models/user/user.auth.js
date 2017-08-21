@@ -23,12 +23,17 @@ module.exports = function mixUserAuthModule() {
                     case errors.ServerError.codes.invalidDeviceToken:
                         console.log('Bad deviceToken, reauthenticating without one.');
                         return TinyDb.system.removeValue(`${this.username}:deviceToken`)
-                            .then(() => this._authenticateConnection());
+                            .then(this._authenticateConnection);
                     case errors.ServerError.codes.sdkVersionDeprecated:
                     case errors.ServerError.codes.clientVersionDeprecated:
                         warnings.addSevere('warning_deprecated');
                         clientApp.clientVersionDeprecated = true;
                         break;
+                    case errors.ServerError.codes.twoFAAuthRequired:
+                        console.log('Server requested 2fa on login.');
+                        return this._handle2faOnLogin()
+                            .then(this._authenticateConnection);
+
                 }
                 return Promise.reject(e);
             })
