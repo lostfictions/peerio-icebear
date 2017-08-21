@@ -2,6 +2,7 @@ const socket = require('../../network/socket');
 const mixUserProfileModule = require('./user.profile.js');
 const mixUserRegisterModule = require('./user.register.js');
 const mixUserAuthModule = require('./user.auth.js');
+const mixUser2faModule = require('./user.2fa.js');
 const KegDb = require('./../kegs/keg-db');
 const TinyDb = require('../../db/tiny-db');
 const { observable, when, computed } = require('mobx');
@@ -150,6 +151,17 @@ class User {
      * @public
      */
     @observable secureWithTouchID = false;
+
+    /**
+     * Indicates 2fa state on current user.
+     * @member {boolean} twoFAEnabled
+     * @memberof User
+     * @instance
+     * @readonly
+     * @public
+     */
+    @observable twoFAEnabled = false;
+
     /**
      * Computed `firstName+' '+lastName`
      * @member {string} fullName
@@ -228,6 +240,7 @@ class User {
         mixUserProfileModule.call(this);
         mixUserAuthModule.call(this);
         mixUserRegisterModule.call(this);
+        mixUser2faModule.call(this);
     }
 
     /**

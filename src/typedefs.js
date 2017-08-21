@@ -39,7 +39,7 @@
   * @typedef {Object} TwoFARequest
   * @property {bool} cancelable
   * @property {strong} type - 'login' 'backupCodes' 'disable'
-  * @property {Function<string>} submit
+  * @property {Function<string, ?bool>} submit - function accepts TOTP code and 'trust this device' flag
   * @property {Function} cancel
   * @public
   */

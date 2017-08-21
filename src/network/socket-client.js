@@ -39,10 +39,9 @@ const SOCKET_EVENTS = {
 
 // application events sent by app server
 const APP_EVENTS = {
-    twoFA: 'twoFA',
     kegsUpdate: 'kegsUpdate',
     serverWarning: 'serverWarning',
-    clearWarning: 'clearWarning',
+    // clearWarning: 'clearWarning',
     channelInvitesUpdate: 'channelInvitesUpdate',
     channelDeleted: 'channelDeleted'
 };

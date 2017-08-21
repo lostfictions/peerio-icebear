@@ -52,21 +52,23 @@ class ClientApp {
     /**
      * Creates new 2fa request for UI. UI is supposed to show 2fa dialog to user and pass entered code back to icebear.
      * @param {string} type - 'login', 'backupCodes', 'disable' one of the reasons for 2fa request
-     * @param {Function<string>} submitCallback - will be called with whatever user entered argument
+     * @param {Function<string, ?boolean>} submitCallback, accepts 2fa code and 'trust this device' flag(for login only)
      * @param {?Function} cancelCallback - some requests are cancelable
      * @protected
      */
     create2FARequest(type, submitCallback, cancelCallback) {
-        if (!['login', 'backupCodes', 'disable'].includes(type)) throw new Error('Unknown 2fa request type: ', type);
+        if (!['login', 'backupCodes', 'disable'].includes(type)) {
+            throw new Error('Unknown 2fa request type: ', type);
+        }
         // deliberately overwriting existing request
         // this should never happen anyway, if it does - it's safer to overwrite
         const cancelable = type !== 'login';
         this.active2FARequest = {
             cancelable,
             type,
-            submit: (code) => {
+            submit: (code, trust) => {
                 this.active2FARequest = null;
-                submitCallback(code);
+                submitCallback(code, trust);
             },
             cancel: () => {
                 if (!cancelable) {
