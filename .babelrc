@@ -10,7 +10,13 @@
             {
                 "useBuiltIns": true
             }
-        ],
-        "console-kungfu"
-    ]
+        ]
+    ],
+    "env": {
+        "production": {
+            "plugins": [
+                "console-kungfu"
+            ]
+        }
+    }
 }

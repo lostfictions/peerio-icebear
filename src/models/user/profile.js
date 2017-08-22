@@ -42,7 +42,7 @@ class Profile extends Keg {
             break;
         }
         this.user.isBlacklisted = data.isBlackListed;
-        this.user.twoFAEnabled = data.user2fa;
+        this.user.twoFAEnabled = data.use2fa;
         this.user.profileLoaded = true;
     }
 }
