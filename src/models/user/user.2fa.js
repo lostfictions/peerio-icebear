@@ -115,7 +115,7 @@ module.exports = function mixUser2faModule() {
                     const req = {
                         [code.length === 6 ? 'TOTPCode' : 'backupCode']: code
                     };
-                    socket.send('/noauth/2fa/verify', req)
+                    socket.send('/auth/2fa/verify', req)
                         .then(resolve)
                         .catch(reject);
                 },
