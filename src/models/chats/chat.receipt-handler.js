@@ -168,7 +168,6 @@ class ChatReceiptHandler {
         tracker.unsubscribe(this.onDigestUpdate);
         this.receipts = {};
     }
-
 }
 
 module.exports = ChatReceiptHandler;

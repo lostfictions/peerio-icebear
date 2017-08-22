@@ -39,7 +39,6 @@ class ReadReceipt extends Keg {
     afterLoad() {
         this.receiptError = !this.id.endsWith(`-${this.owner}`);
     }
-
 }
 
 module.exports = ReadReceipt;

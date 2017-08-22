@@ -54,7 +54,6 @@ class ServerSettings {
                 });
         }, 'Server Settings Load');
     }
-
 }
 
 module.exports = new ServerSettings();

@@ -39,7 +39,6 @@ class Invites extends SyncedKeg {
     _compareInvites(a, b) {
         return a.email === b.email;
     }
-
 }
 
 

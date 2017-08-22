@@ -9,7 +9,6 @@ const Queue = require('../../helpers/queue');
  * @public
  */
 class ChatFileHandler {
-
     constructor(chat) {
         this.chat = chat;
     }

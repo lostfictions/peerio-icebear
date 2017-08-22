@@ -77,7 +77,6 @@ class Settings extends Keg {
         this.subscribeToPromoEmails = data.subscribeToPromoEmails;
         this.loaded = true;
     }
-
 }
 
 module.exports = Settings;

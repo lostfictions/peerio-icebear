@@ -7,7 +7,6 @@ const { getUser } = require('../../helpers/di-current-user');
  * @protected
  */
 class MyContacts extends SyncedKeg {
-
     contacts = {};
 
     constructor() {

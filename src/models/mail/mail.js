@@ -7,7 +7,6 @@ const { getUser } = require('../../helpers/di-current-user');
 const { retryUntilSuccess } = require('../../helpers/retry');
 
 class Mail extends Keg {
-
     constructor(db) {
         super(null, 'mail', db);
     }

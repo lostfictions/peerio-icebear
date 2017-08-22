@@ -205,8 +205,6 @@ class FileDownloader extends FileProcessor {
 
         return p;
     };
-
-
 }
 
 module.exports = FileDownloader;

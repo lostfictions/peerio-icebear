@@ -186,7 +186,6 @@ class GhostStore {
         this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => g.recipients[0]);
         this.selectedSort = 'recipient';
     }
-
 }
 
 module.exports = new GhostStore();

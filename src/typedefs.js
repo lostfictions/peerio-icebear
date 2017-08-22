@@ -33,7 +33,7 @@
  * @public
  */
 
- /**
+/**
   * Virtual type representing 2fa UI request.
   * @name TwoFARequest
   * @typedef {Object} TwoFARequest

@@ -120,7 +120,6 @@ class Queue {
             setTimeout(this.runTask, this.throttle);
         }
     }
-
 }
 
 module.exports = Queue;

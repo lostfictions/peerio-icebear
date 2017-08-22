@@ -209,7 +209,6 @@ class FileStreamAbstract {
     static delete(path) {
         throw new AbstractCallError();
     }
-
 }
 
 module.exports = FileStreamAbstract;

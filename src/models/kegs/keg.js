@@ -539,7 +539,6 @@ class Keg {
             throw new AntiTamperError(`Inner ${payload._sys.type} and outer ${this.type} keg type mismatch.`);
         }
     }
-
 }
 
 module.exports = Keg;

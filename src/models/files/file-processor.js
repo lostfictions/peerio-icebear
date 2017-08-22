@@ -87,8 +87,6 @@ class FileProcessor {
      */
     cleanup() {
     }
-
-
 }
 
 

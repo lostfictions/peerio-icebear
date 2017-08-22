@@ -86,11 +86,9 @@ class UploadConfig {
      * @public
      */
     maxResponseQueue = 2;
-
 }
 
 const config = new class {
-
     sdkVersion = _sdkVersion;
 
     debug = {

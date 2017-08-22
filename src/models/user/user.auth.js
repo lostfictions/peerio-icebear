@@ -33,7 +33,6 @@ module.exports = function mixUserAuthModule() {
                         console.log('Server requested 2fa on login.');
                         return this._handle2faOnLogin()
                             .then(this._authenticateConnection);
-
                 }
                 return Promise.reject(e);
             })

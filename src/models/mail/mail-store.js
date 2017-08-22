@@ -225,7 +225,6 @@ class MailStore {
 
         return keg;
     }
-
 }
 
 module.exports = new MailStore();

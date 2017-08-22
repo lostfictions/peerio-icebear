@@ -8,7 +8,6 @@ const fs = require('fs');
  * @public
  */
 class NodeFileStream extends FileStreamAbstract {
-
     checkForError(err, rejectFn) {
         if (err) {
             rejectFn(errors.normalize(err));

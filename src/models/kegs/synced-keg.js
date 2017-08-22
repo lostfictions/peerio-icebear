@@ -159,7 +159,6 @@ class SyncedKeg extends Keg {
         if (!localeKey) return;
         warnings.add(localeKey);
     }
-
 }
 
 

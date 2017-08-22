@@ -18,7 +18,6 @@ const { ServerError } = require('../../errors');
  * @public
  */
 class File extends Keg {
-
     constructor(db) {
         super(null, 'file', db);
     }

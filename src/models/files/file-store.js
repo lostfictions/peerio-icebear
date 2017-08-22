@@ -460,7 +460,6 @@ class FileStore {
         };
         checkFile();
     }
-
 }
 const ret = new FileStore();
 setFileStore(ret);

@@ -16,7 +16,6 @@ const _ = require('lodash');
  * @protected
  */
 class ChatMessageHandler {
-
     constructor(chat) {
         this.chat = chat;
         tracker.onKegTypeUpdated(chat.id, 'message', this.onMessageDigestUpdate);
@@ -246,7 +245,6 @@ class ChatMessageHandler {
         this._reactionsToDispose.forEach(d => d());
         tracker.unsubscribe(this.onMessageDigestUpdate);
     }
-
 }
 
 module.exports = ChatMessageHandler;

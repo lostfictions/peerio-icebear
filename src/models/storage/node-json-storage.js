@@ -73,7 +73,6 @@ class NodeJsonStorage {
         }
         return Promise.resolve();
     }
-
 }
 
 

@@ -27,7 +27,7 @@ class ChatStore {
         autorunAsync(() => {
             this.sortChats();
         }, 500);
-        socket.onceAuthenticated(async () => {
+        socket.onceAuthenticated(async() => {
             this.unreadChatsAlwaysOnTop = !!(await TinyDb.user.getValue('pref_unreadChatsAlwaysOnTop'));
             autorunAsync(() => {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
@@ -537,7 +537,6 @@ class ChatStore {
         delete this.chatMap[chat.id];
         this.chats.remove(chat);
     }
-
 }
 const store = new ChatStore();
 setChatStore(store);

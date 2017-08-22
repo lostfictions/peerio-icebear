@@ -873,7 +873,7 @@ class Chat {
      */
     addParticipants(participants) {
         if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
-        const contacts = participants.map(p => typeof p === 'string' ? contactStore.getContact(p) : p);
+        const contacts = participants.map(p => (typeof p === 'string' ? contactStore.getContact(p) : p));
         return Contact.ensureAllLoaded(contacts).then(() => {
             const boot = this.db.boot;
             return boot.save(
@@ -1038,7 +1038,6 @@ class Chat {
             console.error(err);
         }
     }
-
 }
 
 module.exports = Chat;

@@ -172,7 +172,6 @@ class FileUploader extends FileProcessor {
             }
         });
     }
-
 }
 
 

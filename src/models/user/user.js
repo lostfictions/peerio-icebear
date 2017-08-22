@@ -30,7 +30,6 @@ let currentUser;
  * @public
  */
 class User {
-
     _username = '';
     /**
      * @member {string} username
