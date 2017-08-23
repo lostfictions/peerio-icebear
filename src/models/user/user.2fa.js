@@ -30,7 +30,7 @@ module.exports = function mixUser2faModule() {
      * @instance
      * @public
      */
-    this.confirm2faSetup = (code, trust) => {
+    this.confirm2faSetup = (code, trust = false) => {
         code = sanitizeCode(code); //eslint-disable-line
         console.log('Confirming 2fa setup.');
         return socket.send('/auth/2fa/confirm', {
@@ -90,7 +90,7 @@ module.exports = function mixUser2faModule() {
     this._handle2faOnLogin = () => {
         return new Promise((resolve, reject) => {
             clientApp.create2FARequest('login',
-                (code, trustDevice) => {
+                (code, trustDevice = false) => {
                     code = sanitizeCode(code); //eslint-disable-line
                     const req = {
                         [code.length === 6 ? 'TOTPCode' : 'backupCode']: code,
