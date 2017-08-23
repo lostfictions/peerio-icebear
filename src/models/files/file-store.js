@@ -384,6 +384,11 @@ class FileStore {
                 warnings.addSevere('error_fileQuotaExceeded', 'error_uploadFailed');
                 return;
             }
+            if (!User.current.canUploadMaxFileSize(stat.size)) {
+                keg.deleted = true;
+                warnings.addSevere('error_fileUploadSizeExceeded', 'error_uploadFailed');
+                return;
+            }
             this.uploadQueue.addTask(() => {
                 const ret = keg.upload(filePath, fileName);
                 this.files.unshift(keg);

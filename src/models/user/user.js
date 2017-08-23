@@ -382,6 +382,19 @@ class User {
     }
 
     /**
+     * Adjust file size for overhead
+     * @param {number} size - amount of bytes user wants to upload
+     * @returns {number} file size including overhead
+     * @instance
+     * @protected
+     */
+    _adjustedOverheadFileSize(size) {
+        const chunkSize = config.upload.getChunkSize(size);
+        const chunkCount = Math.ceil(size / chunkSize);
+        return (size + chunkCount * config.CHUNK_OVERHEAD);
+    }
+
+    /**
      * Checks if there's enough storage to upload a file.
      * @param {number} size - amount of bytes user wants to upload.
      * @returns {boolean} is there enough storage left to upload.
@@ -390,10 +403,32 @@ class User {
      * @public
      */
     canUploadFileSize = (size) => {
-        const chunkSize = config.upload.getChunkSize(size);
-        const chunkCount = Math.ceil(size / chunkSize);
-        return this.fileQuotaLeft >= (size + chunkCount * config.CHUNK_OVERHEAD);
+        return this.fileQuotaLeft >= this._adjustedOverheadFileSize(size);
     };
+
+    /**
+     * Checks if the file size is not too big for the current plan
+     * e.g. Basic - 500 Mb limit, Premium - 2 Gb. Pro - unlimited.
+     * @param {number} size - amount of bytes user wants to upload.
+     * @returns {boolean} is file size acceptable for current plan
+     * @memberof User
+     * @instance
+     * @public
+     */
+    canUploadMaxFileSize = (size) => {
+        if (this.isProUser) return true;
+        const adjustedSize = this._adjustedOverheadFileSize(size);
+        if (this.isPremiumUser) return adjustedSize < config.premiumMaxSingleFileUploadSize;
+        return adjustedSize < config.basicMaxSingleFileUploadSize;
+    };
+
+    @computed get isPremiumUser() {
+        User.current.activePlans.filter(s => config.serverPlansPremium.indexOf(s) != -1).length;
+    }
+
+    @computed get isProUser() {
+        User.current.activePlans.filter(s => config.serverPlansPro.indexOf(s) != -1).length;
+    }
 
     /**
      * Full registration process.

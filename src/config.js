@@ -1,4 +1,10 @@
 const _sdkVersion = require('./__sdk');
+
+const SERVER_PLAN_PREMIUM_MONTHLY = 'icebear_premium_monthly';
+const SERVER_PLAN_PREMIUM_YEARLY = 'icebear_premium_yearly';
+const SERVER_PLAN_PRO_MONTHLY = 'icebear_pro_monthly';
+const SERVER_PLAN_PRO_YEARLY = 'icebear_pro_yearly';
+
 /**
  * Configuration module.
  * Exists just to collect most of the app configuration aspects in one place.
@@ -208,6 +214,38 @@ const config = new class {
      * @public
      */
     observableClockEventFrequency = 30; // seconds
+
+    /**
+     * Server plans ids
+     * @member {Array<string>}
+     * @memberof config
+     * @public
+     */
+    serverPlans = [
+        SERVER_PLAN_PREMIUM_MONTHLY,
+        SERVER_PLAN_PREMIUM_YEARLY,
+        SERVER_PLAN_PRO_MONTHLY,
+        SERVER_PLAN_PRO_YEARLY
+    ];
+
+    /**
+     * Server premium plans ids
+     * @member {Array<string>}
+     * @memberof config
+     * @public
+     */
+    serverPlansPremium = [ SERVER_PLAN_PREMIUM_MONTHLY, SERVER_PLAN_PREMIUM_YEARLY ];
+
+    /**
+     * Server pro plans ids
+     * @member {Array<string>}
+     * @memberof config
+     * @public
+     */
+    serverPlansPro = [ SERVER_PLAN_PRO_MONTHLY, SERVER_PLAN_PRO_YEARLY ];
+
+    basicMaxSingleFileUploadSize = 512 * 1024 * 1024;
+    premiumMaxSingleFileUploadSize = 2048 * 1024 * 1024;
 
     chat = {
         /**
