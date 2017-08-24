@@ -234,7 +234,7 @@ const config = new class {
      * @memberof config
      * @public
      */
-    serverPlansPremium = [ SERVER_PLAN_PREMIUM_MONTHLY, SERVER_PLAN_PREMIUM_YEARLY ];
+    serverPlansPremium = [SERVER_PLAN_PREMIUM_MONTHLY, SERVER_PLAN_PREMIUM_YEARLY];
 
     /**
      * Server pro plans ids
@@ -242,7 +242,7 @@ const config = new class {
      * @memberof config
      * @public
      */
-    serverPlansPro = [ SERVER_PLAN_PRO_MONTHLY, SERVER_PLAN_PRO_YEARLY ];
+    serverPlansPro = [SERVER_PLAN_PRO_MONTHLY, SERVER_PLAN_PRO_YEARLY];
 
     basicMaxSingleFileUploadSize = 512 * 1024 * 1024;
     premiumMaxSingleFileUploadSize = 2048 * 1024 * 1024;

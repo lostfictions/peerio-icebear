@@ -423,11 +423,11 @@ class User {
     };
 
     @computed get isPremiumUser() {
-        User.current.activePlans.filter(s => config.serverPlansPremium.indexOf(s) != -1).length;
+        return !!this.activePlans.filter(s => config.serverPlansPremium.includes(s)).length;
     }
 
     @computed get isProUser() {
-        User.current.activePlans.filter(s => config.serverPlansPro.indexOf(s) != -1).length;
+        return !!this.activePlans.filter(s => config.serverPlansPro.includes(s)).length;
     }
 
     /**
