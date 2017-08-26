@@ -20,6 +20,9 @@
     -   [FileStream](#filestream)
     -   [StorageEngine](#storageengine)
     -   [observableClockEventFrequency](#observableclockeventfrequency)
+    -   [serverPlans](#serverplans)
+    -   [serverPlansPremium](#serverplanspremium)
+    -   [serverPlansPro](#serverplanspro)
     -   [chat.maxInitialChats](#chatmaxinitialchats)
     -   [chat.initialPageSize](#chatinitialpagesize)
     -   [chat.pageSize](#chatpagesize)
@@ -164,6 +167,7 @@
     -   [messages](#messages)
     -   [limboMessages](#limbomessages)
     -   [participants](#participants)
+    -   [participants](#participants-1)
     -   [loadingMeta](#loadingmeta)
     -   [metaLoaded](#metaloaded)
     -   [loadingInitialPage](#loadinginitialpage)
@@ -240,6 +244,7 @@
     -   [isInChatsView](#isinchatsview)
     -   [isInFilesView](#isinfilesview)
     -   [clientVersionDeprecated](#clientversiondeprecated)
+-   [active2FARequest](#active2farequest)
 -   [ContactStore](#contactstore)
     -   [contacts](#contacts)
     -   [addedContacts](#addedcontacts)
@@ -274,6 +279,7 @@
     -   [color](#color)
     -   [letter](#letter)
     -   [fullName](#fullname)
+    -   [fullNameAndUsername](#fullnameandusername)
     -   [fullNameLower](#fullnamelower)
     -   [fingerprint](#fingerprint)
     -   [largeAvatarUrl](#largeavatarurl)
@@ -368,7 +374,7 @@
     -   [encryptionKeys](#encryptionkeys)
     -   [kegKey](#kegkey)
 -   [ChatBootKeg](#chatbootkeg)
-    -   [participants](#participants-1)
+    -   [participants](#participants-2)
     -   [admins](#admins)
     -   [addParticipant](#addparticipant)
     -   [removeParticipant](#removeparticipant-1)
@@ -377,7 +383,7 @@
     -   [key](#key-1)
     -   [keyId](#keyid)
     -   [boot](#boot)
-    -   [participants](#participants-2)
+    -   [participants](#participants-3)
     -   [admins](#admins-1)
     -   [participantsToCreateWith](#participantstocreatewith)
     -   [dbIsBroken](#dbisbroken)
@@ -440,6 +446,10 @@
     -   [dataCollection](#datacollection)
     -   [subscribeToPromoEmails](#subscribetopromoemails)
 -   [User](#user-1)
+    -   [setup2fa](#setup2fa)
+    -   [confirm2faSetup](#confirm2fasetup)
+    -   [disable2fa](#disable2fa)
+    -   [reissueBackupCodes](#reissuebackupcodes)
     -   [serializeAuthData](#serializeauthdata)
     -   [deserializeAuthData](#deserializeauthdata)
     -   [disablePasscode](#disablepasscode)
@@ -460,6 +470,7 @@
     -   [savingAvatar](#savingavatar)
     -   [autologinEnabled](#autologinenabled)
     -   [secureWithTouchID](#securewithtouchid)
+    -   [twoFAEnabled](#twofaenabled)
     -   [fullName](#fullname-1)
     -   [createdAt](#createdat)
     -   [passphrase](#passphrase)
@@ -479,6 +490,7 @@
     -   [channelLimit](#channellimit)
     -   [channelsLeft](#channelsleft)
     -   [canUploadFileSize](#canuploadfilesize)
+    -   [canUploadMaxFileSize](#canuploadmaxfilesize)
     -   [createAccountAndLogin](#createaccountandlogin)
     -   [login](#login)
     -   [setAsLastAuthenticated](#setaslastauthenticated)
@@ -525,9 +537,10 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
+-   [TwoFARequest](#twofarequest)
 -   [KeyPair](#keypair)
--   [InvitedContact](#invitedcontact)
 -   [Address](#address)
+-   [InvitedContact](#invitedcontact)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -679,6 +692,24 @@ Default clock can be used for refreshing timestamps and other time counters.
 Do not set this value too low, create custom clocks instead.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### serverPlans
+
+Server plans ids
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### serverPlansPremium
+
+Server premium plans ids
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+
+### serverPlansPro
+
+Server pro plans ids
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
 ### chat.maxInitialChats
 
@@ -1834,7 +1865,7 @@ Starts new chat or loads existing one and
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 -   `purpose` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** only for channels, not relevant for DMs
 
-Returns **[Chat](#chat)** 
+Returns **[Chat](#chat)?** can return null in case of paywall
 
 ### activate
 
@@ -1923,6 +1954,12 @@ Type: ObservableArray&lt;[Message](#message)>
 Does not include current user. Includes participants that are just invited but not joined too.
 
 Type: ObservableArray&lt;[Contact](#contact)>
+
+### participants
+
+Does not include current user. Includes participants that are just invited but not joined too.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>
 
 ### loadingMeta
 
@@ -2392,6 +2429,12 @@ Icebear sets this flag.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+## active2FARequest
+
+UI should listen to this and request entering of 2fa code from user and then pass ot back to icebear.
+
+Type: [TwoFARequest](#twofarequest)
+
 ## ContactStore
 
 Contact store handles all Peerio users you(your app) are in some contact with,
@@ -2625,6 +2668,10 @@ First letter of first name or username.
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 ### fullName
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### fullNameAndUsername
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
@@ -3818,6 +3865,35 @@ specifically requires refactoring to improve readability and reduce state-mutati
 
 Many private and protected members are not documented with jsdoc tags to avoid clutter.
 
+### setup2fa
+
+Starts 2fa setup challenge.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** TOTP secret
+
+### confirm2faSetup
+
+Finishes 2fa setup challenge
+
+**Parameters**
+
+-   `code` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `trust` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** wether or not to trust this device and minimize 2fa requests on login (optional, default `false`)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>>** backup codes
+
+### disable2fa
+
+Disables 2fa on current account.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+### reissueBackupCodes
+
+Requests new set of 2fa backup codes invalidating previous ones..
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
 ### serializeAuthData
 
 Creates an object with key authentication data that can be used for login
@@ -3937,6 +4013,12 @@ UI-controlled flag, Icebear doesn't use it
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+### twoFAEnabled
+
+Indicates 2fa state on current user.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### fullName
 
 Computed `firstName+' '+lastName`
@@ -4044,6 +4126,17 @@ Checks if there's enough storage to upload a file.
 -   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes user wants to upload.
 
 Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** is there enough storage left to upload.
+
+### canUploadMaxFileSize
+
+Checks if the file size is not too big for the current plan
+e.g. Basic - 500 Mb limit, Premium - 2 Gb. Pro - unlimited.
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes user wants to upload.
+
+Returns **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** is file size acceptable for current plan
 
 ### createAccountAndLogin
 
@@ -4374,6 +4467,19 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
+## TwoFARequest
+
+Virtual type representing 2fa UI request.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `cancelable` **bool** 
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
 ## KeyPair
 
 Virtual type representing asymmetric key pair.
@@ -4384,19 +4490,6 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 -   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
 -   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
-
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## Address
 
@@ -4410,6 +4503,19 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## util
 

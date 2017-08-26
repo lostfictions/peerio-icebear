@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.3.0"></a>
+# [2.3.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.2.0...v2.3.0) (2017-08-26)
+
+
+### Bug Fixes
+
+* add default values to trust flag in 2fa api ([4e8a857](https://github.com/PeerioTechnologies/peerio-icebear/commit/4e8a857))
+* api path ([9599fa5](https://github.com/PeerioTechnologies/peerio-icebear/commit/9599fa5))
+* change DM participant limit to 4 ([bbe40dd](https://github.com/PeerioTechnologies/peerio-icebear/commit/bbe40dd))
+* channel limit behaviour ([0afee71](https://github.com/PeerioTechnologies/peerio-icebear/commit/0afee71))
+* channel name didn't appear in invite if participants were added as a part of channel creation routine ([9c740f6](https://github.com/PeerioTechnologies/peerio-icebear/commit/9c740f6))
+* channel system messages ([8cb475d](https://github.com/PeerioTechnologies/peerio-icebear/commit/8cb475d))
+* correctly activate channel after accepting invite ([989d71e](https://github.com/PeerioTechnologies/peerio-icebear/commit/989d71e))
+* prevent spamming server on bootkeg migrations ([b3d682c](https://github.com/PeerioTechnologies/peerio-icebear/commit/b3d682c))
+* spam due to server index error protection ([41950fa](https://github.com/PeerioTechnologies/peerio-icebear/commit/41950fa))
+* typo and remove console-kungfu plugin from dev babel configuration ([f27bee5](https://github.com/PeerioTechnologies/peerio-icebear/commit/f27bee5))
+
+
+### Features
+
+* **channels:** new property Chat#joinedParticipants and participant list sorting ([f24ac62](https://github.com/PeerioTechnologies/peerio-icebear/commit/f24ac62))
+* 2fa api ([ad1541d](https://github.com/PeerioTechnologies/peerio-icebear/commit/ad1541d))
+* 2fa UI request ([2449641](https://github.com/PeerioTechnologies/peerio-icebear/commit/2449641))
+* handle server 2fa requests on login ([cdb0ba5](https://github.com/PeerioTechnologies/peerio-icebear/commit/cdb0ba5))
+* **ui:** don't allow file exceeding current plan limit ([#32](https://github.com/PeerioTechnologies/peerio-icebear/issues/32)) ([bc6e69a](https://github.com/PeerioTechnologies/peerio-icebear/commit/bc6e69a))
+
+
+
 <a name="2.2.0"></a>
 # [2.2.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.1.0...v2.2.0) (2017-08-15)
 
