@@ -416,10 +416,14 @@ class User {
      * @public
      */
     canUploadMaxFileSize = (size) => {
-        if (this.isProUser) return true;
-        const adjustedSize = this._adjustedOverheadFileSize(size);
-        if (this.isPremiumUser) return adjustedSize < config.premiumMaxSingleFileUploadSize;
-        return adjustedSize < config.basicMaxSingleFileUploadSize;
+        try {
+            const { limit } = this.quota.resultingQuotas.upload
+                .find(s => s.metric === 'maxSize' && s.period === 'total');
+            return !limit || this._adjustedOverheadFileSize(size) <= limit;
+        } catch (e) {
+            console.error(e);
+        }
+        return true;
     };
 
     @computed get isPremiumUser() {
