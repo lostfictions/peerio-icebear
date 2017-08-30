@@ -232,4 +232,15 @@ module.exports = function mixUserProfileModule() {
     this.deleteAvatar = function() {
         return this.saveAvatar(null);
     };
+
+    /**
+     * Notify server that the account key is backed up, so server would give a storage bonus
+     * @returns {Promise}
+     * @instance
+     * @memberof User
+     * @public
+     */
+    this.setAccountKeyBackedUp = function() {
+        return socket.send('/auth/account-key/backed-up');
+    };
 };
