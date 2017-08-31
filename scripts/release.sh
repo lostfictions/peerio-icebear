@@ -28,6 +28,9 @@ case "$choice" in
 esac
 
 git status -uall
+
+npm install
+
 # check the state of the branch before anythig
 npm run validate
 
