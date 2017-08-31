@@ -501,6 +501,7 @@
     -   [makeEmailPrimary](#makeemailprimary)
     -   [saveAvatar](#saveavatar)
     -   [deleteAvatar](#deleteavatar)
+    -   [setAccountKeyBackedUp](#setaccountkeybackedup)
     -   [current](#current-1)
     -   [getLastAuthenticated](#getlastauthenticated)
     -   [removeLastAuthenticated](#removelastauthenticated)
@@ -538,9 +539,9 @@
     -   [reset](#reset-1)
 -   [socket](#socket)
 -   [TwoFARequest](#twofarequest)
--   [KeyPair](#keypair)
--   [Address](#address)
 -   [InvitedContact](#invitedcontact)
+-   [Address](#address)
+-   [KeyPair](#keypair)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -3341,9 +3342,6 @@ invite_status keg
       accepted: boolean
     }
 
-Server locks chat boot keg after it was updated first.
-TODO: when there will be more then 1 admin in channel, we need to sync boot keg
-
 **Parameters**
 
 -   `db` **[KegDb](#kegdb)** owner instance
@@ -4208,6 +4206,12 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
+### setAccountKeyBackedUp
+
+Notify server that the account key is backed up, so server would give a storage bonus
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
 ### current
 
 Currently authenticated user.
@@ -4480,16 +4484,18 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
 -   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
-## KeyPair
+## InvitedContact
 
-Virtual type representing asymmetric key pair.
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## Address
 
@@ -4504,18 +4510,16 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
 
-## InvitedContact
+## KeyPair
 
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
+Virtual type representing asymmetric key pair.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## util
 

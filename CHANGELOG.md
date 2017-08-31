@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.4.0"></a>
+# [2.4.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.3.0...v2.4.0) (2017-08-31)
+
+
+### Bug Fixes
+
+* **crypto:** make sure failed encrypt operation throws instead of producing empty ciphertext ([e2ad1c2](https://github.com/PeerioTechnologies/peerio-icebear/commit/e2ad1c2))
+* attempt to fix chat migration ([dbb767d](https://github.com/PeerioTechnologies/peerio-icebear/commit/dbb767d))
+* chat migration ([0b42a43](https://github.com/PeerioTechnologies/peerio-icebear/commit/0b42a43))
+
+
+### Features
+
+* setAccountKeyBackedUp server call ([#34](https://github.com/PeerioTechnologies/peerio-icebear/issues/34)) ([86fafb6](https://github.com/PeerioTechnologies/peerio-icebear/commit/86fafb6))
+* take file upload limits from server ([#33](https://github.com/PeerioTechnologies/peerio-icebear/issues/33)) ([b527eff](https://github.com/PeerioTechnologies/peerio-icebear/commit/b527eff))
+
+
+
 <a name="2.3.0"></a>
 # [2.3.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.2.0...v2.3.0) (2017-08-26)
 
