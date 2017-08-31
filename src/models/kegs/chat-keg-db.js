@@ -196,16 +196,16 @@ class ChatKegDb {
         return this.loadBootKeg()
             .then(boot => {
                 if (boot.version > 1) {
+                    // Migrating boot keg
                     if (!boot.format) {
                         boot.participants = this._metaParticipants;
                         // prevent spamming server on bootkeg migration
-                        return Promise.delay(Math.round(Math.random() * 10000 + 2000))
+                        Promise.delay(Math.round(Math.random() * 10000 + 2000))
                             .then(() => Contact.ensureAllLoaded(boot.participants))
-                            .then(() => boot.saveToServer())
+                            .then(() => (boot.format ? null : boot.saveToServer()))
                             .catch(err => {
                                 console.error('Failed to migrate boot keg.', this.id, err);
-                            })
-                            .return([boot, false]);
+                            });
                     }
                     return [boot, false];
                 }
