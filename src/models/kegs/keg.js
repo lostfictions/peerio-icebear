@@ -425,7 +425,7 @@ class Keg {
             if (this.afterLoad) this.afterLoad();
             return this;
         } catch (err) {
-            console.error(err);
+            console.error(err, this.id);
             this.lastLoadHadError = true;
             return false;
         }

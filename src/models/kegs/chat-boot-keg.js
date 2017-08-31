@@ -70,8 +70,6 @@ const SyncedKeg = require('../kegs/synced-keg');
  * }
  * ```
  *
- * Server locks chat boot keg after it was updated first.
- * TODO: when there will be more then 1 admin in channel, we need to sync boot keg
  * @param {KegDb} db - owner instance
  * @param {User} user - currently authenticated user
  * @public
@@ -285,7 +283,8 @@ class ChatBootKeg extends SyncedKeg {
                 keys: {}
             };
             this.participants.forEach(c => {
-                if (c.deleted) return;
+                if (c.deleted || c.notFound) return;
+                if (c.loading) throw new Error(`Can not save boot keg because participant Contact (${c.username}) is not loaded`);
                 const encKey = publicCrypto.encrypt(keyData.key, c.encryptionPublicKey, ephemeralKeyPair.secretKey);
                 k[id].keys[c.username] = cryptoUtil.bytesToB64(encKey);
             });

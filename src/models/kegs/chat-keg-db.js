@@ -199,7 +199,8 @@ class ChatKegDb {
                     if (!boot.format) {
                         boot.participants = this._metaParticipants;
                         // prevent spamming server on bootkeg migration
-                        return Promise.delay(Math.round(Math.random() * 2000 + 1000))
+                        return Promise.delay(Math.round(Math.random() * 10000 + 2000))
+                            .then(() => Contact.ensureAllLoaded(boot.participants))
                             .then(() => boot.saveToServer())
                             .catch(err => {
                                 console.error('Failed to migrate boot keg.', this.id, err);
