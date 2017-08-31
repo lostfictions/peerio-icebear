@@ -65,7 +65,9 @@ function encrypt(msgBytes, key, nonce = util.getRandomNonce(), appendNonce = tru
             cipherContainer = c.subarray(start);
         }
     }
-    nacl.lowlevel.crypto_secretbox(cipherContainer, m, m.length, nonce, key);
+    if (nacl.lowlevel.crypto_secretbox(cipherContainer, m, m.length, nonce, key) !== 0) {
+        throw new Error('Encryption failed');
+    }
     return c; // contains 16 zero bytes in the beginning, needed for decryption
 }
 
