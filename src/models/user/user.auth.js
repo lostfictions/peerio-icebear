@@ -294,4 +294,17 @@ module.exports = function mixUserAuthModule() {
     this.hasPasscode = () => {
         return TinyDb.system.getValue(`${this.username}:passcode`).then(result => !!result);
     };
+
+    /**
+     * Call from client app when user specifically chooses to signout.
+     * This will positively effect 2fa security.
+     */
+    this.signout = () => {
+        return socket.send('/auth/user/signout')
+            .timeout(3000)
+            .catch(err => {
+                // not a show stopper
+                console.error(err);
+            });
+    };
 };
