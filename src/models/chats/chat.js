@@ -223,6 +223,15 @@ class Chat {
     @observable changingFavState = false;
 
     /**
+     * Will be set to `true` after leave() is called on the channel so UI can react until channel is actually removed.
+     * @member {boolean} leaving
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable leaving = false;
+
+    /**
      * list of files being uploaded to this chat.
      * @member {ObservableArray<File>} uploadQueue
      * @memberof Chat
@@ -357,6 +366,7 @@ class Chat {
      * @public
      */
     @computed get canIAdmin() {
+        if (!this.isChannel) return true;
         if (!this.db.boot || !this.db.boot.admins.includes(contactStore.getContact(User.current.username))) {
             return false;
         }
@@ -371,6 +381,7 @@ class Chat {
      * @public
      */
     @computed get canILeave() {
+        if (!this.isChannel) return false;
         if (!this.canIAdmin) return true;
         return this.db.boot.admins.length > 1;
     }
@@ -1006,6 +1017,7 @@ class Chat {
      * @public
      */
     leave() {
+        this.leaving = true;
         const m = new Message(this.db);
         m.setChannelLeaveFact();
         this._sendMessage(m)
@@ -1013,6 +1025,7 @@ class Chat {
             .tapCatch(err => {
                 console.error('Failed to leave channel.', this.id, err);
                 warnings.add('error_channelLeave');
+                this.leaving = false;
             })
             .then(() => {
                 this.store.activeChat = null;
