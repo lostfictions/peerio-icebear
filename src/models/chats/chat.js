@@ -1028,7 +1028,7 @@ class Chat {
                 this.leaving = false;
             })
             .then(() => {
-                this.store.activeChat = null;
+                this.store.switchToFirstChat();
             });
     }
     /**

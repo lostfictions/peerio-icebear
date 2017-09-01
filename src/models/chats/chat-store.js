@@ -232,7 +232,9 @@ class ChatStore {
     processChannelDeletedEvent = data => {
         const chat = this.chatMap[data.kegDbId];
         if (!chat) return;
+        warnings.addSevere('title_kickedFromChannel', '', { name: chat.name });
         this.unloadChat(chat);
+        this.switchToFirstChat();
     };
 
     onNewMessages = _.throttle((props) => {
@@ -419,6 +421,20 @@ class ChatStore {
             if (c.hasSameParticipants(filteredParticipants)) return c;
         }
         return null;
+    }
+
+    /**
+     * Sets activeChat to first chat in list
+     * @protected
+     */
+    switchToFirstChat() {
+        for (let i = 0; i < this.chats.length; i++) {
+            const chat = this.chats[i];
+            if (chat.leaving) continue;
+            this.activate(chat.id);
+            return;
+        }
+        this.deactivateCurrentChat();
     }
 
     /**
