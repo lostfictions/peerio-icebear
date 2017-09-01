@@ -77,8 +77,8 @@ class ChatInviteStore {
                     Object.keys(item.invitees).forEach(username => {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });
+                    arr.sort((i1, i2) => i1.username.localeCompare(i2.username));
                 });
-                res.sort((i1, i2) => i1.username.localeCompare(i2.username));
             }));
     };
 
