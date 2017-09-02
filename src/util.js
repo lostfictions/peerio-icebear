@@ -48,5 +48,19 @@ function formatBytes(bytes) {
     return `${+(bytes / 1073741824).toFixed(2)} GB`;
 }
 
-module.exports = { convertBuffers, formatBytes };
+/**
+ * Tries to get a vlue. If it fails, returns default value or undefined
+ * @param {function} fn Functor, which may throw exception
+ * @returns {any} Result of fn execution, if it didn't throw exception, or defaultValue
+ */
+function tryToGet(fn, defaultValue) {
+    try {
+        return fn();
+    } catch (e) {
+        console.error(e);
+    }
+    return defaultValue;
+}
+
+module.exports = { convertBuffers, formatBytes, tryToGet };
 

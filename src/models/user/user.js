@@ -8,7 +8,7 @@ const TinyDb = require('../../db/tiny-db');
 const { observable, when, computed } = require('mobx');
 const currentUserHelper = require('./../../helpers/di-current-user');
 const { publicCrypto } = require('../../crypto/index');
-const { formatBytes } = require('../../util');
+const { formatBytes, tryToGet } = require('../../util');
 const config = require('../../config');
 const MRUList = require('../../helpers/mru-list');
 const migrator = require('../../legacy/account_migrator');
@@ -416,15 +416,36 @@ class User {
      * @public
      */
     canUploadMaxFileSize = (size) => {
-        try {
-            const { limit } = this.quota.resultingQuotas.upload
-                .find(s => s.metric === 'maxSize' && s.period === 'total');
-            return !limit || this._adjustedOverheadFileSize(size) <= limit;
-        } catch (e) {
-            console.error(e);
-        }
-        return true;
+        return tryToGet(() =>
+            this._adjustedOverheadFileSize(size) <=
+            this.quota.resultingQuotas.upload.find(
+                s => s.metric === 'maxSize' && s.period === 'total'
+            ).limit, true);
     };
+
+    @computed get hasConfirmedEmailBonus() {
+        return tryToGet(() => !!this.addresses.find(f => f.confirmed), false);
+    }
+
+    @computed get hasCreatedRoomBonus() {
+        return tryToGet(() => !!this.quota.quotas.createRoomOnboardingBonus.bonus.file.limit, false);
+    }
+
+    @computed get hasInvitedFriendsBonus() {
+        return tryToGet(() => !!this.quota.quotas.userInviteOnboardingBonus.bonus.file.limit, false);
+    }
+
+    @computed get hasTwoFABonus() {
+        return tryToGet(() => !!this.quota.quotas.twofaOnboardingBonus.bonus.file.limit, false);
+    }
+
+    @computed get hasInstallBonus() {
+        return tryToGet(() => !!this.quota.quotas.installsOnboardingBonus.bonus.file.limit, false);
+    }
+
+    @computed get hasAccountKeyBackedUpBonus() {
+        return tryToGet(() => !!this.quota.quotas.backupOnboardingBonus.bonus.file.limit, false);
+    }
 
     @computed get isPremiumUser() {
         return !!this.activePlans.filter(s => config.serverPlansPremium.includes(s)).length;
