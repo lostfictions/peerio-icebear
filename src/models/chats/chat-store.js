@@ -1,4 +1,4 @@
-const { observable, action, computed, reaction, autorunAsync, isObservableArray } = require('mobx');
+const { observable, action, computed, reaction, autorunAsync, isObservableArray, when } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -552,6 +552,18 @@ class ChatStore {
 
         delete this.chatMap[chat.id];
         this.chats.remove(chat);
+    }
+
+    /**
+     * Returns a promise that resolves with chat instance once that chat is added to chat store and loaded.
+     * @param {string} id - chat id
+     * @returns {Promise<Chat>}
+     * @protected
+     */
+    getChatWhenReady(id) {
+        return new Promise((resolve) => {
+            when(() => this.chatMap[id] && this.chatMap[id].metaLoaded, () => resolve(this.chatMap[id]));
+        });
     }
 }
 const store = new ChatStore();

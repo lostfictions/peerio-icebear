@@ -103,6 +103,7 @@ class ChatInviteStore {
                     });
                     arr.sort((i1, i2) => i1.email.localeCompare(i2.email));
                 });
+                this.inviteJoinedContacts();
             }));
     };
 
@@ -127,15 +128,28 @@ class ChatInviteStore {
                     if (!leavers || !leavers.length) continue;
                     leavers.forEach(username => {
                         this.left.push({ kegDbId, username });
-                        // todo: move somewhere
-                        const chat = getChatStore().chatMap[kegDbId];
-                        if (!chat) return;
-                        when(() => chat.metaLoaded, () => {
-                            chat.removeParticipant(username, false);
-                        });
+
+                        getChatStore()
+                            .getChatWhenReady(kegDbId)
+                            .then(chat => {
+                                chat.removeParticipant(username, false);
+                            });
                     });
                 }
             }));
+    };
+
+    /** @private */
+    inviteJoinedContacts = () => {
+        this.sentEmails.forEach((arr, kegDbId) => {
+            if (!arr) return;
+            arr.forEach(item => {
+                if (!item.username) return;
+                getChatStore()
+                    .getChatWhenReady(kegDbId)
+                    .then(chat => chat.addParticipant(item.username));
+            });
+        });
     };
 
     /**
