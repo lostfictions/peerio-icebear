@@ -300,7 +300,7 @@ module.exports = function mixUserAuthModule() {
      * This will positively effect 2fa security.
      */
     this.signout = () => {
-        return socket.send('/auth/user/signout')
+        return socket.send('/auth/signout')
             .timeout(3000)
             .catch(err => {
                 // not a show stopper
