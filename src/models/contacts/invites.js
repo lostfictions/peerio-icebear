@@ -11,14 +11,21 @@ const _ = require('lodash');
 class Invites extends SyncedKeg {
     /**
      * @member {Array<InvitedContact>}
-     * @public
+     * @protected
      */
     issued = [];
     /**
      * Usernames of users invited us before we created an account.
      * @member {Array<string>}
+     * @protected
      */
     received = [];
+    /**
+     * Channel invites
+     * @member {Array<{email:[{channelId:string, admin:string, added:number}]}>>}
+     * @protected
+     */
+    channels = []
     constructor() {
         super('invites', getUser().kegDb, true);
     }
@@ -34,6 +41,10 @@ class Invites extends SyncedKeg {
                 .reduce((acc, email) => acc.concat(payload.received[email]), [])
                 .map(item => item.username)
         );
+        if (!payload.channels) return;
+        this.channels = Object.keys(payload.channels)
+            .map(email => (payload.channels[email].length ? { [email]: payload.channels[email] } : null))
+            .filter(item => !!item);
     }
 
     _compareInvites(a, b) {

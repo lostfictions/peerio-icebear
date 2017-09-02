@@ -884,6 +884,7 @@ class Chat {
      */
     addParticipants(participants) {
         if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
+        if (!participants || !participants.length) return Promise.resolve();
         const contacts = participants.map(p => (typeof p === 'string' ? contactStore.getContact(p) : p));
         return Contact.ensureAllLoaded(contacts).then(() => {
             const boot = this.db.boot;
