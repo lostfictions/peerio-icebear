@@ -241,6 +241,6 @@ module.exports = function mixUserProfileModule() {
      * @public
      */
     this.setAccountKeyBackedUp = function() {
-        return socket.send('/auth/account-key/backed-up');
+        return retryUntilSuccess(() => socket.send('/auth/account-key/backed-up'));
     };
 };
