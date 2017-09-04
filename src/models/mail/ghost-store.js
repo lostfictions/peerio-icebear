@@ -97,7 +97,7 @@ class GhostStore {
      * @returns {*}
      */
     createGhost() {
-        const g = new Ghost();
+        const g = new Ghost(User.current.kegDb);
         this.ghostMap.set(g.ghostId, g);
         this.ghosts.unshift(g);
         this.selectedId = g.ghostId;

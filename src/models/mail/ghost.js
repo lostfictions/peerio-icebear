@@ -63,8 +63,7 @@ class Ghost extends Keg {
      *
      * NOTE: ghost IDs are in hex for browser compatibility.
      */
-    constructor() {
-        const db = User.current.kegDb;
+    constructor(db) {
         super(null, 'ghost', db);
         this.revoke = this.revoke.bind(this);
         this.version = 2;
