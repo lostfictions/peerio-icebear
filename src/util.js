@@ -49,15 +49,16 @@ function formatBytes(bytes) {
 }
 
 /**
- * Tries to get a vlue. If it fails, returns default value or undefined
- * @param {function} fn Functor, which may throw exception
+ * Tries to get a value. If it fails, returns default value or undefined.
+ * Do not use this in performance critical cases because of deliberate exception throwing
+ * @param {function} fn Functor, which may throw exception in which case default value will be used.
  * @returns {any} Result of fn execution, if it didn't throw exception, or defaultValue
  */
 function tryToGet(fn, defaultValue) {
     try {
         return fn();
     } catch (e) {
-        console.error(e);
+        // console.error(e);
     }
     return defaultValue;
 }
