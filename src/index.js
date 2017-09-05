@@ -60,6 +60,7 @@ const clientApp = require('./models/client-app');
 const systemMessages = require('./helpers/system-messages');
 const serverSettings = require('./models/server-settings');
 const chatInviteStore = require('./models/chats/chat-invite-store');
+const Contact = require('./models/contacts/contact');
 
 // MEMO: Do NOT export NodeJsonStorage and NodeFileStream here for compatibility reasons
 module.exports = {
@@ -87,5 +88,6 @@ module.exports = {
     MRUList,
     clientApp,
     systemMessages,
-    serverSettings
+    serverSettings,
+    Contact // mostly for its utility static functions
 };
