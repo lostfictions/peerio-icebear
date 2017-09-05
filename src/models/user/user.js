@@ -423,6 +423,10 @@ class User {
             ).limit, true);
     };
 
+    @computed get hasAvatarUploadedBonus() {
+        return tryToGet(() => !!this.quota.quotas.avatarOnboardingBonus.bonus.file.limit, false);
+    }
+
     @computed get hasConfirmedEmailBonus() {
         return tryToGet(() => !!this.addresses.find(f => f.confirmed), false);
     }
