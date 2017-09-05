@@ -860,7 +860,8 @@ class Chat {
      */
     delete() {
         if (!this.isChannel) return Promise.reject(new Error('Can not delete DM chat.'));
-
+        // this is an ugly-ish flag to prevent chat store from creating a warning about user being kicked from channel
+        this.deletedByMyself = true;
         console.log(`Deleting channel ${this.id}.`);
         return socket.send('/auth/kegs/channel/delete', { kegDbId: this.id })
             .then(() => {
@@ -869,6 +870,7 @@ class Chat {
             })
             .catch(err => {
                 console.error('Failed to delete channel', err);
+                this.deletedByMyself = false;
                 warnings.add('error_channelDelete');
                 return Promise.reject(err);
             });

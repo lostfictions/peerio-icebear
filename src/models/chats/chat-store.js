@@ -232,7 +232,9 @@ class ChatStore {
     processChannelDeletedEvent = data => {
         const chat = this.chatMap[data.kegDbId];
         if (!chat) return;
-        warnings.addSevere('title_kickedFromChannel', '', { name: chat.name });
+        if (!chat.deletedByMyself) {
+            warnings.addSevere('title_kickedFromChannel', '', { name: chat.name });
+        }
         this.unloadChat(chat);
         this.switchToFirstChat();
     };
