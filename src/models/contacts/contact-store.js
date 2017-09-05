@@ -204,7 +204,7 @@ class ContactStore {
                         .then(() => this.removeReceivedInvite(username));
                 });
             });
-            this.hasChannelInvites = !!this.invites.channels.length;
+            this.hasChannelInvites = !!(this.invites.channels.length || this.invites.unconfirmed.length);
         });
     });
 
