@@ -32,6 +32,7 @@ class ChatStore {
             autorunAsync(() => {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
             }, 2000);
+            this.loadAllChats();
         });
         socket.onceStarted(() => {
             socket.subscribe(socket.APP_EVENTS.channelDeleted, this.processChannelDeletedEvent);
