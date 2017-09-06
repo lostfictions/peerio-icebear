@@ -449,7 +449,8 @@ class Keg {
             this.sharedKegError = false;
             this.signatureError = false;
             // we don't care much if this fails because next time it will get re-saved
-            this.saveToServer(true);
+            // todo: temporarily disabled, until cassandra is in play
+            // this.saveToServer(true);
         });
     }
 
