@@ -244,28 +244,6 @@ class ChatInviteStore {
             setTimeout(this.update, 250);
         });
     }
-
-    sendEmailInvite(kegDbId, email) {
-        return socket.send('/auth/kegs/channel/emailInvite/add', { kegDbId, email })
-            .then(() => {
-                warnings.add('title_channelEmailInviteSuccess');
-            })
-            .catch((err) => {
-                console.error(err);
-                warnings.add('error_channelEmailInvite');
-            });
-    }
-
-    removeEmailInvite(kegDbId, email) {
-        return socket.send('/auth/kegs/channel/emailInvite/remove', { kegDbId, email })
-            .then(() => {
-                warnings.add('title_channelEmailInviteRemoveSuccess');
-            })
-            .catch((err) => {
-                console.error(err);
-                warnings.add('error_channelEmailInviteRemove');
-            });
-    }
 }
 
 module.exports = new ChatInviteStore();
