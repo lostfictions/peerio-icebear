@@ -494,6 +494,7 @@ class User {
      */
     createAccountAndLogin = () => {
         console.log('Starting account registration sequence.');
+
         return this._createAccount()
             .then(() => this._authenticateConnection())
             .then(() => {

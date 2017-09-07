@@ -533,10 +533,19 @@ class SocketClient {
      * @public
      */
     reset = () => {
+        if (this.resetting) return;
+        this.resetting = true;
+
         this.reconnecting = true;
         this.reconnectTimer.stop();
+
         setTimeout(this.close);
-        setTimeout(this.open);
+        const interval = setInterval(() => {
+            if (this.state !== STATES.closed) return;
+            this.open();
+            this.resetting = false;
+            clearInterval(interval);
+        }, 1000);
     };
 }
 
