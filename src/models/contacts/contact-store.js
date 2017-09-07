@@ -84,16 +84,6 @@ class ContactStore {
      */
     @observable uiViewSearchQuery = '';
 
-    /**
-     * Indicates if user has been invited to channel(s) by email prior to creating account and some of the invites
-     * are still yet to be converted to real channel invites by admins.
-     * @memberof ContactStore
-     * @member {boolean} hasChannelInvites
-     * @instance
-     * @public
-     */
-    @observable hasChannelInvites = false;
-
     _checkSortValue(change) {
         switch (change.newValue) {
             case 'firstName':
@@ -204,7 +194,6 @@ class ContactStore {
                         .then(() => this.removeReceivedInvite(username));
                 });
             });
-            this.hasChannelInvites = !!this.invites.channels.length;
         });
     });
 

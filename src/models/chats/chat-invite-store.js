@@ -1,12 +1,11 @@
 const { observable, action, when } = require('mobx');
 const socket = require('../../network/socket');
 const warnings = require('../warnings');
+const { getChatStore } = require('../../helpers/di-chat-store');
 const { cryptoUtil, publicCrypto } = require('../../crypto');
 const User = require('../user/user');
 const Keg = require('../kegs/keg');
 const { getUser } = require('../../helpers/di-current-user');
-const { getChatStore } = require('../../helpers/di-chat-store');
-const { getContactStore } = require('../../helpers/di-contact-store');
 
 // this is not... the most amazing code reuse, but it works, and it's clear
 class ChatHead extends Keg {
@@ -100,8 +99,7 @@ class ChatInviteStore {
                         arr = this.sentEmails.get(item.kegDbId);
                     }
                     Object.keys(item.emailInvitees).forEach(email => {
-                        const i = item.emailInvitees[email];
-                        arr.push({ email, username: i.username, timestamp: i.invitedAt });
+                        arr.push({ email, username: item[email].username, timestamp: item[email].invitedAt });
                     });
                     arr.sort((i1, i2) => i1.email.localeCompare(i2.email));
                 });
@@ -149,9 +147,7 @@ class ChatInviteStore {
                 if (!item.username) return;
                 getChatStore()
                     .getChatWhenReady(kegDbId)
-                    .then(chat => {
-                        chat.addParticipants([item.username]);
-                    });
+                    .then(chat => chat.addParticipant(item.username));
             });
         });
     };
