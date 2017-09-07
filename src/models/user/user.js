@@ -425,6 +425,83 @@ class User {
     }
 
     /**
+     * Maximum amount of people invited which give you bonus
+     * @member {number} maxInvitedPeopleBonus
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get maxInvitedPeopleBonus() {
+        // TODO[backlog]: this should be stored in server
+        return 5;
+    }
+
+    /**
+     * Maximum amount of people invited which give you bonus
+     * @member {number} currentInvitedPeopleBonus
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get currentInvitedPeopleBonus() {
+        // TODO[backlog]: this should be stored in server
+        const bonusPerUser = 50 * 1024 * 1024;
+        const limit = tryToGet(() => User.current.quota.quotas.userInviteOnboardingBonus.bonus.file.limit, 0);
+        return Math.ceil(limit / bonusPerUser);
+    }
+
+    /**
+     * Maximum bonus user can achieve if they complete all tasks
+     * @member {number} maximumOnboardingBonus
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get maximumOnboardingBonus() {
+        // TODO[backlog]: this should be stored in server
+        const avatarBonus = 100;
+        const emailConfirmedBonus = 100;
+        const invitedUserBonus = 5 * 50;
+        const roomBonus = 100;
+        const backupBonus = 100;
+        const installBonus = 100;
+        const twoFABonus = 100;
+        return avatarBonus + emailConfirmedBonus + invitedUserBonus
+        + roomBonus + backupBonus + installBonus + twoFABonus;
+    }
+
+    /**
+     * Maximum bonus user can achieve if they complete all tasks
+     * @member {number} currentOnboardingBonus
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get currentOnboardingBonus() {
+        if (!User.current.quota) return 0;
+        const {
+            createRoomOnboardingBonus,
+            avatarOnboardingBonus,
+            twofaOnboardingBonus,
+            installsOnboardingBonus,
+            backupOnboardingBonus,
+            confirmedEmailBonus,
+            userInviteOnboardingBonus
+        } = User.current.quota.quotas;
+        return tryToGet(
+            () => [
+                createRoomOnboardingBonus,
+                avatarOnboardingBonus,
+                twofaOnboardingBonus,
+                installsOnboardingBonus,
+                backupOnboardingBonus,
+                confirmedEmailBonus,
+                userInviteOnboardingBonus
+            ].reduce((sum, value) => (sum + Math.ceil(value.bonus.file.limit / 1024 / 1024)), 0), 0
+        );
+    }
+
+    /**
      * Checks if there's enough storage to upload a file.
      * @param {number} size - amount of bytes user wants to upload.
      * @returns {boolean} is there enough storage left to upload.
