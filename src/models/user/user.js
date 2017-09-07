@@ -314,6 +314,36 @@ class User {
     }
 
     /**
+     * Maximum file size user can upload.
+     * @member {number} fileSizeLimit
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get fileSizeLimit() {
+        if (this.quota == null || !this.quota.resultingQuotas
+            || !this.quota.resultingQuotas.upload || !this.quota.resultingQuotas.upload.length) return Number.MAX_SAFE_INTEGER;
+
+        const found = this.quota.resultingQuotas.upload.find(
+            item => item.period === 'total' && item.metric === 'maxSize'
+        );
+
+        if (!found || found.limit == null) return Number.MAX_SAFE_INTEGER;
+        return found.limit;
+    }
+
+    /**
+     * Formatted maximum file size user can upload.
+     * @member {number} fileSizeLimitFmt
+     * @memberof User
+     * @instance
+     * @public
+     */
+    @computed get fileSizeLimitFmt() {
+        return formatBytes(this.fileSizeLimit);
+    }
+
+    /**
      * Used bytes in storage.
      * @member {number} fileQuotaUsed
      * @memberof User
@@ -416,11 +446,8 @@ class User {
      * @public
      */
     canUploadMaxFileSize = (size) => {
-        return tryToGet(() =>
-            this._adjustedOverheadFileSize(size) <=
-            this.quota.resultingQuotas.upload.find(
-                s => s.metric === 'maxSize' && s.period === 'total'
-            ).limit, true);
+        const realSize = this._adjustedOverheadFileSize(size);
+        return realSize <= this.fileSizeLimit;
     };
 
     @computed get hasAvatarUploadedBonus() {
