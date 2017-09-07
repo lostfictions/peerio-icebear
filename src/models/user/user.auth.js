@@ -32,6 +32,13 @@ module.exports = function mixUserAuthModule() {
                     case errors.ServerError.codes.twoFAAuthRequired:
                         console.log('Server requested 2fa on login.');
                         return this._handle2faOnLogin()
+                            .catch(err => {
+                                if (err && err.code === errors.ServerError.codes.invalid2FACode) {
+                                    warnings.add('error_invalid2faCode');
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(err);
+                            })
                             .then(this._authenticateConnection);
                 }
                 return Promise.reject(e);

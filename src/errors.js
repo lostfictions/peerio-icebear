@@ -112,6 +112,7 @@ const serverErrorCodes = {
     twoFAAuthRequired: 424,
     accountThrottled: 425,
     accountBlacklisted: 426,
+    invalid2FACode: 427,
     accountMigrationRequired: 434,
     captchaPending: 435,
     incorrectTimestamp: 442,
