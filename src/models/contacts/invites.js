@@ -25,13 +25,7 @@ class Invites extends SyncedKeg {
      * @member {Array<{email:[{channelId:string, admin:string, added:number}]}>>}
      * @protected
      */
-    channels = [];
-    /**
-     * Unconfirmed emails that block `channels` property from being filled for security reasons.
-     * @member {Array<string}
-     */
-    unconfirmed = [];
-
+    channels = []
     constructor() {
         super('invites', getUser().kegDb, true);
     }
@@ -47,18 +41,10 @@ class Invites extends SyncedKeg {
                 .reduce((acc, email) => acc.concat(payload.received[email]), [])
                 .map(item => item.username)
         );
-        if (payload.channels) {
-            this.channels = Object.keys(payload.channels)
-                .map(email => (payload.channels[email].length ? { [email]: payload.channels[email] } : null))
-                .filter(item => !!item);
-        } else {
-            this.channels = [];
-        }
-        if (payload.unconfirmed) {
-            this.unconfirmed = Object.keys(payload.unconfirmed).filter(item => !!payload.unconfirmed[item]);
-        } else {
-            this.unconfirmed = [];
-        }
+        if (!payload.channels) return;
+        this.channels = Object.keys(payload.channels)
+            .map(email => (payload.channels[email].length ? { [email]: payload.channels[email] } : null))
+            .filter(item => !!item);
     }
 
     _compareInvites(a, b) {
