@@ -50,17 +50,6 @@ class ChatInviteStore {
     @observable sent = observable.map();
 
     /**
-     * List of channel email invites admins of current channel have sent.
-     * Username property gets filled when invited user joins and confirms email.
-     * Icebear will monitor this list, send real invites when user joins and remove records from this map.
-     * @member {Map<kegDbId: string, [{email: string, username: ?string, timestamp: number}]>} sentEmails
-     * @memberof ChatInviteStore
-     * @instance
-     * @public
-     */
-    @observable sentEmails = observable.map();
-
-    /**
      * List of users requested to leave channels. This is normally for internal icebear use.
      * Icebear will monitor this list and remove keys from boot keg for leavers
      * if current user is an admin of specific channel. Then icebear will remove an item from this list.
@@ -80,7 +69,6 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invitees')
             .then(action(res => {
                 this.sent.clear();
-                this.sentEmails.clear();
                 res.forEach(item => {
                     // regular invites
                     let arr = this.sent.get(item.kegDbId);
@@ -92,18 +80,7 @@ class ChatInviteStore {
                         arr.push({ username, timestamp: item.invitees[username] });
                     });
                     arr.sort((i1, i2) => i1.username.localeCompare(i2.username));
-                    // email invites
-                    arr = this.sentEmails.get(item.kegDbId);
-                    if (!arr) {
-                        this.sentEmails.set(item.kegDbId, []);
-                        arr = this.sentEmails.get(item.kegDbId);
-                    }
-                    Object.keys(item.emailInvitees).forEach(email => {
-                        arr.push({ email, username: item[email].username, timestamp: item[email].invitedAt });
-                    });
-                    arr.sort((i1, i2) => i1.email.localeCompare(i2.email));
                 });
-                this.inviteJoinedContacts();
             }));
     };
 
@@ -137,19 +114,6 @@ class ChatInviteStore {
                     });
                 }
             }));
-    };
-
-    /** @private */
-    inviteJoinedContacts = () => {
-        this.sentEmails.forEach((arr, kegDbId) => {
-            if (!arr) return;
-            arr.forEach(item => {
-                if (!item.username) return;
-                getChatStore()
-                    .getChatWhenReady(kegDbId)
-                    .then(chat => chat.addParticipant(item.username));
-            });
-        });
     };
 
     /**
@@ -282,7 +246,7 @@ class ChatInviteStore {
     }
 
     sendEmailInvite(kegDbId, email) {
-        return socket.send('/auth/kegs/channel/email/invite', { kegDbId, email })
+        return socket.send('/auth/kegs/channel/emailInvite/add', { kegDbId, email })
             .then(() => {
                 warnings.add('title_channelEmailInviteSuccess');
             })
@@ -292,11 +256,10 @@ class ChatInviteStore {
             });
     }
 
-    revokeEmailInvite(kegDbId, email) {
-        return socket.send('/auth/kegs/channel/email/uninvite', { kegDbId, email })
+    removeEmailInvite(kegDbId, email) {
+        return socket.send('/auth/kegs/channel/emailInvite/remove', { kegDbId, email })
             .then(() => {
                 warnings.add('title_channelEmailInviteRemoveSuccess');
-                setTimeout(this.update, 250);
             })
             .catch((err) => {
                 console.error(err);
