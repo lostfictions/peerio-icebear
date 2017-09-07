@@ -37,7 +37,6 @@
   * Virtual type representing 2fa UI request.
   * @name TwoFARequest
   * @typedef {Object} TwoFARequest
-  * @property {bool} cancelable
   * @property {strong} type - 'login' 'backupCodes' 'disable'
   * @property {Function<string, ?bool>} submit - function accepts TOTP code and 'trust this device' flag
   * @property {Function} cancel
