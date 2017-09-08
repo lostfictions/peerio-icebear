@@ -885,6 +885,7 @@ class Chat {
      * @public
      */
     addParticipants(participants) {
+        if (!participants || !participants.length) return Promise.resolve();
         if (!this.isChannel) return Promise.reject("Can't add participants to a DM chat");
         const contacts = participants.map(p => (typeof p === 'string' ? contactStore.getContact(p) : p));
         return Contact.ensureAllLoaded(contacts).then(() => {
@@ -902,6 +903,7 @@ class Chat {
         })
             .then(() => {
                 const names = contacts.map(c => c.username);
+                if (!names.length) return;
                 const m = new Message(this.db);
                 m.setChannelInviteFact(names);
                 this._sendMessage(m);
