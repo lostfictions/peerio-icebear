@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.5.0"></a>
+# [2.5.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.4.0...v2.5.0) (2017-09-08)
+
+
+### Bug Fixes
+
+* better handling of chat leave/kick situations ([4449926](https://github.com/PeerioTechnologies/peerio-icebear/commit/4449926))
+* **ghost:** pass db to Ghost constructor ([#37](https://github.com/PeerioTechnologies/peerio-icebear/issues/37)) ([e8db3b1](https://github.com/PeerioTechnologies/peerio-icebear/commit/e8db3b1))
+* disable shared file keg re-encryption as a temporary workaround ([c0ab754](https://github.com/PeerioTechnologies/peerio-icebear/commit/c0ab754))
+* do now show 'you have been removed from channel' when user deletes a room ([3ece49a](https://github.com/PeerioTechnologies/peerio-icebear/commit/3ece49a))
+* give user another chance if 2fa entered incorrectly on login ([0143d46](https://github.com/PeerioTechnologies/peerio-icebear/commit/0143d46))
+* removed 'cancelable' option from 2fa requests ([1e3756f](https://github.com/PeerioTechnologies/peerio-icebear/commit/1e3756f))
+* socket.io duplicating open connections on reset ([1af0129](https://github.com/PeerioTechnologies/peerio-icebear/commit/1af0129))
+* sorting bug on invites ([2304b84](https://github.com/PeerioTechnologies/peerio-icebear/commit/2304b84))
+* unconfirmed emails now still give hints about existing channel invites ([001d94b](https://github.com/PeerioTechnologies/peerio-icebear/commit/001d94b))
+* unlimited upload size handled correctly ([35e0e5a](https://github.com/PeerioTechnologies/peerio-icebear/commit/35e0e5a))
+
+
+### Features
+
+* auto add email invites to channel when they join ([3e0f29f](https://github.com/PeerioTechnologies/peerio-icebear/commit/3e0f29f))
+* avatar uploaded bonus ([#39](https://github.com/PeerioTechnologies/peerio-icebear/issues/39)) ([a71c0c3](https://github.com/PeerioTechnologies/peerio-icebear/commit/a71c0c3))
+* bonus flag properties in User ([#35](https://github.com/PeerioTechnologies/peerio-icebear/issues/35)) ([6c04adc](https://github.com/PeerioTechnologies/peerio-icebear/commit/6c04adc))
+* channel email invites ([8e01c41](https://github.com/PeerioTechnologies/peerio-icebear/commit/8e01c41))
+* channel email invites ([76de8e8](https://github.com/PeerioTechnologies/peerio-icebear/commit/76de8e8))
+* new property chat.leaving ([3b05dda](https://github.com/PeerioTechnologies/peerio-icebear/commit/3b05dda))
+* sdk exports Contact model ([2382d75](https://github.com/PeerioTechnologies/peerio-icebear/commit/2382d75))
+* send/remove email invites to channel ([17b5252](https://github.com/PeerioTechnologies/peerio-icebear/commit/17b5252))
+* signout support to expire 2fa trust ([b11b683](https://github.com/PeerioTechnologies/peerio-icebear/commit/b11b683))
+* use retry for setAccountKeyBackedUp ([#36](https://github.com/PeerioTechnologies/peerio-icebear/issues/36)) ([b449961](https://github.com/PeerioTechnologies/peerio-icebear/commit/b449961))
+* **crypto:** add utils.getRandomAccountKeyHex ([#38](https://github.com/PeerioTechnologies/peerio-icebear/issues/38)) ([159d4f3](https://github.com/PeerioTechnologies/peerio-icebear/commit/159d4f3))
+
+
+### Reverts
+
+* channel email invites ([ce5e7f8](https://github.com/PeerioTechnologies/peerio-icebear/commit/ce5e7f8))
+
+
+
 <a name="2.4.0"></a>
 # [2.4.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.3.0...v2.4.0) (2017-08-31)
 

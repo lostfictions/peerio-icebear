@@ -153,13 +153,13 @@
     -   [directMessages](#directmessages)
     -   [channels](#channels)
     -   [hasChannels](#haschannels)
-    -   [addChat](#addchat)
     -   [loadAllChats](#loadallchats)
     -   [startChat](#startchat)
     -   [activate](#activate)
     -   [deactivateCurrentChat](#deactivatecurrentchat)
     -   [startChatAndShareFiles](#startchatandsharefiles)
     -   [unloadChat](#unloadchat)
+-   [addChat](#addchat)
 -   [ChatFileHandler](#chatfilehandler)
     -   [uploadAndShare](#uploadandshare)
 -   [Chat](#chat)
@@ -181,6 +181,7 @@
     -   [active](#active-1)
     -   [isFavorite](#isfavorite)
     -   [changingFavState](#changingfavstate)
+    -   [leaving](#leaving)
     -   [uploadQueue](#uploadqueue)
     -   [unreadCount](#unreadcount)
     -   [newMessagesMarkerPos](#newmessagesmarkerpos)
@@ -202,9 +203,6 @@
     -   [loadNextPage](#loadnextpage)
     -   [rename](#rename)
     -   [changePurpose](#changepurpose)
-    -   [toggleFavoriteState](#togglefavoritestate)
-    -   [hide](#hide)
-    -   [unhide](#unhide)
     -   [reset](#reset)
     -   [delete](#delete)
     -   [addParticipants](#addparticipants)
@@ -213,6 +211,9 @@
     -   [isAdmin](#isadmin)
     -   [removeParticipant](#removeparticipant)
     -   [leave](#leave)
+-   [toggleFavoriteState](#togglefavoritestate)
+-   [hide](#hide)
+-   [unhide](#unhide)
 -   [Message](#message)
     -   [sending](#sending)
     -   [sendError](#senderror)
@@ -223,12 +224,12 @@
     -   [inlineImages](#inlineimages)
     -   [dayFingerprint](#dayfingerprint)
     -   [messageTimestampText](#messagetimestamptext)
-    -   [sender](#sender)
-    -   [text](#text)
-    -   [systemData](#systemdata)
-    -   [timestamp](#timestamp)
-    -   [files](#files)
-    -   [isMention](#ismention)
+-   [sender](#sender)
+-   [text](#text)
+-   [systemData](#systemdata)
+-   [timestamp](#timestamp)
+-   [files](#files)
+-   [isMention](#ismention)
 -   [MyChats](#mychats)
     -   [favorites](#favorites)
     -   [hidden](#hidden)
@@ -319,14 +320,11 @@
     -   [clearFilter](#clearfilter)
     -   [loadAllFiles](#loadallfiles)
     -   [getById](#getbyid)
-    -   [upload](#upload)
+-   [upload](#upload)
 -   [FileStreamAbstract](#filestreamabstract)
     -   [filePath](#filepath)
     -   [mode](#mode)
     -   [pos](#pos)
-    -   [read](#read-1)
-    -   [write](#write)
-    -   [seek](#seek)
     -   [open](#open)
     -   [close](#close)
     -   [getFullPath](#getfullpath)
@@ -335,6 +333,9 @@
     -   [getStat](#getstat)
     -   [getCacheList](#getcachelist)
     -   [delete](#delete-1)
+-   [read](#read-1)
+-   [write](#write)
+-   [seek](#seek)
 -   [File](#file)
     -   [download](#download)
     -   [cancelDownload](#canceldownload)
@@ -457,7 +458,6 @@
     -   [setPasscode](#setpasscode)
     -   [validatePasscode](#validatepasscode)
     -   [hasPasscode](#haspasscode)
-    -   [username](#username-2)
     -   [firstName](#firstname-2)
     -   [lastName](#lastname-2)
     -   [email](#email)
@@ -484,11 +484,17 @@
     -   [fileQuotaTotalFmt](#filequotatotalfmt)
     -   [fileQuotaLeft](#filequotaleft)
     -   [fileQuotaLeftFmt](#filequotaleftfmt)
+    -   [fileSizeLimit](#filesizelimit)
+    -   [fileSizeLimitFmt](#filesizelimitfmt)
     -   [fileQuotaUsed](#filequotaused)
     -   [fileQuotaUsedFmt](#filequotausedfmt)
     -   [fileQuotaUsedPercent](#filequotausedpercent)
     -   [channelLimit](#channellimit)
     -   [channelsLeft](#channelsleft)
+    -   [maxInvitedPeopleBonus](#maxinvitedpeoplebonus)
+    -   [currentInvitedPeopleBonus](#currentinvitedpeoplebonus)
+    -   [maximumOnboardingBonus](#maximumonboardingbonus)
+    -   [currentOnboardingBonus](#currentonboardingbonus)
     -   [canUploadFileSize](#canuploadfilesize)
     -   [canUploadMaxFileSize](#canuploadmaxfilesize)
     -   [createAccountAndLogin](#createaccountandlogin)
@@ -505,6 +511,7 @@
     -   [current](#current-1)
     -   [getLastAuthenticated](#getlastauthenticated)
     -   [removeLastAuthenticated](#removelastauthenticated)
+-   [username](#username-2)
 -   [Warnings](#warnings)
     -   [add](#add)
     -   [addSevere](#addsevere)
@@ -538,10 +545,10 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [TwoFARequest](#twofarequest)
--   [InvitedContact](#invitedcontact)
--   [Address](#address)
 -   [KeyPair](#keypair)
+-   [Address](#address)
+-   [InvitedContact](#invitedcontact)
+-   [TwoFARequest](#twofarequest)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -1742,7 +1749,7 @@ Type: ObservableArray&lt;{kegDbId: [string](https://developer.mozilla.org/en-US/
 
 ### sent
 
-List of channel invites current user has sent.
+List of channel invites admins of current channel have sent.
 
 ### acceptInvite
 
@@ -1831,16 +1838,6 @@ Does chat store has any channels or not.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-### addChat
-
-Adds chat to the list.
-
-**Parameters**
-
--   `chat` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Chat](#chat))** chat id or Chat instance
--   `unhide` **bool** this flag helps us to force unhiding chat when we detected that addChat was called as
-    a result of new messages in the chat (but not other new/updated kegs)
-
 ### loadAllChats
 
 Initial chats list loading, call once after login.
@@ -1898,6 +1895,16 @@ Removes chat from working set.
 **Parameters**
 
 -   `chat` **[Chat](#chat)** 
+
+## addChat
+
+Adds chat to the list.
+
+**Parameters**
+
+-   `chat` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Chat](#chat))** chat id or Chat instance
+-   `unhide` **bool** this flag helps us to force unhiding chat when we detected that addChat was called as
+    a result of new messages in the chat (but not other new/updated kegs)
 
 ## ChatFileHandler
 
@@ -2032,6 +2039,12 @@ Prevent spamming 'Favorite' button in GUI.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+### leaving
+
+Will be set to `true` after leave() is called on the channel so UI can react until channel is actually removed.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### uploadQueue
 
 list of files being uploaded to this chat.
@@ -2153,12 +2166,6 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 -   `purpose` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** pass empty string to remove chat purpose
 
-### toggleFavoriteState
-
-### hide
-
-### unhide
-
 ### reset
 
 Reloads most recent page of the chat like it was just added.
@@ -2228,6 +2235,12 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 Remove myself from this channel.
 
+## toggleFavoriteState
+
+## hide
+
+## unhide
+
 ## Message
 
 **Extends Keg**
@@ -2290,29 +2303,29 @@ TODO: resolve/unify this in favor of most performant method
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
-### sender
+## sender
 
 Type: [Contact](#contact)
 
-### text
+## text
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
-### systemData
+## systemData
 
 For system messages like chat rename fact.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
-### timestamp
+## timestamp
 
 Type: [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
 
-### files
+## files
 
 Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
-### isMention
+## isMention
 
 Does this message mention current user.
 
@@ -2900,7 +2913,7 @@ Finds file by fileId.
 
 Returns **[File](#file)?** 
 
-### upload
+## upload
 
 Start new file upload and get the file keg for it.
 
@@ -2936,36 +2949,6 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 File stream pointer
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
-
-### read
-
-Reads a chunk of data from file stream.
-
-**Parameters**
-
--   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes to read (if possible)
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** resolves with a number of bytes written to buffer
-
-### write
-
-Writes a chunk of data to file stream
-
-**Parameters**
-
--   `buffer` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** resolves when chunk is written out
-
-### seek
-
-Move file position pointer.
-
-**Parameters**
-
--   `pos` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
-
-Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** new position
 
 ### open
 
@@ -3032,6 +3015,36 @@ Override. Removes file by path.
 -   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## read
+
+Reads a chunk of data from file stream.
+
+**Parameters**
+
+-   `size` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** amount of bytes to read (if possible)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)>** resolves with a number of bytes written to buffer
+
+## write
+
+Writes a chunk of data to file stream
+
+**Parameters**
+
+-   `buffer` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** resolves when chunk is written out
+
+## seek
+
+Move file position pointer.
+
+**Parameters**
+
+-   `pos` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+
+Returns **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** new position
 
 ## File
 
@@ -3949,10 +3962,6 @@ Checks if user has a passcode saved.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)>** 
 
-### username
-
-Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
-
 ### firstName
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
@@ -4085,6 +4094,18 @@ Formatted bytes left for uploads.
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
+### fileSizeLimit
+
+Maximum file size user can upload.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### fileSizeLimitFmt
+
+Formatted maximum file size user can upload.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
 ### fileQuotaUsed
 
 Used bytes in storage.
@@ -4112,6 +4133,30 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 ### channelsLeft
 
 Available channel slots left.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### maxInvitedPeopleBonus
+
+Maximum amount of people invited which give you bonus
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### currentInvitedPeopleBonus
+
+Maximum amount of people invited which give you bonus
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### maximumOnboardingBonus
+
+Maximum bonus user can achieve if they complete all tasks
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### currentOnboardingBonus
+
+Maximum bonus user can achieve if they complete all tasks
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -4229,6 +4274,10 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 Removes last authenticated user information.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
+
+## username
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 ## Warnings
 
@@ -4471,31 +4520,16 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## TwoFARequest
+## KeyPair
 
-Virtual type representing 2fa UI request.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `cancelable` **bool** 
--   `type` **strong** 'login' 'backupCodes' 'disable'
--   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
--   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
-
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
+Virtual type representing asymmetric key pair.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## Address
 
@@ -4510,16 +4544,30 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
 
-## KeyPair
+## InvitedContact
 
-Virtual type representing asymmetric key pair.
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
+## TwoFARequest
+
+Virtual type representing 2fa UI request.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
 ## util
 
