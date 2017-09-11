@@ -540,10 +540,10 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [TwoFARequest](#twofarequest)
--   [InvitedContact](#invitedcontact)
 -   [KeyPair](#keypair)
 -   [Address](#address)
+-   [InvitedContact](#invitedcontact)
+-   [TwoFARequest](#twofarequest)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -4462,31 +4462,6 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## TwoFARequest
-
-Virtual type representing 2fa UI request.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `type` **strong** 'login' 'backupCodes' 'disable'
--   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
--   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
-
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
-
 ## KeyPair
 
 Virtual type representing asymmetric key pair.
@@ -4510,6 +4485,31 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
+## TwoFARequest
+
+Virtual type representing 2fa UI request.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
 ## util
 

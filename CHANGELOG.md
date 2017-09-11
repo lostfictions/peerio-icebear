@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.6.1"></a>
+## [2.6.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.6.0...v2.6.1) (2017-09-11)
+
+
+### Bug Fixes
+
+* removed unwanted warning on automated removeParticipant, for real this time, promise ([5fe2048](https://github.com/PeerioTechnologies/peerio-icebear/commit/5fe2048))
+* server anti-spam ([77d8768](https://github.com/PeerioTechnologies/peerio-icebear/commit/77d8768))
+
+
+
 <a name="2.6.0"></a>
 # [2.6.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.5.0...v2.6.0) (2017-09-11)
 
