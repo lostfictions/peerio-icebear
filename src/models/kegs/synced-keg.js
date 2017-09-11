@@ -63,7 +63,7 @@ class SyncedKeg extends Keg {
             this.lastRequest = { collVersion, maxUpdateId, requestCount: 0 };
             return false;
         }
-        if (this.lastRequest.requestCount > 10) return true;
+        if (this.lastRequest.requestCount++ > 10) return true;
         return false;
     }
 
