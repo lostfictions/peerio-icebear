@@ -198,17 +198,17 @@ class ChatKegDb {
                 if (boot.version > 1) {
                     // disabled for now
                     // Migrating boot keg
-                    // if (!boot.format) {
-                    //     boot.participants = this._metaParticipants;
-                    //     // prevent spamming server on bootkeg migration
-                    //     return Promise.delay(Math.round(Math.random() * 3000 + 2000))
-                    //         .then(() => Contact.ensureAllLoaded(boot.participants))
-                    //         .then(() => (boot.format ? null : boot.saveToServer()))
-                    //         .catch(err => {
-                    //             console.error('Failed to migrate boot keg.', this.id, err);
-                    //         })
-                    //         .return([boot, false]);
-                    // }
+                    if (!boot.format) {
+                        boot.participants = this._metaParticipants;
+                        //     // prevent spamming server on bootkeg migration
+                        //     return Promise.delay(Math.round(Math.random() * 3000 + 2000))
+                        //         .then(() => Contact.ensureAllLoaded(boot.participants))
+                        //         .then(() => (boot.format ? null : boot.saveToServer()))
+                        //         .catch(err => {
+                        //             console.error('Failed to migrate boot keg.', this.id, err);
+                        //         })
+                        //         .return([boot, false]);
+                    }
                     return [boot, false];
                 }
                 return this.createBootKeg();
