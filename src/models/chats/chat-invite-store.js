@@ -77,9 +77,16 @@ class ChatInviteStore {
                         arr = this.sent.get(item.kegDbId);
                     }
                     Object.keys(item.invitees).forEach(username => {
+                        if (item.rejected[username]) return;
                         arr.push({ username, timestamp: item.invitees[username] });
                     });
                     arr.sort((i1, i2) => i1.username.localeCompare(i2.username));
+
+                    Promise.map(
+                        Object.keys(item.rejected),
+                        username => this.revokeInvite(item.kegDbId, username, true),
+                        { concurrency: 1 }
+                    );
                 });
             }));
     };
@@ -105,13 +112,17 @@ class ChatInviteStore {
                     if (!leavers || !leavers.length) continue;
                     leavers.forEach(username => {
                         this.left.push({ kegDbId, username });
-
-                        getChatStore()
+                    });
+                    Promise.map(leavers, username => {
+                        return getChatStore()
                             .getChatWhenReady(kegDbId)
                             .then(chat => {
                                 chat.removeParticipant(username, false);
+                            })
+                            .catch(err => {
+                                console.error(err);
                             });
-                    });
+                    }, { concurrency: 1 });
                 }
             }));
     };
@@ -232,16 +243,16 @@ class ChatInviteStore {
      * @param {string} username
      * @public
      */
-    revokeInvite(kegDbId, username) {
-        const chat = getChatStore().chatMap[kegDbId];
-        if (!chat || !chat.metaLoaded) {
-            console.error(chat ? 'Can not revoke invite on chat that is still loading'
-                : 'Can not find chat in store to revoke invite', kegDbId);
-            warnings.add('error_revokeChannelInvite');
-            return Promise.reject();
-        }
-        return chat.removeParticipant(username).then(() => {
-            setTimeout(this.update, 250);
+    revokeInvite(kegDbId, username, noWarning = false) {
+        return getChatStore().getChatWhenReady(kegDbId).then(chat => {
+            return chat.removeParticipant(username).then(() => {
+                setTimeout(this.update, 250);
+            }).catch(err => {
+                console.error(err);
+                if (!noWarning) {
+                    warnings.add('error_revokeChannelInvite');
+                }
+            });
         });
     }
 }

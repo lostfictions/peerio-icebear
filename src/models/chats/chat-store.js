@@ -565,7 +565,11 @@ class ChatStore {
      */
     getChatWhenReady(id) {
         return new Promise((resolve) => {
-            when(() => this.chatMap[id] && this.chatMap[id].metaLoaded, () => resolve(this.chatMap[id]));
+            when(() => {
+                const chat = this.chats.find(c => c.id === id);
+                return !!(chat && chat.metaLoaded);
+            },
+            () => resolve(this.chatMap[id]));
         });
     }
 }
