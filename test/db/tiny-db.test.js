@@ -121,8 +121,7 @@ describe('TinyDB', () => {
             .then(actual => expected.should.equal(actual))
             .then(() => db.openUserDb(username, keys.generateEncryptionKey()))
             .then(() => db.user.getValue(vkey))
-            .then(() => Promise.reject('test failed'))
-            .catch(err => err.should.be.instanceOf(errors.DecryptionError));
+            .then(actual => expect(actual).to.be.null);
     });
 
     it('Should not allow empty keys', () => {
