@@ -24,12 +24,12 @@ describe('TinyDB', () => {
 
     beforeEach(() => {
         const db = require('../../src/db/tiny-db');
-        db.openSystemDb();
-        db.openUserDb(username, key);
+        db.openSystem();
+        db.openUser(username, key);
         return execForEachDb(d => d.clear())
             .then(() => {
-                db.openSystemDb();
-                db.openUserDb(username, key);
+                db.openSystem();
+                db.openUser(username, key);
             });
     });
 
@@ -119,7 +119,7 @@ describe('TinyDB', () => {
         return db.user.setValue(vkey, expected)
             .then(() => db.user.getValue(vkey))
             .then(actual => expected.should.equal(actual))
-            .then(() => db.openUserDb(username, keys.generateEncryptionKey()))
+            .then(() => db.openUser(username, keys.generateEncryptionKey()))
             .then(() => db.user.getValue(vkey))
             .then(actual => expect(actual).to.be.null);
     });

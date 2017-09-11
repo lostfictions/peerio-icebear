@@ -627,7 +627,7 @@ class User {
         if (this._firstLoginInSession) {
             this._firstLoginInSession = false;
             // TODO: when we introduce key change feature - this will fail to decrypt
-            TinyDb.openUserDb(this.username, this.kegDb.key);
+            TinyDb.openUser(this.username, this.kegDb.key);
             this.setReauthOnReconnect();
             this.emojiMRU.loadCache();
             // new accounts don't have digest for these kegs (they are created on first access)

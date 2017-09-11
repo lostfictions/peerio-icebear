@@ -1,0 +1,75 @@
+const TinyDbCollection = require('./tiny-db-collection');
+
+/**
+ * TinyDbManager manages system and user collections, and allows opening
+ * other collections.
+ * @public
+ */
+class TinyDbManager {
+    /**
+     * Creates a TinyDB instance.
+     * @param {StorageEngine} [storageEngine] - storage engine constructor
+     */
+    constructor(storageEngine) {
+        this.storageEngine = storageEngine;
+        this.systemCollection = null;
+        this.userCollection = null;
+    }
+
+    /**
+     * Instance of unencrypted system collection.
+     * @member {TinyDbCollection}
+     * @static
+     * @public
+     */
+    get system() {
+        if (!this.systemCollection) this.openSystem();
+        return this.systemCollection;
+    }
+
+    /**
+     * Instance of encrypted user collection.
+     * Only values are encrypted.
+     * @const {TinyDb}
+     * @static
+     * @public
+     */
+    get user() {
+        return this.userCollection;
+    }
+
+    /**
+     * Creates a collection instance.
+     * @param {string} name - database name
+     * @param {Uint8Array} [encryptionKey] - optional encryption key
+     * @returns {TinyDbCollection}
+     */
+    open(name, encryptionKey) {
+        const engine = new this.storageEngine(name); // eslint-disable-line new-cap
+        return new TinyDbCollection(engine, name, encryptionKey);
+    }
+
+    /**
+    * Creates system collection instance and assigns it to {@link system} property
+    * @returns {TinyDbCollection} system collection
+    * @private
+    */
+    openSystem() {
+        this.systemCollection = this.open('$system$');
+        return this.systemCollection;
+    }
+
+    /**
+     * Creates user collection instance and assigns it to {@link user} property
+     * @param {string} username
+     * @param {Uint8Array} encryptionKey - database key
+     * @returns {TinyDbCollection} user collection
+     * @protected
+     */
+    openUser(username, encryptionKey) {
+        this.userCollection = this.open(username, encryptionKey);
+        return this.userCollection;
+    }
+}
+
+module.exports = TinyDbManager;
