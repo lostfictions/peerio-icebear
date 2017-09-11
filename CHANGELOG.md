@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.6.0"></a>
+# [2.6.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.5.0...v2.6.0) (2017-09-11)
+
+
+### Bug Fixes
+
+* **tinydb:** use storage engine creator function instead of constructor ([#43](https://github.com/PeerioTechnologies/peerio-icebear/issues/43)) ([7c8040e](https://github.com/PeerioTechnologies/peerio-icebear/commit/7c8040e))
+* chat names for unmigrated DMs ([8e9c5b1](https://github.com/PeerioTechnologies/peerio-icebear/commit/8e9c5b1))
+* do not send 'invited' system message when a room was created without participants ([fcc08ae](https://github.com/PeerioTechnologies/peerio-icebear/commit/fcc08ae))
+* properly handle rejected channel invites ([2fe2991](https://github.com/PeerioTechnologies/peerio-icebear/commit/2fe2991))
+* remove error snackbars when room participants are being removed automatically ([dd73f3c](https://github.com/PeerioTechnologies/peerio-icebear/commit/dd73f3c))
+
+
+### Features
+
+* **db:** split TinyDb into manager and collection ([#42](https://github.com/PeerioTechnologies/peerio-icebear/issues/42)) ([9416acf](https://github.com/PeerioTechnologies/peerio-icebear/commit/9416acf))
+
+
+
 <a name="2.5.0"></a>
 # [2.5.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.4.0...v2.5.0) (2017-09-08)
 

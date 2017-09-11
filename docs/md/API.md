@@ -85,12 +85,7 @@
     -   [removeValue](#removevalue)
     -   [getAllKeys](#getallkeys)
     -   [clear](#clear)
--   [TinyDb](#tinydb)
-    -   [getValue](#getvalue-1)
-    -   [setValue](#setvalue-1)
-    -   [removeValue](#removevalue-1)
-    -   [getAllKeys](#getallkeys-1)
-    -   [clear](#clear-1)
+-   [TinyDbManager](#tinydbmanager)
     -   [system](#system)
     -   [user](#user)
 -   [errors](#errors)
@@ -545,10 +540,10 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
+-   [TwoFARequest](#twofarequest)
+-   [InvitedContact](#invitedcontact)
 -   [KeyPair](#keypair)
 -   [Address](#address)
--   [InvitedContact](#invitedcontact)
--   [TwoFARequest](#twofarequest)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -1310,81 +1305,27 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 Removes all data from current namespace.
 
-## TinyDb
+## TinyDbManager
 
-Local storage for small amounts of data like user preferences and flags.
-
-**Parameters**
-
--   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** database name
--   `encryptionKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)?** encryption key
-
-**Examples**
-
-```javascript
-// at any time use unencrypted shared database
-TinyDb.system.getValue('lastAuthenticatedUsername');
-```
-
-```javascript
-// after successful login use User's personal encrypted database.
-// Only values are encrypted.
-TinyDb.user.setValue('lastUsedEmoji',':grumpy_cat:')
-```
-
-### getValue
-
-Gets a value from TinyDb.
+TinyDbManager manages system and user collections, and allows opening
+other collections.
 
 **Parameters**
 
--   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;any>** JSON.parse() result of retrieved value
-
-### setValue
-
-Stores a value in TinyDb.
-
-**Parameters**
-
--   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `value` **any** will be serialized with JSON.stringify() before storing.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
-
-### removeValue
-
-Removes value from TinyDb
-
-**Parameters**
-
--   `key` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
-
-### getAllKeys
-
-Returns a list of all keys in TinyDb
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>>** 
-
-### clear
-
-Clears all TinyDb values
+-   `createStorageEngine`  
 
 ### system
 
-Instance of unencrypted system database.
+Instance of unencrypted system collection.
 
-Type: [TinyDb](#tinydb)
+Type: TinyDbCollection
 
 ### user
 
-Instance of encrypted user database.
+Instance of encrypted user collection.
 Only values are encrypted.
 
-Type: [TinyDb](#tinydb)
+Type: TinyDb
 
 ## errors
 
@@ -1769,6 +1710,7 @@ List of channel invites admins of current channel have sent.
 
 -   `kegDbId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 -   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `noWarning`   (optional, default `false`)
 
 ## ChatStore
 
@@ -4520,6 +4462,31 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
+## TwoFARequest
+
+Virtual type representing 2fa UI request.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
+
 ## KeyPair
 
 Virtual type representing asymmetric key pair.
@@ -4543,31 +4510,6 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
-
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
-
-## TwoFARequest
-
-Virtual type representing 2fa UI request.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `type` **strong** 'login' 'backupCodes' 'disable'
--   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
--   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
 ## util
 
