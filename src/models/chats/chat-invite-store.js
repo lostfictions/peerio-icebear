@@ -117,7 +117,7 @@ class ChatInviteStore {
                         return getChatStore()
                             .getChatWhenReady(kegDbId)
                             .then(chat => {
-                                chat.removeParticipant(username, true);
+                                chat.removeParticipant(username, false);
                             })
                             .catch(err => {
                                 console.error(err);
@@ -245,7 +245,7 @@ class ChatInviteStore {
      */
     revokeInvite(kegDbId, username, noWarning = false) {
         return getChatStore().getChatWhenReady(kegDbId).then(chat => {
-            return chat.removeParticipant(username, true).then(() => {
+            return chat.removeParticipant(username, false).then(() => {
                 setTimeout(this.update, 250);
             }).catch(err => {
                 console.error(err);
