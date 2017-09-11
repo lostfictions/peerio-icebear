@@ -13,6 +13,6 @@ const TinyDbManager = require('./tiny-db-manager');
  * // Only values are encrypted.
  * TinyDb.user.setValue('lastUsedEmoji',':grumpy_cat:')
  */
-const TinyDb = new TinyDbManager(config.StorageEngine);
+const TinyDb = new TinyDbManager(name => new config.StorageEngine(name));
 
 module.exports = TinyDb;

@@ -8,10 +8,10 @@ const TinyDbCollection = require('./tiny-db-collection');
 class TinyDbManager {
     /**
      * Creates a TinyDB instance.
-     * @param {StorageEngine} [storageEngine] - storage engine constructor
+     * @param {Function} [createStorageEngine] - function returning a new storage engine for the name
      */
-    constructor(storageEngine) {
-        this.storageEngine = storageEngine;
+    constructor(createStorageEngine) {
+        this.createStorageEngine = createStorageEngine;
         this.systemCollection = null;
         this.userCollection = null;
     }
@@ -45,7 +45,7 @@ class TinyDbManager {
      * @returns {TinyDbCollection}
      */
     open(name, encryptionKey) {
-        const engine = new this.storageEngine(name); // eslint-disable-line new-cap
+        const engine = this.createStorageEngine(name);
         return new TinyDbCollection(engine, name, encryptionKey);
     }
 
