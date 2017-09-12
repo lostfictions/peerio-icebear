@@ -1,4 +1,4 @@
-
+// @ts-check
 const _ = require('lodash');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');
@@ -9,12 +9,12 @@ const warnings = require('../warnings');
 
 class GhostStore {
     @observable ghosts = observable.shallowArray([]); // sorted array
-    @observable ghostMap = observable.shallowMap({});
+    @observable ghostMap = observable.shallowMap({}); // ghost by ghostId
     @observable loading = false;
     @observable loaded = false;
     @observable updating = false;
     @observable selectedId = null; // ghostId
-    @observable selectedSort = 'date';
+    @observable selectedSort = 'kegId';
 
     @computed get selectedGhost() {
         return this.ghostMap.get(this.selectedId);
@@ -60,7 +60,7 @@ class GhostStore {
                     this.ghostMap.set(ghost.ghostId, ghost);
                 }
             }
-            this.sort();
+            this.sort(this.selectedSort);
             this.loading = false;
             this.loaded = true;
             tracker.onKegTypeUpdated('SELF', 'ghost', this.updateGhosts);
@@ -84,9 +84,9 @@ class GhostStore {
                     }
                     if (!g.loadFromKeg(keg) || g.isEmpty) continue;
                     if (!g.deleted && !inCollection) this.ghostMap.set(g.ghostId, g);
-                    if (g.deleted && inCollection) delete this.ghostMap.delete(keg.ghostId);
+                    if (g.deleted && inCollection) this.ghostMap.delete(keg.ghostId);
                 }
-                this.sortByDate();
+                this.sort(this.selectedSort);
                 this.updating = false;
             }));
     }
@@ -145,6 +145,11 @@ class GhostStore {
     /*
      * Apply a sort
      *
+     * Possible values:
+     *  attachment, recipient, date, kegId
+     *
+     * Default: kegId
+     *
      * @param {string} value ['date']
      */
     @action sort(value) {
@@ -155,18 +160,30 @@ class GhostStore {
             case 'recipient':
                 this.sortByRecipient();
                 break;
-            default:
+            case 'date':
                 this.sortByDate();
+                break;
+            default:
+                this.sortByKegId();
         }
         if (this.ghosts.length === 0) return;
         this.selectedId = this.ghosts[0].ghostId;
     }
 
     /*
+     * Sort by kegId, ascending.
+     */
+    sortByKegId() {
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), g => g.id);
+        this.selectedSort = 'kegId';
+    }
+
+
+    /*
      * Sort by sent date, descending.
      */
     sortByDate() {
-        this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => -g.timestamp);
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), g => -g.timestamp);
         this.selectedSort = 'date';
     }
 
@@ -174,7 +191,7 @@ class GhostStore {
      * Sort by whether files have attachments.
      */
     sortByAttachments() {
-        this.ghosts = _.sortBy(this.ghostMap.toJS(), (g) => g.files.length === 0);
+        this.ghosts = _.sortBy(this.ghostMap.toJS(), g => g.files.length === 0);
         this.selectedSort = 'attachment';
     }
 
