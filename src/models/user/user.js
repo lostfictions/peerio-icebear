@@ -467,7 +467,7 @@ class User {
         const installBonus = 100;
         const twoFABonus = 100;
         return avatarBonus + emailConfirmedBonus + invitedUserBonus
-        + roomBonus + backupBonus + installBonus + twoFABonus;
+            + roomBonus + backupBonus + installBonus + twoFABonus;
     }
 
     /**
@@ -561,6 +561,10 @@ class User {
 
     @computed get isProUser() {
         return !!this.activePlans.filter(s => config.serverPlansPro.includes(s)).length;
+    }
+
+    @computed get hasActivePlans() {
+        return !!(this.activePlans && this.activePlans.length);
     }
 
     /**
