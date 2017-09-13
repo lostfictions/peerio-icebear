@@ -280,7 +280,12 @@ class UpdateTracker {
         console.log('Requesting full digest');
         socket.send('/auth/kegs/updates/digest')
             .then(this.processDigestResponse)
-            .then(this.flushAccumulatedEvents);
+            .then(this.flushAccumulatedEvents)
+            .catch(err => {
+                if (err && err.name === 'TimeoutError') {
+                    this.loadDigest();
+                }
+            });
     }
 
     /**
