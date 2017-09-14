@@ -280,6 +280,44 @@ class Contact {
     // to avoid parallel queries
     _waitingForResponse = false;
 
+    // {username: string, resolve: function, reject: function}
+    static smartRequestQueue = [];
+    static smartRequestTimer = null;
+    static lastAdditionTime = 0;
+    static smartRequestStartExecutor() {
+        if (Contact.smartRequestTimer) return;
+        Contact.smartRequestTimer = setInterval(Contact.smartRequestExecutor, 1500);
+    }
+
+    static smartRequestExecutor() {
+        if (Date.now() - Contact.lastAdditionTime < 1500 && Contact.smartRequestQueue.length < 50) return;
+        if (!Contact.smartRequestQueue.length) {
+            clearInterval(Contact.smartRequestTimer);
+            Contact.smartRequestTimer = null;
+            return;
+        }
+        const usernames = Contact.smartRequestQueue.splice(0, 50); // 50 - max allowed batch size on server
+        console.log(`Batch requesting ${usernames.length} lookups`);
+        socket.send('/auth/user/lookup', { string: usernames.map(u => u.username) })
+            .then(res => {
+                for (let i = 0; i < usernames.length; i++) {
+                    usernames[i].resolve([res[i]]);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                usernames.forEach(u => u.reject(err));
+            });
+    }
+
+    static smartRequest(username) {
+        return new Promise((resolve, reject) => {
+            Contact.smartRequestQueue.push({ username, resolve, reject });
+            Contact.lastAdditionTime = Date.now();
+            Contact.smartRequestStartExecutor();
+        });
+    }
+
     /**
      * Loads user data from server (or applies prefetched data)
      * @param {Object} [prefetchedData]
@@ -294,7 +332,7 @@ class Contact {
         (
             prefetchedData
                 ? Promise.resolve(prefetchedData)
-                : socket.send('/auth/user/lookup', { string: this.username })
+                : Contact.smartRequest(this.username)
         )
             .then(action(resp => {
                 const profile = resp && resp[0] && resp[0][0] && resp[0][0].profile || null;

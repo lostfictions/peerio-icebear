@@ -40,6 +40,10 @@ class Tofu extends Keg {
      */
     signingPublicKey;
 
+    static cache = null;
+
+    static preCacheRequests = [];
+
     serializeKegPayload() {
         return {
             username: this.username,
@@ -83,6 +87,14 @@ class Tofu extends Keg {
      * @public
      */
     static getByUsername(username) {
+        if (!Tofu.cache) {
+            return new Promise((resolve, reject) => {
+                Tofu.preCacheRequests.push({ username, resolve, reject });
+            });
+        }
+
+        if (Tofu.cache[username]) return Promise.resolve(Tofu.cache[username]);
+
         return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: 'SELF',
             options: {
@@ -99,6 +111,42 @@ class Tofu extends Keg {
             return keg;
         });
     }
+
+    // todo: paging
+    static populateCache() {
+        if (Tofu.cache) return;
+        console.log('Precaching tofu kegs');
+        socket.send('/auth/kegs/db/list-ext', {
+            kegDbId: 'SELF',
+            options: {
+                type: 'tofu',
+                reverse: false
+            }
+        }).then(res => {
+            Tofu.cache = {};
+            if (!res.kegs || !res.kegs.length) {
+                return;
+            }
+            res.kegs.forEach(data => {
+                const keg = new Tofu(getUser().kegDb);
+                keg.loadFromKeg(data);
+                Tofu.cache[keg.username] = keg;
+            });
+
+            Tofu.preCacheRequests.forEach(u => {
+                u.resolve(Tofu.cache[u.username]);
+            });
+            Tofu.preCacheRequests = [];
+        }).catch(err => {
+            console.error(err);
+            Tofu.preCacheRequests.forEach(u => {
+                u.reject(err);
+            });
+            Tofu.preCacheRequests = [];
+        });
+    }
 }
+
+socket.onAuthenticated(Tofu.populateCache);
 
 module.exports = Tofu;
