@@ -80,18 +80,18 @@ class ChatMessageHandler {
     }, 250);
 
     loadUpdates() {
-        if (!(this.chat.mostRecentMessageLoaded || this.chat.initialPageLoaded)) return;
-        if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) return;
+        if (!(this.chat.mostRecentMessageLoaded || this.chat.initialPageLoaded)) return Promise.resolve();
+        if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) return Promise.resolve();
         if (this._loadingUpdates) {
             this._reCheckUpdates = true;
-            return;
+            return Promise.resolve();
         }
         this._loadingUpdates = true;
         this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
         const filter = this.downloadedUpdateId ? { minCollectionVersion: this.downloadedUpdateId } : {};
-        socket.send('/auth/kegs/db/list-ext', {
+        return socket.send('/auth/kegs/db/list-ext', {
             kegDbId: this.chat.id,
             options: {
                 count: config.chat.maxLoadedMessages,

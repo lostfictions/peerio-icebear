@@ -233,14 +233,16 @@ class UpdateTracker {
      * @private
      */
     emitKegTypeUpdatedEvent(id, type) {
-        if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return;
+        if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return Promise.resolve();
+        const promises = [];
         this.updateHandlers[id][type].forEach(handler => {
             try {
-                handler();
+                promises.push(Promise.resolve(handler()));
             } catch (err) {
                 console.error(err);
             }
         });
+        return Promise.all(promises);
     }
 
     /**
@@ -251,13 +253,16 @@ class UpdateTracker {
         this.eventCache.add.forEach(id => {
             this.emitKegDbAddedEvent(id);
         });
+        socket.updatingKegs = true;
+        const updatePromises = [];
         for (const id in this.eventCache.update) {
             this.eventCache.update[id].forEach(type => {
-                this.emitKegTypeUpdatedEvent(id, type);
+                updatePromises.push(Promise.resolve(this.emitKegTypeUpdatedEvent(id, type)));
             });
         }
         this.eventCache = { add: [], update: {} };
         this.accumulateEvents = false;
+        Promise.all(updatePromises).finally(() => { socket.updatingKegs = false; });
     };
 
     /**

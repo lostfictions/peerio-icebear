@@ -133,6 +133,16 @@ class SocketClient {
      * @public
      */
     @observable latency = 0;
+
+    /**
+     * Is update tracker currently updating kegs?
+     * @member {boolean} updatingKegs
+     * @instance
+     * @memberof SocketClient
+     * @public
+     */
+    @observable updatingKegs = false;
+
     /**
      * Countdown to the next reconnect attempt.
      * @member {Timer}

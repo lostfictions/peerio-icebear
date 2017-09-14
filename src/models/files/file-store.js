@@ -315,12 +315,12 @@ class FileStore {
     // this essentially does the same as loadAllFiles but with filter,
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
     updateFiles = (maxId) => {
-        if (!this.loaded || this.updating) return;
+        if (!this.loaded || this.updating) return Promise.resolve();
         if (!maxId) maxId = this.maxUpdateId; // eslint-disable-line
         console.log(`Proceeding to file update. Known collection version: ${this.knownUpdateId}`);
         this.updating = true;
         let dirty = false;
-        retryUntilSuccess(() => this._getFiles(), 'Updating file list')
+        return retryUntilSuccess(() => this._getFiles(), 'Updating file list')
             .then(action(resp => {
                 const kegs = resp.kegs;
                 for (const keg of kegs) {
