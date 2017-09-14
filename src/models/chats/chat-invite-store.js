@@ -61,6 +61,15 @@ class ChatInviteStore {
      */
     @observable.shallow left = [];
 
+    /**
+     * List of users who rejected invites and are pending to be removed from boot keg.
+     * @member {ObservableArray<{kegDbId: string, username: string}>} rejected
+     * @memberof ChatInviteStore
+     * @instance
+     * @protected
+     */
+    @observable.shallow rejected = [];
+
     updating = false;
     updateAgain = false;
 
@@ -69,6 +78,7 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invitees')
             .then(action(res => {
                 this.sent.clear();
+                this.rejected = [];
                 res.forEach(item => {
                     // regular invites
                     let arr = this.sent.get(item.kegDbId);
@@ -82,8 +92,11 @@ class ChatInviteStore {
                     });
                     arr.sort((i1, i2) => i1.username.localeCompare(i2.username));
 
+                    const rejectedUsernames = Object.keys(item.rejected);
+                    rejectedUsernames.forEach((username) => this.rejected.push({ kegDbId: item.kegDbId, username }));
+
                     Promise.map(
-                        Object.keys(item.rejected),
+                        rejectedUsernames,
                         username => this.revokeInvite(item.kegDbId, username, true),
                         { concurrency: 1 }
                     );

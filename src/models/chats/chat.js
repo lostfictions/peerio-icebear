@@ -104,13 +104,17 @@ class Chat {
         const filtered = this.participants.slice();
         if (!this.isChannel) return filtered;
         const invited = chatInviteStore.sent.get(this.id);
-        if (!invited || !invited.length) return filtered;
-        invited.forEach(i => {
+        const rejected = chatInviteStore.rejected;
+        if ((!invited || !invited.length) && !rejected.length) return filtered;
+        const filter = (i) => {
             const ind = filtered.findIndex(p => p.username === i.username);
             if (ind >= 0) {
                 filtered.splice(ind, 1);
             }
-        });
+        };
+        // TODO: is this really faster then Array#filter?
+        invited.forEach(filter);
+        rejected.forEach(filter);
         return filtered;
     }
     /**
@@ -997,17 +1001,19 @@ class Chat {
         }
         const boot = this.db.boot;
         const wasAdmin = boot.admins.includes(contact);
-        return boot.save(
-            () => {
-                if (wasAdmin) boot.unassignRole(contact, 'admin');
-                boot.removeParticipant(contact);
-                return true;
-            },
-            () => {
-                boot.addParticipant(contact);
-                if (wasAdmin) boot.assignRole(contact, 'admin');
-            },
-            'error_removeParticipant'
+        return contact.ensureLoaded().then(() =>
+            boot.save(
+                () => {
+                    if (wasAdmin) boot.unassignRole(contact, 'admin');
+                    boot.removeParticipant(contact);
+                    return true;
+                },
+                () => {
+                    boot.addParticipant(contact);
+                    if (wasAdmin) boot.assignRole(contact, 'admin');
+                },
+                'error_removeParticipant'
+            )
         ).then(() => {
             if (!isUserKick) return;
             const m = new Message(this.db);
