@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.7.0"></a>
+# [2.7.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.6.1...v2.7.0) (2017-09-15)
+
+
+### Bug Fixes
+
+* retry digest load on timeout ([3f70e62](https://github.com/PeerioTechnologies/peerio-icebear/commit/3f70e62))
+* some improvements and bugfix around room participants and invite rejections ([88a12fd](https://github.com/PeerioTechnologies/peerio-icebear/commit/88a12fd))
+
+
+### Features
+
+* **ghosts:** sort kegs by kegId, make it default ([#44](https://github.com/PeerioTechnologies/peerio-icebear/issues/44)) ([65ac4d8](https://github.com/PeerioTechnologies/peerio-icebear/commit/65ac4d8))
+* User.current.hasActivePlans ([c85c674](https://github.com/PeerioTechnologies/peerio-icebear/commit/c85c674))
+
+
+
 <a name="2.6.1"></a>
 ## [2.6.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.6.0...v2.6.1) (2017-09-11)
 
