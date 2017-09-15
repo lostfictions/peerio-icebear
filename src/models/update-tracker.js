@@ -1,5 +1,6 @@
 
 const socket = require('../network/socket');
+const { observable } = require('mobx');
 
 /**
  * Data update tracking module. This is an internal module that allows Icebear to get and report new data as it arrives
@@ -36,15 +37,18 @@ class UpdateTracker {
      */
     updateHandlers = {};
 
+    // sets to true when digest is initialized with server data at least once
+    @observable loadedOnce = false;
+
+    // for 'clientApp.updatingAfterReconnect'
+    @observable updatedAfterReconnect = true;
+
     /**
      * Current digest
      * @member {kegDbId:{ kegType: { maxUpdateId: string, knownUpdateId: string, newKegsCount: number }}
      * @protected
      */
     digest = {};
-
-    // a list of existing db instances for tracker to not generate dbadded event for them
-    knownDbInstances = {};
 
     // this flag controls whether updates to digest will immediately fire an event or
     // will accumulate to allow effective/minimal events generation after large amounts for digest data
@@ -60,7 +64,10 @@ class UpdateTracker {
             socket.onAuthenticated(this.loadDigest);
             // when disconnected, we know that reconnect will trigger digest reload
             // and we want to accumulate events during that time
-            socket.onDisconnect(() => { this.accumulateEvents = true; });
+            socket.onDisconnect(() => {
+                this.updatedAfterReconnect = false;
+                this.accumulateEvents = true;
+            });
             if (socket.authenticated) this.loadDigest();
         });
     }
@@ -170,7 +177,7 @@ class UpdateTracker {
         let shouldEmitUpdateEvent = false;
 
         // kegDb yet unknown to our digest? consider it just added
-        if (!this.digest[ev.kegDbId] || !this.knownDbInstances[ev.kegDbId]) {
+        if (!this.digest[ev.kegDbId]) {
             shouldEmitUpdateEvent = true;
             this.digest[ev.kegDbId] = this.digest[ev.kegDbId] || {};
             if (this.accumulateEvents) {
@@ -216,7 +223,8 @@ class UpdateTracker {
      * @private
      */
     emitKegDbAddedEvent(id) {
-        if (id === 'SELF') return;
+        if (id === 'SELF' || !this.loadedOnce) return;
+
         this.dbAddedHandlers.forEach(handler => {
             try {
                 handler(id);
@@ -236,7 +244,7 @@ class UpdateTracker {
         if (!this.updateHandlers[id] || !this.updateHandlers[id][type]) return;
         this.updateHandlers[id][type].forEach(handler => {
             try {
-                handler();
+                handler(id);
             } catch (err) {
                 console.error(err);
             }
@@ -266,9 +274,13 @@ class UpdateTracker {
      */
     processDigestResponse = digest => {
         console.debug('Processing digest response');
-        for (let i = 0; i < digest.length; i++) {
-            // console.debug(JSON.stringify(digest[i], null, 1));
-            this.processDigestEvent(digest[i]);
+        try {
+            for (let i = 0; i < digest.length; i++) {
+                // console.debug(JSON.stringify(digest[i], null, 1));
+                this.processDigestEvent(digest[i]);
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -281,6 +293,10 @@ class UpdateTracker {
         socket.send('/auth/kegs/updates/digest')
             .then(this.processDigestResponse)
             .then(this.flushAccumulatedEvents)
+            .then(() => {
+                this.loadedOnce = true;
+                this.updatedAfterReconnect = true;
+            })
             .catch(err => {
                 if (err && err.name === 'TimeoutError') {
                     this.loadDigest();
@@ -304,25 +320,6 @@ class UpdateTracker {
             type,
             lastKnownVersion: updateId
         });
-    }
-
-    /**
-     * Marks database as 'existing' in current client session so tracker knows
-     * when to generate 'dbAdded' event and when not
-     * @param {string} id
-     * @protected
-     */
-    registerDbInstance(id) {
-        this.knownDbInstances[id] = true;
-    }
-
-    /**
-     * Opposite of registerDbInstance()
-     * @param {string} id
-     * @protected
-     */
-    unregisterDbInstance(id) {
-        this.knownDbInstances[id] = false;
     }
 }
 

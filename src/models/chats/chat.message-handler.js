@@ -9,6 +9,8 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const { reaction, action } = require('mobx');
 const clientApp = require('../client-app');
 const _ = require('lodash');
+const { ServerError } = require('../../errors');
+const { getChatStore } = require('../../helpers/di-chat-store');
 
 /**
  *
@@ -32,6 +34,8 @@ class ChatMessageHandler {
         this._reactionsToDispose.push(reaction(() => socket.authenticated, (authenticated) => {
             if (authenticated) {
                 this.onMessageDigestUpdate();
+            } else {
+                this.chat.updatedAfterReconnect = false;
             }
         }));
         this._reactionsToDispose.push(reaction(() => clientApp.isFocused && clientApp.isInChatsView, (isFocused) => {
@@ -49,7 +53,6 @@ class ChatMessageHandler {
     maxUpdateId = '';
     downloadedUpdateId = '';
     _loadingUpdates = false; // todo: make this observable in Chat
-    _reCheckUpdates = false;
 
     _reactionsToDispose = [];
 
@@ -81,13 +84,15 @@ class ChatMessageHandler {
 
     loadUpdates() {
         if (!(this.chat.mostRecentMessageLoaded || this.chat.initialPageLoaded)) return;
-        if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) return;
+        if (this.chat.canGoDown || this.downloadedUpdateId >= this.maxUpdateId) {
+            this.chat.updatedAfterReconnect = true;
+            return;
+        }
+
         if (this._loadingUpdates) {
-            this._reCheckUpdates = true;
             return;
         }
         this._loadingUpdates = true;
-        this._reCheckUpdates = false;
 
         console.log('Getting updates for chat', this.chat.id);
         const filter = this.downloadedUpdateId ? { minCollectionVersion: this.downloadedUpdateId } : {};
@@ -113,7 +118,16 @@ class ChatMessageHandler {
                 this.markAllAsSeen();
                 console.log(`Got ${resp.kegs.length} updates for chat`, this.chat.id);
                 this.chat.addMessages(resp.kegs);
-            })).finally(this.onMessageDigestUpdate);
+                this.onMessageDigestUpdate();
+                this.chat.updatedAfterReconnect = true;
+            }))
+            .catch((err) => {
+                if (err && err.code === ServerError.codes.accessForbidden) {
+                    getChatStore().unloadChat(this.chat);
+                } else {
+                    this.onMessageDigestUpdate();
+                }
+            });
     }
 
     markAllAsSeen() {
@@ -181,7 +195,14 @@ class ChatMessageHandler {
                 if (!this.chat.canGoDown) this.markAllAsSeen();
                 console.log(`got initial ${resp.kegs.length} for this.chat`, this.chat.id);
                 return this.chat.addMessages(resp.kegs);
-            }));
+            }))
+            .catch((err) => {
+                if (err && err.code === ServerError.codes.accessForbidden) {
+                    getChatStore().unloadChat(this.chat);
+                } else {
+                    throw err;
+                }
+            });
     }
 
     getPage(pagingUp = true) {
@@ -213,32 +234,39 @@ class ChatMessageHandler {
                 fromKegId: this.chat.messages[pagingUp ? 0 : this.chat.messages.length - 1].id,
                 count: config.chat.pageSize
             }
-        })).then(action(resp => {
-            console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
-                pagingUp && this.chat._cancelTopPageLoad
-                    || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
-            if (pagingUp) {
-                if (this.chat._cancelTopPageLoad) return;
-                this.chat.canGoUp = resp.hasMore;
-            } else {
-                if (this.chat._cancelBottomPageLoad) return;
-                this.chat.canGoDown = resp.hasMore;
-            }
-            if (!pagingUp) {
-                this.setDownloadedUpdateId(resp.kegs);
-                this.markAllAsSeen();
-            }
-            return this.chat.addMessages(resp.kegs, pagingUp); // eslint-disable-line consistent-return
-            // in case we paged to the most recent or new to us messages
-        })).finally(() => {
-            if (pagingUp) {
-                this.chat.loadingTopPage = false;
-                this.chat._cancelTopPageLoad = false;
-            } else {
-                this.chat.loadingBottomPage = false;
-                this.chat._cancelBottomPageLoad = false;
-            }
-        });
+        }))
+            .catch((err) => {
+                if (err && err.code === ServerError.codes.accessForbidden) {
+                    getChatStore().unloadChat(this.chat);
+                } else {
+                    throw err;
+                }
+            }).then(action(resp => {
+                console.debug('Received page', pagingUp ? 'UP' : 'DOWN',
+                    pagingUp && this.chat._cancelTopPageLoad
+                        || !pagingUp && this.chat._cancelBottomPageLoad ? 'and discarded' : '');
+                if (pagingUp) {
+                    if (this.chat._cancelTopPageLoad) return;
+                    this.chat.canGoUp = resp.hasMore;
+                } else {
+                    if (this.chat._cancelBottomPageLoad) return;
+                    this.chat.canGoDown = resp.hasMore;
+                }
+                if (!pagingUp) {
+                    this.setDownloadedUpdateId(resp.kegs);
+                    this.markAllAsSeen();
+                }
+                return this.chat.addMessages(resp.kegs, pagingUp); // eslint-disable-line consistent-return
+                // in case we paged to the most recent or new to us messages
+            })).finally(() => {
+                if (pagingUp) {
+                    this.chat.loadingTopPage = false;
+                    this.chat._cancelTopPageLoad = false;
+                } else {
+                    this.chat.loadingBottomPage = false;
+                    this.chat._cancelBottomPageLoad = false;
+                }
+            });
     }
 
     dispose() {

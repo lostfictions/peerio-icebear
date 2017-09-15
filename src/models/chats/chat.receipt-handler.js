@@ -33,9 +33,13 @@ class ChatReceiptHandler {
             this.pendingReceipt = null;
             this.sendReceipt(pos);
         }));
+        this._reactionsToDispose.push(reaction(() => this.chat.active, active => {
+            if (active) this.onDigestUpdate();
+        }));
     }
 
     onDigestUpdate = () => {
+        if (!this.chat.active) return;
         this.loadQueue.addTask(this.loadReceipts);
     };
     /**

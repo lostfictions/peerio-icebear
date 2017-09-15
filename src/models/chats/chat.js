@@ -236,6 +236,15 @@ class Chat {
     @observable leaving = false;
 
     /**
+     * Will be set to `true` after update logic is done on reconnect.
+     * @member {boolean} updatedAfterReconnect
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable updatedAfterReconnect = true;
+
+    /**
      * list of files being uploaded to this chat.
      * @member {ObservableArray<File>} uploadQueue
      * @memberof Chat
@@ -801,6 +810,7 @@ class Chat {
         this.messages.clear();
         this._cancelTopPageLoad = false;
         this._cancelBottomPageLoad = false;
+        this.updatedAfterReconnect = true;
         this.loadMessages();
     }
 

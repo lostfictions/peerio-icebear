@@ -88,6 +88,18 @@ class ChatStore {
      * @public
      */
     @observable loading = false;
+
+    /**
+     * True when all chats has been updated after reconnect
+     * @member {boolean} updatedAfterReconnect
+     * @memberof ChatStore
+     * @instance
+     * @public
+     */
+    @computed get updatedAfterReconnect() {
+        return this.chats.every(c => c.updatedAfterReconnect);
+    }
+
     /**
      * currently selected/focused chat.
      * @member {Chat} activeChat
@@ -248,32 +260,13 @@ class ChatStore {
      * Adds chat to the list.
      * @function addChat
      * @param {string | Chat} chat - chat id or Chat instance
-     * @param {bool} unhide - this flag helps us to force unhiding chat when we detected that addChat was called as
-     * a result of new messages in the chat (but not other new/updated kegs)
      * @public
      */
-    addChat = (chat, unhide) => {
+    addChat = (chat) => {
         if (!chat) throw new Error(`Invalid chat id. ${chat}`);
         let c;
         if (typeof chat === 'string') {
-            if (chat === 'SELF' || !!this.chatMap[chat]) return;
-
-            if (!unhide && this.myChats.hidden.includes(chat)) {
-                // this might be a chat unhidden on another device, give unhidden state some time to propagate
-                setTimeout(() => {
-                    // ok, unhidden by other device, adding chat
-                    if (!this.myChats.hidden.includes(chat)) {
-                        this.addChat(chat);
-                        return;
-                    }
-                    // still not unhidden, should we unhide it because of new messages?
-                    const digest = tracker.getDigest(chat, 'message');
-                    // nope, nothing new
-                    if (digest.maxUpdateId <= digest.knownUpdateId) return;
-                    this.addChat(chat, true);
-                }, 2000);
-                return;
-            }
+            if (chat === 'SELF' || this.chatMap[chat]) return;
             c = new Chat(chat, undefined, this, chat.startsWith('channel:'));
         } else {
             c = chat;
@@ -291,8 +284,9 @@ class ChatStore {
         this.chatMap[c.id] = c;
         this.chats.push(c);
         c.added = true;
-        tracker.registerDbInstance(c.id);
-        if (unhide && this.myChats.hidden.includes(c.id)) c.unhide();
+        // console.log('Added chat ', c.id);
+        // tracker.registerDbInstance(c.id);
+        if (this.myChats.hidden.includes(c.id)) c.unhide();
         c.loadMetadata().then(() => c.loadMostRecentMessage());
     };
 
@@ -369,6 +363,9 @@ class ChatStore {
         // 5. check if chats were created while we were loading chat list
         // unlikely, but possible
         Object.keys(tracker.digest).forEach(id => {
+            if (this.chatMap[id]) return;
+            const digest = tracker.getDigest(id, 'message');
+            if (digest.maxUpdateId <= digest.knownUpdateId) return;
             this.addChat(id);
         });
 
@@ -380,15 +377,39 @@ class ChatStore {
             // as a reaction to our own request to create a chat (no id yet so can't look it up in the map)
             // and while it's not an issue and is not going to break anything,
             // we still want to avoid wasting time on useless routine
-            setTimeout(() => this.addChat(id), 2000);
+            // todo: i'm not sure this is applicable anymore
+            // setTimeout(() => this.addChat(id), 1000);
+            this.addChat(id);
         });
-        // 7. waiting for most chats to load but up to a reasonable time
-        await Promise.map(this.chats, chat => asPromise(chat, 'mostRecentMessageLoaded', true))
-            .timeout(5000).catch(() => { /* well, the rest will trigger re-render */ });
 
-        // 8. find out which chat to activate.
+        // 7. Subscribing to all known but not added databases to find out when they will update while this client is
+        // offline. Otherwise messages received on other devices will not trigger chat add after this one reconnects.
+        when(() => tracker.loadedOnce, () => {
+            this.sleeperChatsDigest = {};
+            Object.keys(tracker.digest).forEach(id => {
+                if (this.chatMap[id]) return;
+                const digest = tracker.getDigest(id, 'message');
+                this.sleeperChatsDigest[id] = digest;
+                const handler = () => {
+                    const d = tracker.getDigest(id, 'message');
+                    const stored = this.sleeperChatsDigest[id];
+                    // in case we already unsubscribed but this is a call scheduled before that
+                    if (!stored) return;
+                    if (stored.maxUpdateId >= d.maxUpdateId) return;
+                    this.addChat(id);
+                    tracker.unsubscribe(handler);
+                };
+                tracker.onKegTypeUpdated(id, 'message', handler);
+            });
+        });
+
+        // 8. waiting for most chats to load but up to a reasonable time
+        // await Promise.map(this.chats, chat => asPromise(chat, 'mostRecentMessageLoaded', true))
+        //    .timeout(5000).catch(() => { /* well, the rest will trigger re-render */ });
+
+        // 9. find out which chat to activate.
         const lastUsed = await TinyDb.user.getValue('lastUsedChat');
-        if (lastUsed) this.activate(lastUsed);
+        if (lastUsed && this.chatMap[lastUsed]) this.activate(lastUsed);
         else if (this.chats.length) this.activate(this.chats[0].id);
 
         this.loading = false;
@@ -467,7 +488,7 @@ class ChatStore {
         const chat = new Chat(null, isChannel ? [] : this.getSelflessParticipants(participants), this, isChannel);
         chat.loadMetadata()
             .then(() => {
-                this.addChat(chat, true);
+                this.addChat(chat);
                 this.activate(chat.id);
             })
             .then(() => {
@@ -551,7 +572,7 @@ class ChatStore {
             this.deactivateCurrentChat();
         }
         chat.dispose();
-        tracker.unregisterDbInstance(chat.id);
+        // tracker.unregisterDbInstance(chat.id);
 
         delete this.chatMap[chat.id];
         this.chats.remove(chat);
@@ -565,11 +586,13 @@ class ChatStore {
      */
     getChatWhenReady(id) {
         return new Promise((resolve) => {
-            when(() => {
-                const chat = this.chats.find(c => c.id === id);
-                return !!(chat && chat.metaLoaded);
-            },
-            () => resolve(this.chatMap[id]));
+            when(
+                () => {
+                    const chat = this.chats.find(c => c.id === id);
+                    return !!(chat && chat.metaLoaded);
+                },
+                () => resolve(this.chatMap[id])
+            );
         });
     }
 }

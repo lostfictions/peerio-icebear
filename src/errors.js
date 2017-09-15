@@ -100,6 +100,7 @@ module.exports.getGenericCustomError = getGenericCustomError;
  */
 const serverErrorCodes = {
     genericServerError: 400,
+    accessForbidden: 401,
     notFound: 404,
     malformedRequest: 406,
     sdkVersionTooHigh: 408,
@@ -113,10 +114,15 @@ const serverErrorCodes = {
     accountThrottled: 425,
     accountBlacklisted: 426,
     invalid2FACode: 427,
+    addressIsTaken: 430,
+    usernameIsTaken: 431,
+    forbiddenUsername: 432,
+    forbiddenName: 433,
     accountMigrationRequired: 434,
     captchaPending: 435,
     incorrectTimestamp: 442,
-    accountClosed: 488
+    accountClosed: 488,
+    responseValidationError: 501
 };
 // reverse map
 const serverErrorMap = {};

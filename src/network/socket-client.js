@@ -410,6 +410,7 @@ class SocketClient {
                 }
                 resolve(resp);
             };
+            // console.debug(id, name, data);
             this.socket.emit(name, data, handler);
         })
             .timeout(60000)

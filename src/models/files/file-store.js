@@ -44,6 +44,14 @@ class FileStore {
      */
     @observable loading = false;
     /**
+     * Will set to true after file list has been updated upon reconnect.
+     * @member {boolean} updatedAfterReconnect
+     * @memberof FileStore
+     * @instance
+     * @public
+     */
+    @observable updatedAfterReconnect = true;
+    /**
      * Readonly, shows which keyword was used with last call to `filter()`, this need refactoring.
      * @member {string} currentFilter
      * @memberof FileStore
@@ -238,7 +246,10 @@ class FileStore {
         const digest = tracker.getDigest('SELF', 'file');
         console.log(`Files digest: ${JSON.stringify(digest)}`);
         // this.unreadFiles = digest.newKegsCount;
-        if (digest.maxUpdateId === this.maxUpdateId) return;
+        if (digest.maxUpdateId === this.maxUpdateId) {
+            this.updatedAfterReconnect = true;
+            return;
+        }
         this.maxUpdateId = digest.maxUpdateId;
         this.updateFiles(this.maxUpdateId);
     }, 1500);
@@ -294,6 +305,7 @@ class FileStore {
                 this.resumeBrokenDownloads();
                 this.resumeBrokenUploads();
                 this.detectCachedFiles();
+                socket.onDisconnect(() => { this.updatedAfterReconnect = false; });
                 socket.onAuthenticated(() => {
                     this.onFileDigestUpdate();
                     setTimeout(() => {
@@ -356,6 +368,7 @@ class FileStore {
                 } else {
                     setTimeout(this.onFileDigestUpdate);
                 }
+                this.updatedAfterReconnect = true;
             }));
     };
 
