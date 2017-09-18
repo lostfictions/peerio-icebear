@@ -141,6 +141,7 @@
     -   [chats](#chats)
     -   [unreadChatsAlwaysOnTop](#unreadchatsalwaysontop)
     -   [loading](#loading)
+    -   [updatedAfterReconnect](#updatedafterreconnect)
     -   [activeChat](#activechat)
     -   [hidingChat](#hidingchat)
     -   [loaded](#loaded)
@@ -177,6 +178,7 @@
     -   [isFavorite](#isfavorite)
     -   [changingFavState](#changingfavstate)
     -   [leaving](#leaving)
+    -   [updatedAfterReconnect](#updatedafterreconnect-1)
     -   [uploadQueue](#uploadqueue)
     -   [unreadCount](#unreadcount)
     -   [newMessagesMarkerPos](#newmessagesmarkerpos)
@@ -185,6 +187,7 @@
     -   [participantUsernames](#participantusernames)
     -   [name](#name)
     -   [purpose](#purpose-1)
+    -   [headLoaded](#headloaded)
     -   [canSendAck](#cansendack)
     -   [showNewMessagesMarker](#shownewmessagesmarker)
     -   [canIAdmin](#caniadmin)
@@ -240,7 +243,8 @@
     -   [isInChatsView](#isinchatsview)
     -   [isInFilesView](#isinfilesview)
     -   [clientVersionDeprecated](#clientversiondeprecated)
--   [active2FARequest](#active2farequest)
+    -   [active2FARequest](#active2farequest)
+    -   [updatingAfterReconnect](#updatingafterreconnect)
 -   [ContactStore](#contactstore)
     -   [contacts](#contacts)
     -   [addedContacts](#addedcontacts)
@@ -299,6 +303,7 @@
 -   [FileStore](#filestore)
     -   [files](#files-1)
     -   [loading](#loading-2)
+    -   [updatedAfterReconnect](#updatedafterreconnect-2)
     -   [currentFilter](#currentfilter)
     -   [updating](#updating)
     -   [uploadQueue](#uploadqueue-1)
@@ -541,9 +546,9 @@
     -   [reset](#reset-1)
 -   [socket](#socket)
 -   [Address](#address)
--   [KeyPair](#keypair)
--   [InvitedContact](#invitedcontact)
 -   [TwoFARequest](#twofarequest)
+-   [InvitedContact](#invitedcontact)
+-   [KeyPair](#keypair)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -1738,6 +1743,12 @@ True when chat list loading is in progress.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+### updatedAfterReconnect
+
+True when all chats has been updated after reconnect
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### activeChat
 
 currently selected/focused chat.
@@ -1845,8 +1856,6 @@ Adds chat to the list.
 **Parameters**
 
 -   `chat` **([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Chat](#chat))** chat id or Chat instance
--   `unhide` **bool** this flag helps us to force unhiding chat when we detected that addChat was called as
-    a result of new messages in the chat (but not other new/updated kegs)
 
 ## ChatFileHandler
 
@@ -1987,6 +1996,12 @@ Will be set to `true` after leave() is called on the channel so UI can react unt
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
+### updatedAfterReconnect
+
+Will be set to `true` after update logic is done on reconnect.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
 ### uploadQueue
 
 list of files being uploaded to this chat.
@@ -2028,6 +2043,10 @@ Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 ### purpose
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### headLoaded
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
@@ -2358,6 +2377,7 @@ Type: bool
 
 This is the place where Icebear can get various state information about client
 and client can provide such information.
+Also works as container for high level properties we couldn't find better place for.
 
 ### isFocused
 
@@ -2385,7 +2405,13 @@ Icebear sets this flag.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-## active2FARequest
+### active2FARequest
+
+UI should listen to this and request entering of 2fa code from user and then pass ot back to icebear.
+
+Type: [TwoFARequest](#twofarequest)
+
+### updatingAfterReconnect
 
 UI should listen to this and request entering of 2fa code from user and then pass ot back to icebear.
 
@@ -2768,6 +2794,12 @@ Type: ObservableArray&lt;[File](#file)>
 ### loading
 
 Store is loading full file list for the first time.
+
+Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+
+### updatedAfterReconnect
+
+Will set to true after file list has been updated upon reconnect.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -4475,16 +4507,17 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
 
-## KeyPair
+## TwoFARequest
 
-Virtual type representing asymmetric key pair.
+Virtual type representing 2fa UI request.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
 ## InvitedContact
 
@@ -4499,17 +4532,16 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
 -   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
-## TwoFARequest
+## KeyPair
 
-Virtual type representing 2fa UI request.
+Virtual type representing asymmetric key pair.
 
 Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
 
 **Properties**
 
--   `type` **strong** 'login' 'backupCodes' 'disable'
--   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
--   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
 
 ## util
 

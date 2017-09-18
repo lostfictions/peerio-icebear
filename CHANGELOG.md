@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.8.0"></a>
+# [2.8.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.7.0...v2.8.0) (2017-09-18)
+
+
+### Features
+
+* update tracker observable flag ([#45](https://github.com/PeerioTechnologies/peerio-icebear/issues/45)) ([fe1b998](https://github.com/PeerioTechnologies/peerio-icebear/commit/fe1b998))
+
+
+### Performance Improvements
+
+* chat loading optimization ([748dbdf](https://github.com/PeerioTechnologies/peerio-icebear/commit/748dbdf))
+* contact lookup and tofu keg load batching ([eed350b](https://github.com/PeerioTechnologies/peerio-icebear/commit/eed350b))
+* less awkward chat list loading through waiting for chat head ([565d294](https://github.com/PeerioTechnologies/peerio-icebear/commit/565d294))
+
+
+
 <a name="2.7.0"></a>
 # [2.7.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.6.1...v2.7.0) (2017-09-15)
 
