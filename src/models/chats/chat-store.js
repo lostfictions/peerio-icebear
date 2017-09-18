@@ -1,4 +1,4 @@
-const { observable, action, computed, reaction, autorunAsync, isObservableArray, when } = require('mobx');
+const { observable, action, computed, reaction, autorunAsync, isObservableArray, when, runInAction } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
@@ -362,13 +362,14 @@ class ChatStore {
         }
         // 5. check if chats were created while we were loading chat list
         // unlikely, but possible
-        Object.keys(tracker.digest).forEach(id => {
-            if (this.chatMap[id]) return;
-            const digest = tracker.getDigest(id, 'message');
-            if (digest.maxUpdateId <= digest.knownUpdateId) return;
-            this.addChat(id);
+        runInAction(() => {
+            Object.keys(tracker.digest).forEach(id => {
+                if (this.chatMap[id]) return;
+                const digest = tracker.getDigest(id, 'message');
+                if (digest.maxUpdateId <= digest.knownUpdateId) return;
+                this.addChat(id);
+            });
         });
-
         // 6. subscribe to future chats that will be created
         // this should always happen right after adding chats from digest, synchronously,
         // so that there's no new chats that can slip away
@@ -404,8 +405,8 @@ class ChatStore {
         });
 
         // 8. waiting for most chats to load but up to a reasonable time
-        // await Promise.map(this.chats, chat => asPromise(chat, 'mostRecentMessageLoaded', true))
-        //    .timeout(5000).catch(() => { /* well, the rest will trigger re-render */ });
+        await Promise.map(this.chats, chat => asPromise(chat, 'headLoaded', true))
+            .timeout(5000).catch(() => { /* well, the rest will trigger re-render */ });
 
         // 9. find out which chat to activate.
         const lastUsed = await TinyDb.user.getValue('lastUsedChat');
