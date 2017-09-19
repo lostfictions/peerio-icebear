@@ -609,7 +609,7 @@ class Chat {
         when(() => !!m.id, action(() => {
             this.limboMessages.remove(m);
             m.tempId = null;
-            // unless user already scrolled to high up, we add the message
+            // unless user already scrolled too high up, we add the message
             if (!this.canGoDown) {
                 this._finishAddMessages([m], false);
             } else {

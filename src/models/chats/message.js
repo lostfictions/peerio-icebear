@@ -5,6 +5,7 @@ const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
 const moment = require('moment');
 const _ = require('lodash');
+const { retryUntilSuccess } = require('../../helpers/retry');
 
 /**
  * Message keg and model
@@ -121,7 +122,7 @@ class Message extends Keg {
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
 
-        return this.saveToServer()
+        return (this.systemData ? retryUntilSuccess(() => this.saveToServer()) : this.saveToServer())
             .catch(err => {
                 this.sendError = true;
                 console.error('Error sending message', err);
