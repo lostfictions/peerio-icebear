@@ -41,7 +41,7 @@ class UpdateTracker {
     @observable loadedOnce = false;
 
     // for 'clientApp.updatingAfterReconnect'
-    @observable updatedAfterReconnect = true;
+    @observable updatedAfterReconnect = false;
 
     /**
      * Current digest

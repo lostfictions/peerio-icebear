@@ -167,6 +167,21 @@ function getAuthKeyHash(key) {
     return hash.digest();
 }
 
+/**
+ * Generates a random hex-encoded account key
+ * formatted as "13c0 9f98 5be6 6013 044a 5471 5973 8e59"
+ * containing 128 bits of entropy.
+ *
+ * @returns {string} account key
+ */
+function getRandomAccountKeyHex() {
+    const a = [];
+    for (let i = 0; i < 16; i += 2) {
+        a.push(util.bytesToHex(util.getRandomBytes(2)));
+    }
+    return a.join(' ');
+}
+
 
 module.exports = {
     deriveAccountKeys,
@@ -176,5 +191,6 @@ module.exports = {
     generateEncryptionKeyPair,
     generateEncryptionKey,
     generateAuthSalt,
-    getAuthKeyHash
+    getAuthKeyHash,
+    getRandomAccountKeyHex
 };

@@ -139,20 +139,6 @@ function getRandomUserSpecificIdHex(username) {
     return convert.bytesToHex(getRandomUserSpecificIdBytes(username));
 }
 
-/**
- * Generates a random hex-encoded account key
- * formatted as "13c0 9f98 5be6 6013 044a 5471 5973 8e59"
- * containing 128 bits of entropy.
- *
- * @returns {string} account key
- */
-function getRandomAccountKeyHex() {
-    const a = [];
-    for (let i = 0; i < 16; i += 2) {
-        a.push(convert.bytesToHex(getRandomBytes(2)));
-    }
-    return a.join(' ');
-}
 
 module.exports = {
     getRandomBytes,
@@ -160,6 +146,5 @@ module.exports = {
     getRandomNonce,
     getRandomUserSpecificIdBytes,
     getRandomUserSpecificIdB64,
-    getRandomUserSpecificIdHex,
-    getRandomAccountKeyHex
+    getRandomUserSpecificIdHex
 };
