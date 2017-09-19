@@ -7,6 +7,7 @@ const Tofu = require('./tofu');
 const { getFirstLetterUpperCase } = require('./../../helpers/string');
 const serverSettings = require('../server-settings');
 const { t } = require('peerio-translator');
+const clientApp = require('../client-app');
 
 const nullFingerprint = '00000-00000-00000-00000-00000-00000';
 
@@ -283,14 +284,17 @@ class Contact {
     // {username: string, resolve: function, reject: function}
     static smartRequestQueue = [];
     static smartRequestTimer = null;
+    static lastTimerInterval = 0;
     static lastAdditionTime = 0;
     static smartRequestStartExecutor() {
         if (Contact.smartRequestTimer) return;
-        Contact.smartRequestTimer = setInterval(Contact.smartRequestExecutor, 1500);
+        Contact.lastTimerInterval = clientApp.updatingAfterReconnect ? 2000 : 300;
+        console.log('Starting batch executor with interval', Contact.lastTimerInterval);
+        Contact.smartRequestTimer = setInterval(Contact.smartRequestExecutor, Contact.lastTimerInterval);
     }
 
     static smartRequestExecutor() {
-        if (Date.now() - Contact.lastAdditionTime < 1500 && Contact.smartRequestQueue.length < 50) return;
+        if (Date.now() - Contact.lastAdditionTime < Contact.lastTimerInterval && Contact.smartRequestQueue.length < 50) return;
         if (!Contact.smartRequestQueue.length) {
             clearInterval(Contact.smartRequestTimer);
             Contact.smartRequestTimer = null;
