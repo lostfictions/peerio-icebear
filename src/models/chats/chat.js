@@ -104,8 +104,8 @@ class Chat {
         const filtered = this.participants.slice();
         if (!this.isChannel) return filtered;
         const invited = chatInviteStore.sent.get(this.id);
-        const rejected = chatInviteStore.rejected;
-        if ((!invited || !invited.length) && !rejected.length) return filtered;
+        const rejected = chatInviteStore.rejected.get(this.id);
+        const left = chatInviteStore.left.get(this.id);
         const filter = (i) => {
             const ind = filtered.findIndex(p => p.username === i.username);
             if (ind >= 0) {
@@ -113,8 +113,9 @@ class Chat {
             }
         };
         // TODO: is this really faster then Array#filter?
-        invited.forEach(filter);
-        rejected.forEach(filter);
+        if (invited) invited.forEach(filter);
+        if (rejected) rejected.forEach(filter);
+        if (left) left.forEach(filter);
         return filtered;
     }
     /**

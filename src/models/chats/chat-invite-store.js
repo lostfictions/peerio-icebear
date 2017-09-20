@@ -54,21 +54,21 @@ class ChatInviteStore {
      * Icebear will monitor this list and remove keys from boot keg for leavers
      * if current user is an admin of specific channel. Then icebear will remove an item from this list.
      * todo: the whole system smells a bit, maybe think of something better
-     * @member {ObservableArray<{kegDbId: string, username: string}>} left
+     * @member {Map<{kegDbId: string, username: string}>} left
      * @memberof ChatInviteStore
      * @instance
      * @protected
      */
-    @observable.shallow left = [];
+    @observable.shallow left = observable.map();
 
     /**
      * List of users who rejected invites and are pending to be removed from boot keg.
-     * @member {ObservableArray<{kegDbId: string, username: string}>} rejected
+     * @member {Map<{kegDbId: string, username: string}>} rejected
      * @memberof ChatInviteStore
      * @instance
      * @protected
      */
-    @observable.shallow rejected = [];
+    @observable.shallow rejected = observable.map();
 
     updating = false;
     updateAgain = false;
@@ -78,7 +78,7 @@ class ChatInviteStore {
         return socket.send('/auth/kegs/channel/invitees')
             .then(action(res => {
                 this.sent.clear();
-                this.rejected = [];
+                this.rejected.clear();
                 res.forEach(item => {
                     // regular invites
                     let arr = this.sent.get(item.kegDbId);
@@ -93,7 +93,7 @@ class ChatInviteStore {
                     arr.sort((i1, i2) => i1.username.localeCompare(i2.username));
 
                     const rejectedUsernames = Object.keys(item.rejected);
-                    rejectedUsernames.forEach((username) => this.rejected.push({ kegDbId: item.kegDbId, username }));
+                    this.rejected.set(item.kegDbId, rejectedUsernames);
 
                     Promise.map(
                         rejectedUsernames,
@@ -119,23 +119,20 @@ class ChatInviteStore {
     updateLeftUsers = () => {
         return socket.send('/auth/kegs/channel/users-left')
             .then(action(res => {
-                this.left = [];
+                this.left.clear();
                 for (const kegDbId in res) {
                     const leavers = res[kegDbId];
                     if (!leavers || !leavers.length) continue;
-                    leavers.forEach(username => {
-                        this.left.push({ kegDbId, username });
-                    });
-                    Promise.map(leavers, username => {
-                        return getChatStore()
-                            .getChatWhenReady(kegDbId)
-                            .then(chat => {
-                                chat.removeParticipant(username, false);
-                            })
-                            .catch(err => {
-                                console.error(err);
-                            });
-                    }, { concurrency: 1 });
+                    this.left.set(kegDbId, leavers.map(l => l.username));
+                    getChatStore()
+                        .getChatWhenReady(kegDbId)
+                        .then(chat => {
+                            if (!chat.canIAdmin) return;
+                            Promise.map(leavers, l => chat.removeParticipant(l.username, false), { concurrency: 1 });
+                        })
+                        .catch(err => {
+                            console.error(err);
+                        });
                 }
             }));
     };
@@ -258,6 +255,7 @@ class ChatInviteStore {
      */
     revokeInvite(kegDbId, username, noWarning = false) {
         return getChatStore().getChatWhenReady(kegDbId).then(chat => {
+            if (!chat.canIAdmin) return Promise.resolve();
             return chat.removeParticipant(username, false).then(() => {
                 setTimeout(this.update, 250);
             }).catch(err => {
