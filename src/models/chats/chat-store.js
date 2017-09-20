@@ -146,7 +146,7 @@ class ChatStore {
      * @public
      */
     @computed get directMessages() {
-        return this.chats.filter(chat => !chat.isChannel);
+        return this.chats.filter(chat => !chat.isChannel && chat.headLoaded);
     }
 
     /**
@@ -158,7 +158,7 @@ class ChatStore {
      * @public
      */
     @computed get channels() {
-        return this.chats.filter(chat => chat.isChannel);
+        return this.chats.filter(chat => chat.isChannel && chat.headLoaded);
     }
 
     /**
