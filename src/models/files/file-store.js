@@ -20,7 +20,9 @@ const createMap = require('../../helpers/dynamic-array-map');
  */
 class FileStore {
     constructor() {
-        this.fileMap = createMap(this.files, 'fileId');
+        const m = createMap(this.files, 'fileId');
+        this.fileMap = m.map;
+        this.fileMapObservable = m.observableMap;
 
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');
@@ -379,7 +381,7 @@ class FileStore {
      * @public
      */
     getById(fileId) {
-        return this.fileMap[fileId];
+        return this.fileMapObservable.get(fileId);
     }
 
     /**

@@ -3,6 +3,8 @@
  * @protected
  */
 
+const { observable } = require('mobx');
+
 // jsdoc hack..
 let a;//eslint-disable-line
 
@@ -17,21 +19,27 @@ let a;//eslint-disable-line
  */
 function createMap(array, keyProp) {
     const map = {};
+    const observableMap = observable.map();
 
     array.intercept(delta => {
         for (let i = delta.removedCount; i > 0; i--) {
             const el = delta.object[delta.index + i - 1];
             delete map[el[keyProp]];
+            observableMap.delete(el[keyProp]);
         }
-        delta.added.forEach(el => { map[el[keyProp]] = el; });
+        delta.added.forEach(el => {
+            map[el[keyProp]] = el;
+            observableMap.set(el[keyProp], el);
+        });
         return delta;
     });
 
     array.forEach(el => {
         map[el[keyProp]] = el;
+        observableMap.set(el[keyProp], el);
     });
 
-    return map;
+    return { map, observableMap };
 }
 
 module.exports = createMap;

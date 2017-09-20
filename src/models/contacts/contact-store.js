@@ -160,7 +160,7 @@ class ContactStore {
     constructor() {
         intercept(this, 'uiViewSortBy', this._checkSortValue);
         intercept(this, 'uiViewFilter', this._checkFilterValue);
-        this._contactMap = createMap(this.contacts, 'username');
+        this._contactMap = createMap(this.contacts, 'username').map;
         socket.onceAuthenticated(() => {
             this.myContacts = new MyContacts();
             this.myContacts.onUpdated = this.applyMyContactsData;
