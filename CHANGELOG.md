@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.0"></a>
+# [2.9.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.8.0...v2.9.0) (2017-09-20)
+
+
+### Bug Fixes
+
+* 'file unavailable' issue for inline files in chat ([246732a](https://github.com/PeerioTechnologies/peerio-icebear/commit/246732a))
+* custom name only for channels ([3f67de6](https://github.com/PeerioTechnologies/peerio-icebear/commit/3f67de6))
+* filter out chats that don't have chat_head loaded ([1f66f06](https://github.com/PeerioTechnologies/peerio-icebear/commit/1f66f06))
+* re-appearing of existing chats ([3276144](https://github.com/PeerioTechnologies/peerio-icebear/commit/3276144))
+
+
+### Features
+
+* info messages autoretry send now ([93eee20](https://github.com/PeerioTechnologies/peerio-icebear/commit/93eee20))
+
+
+### Performance Improvements
+
+* contact lookup batching interval depends on app state ([ddb30cd](https://github.com/PeerioTechnologies/peerio-icebear/commit/ddb30cd))
+
+
+
 <a name="2.8.0"></a>
 # [2.8.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.7.0...v2.8.0) (2017-09-18)
 
