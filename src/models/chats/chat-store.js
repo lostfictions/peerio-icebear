@@ -390,7 +390,8 @@ class ChatStore {
             Object.keys(tracker.digest).forEach(id => {
                 if (this.chatMap[id]) return;
                 const digest = tracker.getDigest(id, 'message');
-                this.sleeperChatsDigest[id] = digest;
+                // DO NOT reuse returned digest object, it's persistent and will get updated
+                this.sleeperChatsDigest[id] = { maxUpdateId: digest.maxUpdateId };
                 const handler = () => {
                     const d = tracker.getDigest(id, 'message');
                     const stored = this.sleeperChatsDigest[id];
