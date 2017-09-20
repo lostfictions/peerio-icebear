@@ -318,7 +318,7 @@ class Chat {
      * @public
      */
     @computed get name() {
-        if (this.chatHead && this.chatHead.chatName) return this.chatHead.chatName;
+        if (this.isChannel && this.chatHead && this.chatHead.chatName) return this.chatHead.chatName;
         return this.participants.length === 0
             ? (User.current.fullName || User.current.username)
             : this.participants.map(p => p.fullName || p.username).join(', ');
