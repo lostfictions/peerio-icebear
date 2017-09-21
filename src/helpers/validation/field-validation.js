@@ -53,6 +53,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         }));
 
     const extend = {};
+
     if (store[fValid] === undefined) {
         extend[fValid] = false;
     }
@@ -71,10 +72,8 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
     extendObservable(store, extend);
 
     // mark field (& those before it) as dirty on change
-    // eslint-disable-next-line
-    store[fOnChange] = (val) => {
+    store[fOnChange] = (/* val */) => {
         store[fDirty] = true;
-        // store[fName] = val;
         if (positionInForm !== undefined) {
             for (let i = 0; i <= positionInForm; ++i) {
                 const otherField = byOrder[i];
@@ -84,47 +83,41 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
             }
         }
     };
+
     // mark the field as dirty when blurred
     store[fOnBlur] = () => {
         store[fDirty] = true;
     };
 
     // when field changes, reaction is triggered
-    reaction(() => store[fName], value => {
-        // console.log(`${fName}: ${value} validation run`);
+    reaction(() => store[fName], async value => {
         store[fValid] = false;
         store[fieldValidationMessageText] = '';
-        let valid = Promise.resolve(true);
+        const validationPromises = [];
         fieldValidators.forEach(v => {
             const { action, message } = v;
-            valid = valid.then(() => {
-                return action(value, fName);
-            })
-                .then(validatorResult => {
-                    if (validatorResult === true) {
-                        return true;
-                    }
-                    let m = validatorResult;
-                    if (validatorResult === false) {
-                        m = message;
-                    } else if (validatorResult && validatorResult.message) {
-                        m = validatorResult.message;
-                    }
-                    return Promise.reject(new Error(m));
-                });
+            const executor = async() => {
+                const result = await action(value, fName);
+                if (result === true) return true;
+                const errorMessage = result === false ?
+                    message : result && (result.message || result);
+                throw new Error(errorMessage);
+            };
+            validationPromises.push(executor());
         });
-        valid = valid.then(() => {
-            // console.log(`${fName} is valid`);
-            store[fValid] = true;
-            store[fieldValidationMessageText] = '';
-        })
-            .catch(error => {
-                // console.log(`${fName} is invalid`);
-                // note computed message will only show up if field is dirty
-                store[fValid] = false;
-                store[fieldValidationMessageText] = error.message;
-            });
-        return null;
+        let valid = true;
+        let message = '';
+        try {
+            await Promise.all(validationPromises);
+        } catch (error) {
+            valid = false;
+            message = error.message;
+        }
+
+        // if the state changed during evaluation, abort
+        if (store[fName] !== value) return;
+        store[fValid] = valid;
+        store[fieldValidationMessageText] = message;
     }, true);
 }
 
