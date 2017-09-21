@@ -119,13 +119,4 @@ describe('Crypto Utilities module', () => {
         const unpaddedPassphrase = util.unpadPassphrase(paddedPassphrase);
         unpaddedPassphrase.should.equal(passphrase);
     });
-
-    it('should generate a random hex account key', () => {
-        const k1 = util.getRandomAccountKeyHex();
-        const k2 = util.getRandomAccountKeyHex();
-        k1.should.not.equal(k2);
-        k1.length.should.equal(k2.length);
-        k1.length.should.equal(39);
-        k1.replace(/ /g, '').length.should.equal(32);
-    });
 });

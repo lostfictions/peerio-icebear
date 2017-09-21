@@ -104,4 +104,13 @@ describe('Crypto Keys module', function() {
         const key = crypto.generateEncryptionKey();
         key.length.should.equal(32);
     });
+
+    it('should generate a random hex account key', () => {
+        const k1 = crypto.getRandomAccountKeyHex();
+        const k2 = crypto.getRandomAccountKeyHex();
+        k1.should.not.equal(k2);
+        k1.length.should.equal(k2.length);
+        k1.length.should.equal(39);
+        k1.replace(/ /g, '').length.should.equal(32);
+    });
 });

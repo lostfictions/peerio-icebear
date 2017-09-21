@@ -499,7 +499,7 @@ class Keg {
      * @public
      * @abstract
      */
-    //eslint-disable-next-line
+    // eslint-disable-next-line
     deserializeKegPayload(payload) { }
 
     /**
