@@ -1,5 +1,4 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const expect = require('chai').should();
 const getNewAppInstance = require('../../config');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
