@@ -88,7 +88,9 @@ class Chat {
         return this.db.boot.participants.filter(p => p.username !== User.current.username).sort(this.compareContacts);
     }
 
-    compareContacts(c1, c2) {
+    compareContacts = (c1, c2) => {
+        if (this.isAdmin(c1) && !this.isAdmin(c2)) return -1;
+        if (!this.isAdmin(c1) && this.isAdmin(c2)) return 1;
         return c1.fullNameAndUsername.localeCompare(c2.fullNameAndUsername);
     }
 
