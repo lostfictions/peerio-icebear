@@ -18,7 +18,8 @@
     "release": "./scripts/release.sh",
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
-    "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html"
+    "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
+    "e2e": "cucumber.js test/e2e/*/features -r test/e2e/*/steps"
   },
   "files": [
     "src"
@@ -86,7 +87,8 @@
     "sinon-chai": "2.13.0",
     "source-map-support": "0.4.18",
     "standard-version": "4.2.0",
-    "validate-commit-msg": "2.14.0"
+    "validate-commit-msg": "2.14.0",
+    "cucumber": "2.1.0"
   },
   "config": {
     "commitizen": {
