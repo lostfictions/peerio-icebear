@@ -1,7 +1,14 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const expect = require('chai').should();
+const getNewAppInstance = require('../../config');
 
-defineSupportCode(({ Given, Then, When }) => {
+defineSupportCode(({ Before, Given, Then, When }) => {
+    let app;
+
+    Before(() => {
+        app = getNewAppInstance();
+    });
+
     Given('I am a logged in user', (callback) => {
         // Write code here that turns the phrase above into concrete actions
         const expected = 1;
