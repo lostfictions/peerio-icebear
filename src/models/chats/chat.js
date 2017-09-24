@@ -272,6 +272,33 @@ class Chat {
      * @public
      */
     @observable newMessagesMarkerPos = '';
+    /**
+     * Indicates ongoing loading recent files list for this chat
+     * @member {bool} loadingRecentFiles
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable loadingRecentFiles = false;
+    @observable _recentFiles = null;
+    /**
+     * List of recent file ids for this chat.
+     * @member {Array<string>} recentFiles
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get recentFiles() {
+        if (this._recentFiles === null) {
+            this.loadingRecentFiles = true;
+            this._recentFiles = [];
+            this._fileHandler.getRecentFiles().then(res => {
+                this._recentFiles = res;
+                this.loadingRecentFiles = false;
+            });
+        }
+        return this._recentFiles;
+    }
 
     /**
      * Chat head keg.

@@ -2,7 +2,8 @@ const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
 const Queue = require('../../helpers/queue');
-
+const { retryUntilSuccess } = require('../../helpers/retry');
+const socket = require('../../network/socket');
 /**
  * File handling module for Chat. Extracted for readability.
  * @param {Chat} chat - chat creates an instance and passes itself to it.
@@ -82,6 +83,20 @@ class ChatFileHandler {
             ids.push(file.fileId);
         }
         return ids;
+    }
+
+    getRecentFiles() {
+        return retryUntilSuccess(() => {
+            return socket.send('/auth/kegs/db/files/latest', { kegDbId: this.chat.id, count: 10 })
+                .then(res => {
+                    const ids = [];
+                    res.forEach(raw => {
+                        const fileIds = JSON.parse(raw);
+                        fileIds.forEach(id => ids.push(id));
+                    });
+                    return ids;
+                });
+        });
     }
 }
 module.exports = ChatFileHandler;
