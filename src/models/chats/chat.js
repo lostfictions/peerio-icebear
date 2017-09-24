@@ -289,15 +289,14 @@ class Chat {
      * @public
      */
     @computed get recentFiles() {
-        if (this._recentFiles === null) {
+        if (this._recentFiles === null && !this.loadingRecentFiles) {
             this.loadingRecentFiles = true;
-            this._recentFiles = [];
             this._fileHandler.getRecentFiles().then(res => {
                 this._recentFiles = res;
                 this.loadingRecentFiles = false;
             });
         }
-        return this._recentFiles;
+        return this._recentFiles || [];
     }
 
     /**
@@ -569,7 +568,7 @@ class Chat {
             this.messages.push(msg);
         }
         this.onNewMessageLoad(newMentionCount, newMessageCount, lastMentionId);
-
+        if (!this.canGoDown && this.initialPageLoaded) this.detectFileAttachments(accumulator);
         // sort
         this.sortMessages();
         // updating most recent message
@@ -852,6 +851,7 @@ class Chat {
         this._cancelTopPageLoad = false;
         this._cancelBottomPageLoad = false;
         this.updatedAfterReconnect = true;
+        this._recentFiles = null;
         this.loadMessages();
     }
 
@@ -1100,6 +1100,27 @@ class Chat {
         const m = new Message(this.db);
         m.setChannelJoinFact();
         this._sendMessage(m);
+    }
+
+    /**
+     * Checks if there are any file attachments in new message batch and adds them to _recentFiles if needed.
+     * @private
+     */
+    @action detectFileAttachments(messages) {
+        if (!this._recentFiles) {
+            console.error('detectFileAttachments was called before _recentFiles became available');
+            return;
+        }
+        for (let i = 0; i < messages.length; i++) {
+            const files = messages[i].files;
+            if (!files || !files.length) continue;
+            for (let j = 0; j < files.length; j++) {
+                if (!this._recentFiles.includes(files[j])) this._recentFiles.unshift(files[j]);
+            }
+        }
+        if (this._recentFiles.length > config.chat.recentFilesDisplayLimit) {
+            this._recentFiles.length = config.chat.recentFilesDisplayLimit;
+        }
     }
 
     dispose() {

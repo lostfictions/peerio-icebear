@@ -285,14 +285,13 @@ const config = new class {
          * @public
          */
         decryptQueueThrottle: 0,
-
         /**
-         * Maximum amount of participants for direct message (including creator)
-         * @member {number} chat.maxDMParticipants
+         * Maximum amount of recent files to maintain in chat object to be able to display the list on UI.
+         * @member {number} chat.recentFilesDisplayLimit
          * @memberof config
          * @public
          */
-        maxDMParticipants: 4
+        recentFilesDisplayLimit: 10
     };
 }();
 
