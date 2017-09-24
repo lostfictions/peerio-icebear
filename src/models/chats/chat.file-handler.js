@@ -1,7 +1,7 @@
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const socket = require('../../network/socket');
 /**
@@ -15,11 +15,11 @@ class ChatFileHandler {
     }
 
     /**
-     * Queue of files to share for paced process.
-     * @member {Queue}
+     * TaskQueue of files to share for paced process.
+     * @member {TaskQueue} shareQueue
      * @protected
      */
-    shareQueue = new Queue(1, 2000);
+    shareQueue = new TaskQueue(1, 2000);
 
     /**
      * Initiates file upload and shares it to the chat afterwards.

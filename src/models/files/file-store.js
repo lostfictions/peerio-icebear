@@ -9,7 +9,7 @@ const config = require('../../config');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const clientApp = require('../client-app');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 const createMap = require('../../helpers/dynamic-array-map');
 
@@ -78,10 +78,10 @@ class FileStore {
     knownUpdateId = '';
     /**
      * Readonly
-     * @member {Queue}
+     * @member {TaskQueue} uploadQueue
      * @public
      */
-    uploadQueue = new Queue(1);
+    uploadQueue = new TaskQueue(1);
 
     /**
      * @ignore

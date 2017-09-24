@@ -4,7 +4,7 @@ const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
 const ReadReceipt = require('./read-receipt');
 const { retryUntilSuccess } = require('../../helpers/retry');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 
 /**
  *
@@ -20,7 +20,7 @@ class ChatReceiptHandler {
     pendingReceipt = null;
     _reactionsToDispose = [];
 
-    loadQueue = new Queue(1, 1000);
+    loadQueue = new TaskQueue(1, 1000);
 
     constructor(chat) {
         this.chat = chat;

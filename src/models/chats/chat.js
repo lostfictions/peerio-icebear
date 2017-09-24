@@ -6,7 +6,7 @@ const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const clientApp = require('../client-app');
 const ChatHead = require('./chat-head');
 const contactStore = require('../contacts/contact-store');
@@ -314,7 +314,7 @@ class Chat {
     _fileHandler = null;
     _headHandler = null;
 
-    _addMessageQueue = new Queue(1, config.chat.decryptQueueThrottle || 0);
+    _addMessageQueue = new TaskQueue(1, config.chat.decryptQueueThrottle || 0);
 
     _reactionsToDispose = [];
     /**
