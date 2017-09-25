@@ -30,12 +30,14 @@ Feature: User account access
     
     Scenario: Change primary email
         Given I am a registered user
-        When I add a new my primary email
+        When I add a new primary email
+        And the new email is valid
         Then it should be updated
     
     Scenario: Add new email
         Given I am a registered user
         When I add a new email address
+        And the new email is valid
         Then it will be added to my account
     
     Scenario: Remove email
