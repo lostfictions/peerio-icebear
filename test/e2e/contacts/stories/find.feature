@@ -14,12 +14,20 @@ Feature: Find contacts
         When I search for Alice
         Then I receive a contact with the email Alice
 
-    Scenario: Fetch profile
-        When ???
-        Then ???
+    Scenario: Remove contact
+        When I remove Alice from my contacts
+        Then "Alice" should not appear in my contacts list
 
     Scenario: Send invite email
         Given I search for Alice
         And no profiles are found
         And I send an invitation
         Then I will see Alice in my Invited list
+
+    Scenario: Filters
+        Given "Alice" and "Bob" are my contacts
+        And "Alice" has not joined yet
+        When I set the filter to 'added'
+        Then "Bob" should appear in my contact list
+    
+    

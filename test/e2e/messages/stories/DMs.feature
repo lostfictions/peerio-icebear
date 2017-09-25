@@ -7,16 +7,15 @@ Feature: Direct messages
         Given I am logged in
 
     Scenario: Create DM
-        Given ???
-        When ???
-        Then ???
+        When I create a DM
+        Then the receiver gets notified
     
     Scenario: Favourite DM
         When I favourite a DM
         Then ???
     
     Scenario: Unfavourite DM
-        When event
+        When I unfavourite a DM
         Then ???
     
     Scenario: Send message in DM
@@ -26,7 +25,7 @@ Feature: Direct messages
     Scenario: Receive message in DM
         When someone else messages me
         Then the message appears in the chat
-        And I get notified
+        And I get notified that I have 1 unread message
     
     Scenario: Send read receipt
         When I read a message

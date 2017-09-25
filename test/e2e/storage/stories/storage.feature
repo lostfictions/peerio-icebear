@@ -7,29 +7,21 @@ Feature: Files in storage
         Given I am logged in
 
     Scenario: Upload
-        When event
-        Then outcome
+        When I upload a file
+        Then I should see it in my files
     
     Scenario: Download
-        When event
-        Then outcome
+        When I download {a file}
+        Then I should access {a file} locally
 
-    Scenario: Share from files tab
-        When event
-        Then outcome
-
-    Scenario: Share in DM/room
-        When event
-        Then outcome
-
-    Scenario: Reshare
-        When event
-        Then outcome
+    Scenario: Share
+        When I share a file with {the receiver}
+        Then {the receiver} should be notified
 
     Scenario: Delete
-        When event
-        Then outcome
+        When I delete a file
+        Then it should be remove from my files
 
-    Scenario: Remove (hide) 
-        When event
-        Then outcome
+    Scenario: Access my files
+        Given I have uploaded files
+        Then I should see the full file list
