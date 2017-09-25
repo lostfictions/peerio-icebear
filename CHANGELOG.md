@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.0"></a>
+# [2.10.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.9.0...v2.10.0) (2017-09-25)
+
+
+### Bug Fixes
+
+* admins always on top of participants ([67dc9f9](https://github.com/PeerioTechnologies/peerio-icebear/commit/67dc9f9))
+* channel active members list computation issues ([399db28](https://github.com/PeerioTechnologies/peerio-icebear/commit/399db28))
+* move test from util to keys ([#46](https://github.com/PeerioTechnologies/peerio-icebear/issues/46)) ([36c5d58](https://github.com/PeerioTechnologies/peerio-icebear/commit/36c5d58))
+* validation race condition when several validation runs are triggered ([#47](https://github.com/PeerioTechnologies/peerio-icebear/issues/47)) ([e6f8605](https://github.com/PeerioTechnologies/peerio-icebear/commit/e6f8605))
+
+
+### Code Refactoring
+
+* rename Queue to TaskQueue (queue.js -> task-queue.js) to add more kinds of queues without confusion ([c1fe5ed](https://github.com/PeerioTechnologies/peerio-icebear/commit/c1fe5ed))
+
+
+### Features
+
+* recent files in chat ([d3f8261](https://github.com/PeerioTechnologies/peerio-icebear/commit/d3f8261))
+* update recent files list on the go ([a0a5377](https://github.com/PeerioTechnologies/peerio-icebear/commit/a0a5377))
+
+
+### BREAKING CHANGES
+
+* helpers/queue.js module is now called helpers/task-queue.js
+
+
+
 <a name="2.9.0"></a>
 # [2.9.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.8.0...v2.9.0) (2017-09-20)
 

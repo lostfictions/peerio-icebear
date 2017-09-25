@@ -28,7 +28,7 @@
     -   [chat.pageSize](#chatpagesize)
     -   [chat.maxLoadedMessages](#chatmaxloadedmessages)
     -   [chat.decryptQueueThrottle](#chatdecryptqueuethrottle)
-    -   [chat.maxDMParticipants](#chatmaxdmparticipants)
+    -   [chat.recentFilesDisplayLimit](#chatrecentfilesdisplaylimit)
 -   [crypto/keys](#cryptokeys)
     -   [deriveAccountKeys](#deriveaccountkeys)
     -   [deriveEphemeralKeys](#deriveephemeralkeys)
@@ -116,13 +116,13 @@
     -   [countUp](#countup)
     -   [countDown](#countdown)
     -   [stop](#stop)
--   [Queue](#queue)
+-   [helpers/system-messages](#helperssystem-messages)
+    -   [getSystemMessageText](#getsystemmessagetext)
+-   [TaskQueue](#taskqueue)
     -   [tasks](#tasks)
     -   [runningTasks](#runningtasks)
     -   [length](#length-1)
     -   [addTask](#addtask)
--   [helpers/system-messages](#helperssystem-messages)
-    -   [getSystemMessageText](#getsystemmessagetext)
 -   [helpers/field-validation](#helpersfield-validation)
     -   [addValidation](#addvalidation)
 -   [helpers/user-validators](#helpersuser-validators)
@@ -182,6 +182,8 @@
     -   [uploadQueue](#uploadqueue)
     -   [unreadCount](#unreadcount)
     -   [newMessagesMarkerPos](#newmessagesmarkerpos)
+    -   [loadingRecentFiles](#loadingrecentfiles)
+    -   [recentFiles](#recentfiles)
     -   [chatHead](#chathead-1)
     -   [isReadOnly](#isreadonly)
     -   [participantUsernames](#participantusernames)
@@ -306,7 +308,6 @@
     -   [updatedAfterReconnect](#updatedafterreconnect-2)
     -   [currentFilter](#currentfilter)
     -   [updating](#updating)
-    -   [uploadQueue](#uploadqueue-1)
     -   [hasSelectedFiles](#hasselectedfiles)
     -   [canShareSelectedFiles](#canshareselectedfiles)
     -   [allVisibleSelected](#allvisibleselected)
@@ -320,6 +321,7 @@
     -   [clearFilter](#clearfilter)
     -   [loadAllFiles](#loadallfiles)
     -   [getById](#getbyid)
+-   [uploadQueue](#uploadqueue-1)
 -   [upload](#upload)
 -   [FileStreamAbstract](#filestreamabstract)
     -   [filePath](#filepath)
@@ -751,9 +753,9 @@ Increase to get more responsiveness, but increase page load time.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
-### chat.maxDMParticipants
+### chat.recentFilesDisplayLimit
 
-Maximum amount of participants for direct message (including creator)
+Maximum amount of recent files to maintain in chat object to be able to display the list on UI.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -1575,7 +1577,25 @@ Starts counting from passed seconds amount to 0, updates every second.
 
 Stops counting and resets counter to 0
 
-## Queue
+## helpers/system-messages
+
+Helpers for dealing with chat system messages. For UI use.
+
+Some chat messages are in fact sent automatically by client and instead of text they carry special systemData codes.
+We don't want clients to repeat handling logic of those codes when system message has to be rendered, this
+module should be used instead.
+
+### getSystemMessageText
+
+Checks message object for system data and returns translated string to render for the system data.
+
+**Parameters**
+
+-   `msg` **[Message](#message)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system message
+
+## TaskQueue
 
 Observable task queue implementation
 
@@ -1617,24 +1637,6 @@ after returned promise is fulfilled.
 -   `onError` **callback&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>?** callback will be executed if task throws or rejects promise
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
-
-## helpers/system-messages
-
-Helpers for dealing with chat system messages. For UI use.
-
-Some chat messages are in fact sent automatically by client and instead of text they carry special systemData codes.
-We don't want clients to repeat handling logic of those codes when system message has to be rendered, this
-module should be used instead.
-
-### getSystemMessageText
-
-Checks message object for system data and returns translated string to render for the system data.
-
-**Parameters**
-
--   `msg` **[Message](#message)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system message
 
 ## helpers/field-validation
 
@@ -2020,6 +2022,18 @@ when user is not looking but chat is active and receiving updates,
 chat briefly sets this value to the id of last seen message so client can render separator marker.
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### loadingRecentFiles
+
+Indicates ongoing loading recent files list for this chat
+
+Type: bool
+
+### recentFiles
+
+List of recent file ids for this chat.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
 ### chatHead
 
@@ -2815,12 +2829,6 @@ Currently updating file list from server, this is not observable property.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-### uploadQueue
-
-Readonly
-
-Type: [Queue](#queue)
-
 ### hasSelectedFiles
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
@@ -2886,6 +2894,12 @@ Finds file by fileId.
 -   `fileId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[File](#file)?** 
+
+## uploadQueue
+
+Readonly
+
+Type: [TaskQueue](#taskqueue)
 
 ## upload
 
