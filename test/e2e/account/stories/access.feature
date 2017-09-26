@@ -4,9 +4,9 @@ Feature: User account access
     I want to have an account
     
     Scenario: Account creation
-        Given I'm a new customer
-        When I create a new account
-        Then I receive a username and passcode
+        Given I am a new customer
+        When I successfully create a new account
+        Then I will be logged in
 
     Scenario: Account deletion
         Given I am a registered user

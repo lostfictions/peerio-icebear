@@ -5,7 +5,8 @@ function getNewAppInstance() {
     const FileStream = require('../../src/models/files/node-file-stream');
     const StorageEngine = require('../../src/models/storage/node-json-storage');
 
-    cfg.appVersion = '';
+    cfg.appVersion = '2.37.1';
+    cfg.clientVersion = '2.9.0';
     cfg.platform = 'electron'; // todo: change name
     cfg.arch = os.arch();
     cfg.os = os.type();
