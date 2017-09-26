@@ -19,7 +19,7 @@
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "e2e": "cucumber.js test/e2e/*/features -r test/e2e/*/steps --compiler js:babel-register --require test/global-setup.js"
+    "e2e": "cucumber.js test/e2e/account/stories/access.feature:6 -r test/e2e/account/steps --compiler js:babel-register --require test/global-setup.js --format pretty --quiet"
   },
   "files": [
     "src"
@@ -58,7 +58,8 @@
     "peerio-translator": "git+https://github.com/PeerioTechnologies/peerio-translator.git#icebear",
     "scrypt-async": "1.3.1",
     "socket.io-client": "2.0.3",
-    "tweetnacl": "1.0.0"
+    "tweetnacl": "1.0.0",
+    "websocket": "1.0.24"
   },
   "devDependencies": {
     "babel-cli": "6.26.0",
