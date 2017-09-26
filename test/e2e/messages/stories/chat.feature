@@ -30,4 +30,9 @@ Feature: Chat
         When I change the purpose
         Then the chat purpose should be changed
     
+    Scenario: Send files in a chat
+        Given I am in a chat with {receiver}
+        When I send {receiver} {a file}
+        Then {receiver} should be able download {a file} contents
+    
         
