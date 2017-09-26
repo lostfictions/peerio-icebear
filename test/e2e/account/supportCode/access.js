@@ -1,6 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
+const { getRandomUsername } = require('../../helpers');
 
 // Scenario: Account creation
 defineSupportCode(({ Before, Given, Then, When }) => {
@@ -28,15 +29,5 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Then('I will be logged in', (done) => {
         when(() => app.socket.authenticated, done);
     });
-
-    const usernameChars = '0123456789abcdefghijklmnopqrstuvwxyz';
-    // generates 16-character random usernames
-    function getRandomUsername() {
-        let username = '';
-        for (let i = 0; i < 30; i++) {
-            username += usernameChars[Math.floor(Math.random() * usernameChars.length)];
-        }
-        return username;
-    }
 });
 
