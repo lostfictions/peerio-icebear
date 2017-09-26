@@ -4,12 +4,6 @@ function getNewAppInstance() {
     const cfg = require('../../src/config');
     const FileStream = require('../../src/models/files/node-file-stream');
     const StorageEngine = require('../../src/models/storage/node-json-storage');
-    
-    const W3CWebSocket = require('websocket').client;
-    
-    global.WebSocket = W3CWebSocket;
-
-
 
     cfg.appVersion = '';
     cfg.platform = 'electron'; // todo: change name

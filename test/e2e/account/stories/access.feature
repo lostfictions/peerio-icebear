@@ -6,7 +6,7 @@ Feature: User account access
     Scenario: Account creation
         Given I'm a new customer
         When I create a new account
-        Then I receive a username and passcode (or something else)
+        Then I receive a username and passcode
 
     Scenario: Account deletion
         Given I am a registered user
