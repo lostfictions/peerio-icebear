@@ -123,7 +123,7 @@ class ChatInviteStore {
                 for (const kegDbId in res) {
                     const leavers = res[kegDbId];
                     if (!leavers || !leavers.length) continue;
-                    this.left.set(kegDbId, leavers.map(l => l.username));
+                    this.left.set(kegDbId, leavers);
                     getChatStore()
                         .getChatWhenReady(kegDbId)
                         .then(chat => {
