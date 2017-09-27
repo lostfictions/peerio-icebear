@@ -19,9 +19,9 @@ Feature: User account access
         Then I have access to my account
     
     Scenario: Sign out
-        Given I'm logged in the app
+        Given I am logged in
         When I sign out
-        Then I can't access my account
+        Then I can not access my account
     
     Scenario: Email confirmation
         Given I'm a new user
@@ -29,19 +29,21 @@ Feature: User account access
         Then I receive an email asking to confirm it
     
     Scenario: Change primary email
-        Given I am a registered user
-        When I add a new primary email
-        And the new email is valid
-        Then it should be updated
+        Given I am logged in
+        And my email addresses are "one@test.com" and "two@test.com"
+        And "one@test.com" is the primary address
+        When I choose "two@test.com" to be the primary email
+        Then the primary email should be updated to "two@test.com"
     
     Scenario: Add new email
-        Given I am a registered user
-        When I add a new email address
+        Given I am logged in
+        When "one@test.com" is added in my email addresses
         And the new email is valid
-        Then it will be added to my account
+        Then it will be added to my email addresses
     
     Scenario: Remove email
-        Given I am a registered user
-        When I remove an email address
-        Then it will not appear in my account
+        Given I am logged in
+        And "one@test.com" is added in my email addresses
+        When I remove "one@test.com"
+        Then it will not appear in my email addresses
     
