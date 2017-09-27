@@ -291,10 +291,12 @@ class Chat {
     @computed get recentFiles() {
         if (this._recentFiles === null && !this.loadingRecentFiles) {
             this.loadingRecentFiles = true;
-            this._fileHandler.getRecentFiles().then(res => {
-                this._recentFiles = res;
-                this.loadingRecentFiles = false;
-            });
+            if (this.metaLoaded) {
+                this._fileHandler.getRecentFiles().then(res => {
+                    this._recentFiles = res;
+                    this.loadingRecentFiles = false;
+                });
+            }
         }
         return this._recentFiles || [];
     }

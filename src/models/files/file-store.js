@@ -37,6 +37,15 @@ class FileStore {
      * @public
      */
     @observable files = observable.shallowArray([]);
+
+    /**
+     * Subset of files not currently hidden by any applied filters
+     * @readonly
+     * @memberof FileStore
+     */
+    @computed get visibleFiles() {
+        return this.files.filter(f => f.show);
+    }
     /**
      * Store is loading full file list for the first time.
      * @member {boolean} loading
