@@ -37,13 +37,12 @@ Feature: User account access
     
     Scenario: Add new email
         Given I am logged in
-        When "one@test.com" is added in my email addresses
-        And the new email is valid
-        Then it will be added to my email addresses
+        When hello123@test.com is added in my email addresses
+        Then my email addresses should contain hello123@test.com
     
     Scenario: Remove email
         Given I am logged in
-        And "one@test.com" is added in my email addresses
-        When I remove "one@test.com"
-        Then it will not appear in my email addresses
+        And removeme@test.com is added in my email addresses
+        When I remove removeme@test.com
+        Then removeme@test.com should not appear in my addresses
     
