@@ -41,20 +41,20 @@ Cons:
 
 ## Adding a new test
 
-For a new feature, add a new feature folder with 2 inner folders, <i>features</i> and <i>steps</i> (or copy-paste <i>sample</i> project and modify it).
+For a new feature, add a new feature folder with 2 inner folders, <i>stories</i> and <i>supportCode</i> (or copy-paste <i>sample</i> project and modify it).
 
 Project structure:
 ```
-story1
- |__ features
- |__ steps
-story2
- |__ features
- |__ steps
+feature1
+ |__ stories
+ |__ supportCode
+feature2
+ |__ stories
+ |__ supportCode
 
 ```
 
-Inside the <i>features</i> folder, add a .feature file and add the user story in plain language.
+Inside the <i>stories</i> folder, add a .feature file and add the user story in plain language.
 
 Example: myFeature.feature file
 ```
@@ -65,7 +65,7 @@ Feature: Addition
         Then the result should be 3
 ```
 
-Now add the code implementation in the <i>steps</i> folder. Note that running the tests will find find any missing implementation and suggest snippets which you can paste in your implementation file.
+Now add the code implementation in the <i>supportCode</i> folder. Note that running the tests will find find any missing implementation and suggest snippets which you can paste in your implementation file.
 
 Example: myImplementation.js
 ```
@@ -75,15 +75,15 @@ const expect = require('chai').expect;
 defineSupportCode(function({ Given, Then, When }) {
     let answer = 0;
 
-    Given('the first number is {int}', function (input) {
+    Given('the first number is {int}', (input) => {
         answer = input;
     });
 
-    When('I add {int} to it', function (input) {
+    When('I add {int} to it', (input) => {
         answer = answer + input;
     });
 
-    Then('the result should be {int}', function (input) {
+    Then('the result should be {int}', (input) => {
         expect(answer).to.equal(input);
     });
 });
@@ -95,11 +95,11 @@ defineSupportCode(function({ Given, Then, When }) {
 
 <b>Scenario</b>: Example of how the feature is useful
 
-<b>Given</b>: Context in which an action happens (I am logged in, I am in the checkout page, etc)
+<b>Given</b>: Context in which an action will happen (I am logged in, I am in the checkout page, etc)
 
-<b>When</b>: Trigger the action to achive desired result (I press the log out button, I tap the "Purchase" button, etc)
+<b>When</b>: Execute an action to achieve the desired result (I press the log out button, I tap the "Purchase" button, etc)
 
-<b>Then</b>: Verify the test outcome (I see the registration page, I see a purchase receipt, etc)
+<b>Then</b>: Verify that the test outcome matches expectations (I see the registration page, I see a purchase receipt, etc)
 
 ## Links
 
