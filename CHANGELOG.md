@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.1"></a>
+## [2.10.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.10.0...v2.10.1) (2017-09-27)
+
+
+### Bug Fixes
+
+* expected format of the list of users who left channel was wrong ([583750a](https://github.com/PeerioTechnologies/peerio-icebear/commit/583750a))
+* recent files should not try to load before meta ([340d48a](https://github.com/PeerioTechnologies/peerio-icebear/commit/340d48a))
+
+
+
 <a name="2.10.0"></a>
 # [2.10.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.9.0...v2.10.0) (2017-09-25)
 
