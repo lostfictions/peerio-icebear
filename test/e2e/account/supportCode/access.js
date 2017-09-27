@@ -22,8 +22,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current = user;
     });
 
-    When('I successfully create a new account', () => {
-        app.User.current.createAccountAndLogin().should.be.fulfilled;
+    When('I successfully create a new account', (done) => {
+        app.User.current.createAccountAndLogin()
+            .should.be.fulfilled
+            .then(done);
     });
 
     Then('I will be logged in', (done) => {
@@ -40,8 +42,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current = user;
     });
 
-    When('I sign in', () => {
-        app.User.current.login().should.be.fulfilled;
+    When('I sign in', (done) => {
+        app.User.current.login()
+            .should.be.fulfilled
+            .then(done);
     });
 
     Then('I have access to my account', (done) => {
