@@ -14,7 +14,7 @@ Feature: User account access
         Then I should receive a confirmation
 
     Scenario: Sign in
-        Given I'm a returning customer
+        Given I am a returning customer
         When I sign in
         Then I have access to my account
     
