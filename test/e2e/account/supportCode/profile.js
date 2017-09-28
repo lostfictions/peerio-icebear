@@ -36,12 +36,14 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Add avatar when another one is being loaded
-    When('another avatar upload is in progress', (callback) => {
-        callback(null, 'pending');
+    When('another avatar upload is in progress', () => {
+        app.User.current.savingAvatar = true;
     });
 
-    Then('I should get an error saying {err}', (err, callback) => {
-        callback(null, 'pending');
+    Then('I should get an error saying {err}', (err) => {
+        return app.User.current
+            .saveAvatar()
+            .should.be.rejectedWith(err);
     });
 
 

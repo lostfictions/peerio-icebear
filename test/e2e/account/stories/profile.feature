@@ -15,9 +15,8 @@ Feature: User profile
         Then it should appear in my profile
     
     Scenario: Add avatar when another one is being loaded
-        When I upload an avatar
-        But another avatar upload is in progress
-        Then I should get an error saying "Already saving avatar, wait for it to finish."
+        When another avatar upload is in progress
+        Then I should get an error saying Already saving avatar, wait for it to finish.
     
     Scenario: Add avatar with wrong number of pictures
         When I upload an avatar
