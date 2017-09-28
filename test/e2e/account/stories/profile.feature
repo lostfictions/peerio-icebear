@@ -21,7 +21,7 @@ Feature: User profile
     
     Scenario: Add avatar with wrong number of pictures
         When I upload an avatar
-        But the upload doesn't contain 2 blobs
+        But the upload does not contain 2 blobs
         Then I should get an error saying "Blobs array length should be 2"
     
     Scenario: Add avatar with malformed payload
@@ -36,9 +36,5 @@ Feature: User profile
     Scenario: Remove avatar
         When I change my delete avatar
         Then a default photo should appear in my profile
-    
-    Scenario: View my profile
-        When I request my profile via my username
-        Then my contact details are returned
     
     
