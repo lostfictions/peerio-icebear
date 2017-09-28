@@ -6,9 +6,9 @@ Feature: User profile
     Background: 
         Given I am logged in
 
-    Scenario: Update display name
-        When I change my display name
-        Then it should be updated
+    # Scenario: Update display name
+    #     When I change my display name
+    #     Then it should be updated
     
     Scenario: Add avatar successfully
         When I upload an avatar
@@ -19,21 +19,20 @@ Feature: User profile
         Then I should get an error saying Already saving avatar, wait for it to finish.
     
     Scenario: Add avatar with wrong number of pictures
-        When I upload an avatar
-        But the upload does not contain 2 blobs
-        Then I should get an error saying "Blobs array length should be 2"
+        When the upload does not contain 2 blobs
+        Then I should get an error saying Blobs array length should be 2
     
     Scenario: Add avatar with malformed payload
-        When I upload an avatar
-        But the payload is malformed
-        Then I should get an error saying "Blobs should be of ArrayBuffer type"
+        When the payload is malformed
+        Then I should get an error saying Blobs should be of ArrayBuffer type
 
     Scenario: Update avatar
-        When I change my existing avatar
-        Then the newly uploaded avatar should appear in my profile
+        Given I have an avatar
+        When I upload a new avatar
+        Then the new avatar should be displayed
     
     Scenario: Remove avatar
-        When I change my delete avatar
-        Then a default photo should appear in my profile
+        When I delete my avatar
+        Then my avatar should be empty
     
     
