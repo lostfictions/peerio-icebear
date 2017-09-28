@@ -34,6 +34,32 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
 
+    // Scenario: Account deletion
+    Given('I am a registered user', (done) => {
+        const user = new app.User();
+
+        user.username = getRandomUsername();
+        user.email = 'alice@carroll.com';
+        user.passphrase = 'secret secrets';
+
+        app.User.current = user;
+
+        app.User.current.createAccountAndLogin()
+            .should.be.fulfilled
+            .then(done);
+    });
+
+    When('I delete my account', () => {
+        // todo: Account deletion init failed. No confirmed primary e-mail for user
+        app.User.current.primaryAddressConfirmed = true;
+        return app.User.current.deleteAccount(app.User.current.username);
+    });
+
+    Then('I should receive a confirmation', (done) => {
+        done(null, 'pending');
+    });
+
+
     // Scenario: Sign in
     Given('I am a returning customer', () => {
         const user = new app.User();
