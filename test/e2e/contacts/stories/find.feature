@@ -11,8 +11,8 @@ Feature: Find contacts
         Then I receive a contact with the username Alice
     
     Scenario: Find contact by email
-        When I search for Alice
-        Then I receive a contact with the email Alice
+        When I search for alice@carroll.com
+        Then I receive a contact with the email alice@carroll.com
 
     Scenario: Remove contact
         When I remove Alice from my contacts
