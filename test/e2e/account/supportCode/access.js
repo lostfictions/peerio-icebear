@@ -2,6 +2,7 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const { getRandomUsername } = require('../../helpers');
+const { asPromise } = require('../../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
@@ -90,7 +91,9 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
         app.User.current = user;
 
-        return app.User.current.login();
+        return app.User.current.login()
+            .then(() => asPromise(app.socket, 'authenticated', true))
+            .then(() => asPromise(app.User.current, 'profileLoaded', true));
     });
 
     When('I sign out', () => {
