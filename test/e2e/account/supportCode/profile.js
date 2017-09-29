@@ -18,21 +18,17 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current.firstName = 'Alice';
         app.User.current.lastName = 'Carroll';
 
-        return app.User.current.saveProfile(); // Invalid increment of the keg version
+        return app.User.current.saveProfile();
     });
 
     Then('it should be updated', () => {
-        app.User.current.firstName.should.be('Alice');
-        app.User.current.lastName.should.be('Carroll');
+        app.User.current.firstName.should.equal('Alice');
+        app.User.current.lastName.should.equal('Carroll');
     });
 
 
     // Scenario: Add avatar successfully
     When('I upload an avatar', () => {
-        app.contactStore.getContact(app.User.current.username)
-            .hasAvatar
-            .should.be.false;
-
         blob = [new ArrayBuffer(42), new ArrayBuffer(42)];
 
         return app.User.current

@@ -5,10 +5,6 @@ Feature: User profile
     
     Background: 
         Given I am logged in
-
-    # Scenario: Update display name
-    #     When I change my display name
-    #     Then it should be updated
     
     Scenario: Add avatar successfully
         When I upload an avatar
@@ -35,4 +31,6 @@ Feature: User profile
         When I delete my avatar
         Then my avatar should be empty
     
-    
+    Scenario: Update display name
+        When I change my display name
+        Then it should be updated
