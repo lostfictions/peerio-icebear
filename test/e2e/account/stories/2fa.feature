@@ -8,17 +8,15 @@ Feature: 2 factor authentication
 
     Scenario: Enable 2FA
         When I enable 2FA
-        Then I should receive a confirmation
+        Then I should receive a challenge
 
     Scenario: Try to enable 2FA when it's already active
-        When I enable 2FA
-        But 2FA is already enabled
-        Then I should receive an error saying "2fa already enabled on this account."
+        Given 2FA is already enabled
+        Then I should receive an error saying 2fa already enabled on this account.
 
     Scenario: Disable 2FA
-        Given 2FA is enabled
-        When I disable 2FA
-        Then I should receive a confirmation
+        Given 2FA is already enabled
+        Then I can disable 2FA
 
 # todo:        
 # Sign in with backup code
