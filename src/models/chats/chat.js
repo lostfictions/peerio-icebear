@@ -762,7 +762,7 @@ class Chat {
      */
     rename(name) {
         let validated = name || '';
-        validated = validated.trim().substr(0, 120);
+        validated = validated.trim().substr(0, config.chat.maxChatNameLength);
         if (this.chatHead.chatName === validated || (!this.chatHead.chatName && !validated)) {
             return Promise.resolve(); // nothing to rename
         }
@@ -782,7 +782,7 @@ class Chat {
      */
     changePurpose(purpose) {
         let validated = purpose || '';
-        validated = validated.trim().substr(0, 120);
+        validated = validated.trim().substr(0, config.chat.maxChatPurposeLength);
         if (this.chatHead.purpose === validated || (!this.chatHead.purpose && !validated)) {
             return Promise.resolve(); // nothing to change
         }
