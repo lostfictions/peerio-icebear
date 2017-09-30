@@ -36,7 +36,7 @@
   "peerDependencies": {
     "blake2s-js": "1.2.2",
     "bluebird": "3.5.0",
-    "buffer": "5.0.7",
+    "buffer": "5.0.8",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
     "mobx": "3.3.0",
@@ -49,7 +49,7 @@
   "dependencies": {
     "blake2s-js": "1.2.2",
     "bluebird": "3.5.0",
-    "buffer": "5.0.7",
+    "buffer": "5.0.8",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
     "mobx": "3.3.0",
@@ -83,7 +83,7 @@
     "opt-cli": "1.5.2",
     "rimraf": "2.6.2",
     "sinon": "4.0.0",
-    "sinon-chai": "2.13.0",
+    "sinon-chai": "2.14.0",
     "source-map-support": "0.4.18",
     "standard-version": "4.2.0",
     "validate-commit-msg": "2.14.0"
