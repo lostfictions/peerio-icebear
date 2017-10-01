@@ -142,12 +142,6 @@ class File extends Keg {
      */
     @observable show = true;
     /**
-     * If upload cancel is initiated by user
-     * @member {boolean}
-     * @public
-     */
-    uploadCancelled = false;
-    /**
      * Is this file currently shared with anyone.
      * @member {boolean} shared
      * @memberof File
