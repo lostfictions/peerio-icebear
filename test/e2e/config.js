@@ -1,15 +1,4 @@
 function getNewAppInstance() {
-    for (const key of Object.keys(require.cache)) {
-        if (require.cache[key].exports && require.cache[key].exports.dispose) require.cache[key].exports.dispose();
-    }
-    const srcDir = `${process.cwd()}/src`;
-
-    Object.keys(require.cache).forEach(module => {
-        if (module.startsWith(srcDir)) {
-            delete require.cache[module];
-        }
-    });
-
     const path = require('path');
     const os = require('os');
     const cfg = require('../../src/config');
