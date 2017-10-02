@@ -3,7 +3,6 @@ Feature: User account access
     In order to use the app
     I want to have an account
     
-    @resetapp
     Scenario: Account creation
         Given I am a new customer
         When I successfully create a new account

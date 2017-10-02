@@ -19,9 +19,7 @@
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "cucumber:resetapp": "cucumber.js test/e2e/*/stories -r test/e2e/*/supportCode --compiler js:babel-register --require test/global-setup.js --tags '@resetapp'",
-    "cucumber": "cucumber.js test/e2e/account/stories/access.feature -r test/e2e/account/supportCode --compiler js:babel-register --require test/global-setup.js --tags 'not @resetapp'",
-    "e2e": "npm run cucumber:resetapp && npm run cucumber"
+    "e2e": "cucumber.js test/e2e/account/stories/access.feature -r test/e2e/account/supportCode --compiler js:babel-register --require test/global-setup.js"
   },
   "files": [
     "src"
