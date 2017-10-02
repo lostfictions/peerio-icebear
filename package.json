@@ -19,7 +19,7 @@
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "e2e": "cucumber.js test/e2e/account/stories/access.feature -r test/e2e/account/supportCode --compiler js:babel-register --require test/global-setup.js"
+    "e2e": "mocha test/e2e/start.js --compilers js:babel-register"
   },
   "files": [
     "src"
