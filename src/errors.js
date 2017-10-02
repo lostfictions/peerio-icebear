@@ -14,6 +14,8 @@
  * CustomError.prototype = Object.create(Error.prototype);
  * CustomError.prototype.constructor = CustomError;
  * ```
+ * REFACTOR WARNING: before renaming any errors (not sure why you would do that though),
+ *                   make sure they haven't been used by name anywhere.
  * @module errors
  * @public
  */
@@ -87,7 +89,8 @@ module.exports.getGenericCustomError = getGenericCustomError;
     ['NotAuthenticatedError'],
     ['AbstractCallError', 'Abstract function call. Override this function.'],
     ['NoPasscodeFoundError', 'No passcode found.'],
-    ['InvalidArgumentError']
+    ['InvalidArgumentError'],
+    ['UserCancelError'] // when user has cancelled something in progress (like download)
 ].forEach(errType => {
     module.exports[errType[0]] = getGenericCustomError(errType[0], errType[1]);
 });

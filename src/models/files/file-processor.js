@@ -52,7 +52,7 @@ class FileProcessor {
      * @protected
      */
     cancel() {
-        this._finishProcess(new Error(`${this.processType} cancelled`));
+        this._finishProcess(new errors.UserCancelError(`${this.processType} cancelled`));
     }
 
     // stops process and resolves or rejects promise

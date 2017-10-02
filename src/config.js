@@ -291,7 +291,25 @@ const config = new class {
          * @memberof config
          * @public
          */
-        recentFilesDisplayLimit: 10
+        recentFilesDisplayLimit: 10,
+        /**
+         * Maximum number of characters chat name can have.
+         * Do not override this in clients, it's supposed to be a system limit.
+         * @member {number} chat.maxChatNameLength
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        maxChatNameLength: 24,
+        /**
+         * Maximum number of characters chat purpose can have.
+         * Do not override this in clients, it's supposed to be a system limit.
+         * @member {number} chat.maxChatPurposeLength
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        maxChatPurposeLength: 120
     };
 }();
 

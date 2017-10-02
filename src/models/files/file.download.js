@@ -72,8 +72,18 @@ function download(filePath, resume) {
             })
             .catch(err => {
                 console.error(err);
+                if (err) {
+                    if (err.name === 'UserCancelError') {
+                        return Promise.reject(err);
+                    }
+                    if (err.name === 'DisconnectedError') {
+                        this._resetDownloadState();
+                        return Promise.reject(err);
+                    }
+                }
                 warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
-                this._resetDownloadState();
+                this.cancelDownload();
+                return Promise.reject(err || new Error('Download failed.'));
             });
     } catch (ex) {
         this._resetDownloadState();
