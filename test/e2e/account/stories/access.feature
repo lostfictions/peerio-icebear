@@ -24,6 +24,7 @@ Feature: User account access
         When I sign out
         Then I can not access my account
     
+    #mailnator
     # Scenario: Change primary email
     #     Given I am logged in
     #     And my email addresses are "one@test.com" and "two@test.com"

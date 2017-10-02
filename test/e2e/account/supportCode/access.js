@@ -101,7 +101,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('I can not access my account', (done) => {
-        done(null, 'pending');
+        done(null, 'pending'); // check 2fa
     });
 
 
