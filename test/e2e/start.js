@@ -5,7 +5,15 @@ const { spawn } = require('child_process');
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 
 const runFeature = (file, done) => {
-    const proc = spawn(cucumberPath, [`test/e2e/${file}`]);
+    const proc = spawn(cucumberPath, [
+        `test/e2e/${file}`,
+        '-r',
+        'test/e2e/account/supportCode',
+        '--compiler',
+        'js:babel-register',
+        '--require',
+        'test/global-setup.js'
+    ]);
 
     proc.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);

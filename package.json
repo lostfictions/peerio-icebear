@@ -19,7 +19,7 @@
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "e2e": "mocha test/e2e/start.js --compilers js:babel-register"
+    "e2e": "mocha test/e2e/start.js --compilers js:babel-register --timeout 15000000"
   },
   "files": [
     "src"
