@@ -29,6 +29,8 @@
     -   [chat.maxLoadedMessages](#chatmaxloadedmessages)
     -   [chat.decryptQueueThrottle](#chatdecryptqueuethrottle)
     -   [chat.recentFilesDisplayLimit](#chatrecentfilesdisplaylimit)
+    -   [chat.maxChatNameLength](#chatmaxchatnamelength)
+    -   [chat.maxChatPurposeLength](#chatmaxchatpurposelength)
 -   [crypto/keys](#cryptokeys)
     -   [deriveAccountKeys](#deriveaccountkeys)
     -   [deriveEphemeralKeys](#deriveephemeralkeys)
@@ -356,7 +358,6 @@
     -   [cached](#cached)
     -   [selected](#selected)
     -   [show](#show)
-    -   [uploadCancelled](#uploadcancelled)
     -   [shared](#shared)
     -   [ext](#ext)
     -   [cachePath](#cachepath)
@@ -756,6 +757,20 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 ### chat.recentFilesDisplayLimit
 
 Maximum amount of recent files to maintain in chat object to be able to display the list on UI.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxChatNameLength
+
+Maximum number of characters chat name can have.
+Do not override this in clients, it's supposed to be a system limit.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxChatPurposeLength
+
+Maximum number of characters chat purpose can have.
+Do not override this in clients, it's supposed to be a system limit.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -1350,6 +1365,9 @@ Peerio custom error types and error handling helpers.
 
     CustomError.prototype = Object.create(Error.prototype);
     CustomError.prototype.constructor = CustomError;
+
+REFACTOR WARNING: before renaming any errors (not sure why you would do that though),
+                  make sure they haven't been used by name anywhere.
 
 ### normalize
 
@@ -3143,12 +3161,6 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 ### show
 
 Is this file visible or filtered by search. Also weird, needs refactor.
-
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-### uploadCancelled
-
-If upload cancel is initiated by user
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 

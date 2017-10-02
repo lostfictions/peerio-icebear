@@ -168,7 +168,7 @@ function _resetUploadState(stream) {
     }
 }
 
-module.exports = function (File) {
+module.exports = function(File) {
     File.prototype._getUlResumeParams = _getUlResumeParams;
     File.prototype.upload = upload;
     File.prototype.cancelUpload = cancelUpload;

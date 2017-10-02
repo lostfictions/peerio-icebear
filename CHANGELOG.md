@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.11.0"></a>
+# [2.11.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.10.1...v2.11.0) (2017-10-02)
+
+
+### Bug Fixes
+
+* chat name and purpose limits ([3944aef](https://github.com/PeerioTechnologies/peerio-icebear/commit/3944aef))
+* new message marker now shows in any chat and not only after app is regaining focus ([0654784](https://github.com/PeerioTechnologies/peerio-icebear/commit/0654784))
+* really fix left participant auto-removal from boot keg ([d526b66](https://github.com/PeerioTechnologies/peerio-icebear/commit/d526b66))
+
+
+### Features
+
+* smarter decision making on file up/download resume in case of errors ([3075265](https://github.com/PeerioTechnologies/peerio-icebear/commit/3075265))
+
+
+
 <a name="2.10.1"></a>
 ## [2.10.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.10.0...v2.10.1) (2017-09-27)
 
