@@ -8,6 +8,9 @@ const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
 const runFeature = (file) => {
     return new Promise((resolve, reject) => {
+        let output = '';
+        let errors = '';
+
         const proc = spawn(cucumberPath, [
             `test/e2e/${file}`,
             '-r',
@@ -18,16 +21,13 @@ const runFeature = (file) => {
             'test/global-setup.js'
         ]);
 
-        proc.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
+        proc.stdout.on('data', (data) => { output += data.toString(); });
+        proc.stderr.on('data', (data) => { errors += data.toString(); });
+        proc.on('close', () => {
+            console.log(`Running feature file: ${file}`);
+            console.log(`Feature output: ${output}`);
+            console.log(`Feature errors: ${errors}`);
 
-        proc.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
-        });
-
-        proc.on('close', (code) => {
-            console.log(`child process exited with code ${code}`);
             resolve();
         });
     });
