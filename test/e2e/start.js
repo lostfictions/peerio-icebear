@@ -4,13 +4,14 @@ const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
+const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
 const runFeature = (file) => {
     return new Promise((resolve, reject) => {
         const proc = spawn(cucumberPath, [
             `test/e2e/${file}`,
             '-r',
-            'test/e2e/account/supportCode',
+            supportCodePath,
             '--compiler',
             'js:babel-register',
             '--require',
@@ -22,7 +23,7 @@ const runFeature = (file) => {
         });
 
         proc.stderr.on('data', (data) => {
-            console.warn(`stderr: ${data}`);
+            console.log(`stderr: ${data}`);
         });
 
         proc.on('close', (code) => {
