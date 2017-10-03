@@ -6,6 +6,10 @@ const Promise = require('bluebird');
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
+const getScenarioSummary = (output) => {
+    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
+};
+
 const runFeature = (file) => {
     return new Promise((resolve, reject) => {
         let output = '';
@@ -23,18 +27,19 @@ const runFeature = (file) => {
 
         proc.stdout.on('data', (data) => { output += data.toString(); });
         proc.stderr.on('data', (data) => { errors += data.toString(); });
-        proc.on('close', () => {
-            console.log(`Running feature file: ${file}`);
-            console.log(`Feature output: ${output}`);
-            console.log(`Feature errors: ${errors}`);
-
-            resolve();
-        });
+        proc.on('close', () => { resolve({ output, errors }); });
     });
 };
 
 const clearRequireCache = () => {
     Object.keys(require.cache).forEach(key => delete require.cache[key]);
+};
+
+const getFeatureFiles = () => {
+    return [
+        'account/stories/access.feature',
+        'account/stories/newUser.feature'
+    ];
 };
 
 describe('End to end test suite', () => {
@@ -44,15 +49,22 @@ describe('End to end test suite', () => {
     });
 
     it('Run all files', (done) => {
-        const files =
-            [
-                'account/stories/access.feature',
-                'account/stories/newUser.feature'
-            ];
+        let results = '';
+        const files = getFeatureFiles();
 
         Promise
-            .each(files, (item) => runFeature(item))
+            .each(files, (item) => {
+                return runFeature(item)
+                    .then(({ output, errors }) => {
+                        console.log(`Feature output: ${output}`);
+                        console.log(`Feature errors: ${errors}`);
+
+                        results += `\nFile: ${item}\n`;
+                        results += getScenarioSummary(output);
+                    });
+            })
             .catch(e => console.log(`feature returned error: ${e}`))
+            .then(() => console.log(`\nRESULTS:\n${results}`))
             .finally(done);
     });
 });
