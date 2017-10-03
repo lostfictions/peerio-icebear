@@ -5,10 +5,10 @@ const path = require('path');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
+const testFolder = 'test/e2e/';
 
 const getFeatureFiles = () => {
     const features = [];
-    const testFolder = 'test/e2e/';
 
     const dirs = fs.readdirSync(testFolder);
     dirs.forEach((item) => {
@@ -25,7 +25,7 @@ const getFeatureFiles = () => {
 };
 
 const runFeature = (file) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         let output = '';
         let errors = '';
 
