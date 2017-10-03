@@ -1,13 +1,14 @@
-import { clearSupportCodeFns } from 'cucumber';
-
 const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
-const getScenarioSummary = (output) => {
-    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
+const getFeatureFiles = () => {
+    return [
+        'account/stories/access.feature',
+        'account/stories/newUser.feature'
+    ];
 };
 
 const runFeature = (file) => {
@@ -31,40 +32,27 @@ const runFeature = (file) => {
     });
 };
 
-const clearRequireCache = () => {
-    Object.keys(require.cache).forEach(key => delete require.cache[key]);
+const getScenarioSummary = (output) => {
+    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
 };
 
-const getFeatureFiles = () => {
-    return [
-        'account/stories/access.feature',
-        'account/stories/newUser.feature'
-    ];
+const start = () => {
+    let results = '';
+    const files = getFeatureFiles();
+
+    Promise
+        .each(files, (item) => {
+            return runFeature(item)
+                .then(({ output, errors }) => {
+                    console.log(`Feature output: ${output}`);
+                    console.log(`Feature errors: ${errors}`);
+
+                    results += `\nFile: ${item}\n`;
+                    results += getScenarioSummary(output);
+                });
+        })
+        .catch(e => console.log(`feature returned error: ${e}`))
+        .then(() => console.log(`\nRESULTS:\n${results}`));
 };
 
-describe('End to end test suite', () => {
-    afterEach(() => {
-        clearSupportCodeFns();
-        clearRequireCache();
-    });
-
-    it('Run all files', (done) => {
-        let results = '';
-        const files = getFeatureFiles();
-
-        Promise
-            .each(files, (item) => {
-                return runFeature(item)
-                    .then(({ output, errors }) => {
-                        console.log(`Feature output: ${output}`);
-                        console.log(`Feature errors: ${errors}`);
-
-                        results += `\nFile: ${item}\n`;
-                        results += getScenarioSummary(output);
-                    });
-            })
-            .catch(e => console.log(`feature returned error: ${e}`))
-            .then(() => console.log(`\nRESULTS:\n${results}`))
-            .finally(done);
-    });
-});
+start();
