@@ -1,6 +1,7 @@
 import { clearSupportCodeFns } from 'cucumber';
 
 const { spawn } = require('child_process');
+const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 
@@ -21,8 +22,7 @@ const runFeature = (file) => {
         });
 
         proc.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
-            reject(data);
+            console.warn(`stderr: ${data}`);
         });
 
         proc.on('close', (code) => {
@@ -43,8 +43,15 @@ describe('End to end test suite', () => {
     });
 
     it('Run all files', (done) => {
-        runFeature('account/stories/newUser.feature')
-            .then(runFeature('account/stories/access.feature'))
-            .then(done);
+        const files =
+            [
+                'account/stories/access.feature',
+                'account/stories/newUser.feature'
+            ];
+
+        Promise
+            .each(files, (item) => runFeature(item))
+            .catch(e => console.log(`feature returned error: ${e}`))
+            .finally(done);
     });
 });
