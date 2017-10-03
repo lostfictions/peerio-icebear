@@ -1,14 +1,27 @@
 const { spawn } = require('child_process');
 const Promise = require('bluebird');
+const fs = require('fs');
+const path = require('path');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
 const getFeatureFiles = () => {
-    return [
-        'account/stories/access.feature',
-        'account/stories/newUser.feature'
-    ];
+    const features = [];
+    const testFolder = 'test/e2e/';
+
+    const dirs = fs.readdirSync(testFolder);
+    dirs.forEach((item) => {
+        const storiesFolder = path.resolve(__dirname, `${item}/stories`);
+        if (fs.existsSync(storiesFolder)) {
+            const foundFeatures = fs.readdirSync(storiesFolder);
+            foundFeatures.forEach((file) => {
+                features.push(`${item}/stories/${file}`);
+            });
+        }
+    });
+
+    return features;
 };
 
 const runFeature = (file) => {
