@@ -1,27 +1,23 @@
 const { spawn } = require('child_process');
 const Promise = require('bluebird');
-const fs = require('fs');
-const path = require('path');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
-const testFolder = 'test/e2e/';
 
-const getFeatureFiles = () => {
-    const features = [];
+const getPeerioDataFrom = (output) => {
+    const dataRegex = /<peerioData>.+<\/peerioData>/g;
+    const result = output.match(dataRegex);
 
-    const dirs = fs.readdirSync(testFolder);
-    dirs.forEach((item) => {
-        const storiesFolder = path.resolve(__dirname, `${item}/stories`);
-        if (fs.existsSync(storiesFolder)) {
-            const foundFeatures = fs.readdirSync(storiesFolder);
-            foundFeatures.forEach((file) => {
-                features.push(`${item}/stories/${file}`);
-            });
-        }
-    });
+    return result;
+};
 
-    return features;
+const getScenarioSummary = (output) => {
+    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
+};
+
+const scenarioPassed = (output) => {
+    const result = getScenarioSummary(output);
+    return !result.includes('failed') && !result.includes('skipped');
 };
 
 const runFeature = (file) => {
@@ -29,7 +25,7 @@ const runFeature = (file) => {
         let output = '';
         let errors = '';
 
-        const proc = spawn(cucumberPath, [
+        const options = [
             `test/e2e/${file}`,
             '-r',
             supportCodePath,
@@ -37,35 +33,35 @@ const runFeature = (file) => {
             'js:babel-register',
             '--require',
             'test/global-setup.js'
-        ]);
+        ];
+        const proc = spawn(cucumberPath, options);
 
-        proc.stdout.on('data', (data) => { output += data.toString(); });
-        proc.stderr.on('data', (data) => { errors += data.toString(); });
-        proc.on('close', () => { resolve({ output, errors }); });
+        proc.stdout.on('data', (data) => {
+            process.stdout.write(data);
+            output += data.toString();
+        });
+
+        proc.stderr.on('data', (data) => {
+            process.stdout.write(data);
+            errors += data.toString();
+        });
+
+        proc.on('close', () => {
+            const result = {};
+            result.succeeded = scenarioPassed(output);
+
+            if (result.succeeded) {
+                result.data = getPeerioDataFrom(output);
+                console.log(`Captured data: ${result.data}`);
+            }
+
+            if (errors) {
+                result.errors = errors;
+            }
+
+            resolve(result);
+        });
     });
 };
 
-const getScenarioSummary = (output) => {
-    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
-};
-
-const start = () => {
-    let results = '';
-    const files = getFeatureFiles();
-
-    Promise
-        .each(files, (item) => {
-            return runFeature(item)
-                .then(({ output, errors }) => {
-                    console.log(`Feature output: ${output}`);
-                    console.log(`Feature errors: ${errors}`);
-
-                    results += `\nFile: ${item}\n`;
-                    results += getScenarioSummary(output);
-                });
-        })
-        .catch(e => console.log(`feature returned error: ${e}`))
-        .then(() => console.log(`\nRESULTS:\n${results}`));
-};
-
-start();
+module.exports = runFeature;

@@ -3,6 +3,11 @@ Feature: User account access
     In order to use the app
     I want to have an account
     
+    Scenario: Account creation
+        Given I am a new customer
+        When I successfully create a new account
+        Then I will be logged in
+        
     # Scenario: Account deletion
     #     Given I am a registered user
     #     When I delete my account

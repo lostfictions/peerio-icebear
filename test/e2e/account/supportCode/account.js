@@ -31,6 +31,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     When('I successfully create a new account', (done) => {
         app.User.current.createAccountAndLogin()
             .should.be.fulfilled
+            .then(() => {
+                console.log(`<peerioData>username: ${app.User.current.username}</peerioData>`);
+                console.log(`<peerioData>passphrase: ${app.User.current.passphrase}</peerioData>`);
+            })
             .then(done);
     });
 
