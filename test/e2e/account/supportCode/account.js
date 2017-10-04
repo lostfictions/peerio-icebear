@@ -1,6 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
+const speakeasy = require('speakeasy');
 const { getRandomUsername } = require('../../helpers');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 
@@ -249,15 +250,29 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Enable 2FA
     When('I enable 2FA', (done) => {
+        app.User.current.twoFAEnabled = false;
+
         app.User.current
             .setup2fa()
             .then((s) => { secret = s; })
             .then(done);
     });
 
-    Then('I should receive a challenge', () => {
+    Then('I should receive a challenge', (done) => {
         secret.should.not.be.null;
-        console.log(`secret is: ${secret}`);
+
+        const token = speakeasy.totp({
+            secret: secret.base32,
+            encoding: 'base32'
+        });
+        console.log(`secret is: ${token}`);
+
+        app.clientApp
+            .active2FARequest
+            .submit(token, false);
+
+        // app.User.current.confirm2faSetup(token, false)
+        //     .then(done);
     });
 
 
