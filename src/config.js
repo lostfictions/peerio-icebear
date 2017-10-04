@@ -309,7 +309,16 @@ const config = new class {
          * @readonly
          * @public
          */
-        maxChatPurposeLength: 120
+        maxChatPurposeLength: 120,
+        /**
+         * Maximum number of bytes inline image can have (both peerio file and external)
+         * to allow auto-downloading and showing it inline
+         * @member {number} chat.inlineImageSizeLimit
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        inlineImageSizeLimit: 10 * 1024 * 1014
     };
 }();
 

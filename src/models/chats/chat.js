@@ -1110,7 +1110,7 @@ class Chat {
      */
     @action detectFileAttachments(messages) {
         if (!this._recentFiles) {
-            console.error('detectFileAttachments was called before _recentFiles became available');
+            // console.error('detectFileAttachments was called before _recentFiles became available');
             return;
         }
         for (let i = 0; i < messages.length; i++) {
