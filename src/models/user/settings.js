@@ -62,7 +62,8 @@ class Settings extends Keg {
         consentExternal: null, // null - no feedback from user yet, true - user agreed, false - user declined
         limitSize: false, // will use config.chat.inlineImageSizeLimit
         peerioContentEnabled: true,
-        externalContentEnabled: false
+        externalContentEnabled: false,
+        externalOnlyFavoriteContacts: false
     }
 
 
