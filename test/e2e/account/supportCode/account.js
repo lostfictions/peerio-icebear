@@ -3,10 +3,12 @@ const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const speakeasy = require('speakeasy');
 const { getRandomUsername } = require('../../helpers');
+const runFeature = require('../../helpers/runFeature');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
+    let username, passphrase;
     let secret = null;
     let blob = null;
     let url = '';
@@ -18,31 +20,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Account creation
-    Given('I am a new customer', () => {
-        const user = new app.User();
-
-        user.username = getRandomUsername();
-        user.email = 'alice@carroll.com';
-        user.passphrase = 'secret secrets';
-
-        app.User.current = user;
-    });
-
-    When('I successfully create a new account', (done) => {
-        app.User.current.createAccountAndLogin()
-            .should.be.fulfilled
-            .then(() => {
-                const data = {
-                    username: app.User.current.username,
-                    passphrase: app.User.current.passphrase
-                };
-                console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
-            })
-            .then(done);
-    });
-
-    Then('I will be logged in', (done) => {
-        when(() => app.socket.authenticated, done);
+    When('I successfully create an account', (cb) => {
+        runFeature('featureHelpers.feature:3')
+            .then(result => {
+                if (result.succeeded) {
+                    ({ username, passphrase } = result.data);
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
     });
 
 
@@ -76,8 +63,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Given('I am a returning customer', () => {
         const user = new app.User();
 
-        user.username = 'quxa7sbcj5cytq66utkpjasnss32yb';
-        user.passphrase = 'secret secrets';
+        user.username = username;
+        user.passphrase = passphrase;
 
         app.User.current = user;
     });
@@ -97,8 +84,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Given('I am logged in', () => {
         const user = new app.User();
 
-        user.username = 'quxa7sbcj5cytq66utkpjasnss32yb';
-        user.passphrase = 'secret secrets';
+        user.username = username;
+        user.passphrase = passphrase;
 
         app.User.current = user;
 

@@ -4,9 +4,7 @@ Feature: User account access
     I want to have an account
     
     Scenario: Account creation
-        Given I am a new customer
-        When I successfully create a new account
-        Then I will be logged in
+        * I successfully create an account
         
     # Scenario: Account deletion
     #     Given I am a registered user

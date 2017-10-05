@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
-const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
+const supportCodePath = 'test/e2e/helpers';
 
 const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
@@ -33,7 +33,7 @@ const runFeature = (file) => {
         let errors = '';
 
         const options = [
-            `test/e2e/${file}`,
+            `test/e2e/helpers/${file}`,
             '-r',
             supportCodePath,
             '--compiler',
@@ -59,7 +59,6 @@ const runFeature = (file) => {
 
             if (result.succeeded) {
                 result.data = getPeerioDataFrom(output);
-                console.log(`Captured data: ${result.data}`);
             }
 
             if (errors) {

@@ -1,7 +1,4 @@
-Feature: User account access
-    As a customer
-    In order to use the app
-    I want to have an account
+Feature: Common scenarios
     
     Scenario: Account creation
         Given I am a new customer
