@@ -27,7 +27,7 @@ const scenarioPassed = (output) => {
     return result && !result.includes('failed') && !result.includes('skipped');
 };
 
-const runFeature = (file) => {
+const runFeature = (file, peerioData = null) => {
     return new Promise((resolve) => {
         let output = '';
         let errors = '';
@@ -41,7 +41,11 @@ const runFeature = (file) => {
             '--require',
             'test/global-setup.js'
         ];
-        const proc = spawn(cucumberPath, options);
+
+        const env = Object.create(process.env);
+        env.peerioData = peerioData;
+
+        const proc = spawn(cucumberPath, options, { env });
 
         proc.stdout.on('data', (data) => {
             process.stdout.write(data);
