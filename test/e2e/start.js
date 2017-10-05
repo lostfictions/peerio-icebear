@@ -6,13 +6,20 @@ const supportCodePath = 'test/e2e/account/supportCode'; // todo: *
 
 const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
-    const result = output.match(dataRegex);
 
+    let found = output.match(dataRegex);
+    found = found.map(x => x.replace('<peerioData>', ''));
+    found = found.map(x => x.replace('</peerioData>', ''));
+
+    const result = JSON.parse(found);
     return result;
 };
 
 const getScenarioSummary = (output) => {
-    return output.substring(output.lastIndexOf('scenario') - 2, output.length);
+    const dataRegex = /\d+ scenario(|s) \(.*\)/g;
+    
+    const found = output.match(dataRegex);
+    return found;
 };
 
 const scenarioPassed = (output) => {

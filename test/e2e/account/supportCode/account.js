@@ -32,8 +32,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current.createAccountAndLogin()
             .should.be.fulfilled
             .then(() => {
-                console.log(`<peerioData>username: ${app.User.current.username}</peerioData>`);
-                console.log(`<peerioData>passphrase: ${app.User.current.passphrase}</peerioData>`);
+                let data = {
+                    username: app.User.current.username,
+                    passphrase: app.User.current.passphrase
+                };
+                console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
             })
             .then(done);
     });
