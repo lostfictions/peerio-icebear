@@ -32,7 +32,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current.createAccountAndLogin()
             .should.be.fulfilled
             .then(() => {
-                let data = {
+                const data = {
                     username: app.User.current.username,
                     passphrase: app.User.current.passphrase
                 };

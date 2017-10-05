@@ -17,14 +17,14 @@ const getPeerioDataFrom = (output) => {
 
 const getScenarioSummary = (output) => {
     const dataRegex = /\d+ scenario(|s) \(.*\)/g;
-    
+
     const found = output.match(dataRegex);
     return found;
 };
 
 const scenarioPassed = (output) => {
     const result = getScenarioSummary(output);
-    return !result.includes('failed') && !result.includes('skipped');
+    return result && !result.includes('failed') && !result.includes('skipped');
 };
 
 const runFeature = (file) => {
