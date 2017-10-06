@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
-const supportCodePath = 'test/e2e/helpers';
+const supportCodePath = 'test/e2e/account/supportCode';
 
 const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
@@ -43,7 +43,7 @@ const runFeature = (file, peerioData = null) => {
         ];
 
         const env = Object.create(process.env);
-        env.peerioData = peerioData;
+        env.peerioData = JSON.stringify(peerioData);
 
         const proc = spawn(cucumberPath, options, { env });
 
