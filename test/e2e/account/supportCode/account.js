@@ -21,7 +21,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Account creation
     When('I successfully create an account', (cb) => {
-        runFeature('featureHelpers.feature:3')
+        runFeature('Account creation')
             .then(result => {
                 if (result.succeeded) {
                     ({ username, passphrase } = result.data);

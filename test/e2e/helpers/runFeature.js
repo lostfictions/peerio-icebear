@@ -2,6 +2,7 @@ const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
+const featurePath = 'test/e2e/helpers/featureHelpers.feature';
 const supportCodePath = 'test/e2e/account/supportCode';
 
 const getPeerioDataFrom = (output) => {
@@ -27,19 +28,21 @@ const scenarioPassed = (output) => {
     return result && !result.includes('failed') && !result.includes('skipped');
 };
 
-const runFeature = (file, peerioData = null) => {
+const runFeature = (scenarioName, peerioData = null) => {
     return new Promise((resolve) => {
         let output = '';
         let errors = '';
 
         const options = [
-            `test/e2e/helpers/${file}`,
+            featurePath,
             '-r',
             supportCodePath,
             '--compiler',
             'js:babel-register',
             '--require',
-            'test/global-setup.js'
+            'test/global-setup.js',
+            '--name',
+            scenarioName
         ];
 
         const env = Object.create(process.env);
