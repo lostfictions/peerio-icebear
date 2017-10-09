@@ -26,8 +26,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Delete room
     Given('I am an admin of {a room}', (done) => {
-        const invited = new app.Contact(invitedUserId, {}, true);
-        chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
         when(() => chat.canIAdmin === true, done);
     });
 
@@ -36,7 +34,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('nobody should be able to access {a room}', (callback) => {
-        callback(null, 'pending');
+        console.log(app.chatStore.chats);
+        console.log(app.chatStore.chats.length);
     });
 
     When('I invite {other users}', (callback) => {
@@ -47,24 +46,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         callback(null, 'pending');
     });
 
-    Given('{person} has joined {a room}', (callback) => {
-        callback(null, 'pending');
-    });
-
     When('I kick out {person}', (callback) => {
         callback(null, 'pending');
     });
-
 
     Then('{person} should not be able to access {a room}', (callback) => {
         callback(null, 'pending');
     });
 
-    Given('{person} has joined {a room}', (callback) => {
-        callback(null, 'pending');
-    });
 
-    When('I promote {person} to role {stringInDoubleQuotes}', (stringInDoubleQuotes, callback) => {
+    When('I promote {person} to admin', (callback) => {
         callback(null, 'pending');
     });
 

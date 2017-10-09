@@ -30,7 +30,7 @@ Feature: Rooms
     Scenario: Promote member
         Given I am an admin of {a room}
         And {person} has joined {a room} 
-        When I promote {person} to role "admin"
+        When I promote {person} to admin
         Then {person} should be admin
     
     Scenario: Demote member
