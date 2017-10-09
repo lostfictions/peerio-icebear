@@ -39,6 +39,56 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         callback(null, 'pending');
     });
 
+    When('I invite {other users}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Then('{other users} should get notified', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Given('{person} has joined {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    When('I kick out {person}', (callback) => {
+        callback(null, 'pending');
+    });
+
+
+    Then('{person} should not be able to access {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Given('{person} has joined {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    When('I promote {person} to role {stringInDoubleQuotes}', (stringInDoubleQuotes, callback) => {
+        callback(null, 'pending');
+    });
+
+    Then('{person} should be admin', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Given('{person} has joined {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Given('{person} is admin of {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+    When('I demote them', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Then('{person} should no longer be admin of {a room}', (callback) => {
+        callback(null, 'pending');
+    });
+
+
     // Scenario: Can not create more than 3 rooms
     When('I created 3 rooms', () => {
         const invited = new app.Contact(invitedUserId, {}, true);
