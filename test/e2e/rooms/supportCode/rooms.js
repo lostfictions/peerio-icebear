@@ -16,6 +16,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Create room
     When('I create a room', () => {
+        console.log(`Channels left: ${app.User.current.channelsLeft}`);
+
         const invited = new app.Contact(invitedUserId, {}, true);
         chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
     });
@@ -25,17 +27,17 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     // Scenario: Delete room
-    Given('I am an admin of {a room}', (done) => {
+    Given('I am an admin of a room', (done) => {
         when(() => chat.canIAdmin === true, done);
     });
 
-    When('I delete a room', () => {
-        chat.delete();
+    When('I delete a room', (done) => {
+        chat.delete()
+            .then(done);
     });
 
-    Then('nobody should be able to access {a room}', (callback) => {
-        console.log(app.chatStore.chats);
-        console.log(app.chatStore.chats.length);
+    Then('nobody should be able to access the room', () => {
+        app.chatStore.chats.length.should.be.equal(0);
     });
 
     When('I invite {other users}', (callback) => {
