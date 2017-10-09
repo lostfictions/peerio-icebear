@@ -25,3 +25,8 @@ Feature: Rooms
         And belong to {a room}
         When I leave {a room}
         Then I should not be able to access {a room}
+
+    Scenario: Can not create more than 3 rooms
+        Given I created 3 rooms
+        When I try to create {another room} 
+        Then {another room} should not be created
