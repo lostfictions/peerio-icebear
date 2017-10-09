@@ -18,7 +18,7 @@ Feature: Rooms
     
     Scenario: Delete room
         Given I am an admin of {a room}
-        When I delete {a room}
+        When I delete a room
         Then nobody should be able to access {a room}
     
     Scenario: Kick member

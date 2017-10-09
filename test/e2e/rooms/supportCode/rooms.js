@@ -17,10 +17,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Create room
     When('I create a room', () => {
         const invited = new app.Contact(invitedUserId, {}, true);
-        console.log(app.User.current.channelsLeft); 
-        
         chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
-        console.log(chat); // TypeError: Cannot read property 'added' of null
     });
 
     Then('I can enter the room', (done) => {
@@ -28,17 +25,14 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     // Scenario: Delete room
-    Given('I am an admin of {a room}', (callback) => {
-        chat = app.chatStore.startChat(invitedUserId, true, roomName, 'test-purpose');
-        when(() => chat.added === true, () => {
-            // console.log('can i admin '+chat.canIAdmin);
-            callback(null, 'pending');
-        });
+    Given('I am an admin of {a room}', (done) => {
+        const invited = new app.Contact(invitedUserId, {}, true);
+        chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
+        when(() => chat.canIAdmin === true, done);
     });
 
-    When('I delete {a room}', (callback) => {
+    When('I delete a room', () => {
         chat.delete();
-        callback(null, 'pending');
     });
 
     Then('nobody should be able to access {a room}', (callback) => {
