@@ -108,7 +108,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Sign out
-    Given('I am logged in', () => {
+    Given('I am logged in', (done) => {
         const user = new app.User();
 
         user.username = username;
@@ -116,9 +116,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
         app.User.current = user;
 
-        return app.User.current.login()
+        app.User.current.login()
             .then(() => asPromise(app.socket, 'authenticated', true))
-            .then(() => asPromise(app.User.current, 'profileLoaded', true));
+            .then(() => asPromise(app.User.current, 'profileLoaded', true))
+            .then(() => when(() => app.User.current.quota, done));
     });
 
     When('I sign out', () => {
