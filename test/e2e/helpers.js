@@ -2,6 +2,8 @@ const mailinator = require('mailinator-api');
 const http = require('http');
 const https = require('https');
 
+const confirmLabel = 'Confirm your account';
+
 const getConfirmationEmailAddress = (body) => {
     const regex = /https:\\\/\\\/hocuspocus.peerio.com\\\/confirm-address\\\/\w*/ig;
     let found = body.match(regex)[0];
@@ -26,7 +28,7 @@ const confirmUserEmail = (user, done) => {
         (reply) => {
             const mailbox = JSON.parse(reply);
             const confirmationEmailId = mailbox.messages
-                .find(x => x.subject.includes(user))
+                .find(x => x.subject.includes(user) && x.subject.includes(confirmLabel))
                 .id;
 
             const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmailId}&token=${process.env.MAILINATOR_KEY}`;
@@ -34,11 +36,12 @@ const confirmUserEmail = (user, done) => {
             let body = '';
             http.get(emailUrl, (res) => {
                 res.on('data', (chunk) => { body += chunk; });
-                res.on('error', (e) => done(e.message, 'failed'));
+                res.on('error', (e) => done(e.message));
                 res.on('end', () => {
                     const url = getConfirmationEmailAddress(body);
                     https.get(url, (resp) => {
-                        resp.on('error', (e) => done(e.message, 'failed'));
+                        resp.on('data', () => {});
+                        resp.on('error', (e) => done(e.message));
                         resp.on('end', () => done());
                     });
                 });
