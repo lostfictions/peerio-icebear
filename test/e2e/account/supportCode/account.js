@@ -5,6 +5,9 @@ const speakeasy = require('speakeasy');
 const { getRandomUsername } = require('../../helpers');
 const runFeature = require('../../helpers/runFeature');
 const { asPromise } = require('../../../../src/helpers/prombservable');
+const mailinator = require('mailinator-api');
+const http = require('http');
+const https = require('https');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
@@ -35,8 +38,9 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Given('I am a new customer', () => {
         const user = new app.User();
 
-        user.username = getRandomUsername();
-        user.email = 'alice@carroll.com';
+        const name = getRandomUsername();
+        user.username = name;
+        user.email = `${name}@mailinator.com`;
         user.passphrase = 'secret secrets';
 
         app.User.current = user;
@@ -61,24 +65,48 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Account deletion
-    Given('I am a registered user', (done) => {
-        const user = new app.User();
+    When('I delete my account', (done) => {
+        mailinator.getMailinatorInboxJSON(
+            process.env.PEERIO_ADMIN_EMAIL,
+            process.env.MAILINATOR_KEY,
+            (reply) => {
+                const mailbox = JSON.parse(reply);
+                const confirmationEmail = mailbox.messages
+                    .find(x => x.subject.includes(app.User.current.username))
+                    .id;
 
-        user.username = getRandomUsername();
-        user.email = 'alice@carroll.com';
-        user.passphrase = 'secret secrets';
+                console.log('email is:', confirmationEmail);
 
-        app.User.current = user;
+                const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmail}&token=${process.env.MAILINATOR_KEY}`;
 
-        app.User.current.createAccountAndLogin()
-            .should.be.fulfilled
-            .then(done);
-    });
+                let body = '';
+                http
+                    .get(emailUrl, (res) => {
+                        res.on('data', (chunk) => {
+                            body += chunk;
+                        });
+                        res.on('end', () => {
+                            const regex = /https:\\\/\\\/hocuspocus.peerio.com\\\/confirm-address\\\/\w*/ig;
 
-    When('I delete my account', () => {
-        // todo: Account deletion init failed. No confirmed primary e-mail for user
-        app.User.current.primaryAddressConfirmed = true;
-        return app.User.current.deleteAccount(app.User.current.username);
+                            let found = body.match(regex)[0];
+                            found = found.replace(/\\\//g, '/');
+                            console.log(found);
+
+                            https
+                                .get(found, (resp) => {
+                                    resp.on('data', (chunk) => {
+                                        console.log(chunk.toString());
+                                    });
+                                    resp.on('end', () => done());
+                                    resp.on('error', (e) => console.log(e.message));
+                                });
+                        });
+                    })
+                    .on('error', (e) => done(e.message, 'failed'));
+            });
+
+        // app.User.current.primaryAddressConfirmed = true;
+        // return app.User.current.deleteAccount(app.User.current.username);
     });
 
     Then('I should receive a confirmation', (done) => {

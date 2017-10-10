@@ -6,10 +6,10 @@ Feature: User account access
     Scenario: Account creation
         * I successfully create an account
         
-    # Scenario: Account deletion
-    #     Given I am a registered user
-    #     When I delete my account
-    #     Then I should receive a confirmation
+    Scenario: Account deletion
+        Given I am logged in
+        When I delete my account
+        Then I should receive a confirmation
 
     Scenario: Sign in
         Given I am a returning customer
