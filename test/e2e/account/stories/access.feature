@@ -5,11 +5,12 @@ Feature: User account access
     
     Scenario: Account creation
         * I successfully create an account
-        
+    
     Scenario: Account deletion
         Given I am logged in
+        And my email is confirmed
         When I delete my account
-        Then I should receive a confirmation
+        Then I should not be able to login
 
     Scenario: Sign in
         Given I am a returning customer
@@ -39,4 +40,3 @@ Feature: User account access
         And removeme@test.com is added in my email addresses
         When I remove removeme@test.com
         Then removeme@test.com should not appear in my addresses
-    
