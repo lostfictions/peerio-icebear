@@ -21,7 +21,7 @@ const getRandomUsername = () => {
     return username;
 };
 
-const confirmUserEmail = (user, done) => {
+const confirmUserEmail = (user, err, done) => {
     mailinator.getMailinatorInboxJSON(
         process.env.PEERIO_ADMIN_EMAIL,
         process.env.MAILINATOR_KEY,
@@ -36,12 +36,12 @@ const confirmUserEmail = (user, done) => {
             let body = '';
             http.get(emailUrl, (res) => {
                 res.on('data', (chunk) => { body += chunk; });
-                res.on('error', (e) => done(e.message));
+                res.on('error', (e) => err(e.message));
                 res.on('end', () => {
                     const url = getConfirmationEmailAddress(body);
                     https.get(url, (resp) => {
                         resp.on('data', () => {});
-                        resp.on('error', (e) => done(e.message));
+                        resp.on('error', (e) => err(e.message));
                         resp.on('end', () => done());
                     });
                 });

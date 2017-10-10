@@ -63,12 +63,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Account deletion
     When('I delete my account', (done) => {
-        confirmUserEmail(app.User.current.username, () => {
-            return app.User.current
-                .deleteAccount(app.User.current.username)
-                .catch(e => console.log(e))
-                .then(done);
-        });
+        confirmUserEmail(app.User.current.username,
+            (err) => {
+                console.log(err);
+            },
+            () => {
+                app.User.current.primaryAddressConfirmed = true;
+                app.User.current.deleteAccount(app.User.current.username)
+                    .catch(e => console.log(e.message))
+                    .then(done);
+            });
     });
 
     Then('I should receive a confirmation', (done) => {
