@@ -5,6 +5,7 @@ const speakeasy = require('speakeasy');
 const { getRandomUsername, confirmUserEmail } = require('../../helpers');
 const runFeature = require('../../helpers/runFeature');
 const { asPromise } = require('../../../../src/helpers/prombservable');
+const { DisconnectedError } = require('../../../../src/errors');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
@@ -62,21 +63,25 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Account deletion
-    When('I delete my account', (done) => {
+    When('my email is confirmed', (done) => {
         confirmUserEmail(app.User.current.username,
             (err) => {
                 console.log(err);
             },
             () => {
                 app.User.current.primaryAddressConfirmed = true;
-                app.User.current.deleteAccount(app.User.current.username)
-                    .catch(e => console.log(e.message))
-                    .then(done);
+                done();
             });
     });
 
-    Then('I should receive a confirmation', (done) => {
-        done(null, 'pending');
+    Given('I delete my account', () => {
+        return app.User.current.deleteAccount(username);
+    });
+
+    Then('I should not be able to login', () => {
+        return app.User.current
+            .login()
+            .should.be.rejectedWith(DisconnectedError);
     });
 
 
