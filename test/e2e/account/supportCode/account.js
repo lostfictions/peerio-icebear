@@ -2,12 +2,9 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const speakeasy = require('speakeasy');
-const { getRandomUsername } = require('../../helpers');
+const { getRandomUsername, confirmUserEmail } = require('../../helpers');
 const runFeature = require('../../helpers/runFeature');
 const { asPromise } = require('../../../../src/helpers/prombservable');
-const mailinator = require('mailinator-api');
-const http = require('http');
-const https = require('https');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
@@ -66,47 +63,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Account deletion
     When('I delete my account', (done) => {
-        mailinator.getMailinatorInboxJSON(
-            process.env.PEERIO_ADMIN_EMAIL,
-            process.env.MAILINATOR_KEY,
-            (reply) => {
-                const mailbox = JSON.parse(reply);
-                const confirmationEmail = mailbox.messages
-                    .find(x => x.subject.includes(app.User.current.username))
-                    .id;
-
-                console.log('email is:', confirmationEmail);
-
-                const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmail}&token=${process.env.MAILINATOR_KEY}`;
-
-                let body = '';
-                http
-                    .get(emailUrl, (res) => {
-                        res.on('data', (chunk) => {
-                            body += chunk;
-                        });
-                        res.on('end', () => {
-                            const regex = /https:\\\/\\\/hocuspocus.peerio.com\\\/confirm-address\\\/\w*/ig;
-
-                            let found = body.match(regex)[0];
-                            found = found.replace(/\\\//g, '/');
-                            console.log(found);
-
-                            https
-                                .get(found, (resp) => {
-                                    resp.on('data', (chunk) => {
-                                        console.log(chunk.toString());
-                                    });
-                                    resp.on('end', () => done());
-                                    resp.on('error', (e) => console.log(e.message));
-                                });
-                        });
-                    })
-                    .on('error', (e) => done(e.message, 'failed'));
-            });
-
-        // app.User.current.primaryAddressConfirmed = true;
-        // return app.User.current.deleteAccount(app.User.current.username);
+        confirmUserEmail(app.User.current.username, () => {
+            return app.User.current
+                .deleteAccount(app.User.current.username)
+                .catch(e => console.log(e))
+                .then(done);
+        });
     });
 
     Then('I should receive a confirmation', (done) => {
