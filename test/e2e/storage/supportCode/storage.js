@@ -1,21 +1,30 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
+const { asPromise } = require('../../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
-    const fileToUpload = 'test.txt';
+    let numberOfFilesUploaded;
+    const testDocument = 'test.txt';
+
+    const findTestFile = () => {
+        return app.fileStore.files.find(file => file.name === testDocument);
+    };
 
     Before((testCase, done) => {
         app = getNewAppInstance();
-        when(() => app.socket.connected, done);
+
+        asPromise(app.socket, 'connected', true)
+            .then(() => app.fileStore.loadAllFiles())
+            .then(done);
     });
 
     // Scenario: Upload
-    When('I upload a file', { timeout: 25000 }, (done) => {
-        app.fileStore.loadAllFiles();
+    When('I upload a file', (done) => {
+        numberOfFilesUploaded = app.fileStore.files.length;
 
-        const file = `${__dirname}/${fileToUpload}`;
+        const file = `${__dirname}/${testDocument}`;
         const keg = app.fileStore.upload(file);
 
         when(() => keg.readyForDownload, done);
@@ -23,10 +32,29 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Then('I should see it in my files', () => {
         app.fileStore.files.length
-            .should.be.above(1);
+            .should.be.equal(numberOfFilesUploaded + 1);
 
-        app.fileStore.files
-            .find(x => x.name === fileToUpload)
-            .should.be.ok;
+        findTestFile().should.be.ok;
+    });
+
+    When('I download a file', (done) => {
+        findTestFile()
+            .download(__dirname, true)
+            .then(done);
+    });
+
+
+    Then('I can access a file locally', () => {
+
+    });
+
+    Then('I delete a file', () => {
+        numberOfFilesUploaded = app.fileStore.files.length;
+        return findTestFile().remove();
+    });
+
+    Then('it should be removed from my files', () => {
+        findTestFile().deleted.should.be.true;
+        return asPromise(app.fileStore.files, 'length', numberOfFilesUploaded - 1);
     });
 });
