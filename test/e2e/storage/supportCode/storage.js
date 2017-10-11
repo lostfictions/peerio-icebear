@@ -6,6 +6,7 @@ const { asPromise } = require('../../../../src/helpers/prombservable');
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let numberOfFilesUploaded;
+    const other = 'ubeugrp7kaes5yjk479wb4zyiszjra';
     const testDocument = 'test.txt';
 
     const findTestFile = () => {
@@ -15,19 +16,22 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Before((testCase, done) => {
         app = getNewAppInstance();
 
-        asPromise(app.socket, 'connected', true)
-            .then(() => app.fileStore.loadAllFiles())
-            .then(done);
+        when(() => app.socket.connected, () => {
+            app.fileStore.loadAllFiles();
+            done();
+        });
     });
 
     // Scenario: Upload
     When('I upload a file', (done) => {
-        numberOfFilesUploaded = app.fileStore.files.length;
+        asPromise(app.fileStore, 'loading', false).then(() => {
+            numberOfFilesUploaded = app.fileStore.files.length;
 
-        const file = `${__dirname}/${testDocument}`;
-        const keg = app.fileStore.upload(file);
+            const file = `${__dirname}/${testDocument}`;
+            const keg = app.fileStore.upload(file);
 
-        when(() => keg.readyForDownload, done);
+            when(() => keg.readyForDownload, done);
+        });
     });
 
     Then('I should see it in my files', () => {
@@ -56,5 +60,14 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Then('it should be removed from my files', () => {
         findTestFile().deleted.should.be.true;
         return asPromise(app.fileStore.files, 'length', numberOfFilesUploaded - 1);
+    });
+
+    When('I share a file with a receiver', () => {
+        const receiver = new app.Contact(other);
+        return findTestFile().share(receiver); // Cannot read property 'buffer' of null
+    });
+
+    Then('receiver should see it in their files', () => {
+        console.log(findTestFile());
     });
 });
