@@ -9,8 +9,10 @@ const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
 
     let found = output.match(dataRegex);
-    found = found.map(x => x.replace('<peerioData>', ''));
-    found = found.map(x => x.replace('</peerioData>', ''));
+    if (found) {
+        found = found.map(x => x.replace('<peerioData>', ''));
+        found = found.map(x => x.replace('</peerioData>', ''));
+    }
 
     const result = JSON.parse(found);
     return result;
@@ -46,7 +48,9 @@ const runFeature = (scenarioName, peerioData = null) => {
         ];
 
         const env = Object.create(process.env);
-        env.peerioData = JSON.stringify(peerioData);
+        if (peerioData !== null) {
+            env.peerioData = JSON.stringify(peerioData);
+        }
 
         const proc = spawn(cucumberPath, options, { env });
 
