@@ -53,7 +53,6 @@
     "buffer": "5.0.7",
     "eventemitter3": "2.0.3",
     "lodash": "4.17.4",
-    "mailinator-api": "0.0.1",
     "mobx": "3.2.2",
     "moment": "2.18.1",
     "peerio-translator": "git+https://github.com/PeerioTechnologies/peerio-translator.git#icebear",
