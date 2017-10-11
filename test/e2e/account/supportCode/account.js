@@ -132,17 +132,17 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Primary email
-    When('I add a new primary email', () => {
+    When('I add a new email', () => {
         newEmail = `${username}2@mailinator.com`;
-        app.User.current
-            .addEmail(newEmail)
-            .then(() => {
-                confirmUserEmail(
-                    `${username}2`,
-                    (err) => console.log(err),
-                    () => app.User.current.makeEmailPrimary(newEmail)
-                );
-            });
+        return app.User.current.addEmail(newEmail);
+    });
+
+    When('the new email is confirmed', (done) => {
+        confirmUserEmail(`${username}2`, (err) => console.log(err), () => done());
+    });
+
+    When('I make the new email primary', () => {
+        return app.User.current.makeEmailPrimary(newEmail);
     });
 
     Then('the primary email should be updated', (done) => {
