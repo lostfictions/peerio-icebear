@@ -23,20 +23,16 @@ Feature: User account access
         Then I can not access my account
     
     Scenario: Change primary email
-        Given I am logged in
-        And my email is confirmed
-        When I add a new email
-        And the new email is confirmed
-        When I make the new email primary
-        Then the primary email should be updated
+        * Change primary email
     
     Scenario: Add new email
         Given I am logged in
-        When hello123@test.com is added in my email addresses
-        Then my email addresses should contain hello123@test.com
+        When I add a new email
+        When I am logged in
+        Then new email is in my addresses
     
     Scenario: Remove email
         Given I am logged in
-        And removeme@test.com is added in my email addresses
-        When I remove removeme@test.com
-        Then removeme@test.com should not appear in my addresses
+        And I add a new email
+        When I remove the new email
+        Then the new email should not appear in my addresses

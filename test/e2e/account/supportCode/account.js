@@ -17,6 +17,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Before((testCase, done) => {
         app = getNewAppInstance();
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            ({ username, passphrase } = data);
+            console.log('hereeee');
+            console.log(username);
+        }
         when(() => app.socket.connected, done);
     });
 
@@ -129,13 +135,24 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Primary email
-    When('I add a new email', () => {
-        newEmail = `${username}2@mailinator.com`;
-        return app.User.current.addEmail(newEmail);
+    When('Change primary email', { timeout: 10000 }, (cb) => {
+        runFeature('Change primary email', { username, passphrase })
+            .then(result => {
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
+    });
+
+    When('I add a new email', (done) => {
+        newEmail = `${getRandomUsername()}@mailinator.com`;
+        app.User.current.addEmail(newEmail).then(done);
     });
 
     When('the new email is confirmed', (done) => {
-        confirmUserEmail(`${username}2`, done);
+        confirmUserEmail(newEmail, done);
     });
 
     When('I make the new email primary', () => {
@@ -153,38 +170,22 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Add new email
-    When('{email} is added in my email addresses', (email, done) => {
-        app.User.current
-            .addEmail(email)
-            .then(done);
-    });
-
-    Then('my email addresses should contain {email}', (email, done) => {
-        app.User.current
-            .login() // todo: have to login to refresh addresses - better way?
-            .then(() => {
-                app.User.current.addresses
-                    .find(x => x.address === email)
-                    .should.not.be.null;
-            })
-            .then(done);
+    Then('new email is in my addresses', () => {
+        app.User.current.addresses
+            .find(x => x.address === newEmail)
+            .should.not.be.null;
     });
 
 
     // Scenario: Remove email
-    When('I remove {email}', (email) => {
-        return app.User.current.removeEmail(email);
+    When('I remove the new email', () => {
+        return app.User.current.removeEmail(newEmail);
     });
 
-    Then('{email} should not appear in my addresses', (email, done) => {
-        app.User.current
-            .login() // todo: have to login to refresh addresses - better way?
-            .then(() => {
-                app.User.current.addresses
-                    .includes(x => x.address === email)
-                    .should.be.false;
-            })
-            .then(done);
+    Then('the new email should not appear in my addresses', () => {
+        app.User.current.addresses
+            .includes(x => x.address === newEmail)
+            .should.be.false;
     });
 
 
