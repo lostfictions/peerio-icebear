@@ -1,22 +1,17 @@
 Feature: Find contacts
-    As a user
-    In order to communicate with others
-    I want to access my contacts
     
     Background: 
         Given I am logged in
 
-    Scenario: Find contact by username
-        When I search for Alice
-        Then I receive a contact with the username Alice
+    Scenario Outline: Find contact
+        When I search for <someone>
+        And  the contact exists
+        Then the contact is added in my favourite contacts
     
-    Scenario: Find contact by email
-        When I search for alice@carroll.com
-        Then I receive a contact with the email alice@carroll.com
-
-    Scenario: Remove contact
-        When I remove Alice from my contacts
-        Then "Alice" should not appear in my contacts list
+    Examples:
+        | someone                                        |
+        |  ubeugrp7kaes5yjk479wb4zyiszjra                |
+        |  ubeugrp7kaes5yjk479wb4zyiszjra@mailinator.com |
 
     Scenario: Send invite email
         Given I search for Alice
