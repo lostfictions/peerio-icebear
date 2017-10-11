@@ -20,8 +20,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
             ({ username, passphrase } = data);
-            console.log('hereeee');
-            console.log(username);
         }
         when(() => app.socket.connected, done);
     });
