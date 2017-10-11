@@ -13,7 +13,7 @@ const getRandomUsername = () => {
     return username;
 };
 
-const getMailbox = (user) => {
+const getMailbox = () => {
     return new Promise((resolve, reject) => {
         const inbox = `http://api.mailinator.com/api/inbox?to=${process.env.PEERIO_ADMIN_EMAIL}&token=${process.env.MAILINATOR_KEY}`;
         http.get(inbox, (response) => {
@@ -52,7 +52,7 @@ const getConfirmationLink = (body) => {
     return found;
 };
 
-const openConfirmationEmail = (confirmationEmailId) => {
+const getConfirmationEmail = (confirmationEmailId) => {
     return new Promise((resolve, reject) => {
         const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmailId}&token=${process.env.MAILINATOR_KEY}`;
 
@@ -78,11 +78,11 @@ const openConfirmationLink = (url) => {
     });
 };
 
-const confirmUserEmail = (user, err, done) => {
+const confirmUserEmail = (user, done) => {
     getMailbox()
         .then(emails => {
-            const id = getConfirmationEmailId(user, emails);
-            openConfirmationEmail(id)
+            const email = getConfirmationEmailId(user, emails);
+            getConfirmationEmail(email)
                 .then(url => {
                     openConfirmationLink(url)
                         .then(done);

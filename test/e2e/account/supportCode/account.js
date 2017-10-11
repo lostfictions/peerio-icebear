@@ -66,9 +66,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Account deletion
     When('my email is confirmed', (done) => {
         confirmUserEmail(app.User.current.username,
-            (err) => {
-                console.log(err);
-            },
             () => {
                 app.User.current.primaryAddressConfirmed = true;
                 done();
@@ -138,7 +135,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('the new email is confirmed', (done) => {
-        confirmUserEmail(`${username}2`, (err) => console.log(err), () => done());
+        confirmUserEmail(`${username}2`, done);
     });
 
     When('I make the new email primary', () => {
