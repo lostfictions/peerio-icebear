@@ -22,13 +22,11 @@ Feature: User account access
         When I sign out
         Then I can not access my account
     
-    #mailnator
-    # Scenario: Change primary email
-    #     Given I am logged in
-    #     And my email addresses are "one@test.com" and "two@test.com"
-    #     And "one@test.com" is the primary address
-    #     When I choose "two@test.com" to be the primary email
-    #     Then the primary email should be updated to "two@test.com"
+    Scenario: Change primary email
+        Given I am logged in
+        And my email is confirmed
+        When I add a new primary email
+        Then the primary email should be updated
     
     Scenario: Add new email
         Given I am logged in

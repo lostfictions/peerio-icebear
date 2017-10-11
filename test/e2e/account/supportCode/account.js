@@ -13,6 +13,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     let secret = null;
     let blob = null;
     let url = '';
+    let newEmail;
 
     Before((testCase, done) => {
         app = getNewAppInstance();
@@ -127,6 +128,30 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Then('I can not access my account', (done) => {
         done(null, 'pending'); // check 2fa
+    });
+
+
+    // Scenario: Primary email
+    When('I add a new primary email', () => {
+        newEmail = `${username}2@mailinator.com`;
+        app.User.current
+            .addEmail(newEmail)
+            .then(() => {
+                confirmUserEmail(
+                    `${username}2`,
+                    (err) => console.log(err),
+                    () => app.User.current.makeEmailPrimary(newEmail)
+                );
+            });
+    });
+
+    Then('the primary email should be updated', (done) => {
+        app.User.current.login()
+            .then(() => {
+                const primaryAddress = app.User.current.addresses.find(x => x.primary);
+                primaryAddress.should.not.be.null.and.equal(newEmail);
+            })
+            .then(done);
     });
 
 
