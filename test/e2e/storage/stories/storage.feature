@@ -11,17 +11,20 @@ Feature: Files in storage
         Then I should see it in my files
     
     Scenario: Download
-        When I download {a file}
-        Then I should access {a file} locally
+        When I download a file
+        Then I can access a file locally
 
     Scenario: Share
-        When I share a file with {the receiver}
-        Then {the receiver} should be notified
+        When I share a file with a receiver
+        Then receiver should see it in their files
 
     Scenario: Delete
         When I delete a file
-        Then it should be remove from my files
+        Then it should be removed from my files
 
-    Scenario: Access my files
-        Given I have uploaded files
-        Then I should see the full file list
+    Scenario: Delete after sharing
+        Given I upload a file
+        And I share it with a receiver
+        When I delete the file
+        Then it should be removed from my files
+        And it should be removed from receivers files
