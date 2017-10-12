@@ -42,4 +42,27 @@ defineSupportCode(({ Before, Then, When }) => {
         app.contactStore.invitedContacts.find(c => c.email === someone)
             .should.be.ok;
     });
+    // Scenario: Favourite a contact
+    When('I favourite {someone}', (someone, done) => {
+        found = app.contactStore.addContact(someone);
+        when(() => !found.loading, done);
+    });
+
+
+    Then('their name will appear in my favorite contacts', (callback) => {
+        app.contactStore.addedContacts.find(c => c === found)
+            .should.be.ok;
+    });
+
+
+    // Scenario: Unfavourite a contact
+    When('I unfavourite {someone}', (someone, done) => {
+        found = app.contactStore.removeContact(someone);
+        when(() => !found.loading, done);
+    });
+
+    Then('their name be removed from my favorite contacts', (callback) => {
+        app.contactStore.addedContacts.find(c => c === found)
+            .should.be.undefined;
+    });
 });

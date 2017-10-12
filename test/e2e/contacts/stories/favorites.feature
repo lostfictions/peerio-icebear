@@ -8,15 +8,15 @@ Feature: Favorite contacts
 
     Scenario: Create favourite contact on invited email confirmation (sender and receiver)
         Given I confirm my email
-        When I invite a new user over email
-        And they confirm their email
-        Then the new user will be added in my favorite contacts
+        When  I send an invitation to hello@mailinator.com
+        And   they confirm their email
+        Then  they will be added in my favorite contacts
     
      Scenario: Remove favourite contact before email confirmation
-        When I invite {a new user} over email
-        And {a new user} confirms their email
-        But I unfavourite them
-        Then {a new user} will not be added in my favorites
+        When I send an invitation to hello@mailinator.com
+        And  they confirm their email
+        But  I unfavourite them
+        Then they will not be added in my favorites
 
     Scenario: Favourite a contact
         When I favourite a contact
