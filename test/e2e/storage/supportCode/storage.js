@@ -52,7 +52,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     });
 
-    Then('I delete a file', () => {
+    Then('I delete (a|the) file', () => {
         numberOfFilesUploaded = app.fileStore.files.length;
         return findTestFile().remove();
     });
@@ -62,12 +62,25 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         return asPromise(app.fileStore.files, 'length', numberOfFilesUploaded - 1);
     });
 
-    When('I share a file with a receiver', () => {
+    When('I share a file with a receiver', (done) => {
         const receiver = new app.Contact(other);
-        return findTestFile().share(receiver); // Cannot read property 'buffer' of null
+        when(() => !receiver.loading, () => {
+            findTestFile().share(receiver).then(done);
+        });
     });
 
     Then('receiver should see it in their files', () => {
+        console.log(findTestFile());
+    });
+
+    Given('I share it with a receiver', (done) => {
+        const receiver = new app.Contact(other);
+        when(() => !receiver.loading, () => {
+            findTestFile().share(receiver).then(done);
+        });
+    });
+
+    Then('it should be removed from receivers files', () => {
         console.log(findTestFile());
     });
 });
