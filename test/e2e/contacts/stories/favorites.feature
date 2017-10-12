@@ -10,18 +10,18 @@ Feature: Favorite contacts
         Given I confirm my email
         When  I send an invitation to hello@mailinator.com
         And   they confirm their email
-        Then  they will be added in my favorite contacts
+        Then  they will be in my favorite contacts
     
      Scenario: Remove favourite contact before email confirmation
         When I send an invitation to hello@mailinator.com
         And  they confirm their email
-        But  I unfavourite them
-        Then they will not be added in my favorites
+        But  I unfavorite them
+        Then they will not be in my favorites
 
     Scenario: Favourite a contact
-        When I favourite a contact
-        Then their name will appear in my favorite contacts
+        When I favourite them
+        Then they will be in my favorite contacts
 
-    Scenario: Unfavourite a contact 
-        When I unfavourite a contact
-        Then their name be removed from my favorite contacts
+    Scenario: Unfavorite a contact 
+        When I unfavorite them
+        Then they will not be in my favorites

@@ -47,6 +47,23 @@ defineSupportCode(({ Before, Then, When }) => {
     Then('{someone} should receive an email invitation', (someone) => {
         return receivedEmailInvite(someone);
     });
+
+
+    // Scenario: Create favourite contact
+    When('I confirm my email', () => {
+    });
+
+    When('they confirm their email', () => {
+        return receivedEmailInvite(found.email);
+    });
+
+
+    // Scenario: Remove favourite contact before email confirmation
+    When('{a new user} confirms their email', (callback) => {
+
+    });
+
+
     // Scenario: Favourite a contact
     When('I favourite {someone}', (someone, done) => {
         found = app.contactStore.addContact(someone);
@@ -54,19 +71,19 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
 
-    Then('their name will appear in my favorite contacts', (callback) => {
+    Then('they will be in my favorite contacts', (callback) => {
         app.contactStore.addedContacts.find(c => c === found)
             .should.be.ok;
     });
 
 
-    // Scenario: Unfavourite a contact
-    When('I unfavourite {someone}', (someone, done) => {
+    // Scenario: Unfavorite a contact
+    When('I unfavorite them', (someone, done) => {
         found = app.contactStore.removeContact(someone);
         when(() => !found.loading, done);
     });
 
-    Then('their name be removed from my favorite contacts', (callback) => {
+    Then('they will not be in my favorites', (callback) => {
         app.contactStore.addedContacts.find(c => c === found)
             .should.be.undefined;
     });

@@ -18,6 +18,7 @@ Feature: Find contacts
         And  no profiles are found
         And  I send an invitation to hello@mailinator.com
         Then hello@mailinator.com is added in my invited contacts
+        And  hello@mailinator.com should receive an email invitation
 
     Scenario: Filters
         Given "Alice" and "Bob" are my contacts
