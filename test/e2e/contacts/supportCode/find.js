@@ -11,7 +11,7 @@ defineSupportCode(({ Before, Then, When }) => {
         when(() => app.socket.connected, done);
     });
 
-    // Scenario: Find contact by username
+    // Scenario: Find contact
     When('I search for {someone}', (someone, done) => {
         found = app.contactStore.getContact(someone);
         when(() => !found.loading, done);
@@ -21,7 +21,25 @@ defineSupportCode(({ Before, Then, When }) => {
         found.notFound.should.be.false;
     });
 
-    Then('the contact is added in my favourite contacts', () => {
-        app.contactStore.contacts.find(c => c === found);
+    Then('the contact is added in my contacts', () => {
+        app.contactStore.contacts.find(c => c === found)
+            .should.be.ok;
+    });
+
+
+    // Scenario: Send invite email
+    When('no profiles are found', () => {
+        found.notFound.should.be.true;
+    });
+
+    When('I send an invitation to {someone}', (someone, done) => {
+        app.contactStore.invite(someone)
+            .should.be.fulfilled
+            .then(done);
+    });
+
+    Then('{someone} is added in my invited contacts', (someone) => {
+        app.contactStore.invitedContacts.find(c => c.email === someone)
+            .should.be.ok;
     });
 });
