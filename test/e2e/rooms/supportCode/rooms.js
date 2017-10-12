@@ -31,13 +31,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         when(() => chat.canIAdmin === true, done);
     });
 
-    When('I delete a room', (done) => {
-        chat.delete()
-            .then(done);
-    });
-
-    Then('nobody should be able to access the room', () => {
-        app.chatStore.chats.length.should.be.equal(0);
+    When('I can delete the room', () => {
+        return chat.delete();
     });
 
     When('I invite {other users}', (callback) => {
