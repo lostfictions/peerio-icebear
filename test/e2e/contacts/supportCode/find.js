@@ -1,6 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
+const { receivedEmailInvite } = require('../../helpers');
 
 defineSupportCode(({ Before, Then, When }) => {
     let app;
@@ -41,6 +42,10 @@ defineSupportCode(({ Before, Then, When }) => {
     Then('{someone} is added in my invited contacts', (someone) => {
         app.contactStore.invitedContacts.find(c => c.email === someone)
             .should.be.ok;
+    });
+
+    Then('{someone} should receive an email invitation', (someone) => {
+        return receivedEmailInvite(someone);
     });
     // Scenario: Favourite a contact
     When('I favourite {someone}', (someone, done) => {

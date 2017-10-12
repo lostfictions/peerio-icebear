@@ -3,6 +3,7 @@ const https = require('https');
 
 const confirmLabel = 'Confirm your account';
 const newEmailLabel = 'confirm your new address';
+const invitedLabel = 'has invited you';
 
 const usernameChars = '0123456789abcdefghijklmnopqrstuvwxyz';
 const getRandomUsername = () => {
@@ -27,10 +28,16 @@ const getMailbox = () => {
     });
 };
 
-
 const addressedToUser = (email, user) => {
     const containsName = email.subject.includes(user);
     const containsText = email.subject.includes(confirmLabel) || email.subject.includes(newEmailLabel);
+
+    return containsName && containsText;
+};
+
+const isInviteEmail = (email, user) => {
+    const containsName = email.subject.includes(user);
+    const containsText = email.subject.includes(invitedLabel);
 
     return containsName && containsText;
 };
@@ -39,6 +46,15 @@ const getConfirmationEmailId = (user, emails) => {
     const mailbox = JSON.parse(emails);
     const confirmationEmailId = mailbox.messages
         .find(email => addressedToUser(email, user))
+        .id;
+
+    return confirmationEmailId;
+};
+
+const getInviteEmailId = (user, emails) => {
+    const mailbox = JSON.parse(emails);
+    const confirmationEmailId = mailbox.messages
+        .find(email => isInviteEmail(email, user))
         .id;
 
     return confirmationEmailId;
@@ -90,5 +106,19 @@ const confirmUserEmail = (user, done) => {
         });
 };
 
-module.exports = { getRandomUsername, confirmUserEmail };
+const receivedEmailInvite = (user) => {
+    return new Promise((resolve, reject) => {
+        getMailbox()
+            .then(emails => {
+                const email = getInviteEmailId(user, emails);
+                if (email) {
+                    resolve();
+                } else {
+                    reject();
+                }
+            });
+    });
+};
+
+module.exports = { getRandomUsername, confirmUserEmail, receivedEmailInvite };
 
