@@ -2,15 +2,23 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
+const runFeature = require('../../helpers/runFeature');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let numberOfFilesUploaded;
-    const other = 'ubeugrp7kaes5yjk479wb4zyiszjra';
+    const other = '94fpj19guotovfnrk3jqxdgt3d768r';
     const testDocument = 'test.txt';
 
     const findTestFile = () => {
         return app.fileStore.files.find(file => file.name === testDocument);
+    };
+
+    const getReceiver = () => {
+        return new Promise((resolve) => {
+            const receiver = new app.Contact(other);
+            when(() => !receiver.loading, () => resolve(receiver));
+        });
     };
 
     Before((testCase, done) => {
@@ -24,14 +32,13 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Upload
     When('I upload a file', (done) => {
-        asPromise(app.fileStore, 'loading', false).then(() => {
-            numberOfFilesUploaded = app.fileStore.files.length;
+        numberOfFilesUploaded = app.fileStore.files.length;
+        console.log(`Files in storage: ${numberOfFilesUploaded}`);
 
-            const file = `${__dirname}/${testDocument}`;
-            const keg = app.fileStore.upload(file);
+        const file = `${__dirname}/${testDocument}`;
+        const keg = app.fileStore.upload(file);
 
-            when(() => keg.readyForDownload, done);
-        });
+        when(() => keg.readyForDownload, done);
     });
 
     Then('I should see it in my files', () => {
@@ -41,18 +48,21 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         findTestFile().should.be.ok;
     });
 
+
+    // Scenario: Download
     When('I download a file', (done) => {
         findTestFile()
             .download(__dirname, true)
             .then(done);
     });
 
-
     Then('I can access a file locally', () => {
 
     });
 
-    Then('I delete (a|the) file', () => {
+
+    // Scenario: Delete
+    Then(/I delete a|the file/, () => {
         numberOfFilesUploaded = app.fileStore.files.length;
         return findTestFile().remove();
     });
@@ -62,24 +72,36 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         return asPromise(app.fileStore.files, 'length', numberOfFilesUploaded - 1);
     });
 
-    When('I share a file with a receiver', (done) => {
-        const receiver = new app.Contact(other);
-        when(() => !receiver.loading, () => {
-            findTestFile().share(receiver).then(done);
+
+    // Scenario: Share
+    When(/I share (a file)|it with a receiver/, (done) => {
+        getReceiver().then(receiver => {
+            findTestFile()
+                .share(receiver)
+                .then(done);
         });
     });
 
-    Then('receiver should see it in their files', () => {
-        console.log(findTestFile());
+    Then('receiver should see it in their files', (cb) => {
+        const receiver = { username: other, passphrase: 'secret secrets' };
+        runFeature('Access my files', receiver)
+            .then(result => {
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
     });
 
-    Given('I share it with a receiver', (done) => {
-        const receiver = new app.Contact(other);
-        when(() => !receiver.loading, () => {
-            findTestFile().share(receiver).then(done);
-        });
+    Then('I should see my files', () => {
+        findTestFile()
+            .should.not.be.null
+            .and.should.be.ok;
     });
 
+
+    // Scenario: Delete after sharing
     Then('it should be removed from receivers files', () => {
         console.log(findTestFile());
     });

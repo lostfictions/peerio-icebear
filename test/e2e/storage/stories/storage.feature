@@ -14,9 +14,9 @@ Feature: Files in storage
     #     When I download a file
     #     Then I can access a file locally
 
-    # Scenario: Share
-    #     When I share a file with a receiver
-    #     Then receiver should see it in their files
+    Scenario: Share
+        When I share a file with a receiver
+        Then receiver should see it in their files
 
     Scenario: Delete
         When I delete a file

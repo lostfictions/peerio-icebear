@@ -120,6 +120,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current.login()
             .then(() => asPromise(app.socket, 'authenticated', true))
             .then(() => asPromise(app.User.current, 'profileLoaded', true))
+            .then(() => asPromise(app.fileStore, 'loading', false))
             .then(() => when(() => app.User.current.quota, done));
     });
 
