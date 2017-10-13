@@ -3,11 +3,12 @@ const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
+const path = require('path');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let numberOfFilesUploaded;
-    const other = '94fpj19guotovfnrk3jqxdgt3d768r';
+    const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
     const testDocument = 'test.txt';
 
     const findTestFile = () => {
@@ -50,19 +51,20 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Download
-    When('I download a file', (done) => {
+    When('I download the file', (done) => {
+        const filePath = path.resolve(__dirname + '/download', testDocument);
         findTestFile()
-            .download(__dirname, true)
+            .download(filePath, false)
             .then(done);
     });
 
-    Then('I can access a file locally', () => {
+    Then('I can access the file locally', () => {
 
     });
 
 
     // Scenario: Delete
-    Then(/I delete a|the file/, () => {
+    Then('I delete the file', () => {
         numberOfFilesUploaded = app.fileStore.files.length;
         return findTestFile().remove();
     });
