@@ -10,9 +10,10 @@ Feature: Files in storage
         When I upload a file
         Then I should see it in my files
     
-    # Scenario: Download
-    #     When I download a file
-    #     Then I can access a file locally
+    Scenario: Download
+        Given I upload a file
+        When  I download the file
+        Then  I can access the file locally
 
     Scenario: Share
         Given I upload a file
@@ -21,7 +22,7 @@ Feature: Files in storage
 
     Scenario: Delete
         Given I upload a file
-        When  I delete a file
+        When  I delete the file
         Then  it should be removed from my files
 
     Scenario: Delete after sharing

@@ -52,7 +52,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Download
     When('I download the file', (done) => {
-        const filePath = path.resolve(__dirname + '/download', testDocument);
+        const filePath = path.resolve(__dirname, `downloaded-${testDocument}`);
         findTestFile()
             .download(filePath, false)
             .then(done);
