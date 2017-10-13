@@ -74,12 +74,13 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Share
-    When(/I share (a file)|it with a receiver/, (done) => {
-        getReceiver().then(receiver => {
-            findTestFile()
-                .share(receiver)
-                .then(done);
-        });
+    When('I share it with a receiver', (done) => {
+        getReceiver()
+            .then(receiver => {
+                return findTestFile()
+                    .share(receiver)
+                    .then(() => done());
+            });
     });
 
     Then('receiver should see it in their files', (cb) => {
@@ -106,7 +107,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         const receiver = { username: other, passphrase: 'secret secrets' };
         runFeature('Deleted files', receiver)
             .then(result => {
-                console.log(result);
                 if (result.succeeded) {
                     cb(null, 'done');
                 } else {
