@@ -4,14 +4,14 @@ Feature: Find contacts
         Given I am logged in
 
     Scenario Outline: Find contact
-        When I search for <someone>
+        When I search for <someone> # has to be a confirmed account
         And  the contact exists
         Then the contact is added in my contacts
     
     Examples:
         | someone                                       |
-        | ubeugrp7kaes5yjk479wb4zyiszjra                |
-        | ubeugrp7kaes5yjk479wb4zyiszjra@mailinator.com |
+        | o6gl796m7ctzbv2u7nij74k1w5gqyi                |
+        | o6gl796m7ctzbv2u7nij74k1w5gqyi@mailinator.com |
 
     Scenario: Send invite email
         When I search for inviteme@mailinator.com
