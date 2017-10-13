@@ -49,6 +49,20 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
 
+    //     Scenario Outline: Filters
+    When('{joined} and {invited} are my contacts', (joined, invited) => {
+    });
+
+    When('{invited} has not joined yet', (invited) => {
+    });
+
+    When('I set the filter to {filter}', (filter) => {
+    });
+
+    When('{outcome} should appear in my contact list', (outcome) => {
+    });
+
+
     // Scenario: Create favourite contact
     When('I confirm my email', () => {
     });

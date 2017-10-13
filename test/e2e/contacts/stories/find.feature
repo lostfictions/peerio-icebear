@@ -3,8 +3,9 @@ Feature: Find contacts
     Background: 
         Given I am logged in
 
+    # has to be a confirmed account
     Scenario Outline: Find contact
-        When I search for <someone> # has to be a confirmed account
+        When I search for <someone>
         And  the contact exists
         Then the contact is added in my contacts
     
@@ -28,5 +29,5 @@ Feature: Find contacts
     
     Examples:
         | joined                         | invited                 | filter | outcome
-        | ubeugrp7kaes5yjk479wb4zyiszjra | inviteme@mailinator.com | added  | ubeugrp7kaes5yjk479wb4zyiszjra
+        | ubeugrp7kaes5yjk479wb4zyiszjra | inviteme@mailinator.com | added  | hello
         | ubeugrp7kaes5yjk479wb4zyiszjra | inviteme@mailinator.com | all    | ubeugrp7kaes5yjk479wb4zyiszjra, inviteme@mailinator.com
