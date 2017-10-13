@@ -102,7 +102,21 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Delete after sharing
-    Then('it should be removed from receivers files', () => {
-        console.log(findTestFile());
+    Then('it should be removed from receivers files', (cb) => {
+        const receiver = { username: other, passphrase: 'secret secrets' };
+        runFeature('Deleted files', receiver)
+            .then(result => {
+                console.log(result);
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
+    });
+
+    Then('I should not see deleted files', () => {
+        app.fileStore.files
+            .should.not.contain(x => x.name === testDocument);
     });
 });

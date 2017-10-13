@@ -16,3 +16,7 @@ Feature: Common scenarios
     Scenario: Access my files
         Given I am logged in
         Then  I should see my files
+
+    Scenario: Deleted files
+        Given I am logged in
+        Then  I should not see deleted files
