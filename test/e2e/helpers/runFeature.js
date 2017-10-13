@@ -27,8 +27,11 @@ const getScenarioSummary = (output) => {
 };
 
 const scenarioPassed = (output) => {
-    const result = getScenarioSummary(output);
-    return result && !result.includes('failed') && !result.includes('skipped');
+    const result = getScenarioSummary(output).toString();
+    const hasFailed = !!result.match(/failed/);
+    const hasSkipped = !!result.match(/skipped/);
+
+    return result && !hasFailed && !hasSkipped;
 };
 
 const runFeature = (scenarioName, peerioData = null) => {
@@ -41,7 +44,7 @@ const runFeature = (scenarioName, peerioData = null) => {
             '-r',
             supportCodePath,
             '-r',
-            supportCodePath2, 
+            supportCodePath2,
             '--compiler',
             'js:babel-register',
             '--require',
