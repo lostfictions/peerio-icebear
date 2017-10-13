@@ -29,7 +29,7 @@ class ContactStore {
      * @member {MyContacts}
      * @protected
      */
-    myContacts;
+    @observable.ref myContacts;
     /**
      * Invites keg.
      * @member {MyContacts}

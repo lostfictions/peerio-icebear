@@ -209,6 +209,15 @@ class FileStreamAbstract {
     static delete(path) {
         throw new AbstractCallError();
     }
+
+    /**
+     * Override. Returns a path for storing temporarily downloaded(cached) files.
+     * @static
+     * @memberof FileStreamAbstract
+     */
+    static getTempCachePath(name) {
+        throw new AbstractCallError();
+    }
 }
 
 module.exports = FileStreamAbstract;

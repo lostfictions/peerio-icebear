@@ -8,6 +8,7 @@ const { getFirstLetterUpperCase } = require('./../../helpers/string');
 const serverSettings = require('../server-settings');
 const { t } = require('peerio-translator');
 const clientApp = require('../client-app');
+const { getContactStore } = require('../../helpers/di-contact-store');
 
 const nullFingerprint = '00000-00000-00000-00000-00000-00000';
 
@@ -421,7 +422,7 @@ class Contact {
      */
     whenLoaded(callback) {
         // it is important for this to be async
-        when(() => !this.loading, () => setTimeout(() => callback(this)));
+        when(() => !this.loading && getContactStore().myContacts.loaded, () => setTimeout(() => callback(this)));
     }
     /**
      * Helper function to get a promise that resolves when contact is loaded.

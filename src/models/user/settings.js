@@ -52,21 +52,6 @@ class Settings extends Keg {
      */
     @observable subscribeToPromoEmails = false;
 
-    /**
-     * @member {object} inlineImages
-     * @memberof Settings
-     * @instance
-     * @public
-     */
-    @observable inlineChatContent = {
-        consentExternal: null, // null - no feedback from user yet, true - user agreed, false - user declined
-        limitSize: false, // will use config.chat.inlineImageSizeLimit
-        peerioContentEnabled: true,
-        externalContentEnabled: false,
-        externalOnlyFavoriteContacts: false
-    }
-
-
     constructor(user) {
         super('settings', 'settings', user.kegDb, true);
         this.user = user;
@@ -79,8 +64,7 @@ class Settings extends Keg {
             messageNotifications: this.messageNotifications,
             errorTrackingOptIn: this.errorTracking,
             dataCollectionOptIn: this.dataCollection,
-            subscribeToPromoEmails: this.subscribeToPromoEmails,
-            inlineChatContent: this.inlineChatContent
+            subscribeToPromoEmails: this.subscribeToPromoEmails
         };
     }
 
@@ -91,8 +75,6 @@ class Settings extends Keg {
         this.errorTracking = data.errorTrackingOptIn;
         this.dataCollection = data.dataCollectionOptIn;
         this.subscribeToPromoEmails = data.subscribeToPromoEmails;
-        // older users don't have this setting, so we use default values
-        if (data.inlineChatContent) this.inlineChatContent = data.inlineChatContent;
         this.loaded = true;
     }
 }

@@ -1,11 +1,14 @@
 
-const { observable, computed } = require('mobx');
+const { observable, computed, action } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
 const moment = require('moment');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const unfurl = require('../../helpers/unfurl');
+const config = require('../../config');
+const clientApp = require('../client-app');
 
 /**
  * Message keg and model
@@ -66,22 +69,22 @@ class Message extends Keg {
     @observable groupWithPrevious;
 
     /**
-     * for UI use
-     * @member {Array<string>} inlineImages
+     * External image urls mentioned in this chat and safe to render in agreement with all settings.
+     * @member {Array<string>} externalImages
      * @memberof Message
      * @instance
      * @public
      */
-    @observable.shallow inlineImages = [];
+    @observable externalImages = [];
 
     /**
-     * Some properties are filly controlled by UI and when SDK replaces object with its updated equivalent copy
-     * we want to retain those properties.
-     * @protected
+     * Indicates if current message contains at least one url.
+     * @type {boolean}
+     * @memberof Message
+     * @public
      */
-    setUIPropsFrom(msg) {
-        this.inlineImages = msg.inlineImages;
-    }
+    @observable hasUrls = false;
+
     // -----
     /**
      * used to compare calendar days
@@ -233,6 +236,49 @@ class Message extends Keg {
             username,
             role
         };
+    }
+
+    /**
+     * Parses message to find urls or file attachments.
+     * Verifies external url type and size and fills this.inlineImages.
+     * @memberof Message
+     */
+    async parseExternalContent() {
+        this.externalImages.clear();
+        const settings = clientApp.uiUserPrefs;
+        // it's not nice to run regex on every message,
+        // but we'll remove this with richText release
+        let urls = unfurl.getUrls(this.text);
+        this.hasUrls = !!urls.length;
+        if (!settings.externalContentEnabled) {
+            return;
+        }
+        if (settings.externalContentJustForFavs && !this.sender.isMe) {
+            await this.sender.ensureLoaded(); // need to make sure this contact is in fav list
+            if (!this.sender.isAdded) return;
+        }
+
+        urls = Array.from(new Set(urls));// deduplicate
+        Promise.map(urls, (url) => {
+            return unfurl.getContentHeaders(url)
+                .then(headers => {
+                    if (!headers) return;
+
+                    const type = headers['content-type'];
+                    const length = +(headers['content-length'] || 0);// careful, +undefined is NaN
+
+                    if (!config.chat.allowedInlineContentTypes[type]) return;
+
+                    this.externalImages.push({
+                        url,
+                        length,
+                        oversized: settings.limitInlineImageSize && length > config.chat.inlineImageSizeLimit
+                    });
+                })
+                .catch(() => {
+                    console.log(`Failed to unfurl ${url}`);
+                });
+        }, { concurrency: 3 });
     }
 
     serializeKegPayload() {

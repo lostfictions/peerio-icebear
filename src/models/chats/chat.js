@@ -512,6 +512,7 @@ class Chat {
             console.debug('empty message keg', keg);
             return;
         }
+        msg.parseExternalContent();
         accumulator.push(msg);
     }
 
@@ -556,7 +557,6 @@ class Chat {
             const existing = this._messageMap[msg.id];
             if (existing) {
                 this.messages.remove(existing);
-                msg.setUIPropsFrom(existing);
             } else {
                 // track number of new messages & mentions in 'batch'
                 newMessageCount += 1;

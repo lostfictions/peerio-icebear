@@ -8,6 +8,7 @@ const FileDownloader = require('./file-downloader');
 const cryptoUtil = require('../../crypto/util');
 const FileNonceGenerator = require('./file-nonce-generator');
 const TinyDb = require('../../db/tiny-db');
+const { action } = require('mobx');
 
 function _getDlResumeParams(path) {
     return config.FileStream.getStat(path)
@@ -25,6 +26,10 @@ function _getDlResumeParams(path) {
         });
 }
 
+function downloadToTmpCache() {
+    return this.download(this.tmpCachePath, undefined, true);
+}
+
 /**
  * Starts download.
  * @param {string} filePath - where to store file (including name)
@@ -34,7 +39,7 @@ function _getDlResumeParams(path) {
  * @memberof File
  * @public
  */
-function download(filePath, resume) {
+function download(filePath, resume, isTmpCacheDownload) {
     if (this.downloading || this.uploading) {
         return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
     }
@@ -64,12 +69,16 @@ function download(filePath, resume) {
                         return this.downloader.start();
                     });
             })
-            .then(() => {
+            .then(action(() => {
                 this._saveDownloadEndFact();
                 this._resetDownloadState(stream);
-                this.cached = true; // currently for mobile only
-                warnings.add('snackbar_downloadComplete');
-            })
+                if (!isTmpCacheDownload) {
+                    this.cached = true; // currently for mobile only
+                    warnings.add('snackbar_downloadComplete');
+                } else {
+                    this.tmpCached = true;
+                }
+            }))
             .catch(err => {
                 console.error(err);
                 if (err) {
@@ -81,7 +90,9 @@ function download(filePath, resume) {
                         return Promise.reject(err);
                     }
                 }
-                warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
+                if (!isTmpCacheDownload) {
+                    warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
+                }
                 this.cancelDownload();
                 return Promise.reject(err || new Error('Download failed.'));
             });
@@ -132,6 +143,7 @@ function _resetDownloadState(stream) {
 module.exports = function(File) {
     File.prototype._getDlResumeParams = _getDlResumeParams;
     File.prototype.download = download;
+    File.prototype.downloadToTmpCache = downloadToTmpCache;
     File.prototype.cancelDownload = cancelDownload;
     File.prototype._saveDownloadStartFact = _saveDownloadStartFact;
     File.prototype._saveDownloadEndFact = _saveDownloadEndFact;
