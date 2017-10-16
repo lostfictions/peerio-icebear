@@ -16,7 +16,7 @@ const urlCache = {};
  */
 function getUrls(str) {
     if (!str) return [];
-    return str.match(urlRegex);
+    return str.match(urlRegex) || [];
 }
 
 
