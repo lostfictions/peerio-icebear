@@ -96,7 +96,7 @@ function addValidation(store, fName, validatorOrArray, positionInForm) {
         const validationPromises = [];
         fieldValidators.forEach(v => {
             const { action, message } = v;
-            const executor = async() => {
+            const executor = async () => {
                 const result = await action(value, fName);
                 if (result === true) return true;
                 const errorMessage = result === false ?
