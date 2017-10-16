@@ -7,7 +7,7 @@
     "prepush": "npm run validate",
     "postcheckout": "opt --out npm-update --exec \"npm install && npm update\"",
     "postmerge": "opt --out npm-update --exec \"npm install && npm update\"",
-    "precommit": "opt --out lint --exec \"npm run lint\"",
+    "precommit": "opt --out lint --exec \"eslint . --ext .js,.jsx --max-warnings 0\"",
     "postcommit": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --timeout 15000",

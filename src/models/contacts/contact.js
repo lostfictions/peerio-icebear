@@ -295,7 +295,8 @@ class Contact {
     }
 
     static smartRequestExecutor() {
-        if (Date.now() - Contact.lastAdditionTime < Contact.lastTimerInterval && Contact.smartRequestQueue.length < 50) return;
+        if ((Date.now() - Contact.lastAdditionTime < Contact.lastTimerInterval)
+            && Contact.smartRequestQueue.length < 50) return;
         if (!Contact.smartRequestQueue.length) {
             clearInterval(Contact.smartRequestTimer);
             Contact.smartRequestTimer = null;

@@ -1,5 +1,5 @@
 
-const { observable, computed, action } = require('mobx');
+const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
 const User = require('./../user/user');
 const Keg = require('./../kegs/keg');
