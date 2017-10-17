@@ -27,7 +27,8 @@ function _getDlResumeParams(path) {
 }
 
 function downloadToTmpCache() {
-    return this.download(this.tmpCachePath, undefined, true);
+    return this.download(this.tmpCachePath, undefined, true)
+        .tapCatch(() => { this.cachingFailed = true; });
 }
 
 /**
@@ -47,7 +48,7 @@ function download(filePath, resume, isTmpCacheDownload) {
         this.progress = 0;
         this._resetDownloadState();
         this.downloading = true;
-        this._saveDownloadStartFact(filePath);
+        if (!isTmpCacheDownload) this._saveDownloadStartFact(filePath);
         const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
         let stream, mode = 'write';
         let p = Promise.resolve(true);
@@ -70,7 +71,7 @@ function download(filePath, resume, isTmpCacheDownload) {
                     });
             })
             .then(action(() => {
-                this._saveDownloadEndFact();
+                if (!isTmpCacheDownload) this._saveDownloadEndFact();
                 this._resetDownloadState(stream);
                 if (!isTmpCacheDownload) {
                     this.cached = true; // currently for mobile only

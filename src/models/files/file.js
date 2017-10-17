@@ -76,6 +76,12 @@ class File extends Keg {
      */
     @observable fileOwner;
 
+    /**
+     * Indicates if last caching attempt failed
+     * @memberof File
+     */
+    @observable cachingFailed = false;
+
     // -- View state data ----------------------------------------------------------------------------------------
     // Depends on server set property 'fileProcessingState'
     /**
@@ -379,9 +385,11 @@ class File extends Keg {
     }
 
     tryToCacheTemporarily() {
-        if (this.tmpCached || this.downloading
+        if (this.tmpCached
+            || this.downloading
             || !clientApp.uiUserPrefs.peerioContentEnabled
-            || this.isOverInlineSizeLimit) return;
+            || this.isOverInlineSizeLimit
+            || this.cachingFailed) return;
 
         this.downloadToTmpCache();
     }

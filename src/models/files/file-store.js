@@ -325,6 +325,11 @@ class FileStore {
                             this.resumeBrokenUploads();
                         }
                     }, 3000);
+                    for (let i = 0; i < this.files.length; i++) {
+                        if (this.files[i].cachingFailed) {
+                            this.files[i].cachingFailed = false;
+                        }
+                    }
                 });
                 reaction(() => this.unreadFiles === 0 || !clientApp.isInFilesView || !clientApp.isFocused,
                     (dontReport) => {
