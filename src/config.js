@@ -276,7 +276,7 @@ const config = new class {
          * @memberof config
          * @public
          */
-        maxLoadedMessages: 80,
+        maxLoadedMessages: 130,
         /**
          * Delay (ms) between decryption of individual messages when processing a batch.
          * Increase to get more responsiveness, but increase page load time.
