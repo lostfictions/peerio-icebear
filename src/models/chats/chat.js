@@ -40,10 +40,22 @@ class Chat {
         this.isChannel = isChannel;
         if (!id) this.tempId = getTemporaryChatId();
         this.db = new ChatKegDb(id, participants, isChannel);
-        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
-            shouldSendReceipt => {
-                if (shouldSendReceipt) this._sendReceipt();
-            }));
+        this._reactionsToDispose.push(
+            reaction(
+                () => this.active && clientApp.isFocused && clientApp.isInChatsView,
+                shouldSendReceipt => {
+                    if (shouldSendReceipt) this._sendReceipt();
+                }
+            ),
+            reaction(
+                () => clientApp.uiUserPrefs.externalContentEnabled,
+                this.resetExternalContent
+            ),
+            reaction(
+                () => clientApp.uiUserPrefs.externalContentJustForFavs,
+                this.resetExternalContent
+            )
+        );
     }
 
     /**
@@ -1123,6 +1135,19 @@ class Chat {
         if (this._recentFiles.length > config.chat.recentFilesDisplayLimit) {
             this._recentFiles.length = config.chat.recentFilesDisplayLimit;
         }
+    }
+
+    resetExternalContent = () => {
+        if (this.resetScheduled) return;
+        this.resetScheduled = true;
+        when(() => this.active, this._doResetExternalContent);
+    }
+
+    @action.bound _doResetExternalContent() {
+        for (let i = 0; i < this.messages.length; i++) {
+            this.messages[i].parseExternalContent();
+        }
+        this.resetScheduled = false;
     }
 
     dispose() {
