@@ -9,6 +9,7 @@ const { retryUntilSuccess } = require('../../helpers/retry');
 const unfurl = require('../../helpers/unfurl');
 const config = require('../../config');
 const clientApp = require('../client-app');
+const TaskQueue = require('../../helpers/task-queue');
 
 /**
  * Message keg and model
@@ -20,6 +21,8 @@ class Message extends Keg {
     constructor(db) {
         super(null, 'message', db);
     }
+
+    static unfurlQueue = new TaskQueue(5);
     /**
      * @member {boolean} sending
      * @memberof Message
@@ -250,35 +253,47 @@ class Message extends Keg {
         // but we'll remove this with richText release
         let urls = unfurl.getUrls(this.text);
         this.hasUrls = !!urls.length;
+
         if (!settings.externalContentEnabled) {
             return;
         }
+
         if (settings.externalContentJustForFavs && !this.sender.isMe) {
             await this.sender.ensureLoaded(); // need to make sure this contact is in fav list
             if (!this.sender.isAdded) return;
         }
 
         urls = Array.from(new Set(urls));// deduplicate
-        Promise.map(urls, (url) => {
+        for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            if (unfurl.urlCache[url]) {
+                this._processUrlHeaders(url, unfurl.urlCache[url]);
+            } else {
+                this._queueUnfurl(url);
+            }
+        }
+    }
+
+    _queueUnfurl(url) {
+        Message.unfurlQueue.addTask(() => {
             return unfurl.getContentHeaders(url)
-                .then(headers => {
-                    if (!headers) return;
+                .then((headers) => this._processUrlHeaders(url, headers));
+        });
+    }
 
-                    const type = headers['content-type'];
-                    const length = +(headers['content-length'] || 0);// careful, +undefined is NaN
+    _processUrlHeaders(url, headers) {
+        if (!headers) return;
 
-                    if (!config.chat.allowedInlineContentTypes[type]) return;
+        const type = headers['content-type'];
+        const length = +(headers['content-length'] || 0);// careful, +undefined is NaN
 
-                    this.externalImages.push({
-                        url,
-                        length,
-                        oversized: settings.limitInlineImageSize && length > config.chat.inlineImageSizeLimit
-                    });
-                })
-                .catch(() => {
-                    console.log(`Failed to unfurl ${url}`);
-                });
-        }, { concurrency: 3 });
+        if (!config.chat.allowedInlineContentTypes[type]) return;
+
+        this.externalImages.push({
+            url,
+            length,
+            oversized: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit
+        });
     }
 
     serializeKegPayload() {

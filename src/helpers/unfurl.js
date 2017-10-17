@@ -7,7 +7,10 @@
 
 const urlRegex = require('url-regex')();
 
+// url : headers
 const urlCache = {};
+// url : promise
+const urlsInProgress = {};
 
 /**
  * Detects urls in a string and returns them.
@@ -22,8 +25,9 @@ function getUrls(str) {
 
 function getContentHeaders(url) {
     if (urlCache[url]) return Promise.resolve(urlCache[url]);
+    if (urlsInProgress[url]) return urlsInProgress[url];
 
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
         const req = new XMLHttpRequest();
         let resolved = false;
         req.onreadystatechange = () => {
@@ -46,7 +50,11 @@ function getContentHeaders(url) {
             }
         };
         req.open('GET', url);
-    }).timeout(20000);
+    }).timeout(20000)
+        .finally(() => delete urlsInProgress[url]);
+
+    urlsInProgress[url] = promise;
+    return promise;
 }
 
 function parseResponseHeaders(headerStr) {
@@ -69,4 +77,4 @@ function parseResponseHeaders(headerStr) {
     return headers;
 }
 
-module.exports = { getUrls, getContentHeaders };
+module.exports = { getUrls, getContentHeaders, urlCache };
