@@ -52,22 +52,19 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: favorite a contact
     When('I favorite {someone}', (someone, done) => {
-        // todo: finish loading 0 contacts
-        when(() => app.contactStore.contacts.length > 1, () => {
-            numberOfContacts = app.contactStore.addedContacts.length;
-            app.contactStore
-                .addContact(someone)
-                .then(result => {
-                    result.should.be.true;
-                    done();
-                });
-        });
+        app.contactStore
+            .addContact(someone)
+            .then(result => {
+                result.should.be.true;
+                done();
+            });
     });
 
 
     Then('{someone} will be in my favorite contacts', (someone, done) => {
-        when(() => app.contactStore.addedContacts.length === numberOfContacts + 1, () => {
-            app.contactStore.addedContacts
+        when(() => app.contactStore.addedContacts, () => {
+            app.contactStore
+                .addedContacts
                 .find(c => c.username === someone)
                 .should.be.ok;
             done();
@@ -81,8 +78,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('{someone} will not be in my favorites', (someone, done) => {
-        when(() => app.contactStore.addedContacts.length === numberOfContacts, () => {
-            app.contactStore.addedContacts.should.not.contain(c => c.username === someone);
+        when(() => app.contactStore.addedContacts, () => {
+            app.contactStore
+                .addedContacts
+                .should.not.contain(c => c.username === someone);
             done();
         });
     });
