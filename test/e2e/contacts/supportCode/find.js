@@ -6,6 +6,7 @@ const { receivedEmailInvite } = require('../../helpers');
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let found;
+    let numberOfContacts;
 
     Before((testCase, done) => {
         app = getNewAppInstance();
@@ -49,42 +50,55 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
 
-    // Scenario: Create favourite contact
-    When('I confirm my email', () => {
-    });
-
-    When('they confirm their email', () => {
-        return receivedEmailInvite(found.email);
-    });
-
-
-    // Scenario: Remove favourite contact before email confirmation
-    When('{a new user} confirms their email', (callback) => {
-
-    });
-
-
-    // Scenario: Favourite a contact
-    When('I favourite {someone}', (someone, done) => {
-        found = app.contactStore.addContact(someone);
-        when(() => !found.loading, done);
+    // Scenario: favorite a contact
+    When('I favorite {someone}', (someone, done) => {
+        // todo: finish loading 0 contacts
+        when(() => app.contactStore.contacts.length > 1, () => {
+            numberOfContacts = app.contactStore.addedContacts.length;
+            app.contactStore
+                .addContact(someone)
+                .then(result => {
+                    result.should.be.true;
+                    done();
+                });
+        });
     });
 
 
-    Then('they will be in my favorite contacts', (callback) => {
-        app.contactStore.addedContacts.find(c => c === found)
-            .should.be.ok;
+    Then('{someone} will be in my favorite contacts', (someone, done) => {
+        when(() => app.contactStore.addedContacts.length === numberOfContacts + 1, () => {
+            app.contactStore.addedContacts
+                .find(c => c.username === someone)
+                .should.be.ok;
+            done();
+        });
     });
 
 
     // Scenario: Unfavorite a contact
-    When('I unfavorite them', (someone, done) => {
-        found = app.contactStore.removeContact(someone);
-        when(() => !found.loading, done);
+    When('I unfavorite {someone}', (someone) => {
+        app.contactStore.removeContact(someone);
     });
 
-    Then('they will not be in my favorites', (callback) => {
-        app.contactStore.addedContacts.find(c => c === found)
-            .should.be.undefined;
+    Then('{someone} will not be in my favorites', (someone, done) => {
+        when(() => app.contactStore.addedContacts.length === numberOfContacts, () => {
+            app.contactStore.addedContacts.should.not.contain(c => c.username === someone);
+            done();
+        });
+    });
+
+
+    // Scenario: Create favorite contact
+    When('I confirm my email', () => {
+    });
+
+    When('they confirm their email', () => {
+        // return receivedEmailInvite(found.email);
+    });
+
+
+    // Scenario: Remove favorite contact before email confirmation
+    When('{a new user} confirms their email', (callback) => {
+
     });
 });
