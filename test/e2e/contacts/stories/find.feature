@@ -22,12 +22,13 @@ Feature: Find contacts
         And  inviteme@mailinator.com should receive an email invitation
     
     Scenario Outline: Filters
-        Given <joined> and <invited> are my contacts
-        And   <invited> has not joined yet
+        Given <favorite> is registered
+        And   <notfavorite> has not joined yet
+        And   <favorite> and <notfavorite> are my contacts
         When  I set the filter to <filter>
-        Then  <outcome> should appear in my contact list
+        Then  <contacts> should appear in my contact list
     
     Examples:
-        | joined                         | invited                 | filter | outcome
-        | ubeugrp7kaes5yjk479wb4zyiszjra | inviteme@mailinator.com | added  | hello
-        | ubeugrp7kaes5yjk479wb4zyiszjra | inviteme@mailinator.com | all    | ubeugrp7kaes5yjk479wb4zyiszjra, inviteme@mailinator.com
+        | joined                         | invited                 | filter | contacts                                                |
+        | o6gl796m7ctzbv2u7nij74k1w5gqyi | inviteme@mailinator.com | added  | o6gl796m7ctzbv2u7nij74k1w5gqyi                          |
+        | o6gl796m7ctzbv2u7nij74k1w5gqyi | inviteme@mailinator.com | all    | o6gl796m7ctzbv2u7nij74k1w5gqyi, inviteme@mailinator.com |

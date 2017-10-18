@@ -3,7 +3,7 @@ const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const { receivedEmailInvite } = require('../../helpers');
 
-defineSupportCode(({ Before, Then, When }) => {
+defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let found;
 
@@ -49,17 +49,35 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
 
-    //     Scenario Outline: Filters
-    When('{joined} and {invited} are my contacts', (joined, invited) => {
+    // Scenario Outline: Filters
+    Given('{joined} is registered', (joined, done) => {
+        found = app.contactStore.getContact(joined);
+        when(() => !found.loading, done);
     });
 
-    When('{invited} has not joined yet', (invited) => {
+    Given('{invited} has not joined yet', (invited, done) => {
+        const invitedPerson = app.contactStore.invite(invited);
+        when(() => !invitedPerson.loading, done);
+    });
+
+    Given('{joined} and {invited} are my contacts', (joined, invited) => {
+        // console.log(app.contactStore.contacts.map(x => console.log(x)));
+        app.contactStore.contacts.find(c => c.username === joined)
+            .should.be.ok;
+
+        app.contactStore.invitedContacts.find(c => c.email === invited)
+            .should.be.ok;
     });
 
     When('I set the filter to {filter}', (filter) => {
+        app.contactStore.uiViewFilter = filter;
     });
 
     When('{outcome} should appear in my contact list', (outcome) => {
+        const expected = outcome.split(',');
+        const actual = app.contactStore.uiView[0].items.map(x => x.username);
+
+        actual.should.include(expected);
     });
 
 
