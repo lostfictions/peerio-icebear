@@ -1171,7 +1171,7 @@ class Chat {
     resetExternalContent = () => {
         if (this.resetScheduled) return;
         this.resetScheduled = true;
-        when(() => this.active, this._doResetExternalContent);
+        when(() => this.active && clientApp.isInChatsView, this._doResetExternalContent);
     }
 
     @action.bound _doResetExternalContent() {
