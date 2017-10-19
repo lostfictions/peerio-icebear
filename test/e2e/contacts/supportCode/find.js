@@ -23,7 +23,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         registeredEmail = `${registeredUsername}@mailinator.com`;
     };
 
-    const assignOtherValue = (someone) => {
+    const assignOtherUsername = (someone) => {
         if (someone === 'a registered username') {
             otherUsername = registeredUsername;
         }
@@ -35,13 +35,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         }
     };
 
+    const contactLoaded = () => {
+        return asPromise(contactFromUsername, 'loading', false);
+    };
+
     Before((testCase, done) => {
         const app = getNewAppInstance();
         store = app.contactStore;
         when(() => app.socket.connected, done);
     });
 
-    // Background
     Before({ tag: '@registeredUser', timeout: 10000 }, (testCase, cb) => {
         runFeature('Account creation')
             .then(result => {
@@ -60,9 +63,9 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Find contact
     When('I search for {someone}', (someone) => {
-        assignOtherValue(someone);
+        assignOtherUsername(someone);
         contactFromUsername = store.getContact(otherUsername);
-        return asPromise(contactFromUsername, 'loading', false);
+        return contactLoaded();
     });
 
     When('the contact exists', () => {
@@ -96,7 +99,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Then('they are added in my invited contacts', () => {
         contactFromUsername = store.getContact(otherUsername);
 
-        return asPromise(contactFromUsername, 'loading', false)
+        return contactLoaded()
             .then(() => {
                 store
                     .invitedContacts
@@ -111,19 +114,18 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: favorite a contact
-    When('I favorite a registered user', (done) => {
+    When('I favorite a registered user', () => {
         otherUsername = registeredUsername;
-        store
+        return store
             .addContact(registeredUsername)
             .then(result => {
                 result.should.be.true;
-                done();
             });
     });
 
     Then('they will be in my favorite contacts', { timeout: 10000 }, () => {
         contactFromUsername = store.getContact(otherUsername);
-        // here test false case
+
         return asPromise(contactFromUsername, 'isAdded', true)
             .then(() => {
                 store
@@ -142,7 +144,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Then('they will not be in my favorites', { timeout: 10000 }, () => {
         contactFromUsername = store.getContact(otherUsername);
 
-        return asPromise(contactFromUsername, 'loading', false)
+        return contactLoaded()
             .then(() => {
                 store
                     .addedContacts
@@ -152,12 +154,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Create favorite contact
-    When('I invite an unregistered user', (done) => {
+    When('I invite an unregistered user', () => {
         otherUsername = unregisteredUsername;
-        store
+        return store
             .invite(unregisteredEmail)
-            .should.be.fulfilled
-            .then(done);
+            .should.be.fulfilled;
     });
 
     When('they sign up', (cb) => {
