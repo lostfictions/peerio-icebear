@@ -16,6 +16,7 @@ const { ServerError } = require('../../errors');
 const warnings = require('../warnings');
 const clientApp = require('../client-app');
 
+/** @type {User} */
 let currentUser;
 
 /**

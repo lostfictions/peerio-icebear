@@ -1,3 +1,4 @@
+// @ts-check
 
 const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
@@ -25,6 +26,7 @@ class Message extends Keg {
     static unfurlQueue = new TaskQueue(5);
     /**
      * @member {boolean} sending
+     * @type {boolean} sending
      * @memberof Message
      * @instance
      * @public
@@ -32,6 +34,7 @@ class Message extends Keg {
     @observable sending = false;
     /**
      * @member {boolean} sendError
+     * @type {boolean} sendError
      * @memberof Message
      * @instance
      * @public
@@ -40,6 +43,7 @@ class Message extends Keg {
     /**
      * array of usernames to render receipts for
      * @member {Array<string>} receipts
+     * @type {Array<string>} receipts
      * @memberof Message
      * @instance
      * @public
@@ -48,6 +52,7 @@ class Message extends Keg {
     /**
      * Which usernames are mentioned in this message.
      * @member {Array<string>} userMentions
+     * @type {Array<string>} userMentions
      * @memberof Message
      * @instance
      * @public
@@ -57,6 +62,7 @@ class Message extends Keg {
     /**
      * Is this message first in the day it was sent (and loaded message page)
      * @member {boolean} firstOfTheDay
+     * @type {boolean} firstOfTheDay
      * @memberof Message
      * @instance
      * @public
@@ -65,6 +71,7 @@ class Message extends Keg {
     /**
      * whether or not to group this message with previous one in message list.
      * @member {boolean} groupWithPrevious
+     * @type {boolean} groupWithPrevious
      * @memberof Message
      * @instance
      * @public
@@ -74,6 +81,7 @@ class Message extends Keg {
     /**
      * External image urls mentioned in this chat and safe to render in agreement with all settings.
      * @member {Array<string>} externalImages
+     * @type {Array<string>} externalImages
      * @memberof Message
      * @instance
      * @public
@@ -128,6 +136,7 @@ class Message extends Keg {
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
 
+        // @ts-ignore we can't use jsdoc annotations to make bluebird promises assignable to global promises!
         return (this.systemData ? retryUntilSuccess(() => this.saveToServer()) : this.saveToServer())
             .catch(err => {
                 this.sendError = true;
@@ -297,9 +306,9 @@ class Message extends Keg {
     }
 
     serializeKegPayload() {
-        this.userMentions = this.text ? _.uniq(
-            this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
-        ) : [];
+        this.userMentions = this.text
+            ? _.uniq(this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username))
+            : [];
         const ret = {
             text: this.text,
             timestamp: this.timestamp.valueOf(),
@@ -308,6 +317,9 @@ class Message extends Keg {
         this._serializeFileAttachments(ret);
         if (this.systemData) {
             ret.systemData = this.systemData;
+        }
+        if (this.richText) {
+            ret.richText = this.richText;
         }
         return ret;
     }
@@ -323,6 +335,13 @@ class Message extends Keg {
          * @public
          */
         this.text = payload.text;
+
+        /**
+         * @member {Object=} richText
+         * @public
+         */
+        this.richText = payload.richText;
+
         /**
          * For system messages like chat rename fact.
          * @member {Object} systemData

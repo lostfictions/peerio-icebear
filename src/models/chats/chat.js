@@ -1,3 +1,5 @@
+// @ts-check
+
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -643,6 +645,13 @@ class Chat {
         return -1;
     }
 
+    /**
+     * @function _sendMessage
+     * @param {Message} m
+     * @returns {Promise}
+     * @private
+     * @memberof Chat
+     */
     _sendMessage(m) {
         if (this.canGoDown) this.reset();
         // send() will fill message with data required for rendering
@@ -663,9 +672,11 @@ class Chat {
     }
 
     /**
+     * Create a new Message keg attached to this chat with the given
+     * plaintext (and optional files) and send it to the server.
      * @function sendMessage
      * @param {string} text
-     * @param {Array<File>} [files]
+     * @param {Array<string>} [files] an array of file ids.
      * @returns {Promise}
      * @memberof Chat
      */
@@ -673,6 +684,24 @@ class Chat {
         const m = new Message(this.db);
         m.files = files;
         m.text = text;
+        return this._sendMessage(m);
+    }
+
+    /**
+     * Create a new Message keg attached to this chat with the given
+     * plaintext (and optional files) and send it to the server.
+     * @function sendMessage
+     * @param {Object} richText A ProseMirror document tree, as JSON
+     * @param {string} legacyText The rendered HTML of the rich text, for back-compat with older clients
+     * @param {Array<string>} [files] An array of file ids
+     * @returns {Promise}
+     * @memberof Chat
+     */
+    @action sendRichTextMessage(richText, legacyText, files) {
+        const m = new Message(this.db);
+        m.files = files;
+        m.richText = richText;
+        m.text = legacyText;
         return this._sendMessage(m);
     }
 
@@ -947,9 +976,10 @@ class Chat {
 
     /**
      * Adds participants to a channel.
-     * @param {Array<string|Contact>} - mix of usernames and Contact objects.
-     *                                  Note that this function will ensure contacts are loaded before proceeding.
-     *                                  So if there are some invalid contacts - entire batch will fail.
+     * @param {Array<string|Contact>} participants - mix of usernames and Contact objects.
+     *                                               Note that this function will ensure contacts are loaded
+     *                                               before proceeding. So if there are some invalid
+     *                                               contacts - entire batch will fail.
      * @returns {Promise}
      * @public
      */
@@ -1060,9 +1090,9 @@ class Chat {
      */
     removeParticipant(participant, isUserKick = true) {
         let contact = participant;
-        if (typeof participant === 'string') {
+        if (typeof contact === 'string') {
             // we don't really care if it's loaded or not, we just need Contact instance
-            contact = contactStore.getContact(participant);
+            contact = contactStore.getContact(contact);
         }
         const boot = this.db.boot;
         const wasAdmin = boot.admins.includes(contact);
@@ -1082,6 +1112,7 @@ class Chat {
         ).then(() => {
             if (!isUserKick) return;
             const m = new Message(this.db);
+            // @ts-ignore
             m.setUserKickFact(contact.username);
             this._sendMessage(m);
         });

@@ -1,9 +1,18 @@
+// @ts-check
+
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
 const TaskQueue = require('../../helpers/task-queue');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const socket = require('../../network/socket');
+
+// for typechecking:
+/* eslint-disable no-unused-vars */
+const Chat = require('./chat');
+const File = require('../files/file');
+/* eslint-enable no-unused-vars */
+
 /**
  * File handling module for Chat. Extracted for readability.
  * @param {Chat} chat - chat creates an instance and passes itself to it.
@@ -11,6 +20,9 @@ const socket = require('../../network/socket');
  */
 class ChatFileHandler {
     constructor(chat) {
+        /**
+         * @type {Chat} chat
+         */
         this.chat = chat;
     }
 
@@ -27,7 +39,7 @@ class ChatFileHandler {
      * But chat message will not be sent.
      * @param {string} path - full file path
      * @param {string} [name] - override file name, specify to store the file keg with this name
-     * @param {bool} [deleteAfterUpload=false] - delete local file after successful upload
+     * @param {boolean} [deleteAfterUpload=false] - delete local file after successful upload
      * @returns {File}
      * @public
      */
@@ -56,6 +68,7 @@ class ChatFileHandler {
      * @returns {Promise}
      */
     share(files) {
+        // @ts-ignore no bluebird-promise assignability with jsdoc
         return Promise.map(files, (f) => {
             return this.shareQueue.addTask(() => {
                 const ids = this.shareFileKegs([f]);

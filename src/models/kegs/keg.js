@@ -197,7 +197,7 @@ class Keg {
 
     /**
      * Saves keg to server, creates keg (reserves id) first if needed
-     * @param {boolean} cleanShareData - removes shared/sent keg metadata that is not needed after keg is re-encrypted.
+     * @param {boolean=} cleanShareData - removes shared/sent keg metadata that is not needed after keg is re-encrypted.
      * @returns {Promise}
      * @public
      */

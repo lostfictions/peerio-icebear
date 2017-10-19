@@ -378,7 +378,7 @@ class SocketClient {
     /**
      * Send a message to server
      * @param {string} name - api method name
-     * @param {any} data - data to send
+     * @param {any=} data - data to send
      * @returns {Promise<Object>} - server response, always returns `{}` if response is empty
      * @public
      */
