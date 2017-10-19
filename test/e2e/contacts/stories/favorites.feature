@@ -22,8 +22,9 @@ Feature: Favorite contacts
         And   they confirm their email
         Then  they will be in my favorite contacts
     
-     Scenario: Remove favorite contact before email confirmation
-        When I send an invitation to hello@mailinator.com
-        And  they confirm their email
-        But  I unfavorite them
-        Then they will not be in my favorites
+    Scenario: Remove favorite contact before email confirmation
+        Given I invite a new user
+        But   I remove the invitation
+        When  they sign up
+        And   they confirm their email
+        Then  they will not be in my favorites

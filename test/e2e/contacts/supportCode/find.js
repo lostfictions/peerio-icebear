@@ -82,8 +82,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.contactStore.removeContact(someone);
     });
 
-    Then('{someone} will not be in my favorites', (someone, done) => {
-        when(() => app.contactStore.addedContacts, () => {
+    Then('{someone} will not be in my favorites', { timeout: 10000 }, (someone, done) => {
+        // this definition matches 2 steps
+        if (someone === 'they') { someone = other; } // eslint-disable-line
+
+        found = app.contactStore.getContact(someone);
+        when(() => !found.loading, () => {
             app.contactStore
                 .addedContacts
                 .should.not.contain(c => c.username === someone);
@@ -113,5 +117,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     When('they confirm their email', (done) => {
         confirmUserEmail(`${other}@mailinator.com`, done);
+    });
+
+
+    // Scenario: Remove favorite contact before email confirmation
+    When('I remove the invitation', () => {
+        app.contactStore.removeInvite(`${other}@mailinator.com`);
     });
 });
