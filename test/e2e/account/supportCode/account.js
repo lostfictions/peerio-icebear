@@ -342,5 +342,26 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         //     })
         //     .then(done);
     });
+
+    // Helper
+    Then('Create account with username', (done) => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            username = data.username;
+        } else {
+            done(null, 'failed');
+        }
+
+        const user = new app.User();
+        user.username = username;
+        user.email = `${username}@mailinator.com`;
+        user.passphrase = 'secret secrets';
+
+        app.User.current = user;
+
+        app.User.current.createAccountAndLogin()
+            .should.be.fulfilled
+            .then(done);
+    });
 });
 
