@@ -4,16 +4,40 @@ const { when } = require('mobx');
 const { receivedEmailInvite } = require('../../helpers');
 const runFeature = require('../../helpers/runFeature');
 const { getRandomUsername, confirmUserEmail } = require('../../helpers');
+const { asPromise } = require('../../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
-    let app;
-    let returnedContact;
-    let other;
+    let store;
+    let contactFromUsername;
+    let otherUsername;
     let registeredUsername, registeredEmail;
     let unregisteredUsername, unregisteredEmail;
 
+    const assignUnregisteredUser = () => {
+        unregisteredUsername = getRandomUsername();
+        unregisteredEmail = `${unregisteredUsername}@mailinator.com`;
+    };
+
+    const assignRegisteredUser = (result) => {
+        registeredUsername = result.data.username;
+        registeredEmail = `${registeredUsername}@mailinator.com`;
+    };
+
+    const assignOtherValue = (someone) => {
+        if (someone === 'a registered username') {
+            otherUsername = registeredUsername;
+        }
+        if (someone === 'a registered email') {
+            otherUsername = registeredEmail;
+        }
+        if (someone === 'an unregistered user') {
+            otherUsername = unregisteredEmail;
+        }
+    };
+
     Before((testCase, done) => {
-        app = getNewAppInstance();
+        const app = getNewAppInstance();
+        store = app.contactStore;
         when(() => app.socket.connected, done);
     });
 
@@ -22,8 +46,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         runFeature('Account creation')
             .then(result => {
                 if (result.succeeded) {
-                    registeredUsername = result.data.username;
-                    registeredEmail = `${registeredUsername}@mailinator.com`;
+                    assignRegisteredUser(result);
                     confirmUserEmail(registeredEmail, cb);
                 } else {
                     cb(result.errors, 'failed');
@@ -32,68 +55,65 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Before('@unregisteredUser', () => {
-        console.log('hereio2');
-        unregisteredUsername = getRandomUsername();
-        unregisteredEmail = `${unregisteredUsername}@mailinator.com`;
+        assignUnregisteredUser();
     });
 
     // Scenario: Find contact
-    When('I search for {someone}', (someone, done) => {
-        if (someone === 'a registered username') {
-            other = registeredUsername;
-        }
-        if (someone === 'a registered email') {
-            other = registeredEmail;
-        }
-        if (someone === 'an unregistered user') {
-            other = unregisteredEmail;
-        }
-
-        returnedContact = app.contactStore.getContact(other);
-        when(() => !returnedContact.loading, done);
+    When('I search for {someone}', (someone) => {
+        assignOtherValue(someone);
+        contactFromUsername = store.getContact(otherUsername);
+        return asPromise(contactFromUsername, 'loading', false);
     });
 
     When('the contact exists', () => {
-        returnedContact.notFound.should.be.false;
+        contactFromUsername
+            .notFound
+            .should.be.false;
     });
 
     Then('the contact is added in my contacts', () => {
-        app.contactStore.contacts.find(c => c === returnedContact)
+        store
+            .contacts
+            .find(c => c === contactFromUsername)
             .should.be.ok;
     });
 
 
     // Scenario: Send invite email
     When('no profiles are found', () => {
-        returnedContact.notFound.should.be.true;
+        contactFromUsername
+            .notFound
+            .should.be.true;
     });
 
     When('I send an invitation to them', (done) => {
-        app.contactStore.invite(other)
+        store
+            .invite(otherUsername)
             .should.be.fulfilled
             .then(done);
     });
 
-    Then('they are added in my invited contacts', (done) => {
-        returnedContact = app.contactStore.getContact(other);
-        when(() => !returnedContact.loading, () => {
-            app.contactStore
-                .invitedContacts
-                .find(c => c.email === other)
-                .should.be.ok;
-            done();
-        });
+    Then('they are added in my invited contacts', () => {
+        contactFromUsername = store.getContact(otherUsername);
+
+        return asPromise(contactFromUsername, 'loading', false)
+            .then(() => {
+                store
+                    .invitedContacts
+                    .find(c => c.email === otherUsername)
+                    .should.be.ok;
+            });
     });
 
     Then('they should receive an email invitation', () => {
-        return receivedEmailInvite(other);
+        return receivedEmailInvite(otherUsername);
     });
 
 
     // Scenario: favorite a contact
     When('I favorite a registered user', (done) => {
-        other = registeredUsername;
-        app.contactStore
+        otherUsername = registeredUsername;
+        store
             .addContact(registeredUsername)
             .then(result => {
                 result.should.be.true;
@@ -101,44 +121,47 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             });
     });
 
-    Then('they will be in my favorite contacts', { timeout: 10000 }, (done) => {
-        returnedContact = app.contactStore.getContact(other);
-        when(() => returnedContact.isAdded, () => {
-            app.contactStore
-                .addedContacts
-                .find(c => c.username === other)
-                .should.be.ok;
-            done();
-        });
+    Then('they will be in my favorite contacts', { timeout: 10000 }, () => {
+        contactFromUsername = store.getContact(otherUsername);
+        // here test false case
+        return asPromise(contactFromUsername, 'isAdded', true)
+            .then(() => {
+                store
+                    .addedContacts
+                    .find(c => c.username === otherUsername)
+                    .should.be.ok;
+            });
     });
 
 
     // Scenario: Unfavorite a contact
     When('I unfavorite them', () => {
-        app.contactStore.removeContact(other);
+        store.removeContact(otherUsername);
     });
 
-    Then('they will not be in my favorites', { timeout: 10000 }, (done) => {
-        returnedContact = app.contactStore.getContact(other);
-        when(() => !returnedContact.loading, () => {
-            app.contactStore
-                .addedContacts
-                .should.not.contain(c => c.username === other);
-            done();
-        });
+    Then('they will not be in my favorites', { timeout: 10000 }, () => {
+        contactFromUsername = store.getContact(otherUsername);
+
+        return asPromise(contactFromUsername, 'loading', false)
+            .then(() => {
+                store
+                    .addedContacts
+                    .should.not.contain(c => c.username === otherUsername);
+            });
     });
 
 
     // Scenario: Create favorite contact
     When('I invite an unregistered user', (done) => {
-        other = unregisteredUsername;
-        app.contactStore.invite(unregisteredEmail)
+        otherUsername = unregisteredUsername;
+        store
+            .invite(unregisteredEmail)
             .should.be.fulfilled
             .then(done);
     });
 
     When('they sign up', (cb) => {
-        runFeature('Create account with username', { username: other })
+        runFeature('Create account with username', { username: otherUsername })
             .then(result => {
                 if (result.succeeded) {
                     cb(null, 'done');
@@ -155,6 +178,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Remove favorite contact before email confirmation
     When('I remove the invitation', () => {
-        app.contactStore.removeInvite(unregisteredEmail);
+        store.removeInvite(unregisteredEmail);
     });
 });
