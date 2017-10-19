@@ -42,9 +42,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(done);
     });
 
-    Then('{someone} is added in my invited contacts', (someone) => {
-        app.contactStore.invitedContacts.find(c => c.email === someone)
-            .should.be.ok;
+    Then('{someone} is added in my invited contacts', (someone, done) => {
+
+        found = app.contactStore.getContact(someone);
+        when(() => !found.loading, () => {
+            app.contactStore
+                .invitedContacts
+                .find(c => c.email === someone)
+                .should.be.ok;
+            done();
+        });
     });
 
     Then('{someone} should receive an email invitation', (someone) => {
