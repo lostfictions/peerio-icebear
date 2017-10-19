@@ -75,8 +75,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('the contact is added in my contacts', () => {
-        store
-            .contacts
+        store.contacts
             .find(c => c === contactFromUsername)
             .should.be.ok;
     });
@@ -90,8 +89,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('I send an invitation to them', (done) => {
-        store
-            .invite(otherUsername)
+        store.invite(otherUsername)
             .should.be.fulfilled
             .then(done);
     });
@@ -101,8 +99,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
         return contactLoaded()
             .then(() => {
-                store
-                    .invitedContacts
+                store.invitedContacts
                     .find(c => c.email === otherUsername)
                     .should.be.ok;
             });
@@ -116,8 +113,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: favorite a contact
     When('I favorite a registered user', () => {
         otherUsername = registeredUsername;
-        return store
-            .addContact(registeredUsername)
+        return store.addContact(registeredUsername)
             .then(result => {
                 result.should.be.true;
             });
@@ -128,8 +124,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
         return asPromise(contactFromUsername, 'isAdded', true)
             .then(() => {
-                store
-                    .addedContacts
+                store.addedContacts
                     .find(c => c.username === otherUsername)
                     .should.be.ok;
             });
@@ -146,8 +141,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
         return contactLoaded()
             .then(() => {
-                store
-                    .addedContacts
+                store.addedContacts
                     .should.not.contain(c => c.username === otherUsername);
             });
     });
@@ -156,8 +150,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Create favorite contact
     When('I invite an unregistered user', () => {
         otherUsername = unregisteredUsername;
-        return store
-            .invite(unregisteredEmail)
+        return store.invite(unregisteredEmail)
             .should.be.fulfilled;
     });
 
