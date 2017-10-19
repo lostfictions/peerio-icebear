@@ -7,77 +7,106 @@ const { getRandomUsername, confirmUserEmail } = require('../../helpers');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
-    let found;
+    let returnedContact;
     let other;
+    let registeredUsername, registeredEmail;
+    let unregisteredUsername, unregisteredEmail;
 
     Before((testCase, done) => {
         app = getNewAppInstance();
         when(() => app.socket.connected, done);
     });
 
+    // Background
+    Before({ tag: '@registeredUser', timeout: 10000 }, (testCase, cb) => {
+        runFeature('Account creation')
+            .then(result => {
+                if (result.succeeded) {
+                    registeredUsername = result.data.username;
+                    registeredEmail = `${registeredUsername}@mailinator.com`;
+                    confirmUserEmail(registeredEmail, cb);
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
+    });
+
+    Before('@unregisteredUser', () => {
+        console.log('hereio2');
+        unregisteredUsername = getRandomUsername();
+        unregisteredEmail = `${unregisteredUsername}@mailinator.com`;
+    });
+
     // Scenario: Find contact
     When('I search for {someone}', (someone, done) => {
-        found = app.contactStore.getContact(someone);
-        when(() => !found.loading, done);
+        if (someone === 'a registered username') {
+            other = registeredUsername;
+        }
+        if (someone === 'a registered email') {
+            other = registeredEmail;
+        }
+        if (someone === 'an unregistered user') {
+            other = unregisteredEmail;
+        }
+
+        returnedContact = app.contactStore.getContact(other);
+        when(() => !returnedContact.loading, done);
     });
 
     When('the contact exists', () => {
-        found.notFound.should.be.false;
+        returnedContact.notFound.should.be.false;
     });
 
     Then('the contact is added in my contacts', () => {
-        app.contactStore.contacts.find(c => c === found)
+        app.contactStore.contacts.find(c => c === returnedContact)
             .should.be.ok;
     });
 
 
     // Scenario: Send invite email
     When('no profiles are found', () => {
-        found.notFound.should.be.true;
+        returnedContact.notFound.should.be.true;
     });
 
-    When('I send an invitation to {someone}', (someone, done) => {
-        app.contactStore.invite(someone)
+    When('I send an invitation to them', (done) => {
+        app.contactStore.invite(other)
             .should.be.fulfilled
             .then(done);
     });
 
-    Then('{someone} is added in my invited contacts', (someone, done) => {
-
-        found = app.contactStore.getContact(someone);
-        when(() => !found.loading, () => {
+    Then('they are added in my invited contacts', (done) => {
+        returnedContact = app.contactStore.getContact(other);
+        when(() => !returnedContact.loading, () => {
             app.contactStore
                 .invitedContacts
-                .find(c => c.email === someone)
+                .find(c => c.email === other)
                 .should.be.ok;
             done();
         });
     });
 
-    Then('{someone} should receive an email invitation', (someone) => {
-        return receivedEmailInvite(someone);
+    Then('they should receive an email invitation', () => {
+        return receivedEmailInvite(other);
     });
 
 
     // Scenario: favorite a contact
-    When('I favorite {someone}', (someone, done) => {
+    When('I favorite a registered user', (done) => {
+        other = registeredUsername;
         app.contactStore
-            .addContact(someone)
+            .addContact(registeredUsername)
             .then(result => {
                 result.should.be.true;
                 done();
             });
     });
 
-    Then('{someone} will be in my favorite contacts', { timeout: 10000 }, (someone, done) => {
-        // this definition matches 2 steps
-        if (someone === 'they') { someone = other; } // eslint-disable-line
-
-        found = app.contactStore.getContact(someone);
-        when(() => found.isAdded, () => {
+    Then('they will be in my favorite contacts', { timeout: 10000 }, (done) => {
+        returnedContact = app.contactStore.getContact(other);
+        when(() => returnedContact.isAdded, () => {
             app.contactStore
                 .addedContacts
-                .find(c => c.username === someone)
+                .find(c => c.username === other)
                 .should.be.ok;
             done();
         });
@@ -85,28 +114,25 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Unfavorite a contact
-    When('I unfavorite {someone}', (someone) => {
-        app.contactStore.removeContact(someone);
+    When('I unfavorite them', () => {
+        app.contactStore.removeContact(other);
     });
 
-    Then('{someone} will not be in my favorites', { timeout: 10000 }, (someone, done) => {
-        // this definition matches 2 steps
-        if (someone === 'they') { someone = other; } // eslint-disable-line
-
-        found = app.contactStore.getContact(someone);
-        when(() => !found.loading, () => {
+    Then('they will not be in my favorites', { timeout: 10000 }, (done) => {
+        returnedContact = app.contactStore.getContact(other);
+        when(() => !returnedContact.loading, () => {
             app.contactStore
                 .addedContacts
-                .should.not.contain(c => c.username === someone);
+                .should.not.contain(c => c.username === other);
             done();
         });
     });
 
 
     // Scenario: Create favorite contact
-    When('I invite a new user', (done) => {
-        other = getRandomUsername();
-        app.contactStore.invite(`${other}@mailinator.com`)
+    When('I invite an unregistered user', (done) => {
+        other = unregisteredUsername;
+        app.contactStore.invite(unregisteredEmail)
             .should.be.fulfilled
             .then(done);
     });
@@ -123,12 +149,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('they confirm their email', (done) => {
-        confirmUserEmail(`${other}@mailinator.com`, done);
+        confirmUserEmail(unregisteredEmail, done);
     });
 
 
     // Scenario: Remove favorite contact before email confirmation
     When('I remove the invitation', () => {
-        app.contactStore.removeInvite(`${other}@mailinator.com`);
+        app.contactStore.removeInvite(unregisteredEmail);
     });
 });
