@@ -11,13 +11,14 @@ Feature: Favorite contacts
         Then ku7bpm63xmgfr7nirdz0ucxyi2gngo will be in my favorite contacts
 
     Scenario: Unfavorite a contact 
-        Given I favorite o6gl796m7ctzbv2u7nij74k1w5gqyi
-        When  I unfavorite o6gl796m7ctzbv2u7nij74k1w5gqyi
-        Then  o6gl796m7ctzbv2u7nij74k1w5gqyi will not be in my favorites
+        Given I favorite ku7bpm63xmgfr7nirdz0ucxyi2gngo
+        And   ku7bpm63xmgfr7nirdz0ucxyi2gngo will be in my favorite contacts
+        When  I unfavorite ku7bpm63xmgfr7nirdz0ucxyi2gngo
+        Then  ku7bpm63xmgfr7nirdz0ucxyi2gngo will not be in my favorites
 
-    Scenario: Create favouite contact on invited email confirmation (sender and receiver)
-        Given I confirm my email
-        When  I send an invitation to hello@mailinator.com
+    Scenario: Create favorite contact from invited user
+        Given I invite a new user
+        And   they sign up
         And   they confirm their email
         Then  they will be in my favorite contacts
     

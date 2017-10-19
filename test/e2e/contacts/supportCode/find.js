@@ -2,11 +2,13 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getNewAppInstance = require('../../config');
 const { when } = require('mobx');
 const { receivedEmailInvite } = require('../../helpers');
+const runFeature = require('../../helpers/runFeature');
+const { getRandomUsername, confirmUserEmail } = require('../../helpers');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let app;
     let found;
-    let numberOfContacts;
+    let other;
 
     Before((testCase, done) => {
         app = getNewAppInstance();
@@ -60,9 +62,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             });
     });
 
+    Then('{someone} will be in my favorite contacts', { timeout: 10000 }, (someone, done) => {
+        // this definition matches 2 steps
+        if (someone === 'they') { someone = other; } // eslint-disable-line
 
-    Then('{someone} will be in my favorite contacts', (someone, done) => {
-        when(() => app.contactStore.addedContacts, () => {
+        found = app.contactStore.getContact(someone);
+        when(() => found.isAdded, () => {
             app.contactStore
                 .addedContacts
                 .find(c => c.username === someone)
@@ -88,16 +93,25 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Create favorite contact
-    When('I confirm my email', () => {
+    When('I invite a new user', (done) => {
+        other = getRandomUsername();
+        app.contactStore.invite(`${other}@mailinator.com`)
+            .should.be.fulfilled
+            .then(done);
     });
 
-    When('they confirm their email', () => {
-        // return receivedEmailInvite(found.email);
+    When('they sign up', (cb) => {
+        runFeature('Create account with username', { username: other })
+            .then(result => {
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
     });
 
-
-    // Scenario: Remove favorite contact before email confirmation
-    When('{a new user} confirms their email', (callback) => {
-
+    When('they confirm their email', (done) => {
+        confirmUserEmail(`${other}@mailinator.com`, done);
     });
 });

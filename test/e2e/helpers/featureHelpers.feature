@@ -20,3 +20,8 @@ Feature: Common scenarios
     Scenario: Deleted files
         Given I am logged in
         Then  I should not see deleted files
+
+    Scenario: Create account with username
+        * Create account with username
+    
+    
