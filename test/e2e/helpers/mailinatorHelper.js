@@ -5,15 +5,6 @@ const confirmLabel = 'Confirm your account';
 const newEmailLabel = 'confirm your new address';
 const invitedLabel = 'has invited you';
 
-const usernameChars = '0123456789abcdefghijklmnopqrstuvwxyz';
-const getRandomUsername = () => {
-    let username = '';
-    for (let i = 0; i < 30; i++) {
-        username += usernameChars[Math.floor(Math.random() * usernameChars.length)];
-    }
-    return username;
-};
-
 const getMailbox = () => {
     return new Promise((resolve, reject) => {
         const inbox = `http://api.mailinator.com/api/inbox?to=${process.env.PEERIO_ADMIN_EMAIL}&token=${process.env.MAILINATOR_KEY}`;
@@ -120,5 +111,5 @@ const receivedEmailInvite = (user) => {
     });
 };
 
-module.exports = { getRandomUsername, confirmUserEmail, receivedEmailInvite };
+module.exports = { confirmUserEmail, receivedEmailInvite };
 

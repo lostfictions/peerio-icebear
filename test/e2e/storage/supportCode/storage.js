@@ -1,5 +1,5 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getNewAppInstance = require('../../config');
+const getAppInstance = require('../../helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
@@ -23,7 +23,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     };
 
     Before((testCase, done) => {
-        app = getNewAppInstance();
+        app = getAppInstance();
 
         when(() => app.socket.connected, () => {
             app.fileStore.loadAllFiles();

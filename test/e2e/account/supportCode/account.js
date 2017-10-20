@@ -1,8 +1,9 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getNewAppInstance = require('../../config');
+const getAppInstance = require('../../helpers/appConfig');
 const { when } = require('mobx');
 const speakeasy = require('speakeasy');
-const { getRandomUsername, confirmUserEmail } = require('../../helpers');
+const { getRandomUsername } = require('../../helpers/usernameHelper');
+const { confirmUserEmail } = require('../../helpers/runFeature');
 const runFeature = require('../../helpers/runFeature');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const { DisconnectedError } = require('../../../../src/errors');
@@ -16,7 +17,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     let newEmail;
 
     Before((testCase, done) => {
-        app = getNewAppInstance();
+        app = getAppInstance();
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
             ({ username, passphrase } = data);

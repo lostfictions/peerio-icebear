@@ -1,9 +1,9 @@
-function getNewAppInstance() {
+function getAppInstance() {
     const path = require('path');
     const os = require('os');
-    const cfg = require('../../src/config');
-    const FileStream = require('../../src/models/files/node-file-stream');
-    const StorageEngine = require('../../src/models/storage/node-json-storage');
+    const cfg = require('../../../src/config');
+    const FileStream = require('../../../src/models/files/node-file-stream');
+    const StorageEngine = require('../../../src/models/storage/node-json-storage');
 
     cfg.appVersion = '2.37.1';
     cfg.clientVersion = '2.9.0';
@@ -15,11 +15,11 @@ function getNewAppInstance() {
     cfg.StorageEngine.storageFolder = path.join(os.homedir(), '.peerio-icebear-tests');
     cfg.socketServerUrl = 'wss://hocuspocus.peerio.com';
 
-    const icebear = require('../../src/index');
+    const icebear = require('../../../src/index');
 
     icebear.socket.start();
 
     return icebear;
 }
 
-module.exports = getNewAppInstance;
+module.exports = getAppInstance;
