@@ -14,6 +14,7 @@ const { asPromise } = require('../../helpers/prombservable');
 const { getUser } = require('../../helpers/di-current-user');
 const warnings = require('../warnings');
 const { setChatStore } = require('../../helpers/di-chat-store');
+const { getFileStore } = require('../../helpers/di-file-store');
 
 // Used for typechecking
 // eslint-disable-next-line no-unused-vars
@@ -426,7 +427,9 @@ class ChatStore {
 
         // 8. waiting for most chats to load but up to a reasonable time
         await Promise.map(this.chats, chat => asPromise(chat, 'headLoaded', true))
-            .timeout(5000).catch(() => { /* well, the rest will trigger re-render */ });
+            .timeout(5000)
+            .catch(() => { /* well, the rest will trigger re-render */ })
+            .then(getFileStore().loadAllFiles);
 
         // 9. find out which chat to activate.
         const lastUsed = await TinyDb.user.getValue('lastUsedChat');

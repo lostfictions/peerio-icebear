@@ -283,8 +283,9 @@ class FileStore {
      * Call at least once from UI.
      * @public
      */
-    loadAllFiles() {
+    loadAllFiles = () => {
         if (this.loading || this.loaded) return;
+        console.time('loadAllFiles');
         this.loading = true;
         retryUntilSuccess(() => this._getFiles(), 'Initial file list loading')
             .then(action(kegs => {
@@ -337,8 +338,9 @@ class FileStore {
                         tracker.seenThis('SELF', 'file', this.knownUpdateId);
                     }, { fireImmediately: true, delay: 700 });
                 setTimeout(this.updateFiles);
+                console.timeEnd('loadAllFiles');
             }));
-    }
+    };
 
     // this essentially does the same as loadAllFiles but with filter,
     // we reserve this way of updating anyway for future, when we'll not gonna load entire file list on start
