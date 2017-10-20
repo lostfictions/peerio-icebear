@@ -13,6 +13,14 @@ const clientApp = require('../client-app');
 const TaskQueue = require('../../helpers/task-queue');
 
 /**
+ * @typedef {{
+       url : string
+       length : number
+       oversized : boolean
+   }} ExternalImage
+ */
+
+/**
  * Message keg and model
  * @param {ChatStore} db - chat db
  * @extends {Keg}
@@ -80,8 +88,8 @@ class Message extends Keg {
 
     /**
      * External image urls mentioned in this chat and safe to render in agreement with all settings.
-     * @member {Array<string>} externalImages
-     * @type {Array<string>} externalImages
+     * @member {Array<ExternalImage>} externalImages
+     * @type {Array<ExternalImage>} externalImages
      * @memberof Message
      * @instance
      * @public
