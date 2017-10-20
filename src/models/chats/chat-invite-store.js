@@ -123,12 +123,12 @@ class ChatInviteStore {
                 for (const kegDbId in res) {
                     const leavers = res[kegDbId];
                     if (!leavers || !leavers.length) continue;
-                    this.left.set(kegDbId, leavers.map(l => l.username));
+                    this.left.set(kegDbId, leavers.map(l => { return { username: l }; }));
                     getChatStore()
                         .getChatWhenReady(kegDbId)
                         .then(chat => {
                             if (!chat.canIAdmin) return;
-                            Promise.map(leavers, l => chat.removeParticipant(l.username, false), { concurrency: 1 });
+                            Promise.map(leavers, l => chat.removeParticipant(l, false), { concurrency: 1 });
                         })
                         .catch(err => {
                             console.error(err);

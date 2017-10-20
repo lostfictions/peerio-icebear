@@ -187,7 +187,8 @@ class ChatKegDb {
     _parseMeta = (meta) => {
         this.id = meta.id;
         if (!this.isChannel && meta.permissions && meta.permissions.users) {
-            this._metaParticipants = Object.keys(meta.permissions.users).map(username => contactStore.getContact(username));
+            this._metaParticipants = Object.keys(meta.permissions.users)
+                .map(username => contactStore.getContact(username));
         }
     }
 

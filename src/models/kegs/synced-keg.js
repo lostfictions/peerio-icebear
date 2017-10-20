@@ -1,7 +1,7 @@
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
 const { retryUntilSuccess } = require('../../helpers/retry');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const Keg = require('./keg.js');
 const warnings = require('../warnings');
 const { observable } = require('mobx');
@@ -26,7 +26,7 @@ class SyncedKeg extends Keg {
         socket.onceAuthenticated(this._enqueueLoad);
     }
 
-    _syncQueue = new Queue(1, 0);
+    _syncQueue = new TaskQueue(1, 0);
     /**
      * Sets to true when keg is loaded for the first time.
      * @member {boolean} loaded

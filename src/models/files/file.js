@@ -10,7 +10,9 @@ const downloadModule = require('./file.download');
 const { getUser } = require('../../helpers/di-current-user');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const { ServerError } = require('../../errors');
+const clientApp = require('../client-app');
 
+const IMAGE_EXTS = { png: true, jpg: true, jpeg: true, bmp: true, gif: true };
 /**
  * File keg and model.
  * @param {KegDb} db
@@ -74,6 +76,12 @@ class File extends Keg {
      */
     @observable fileOwner;
 
+    /**
+     * Indicates if last caching attempt failed
+     * @memberof File
+     */
+    @observable cachingFailed = false;
+
     // -- View state data ----------------------------------------------------------------------------------------
     // Depends on server set property 'fileProcessingState'
     /**
@@ -123,6 +131,9 @@ class File extends Keg {
      * @public
      */
     @observable cached = false;
+
+    @observable tmpCached = false;
+
     /**
      * Is this file selected in file pickers for group operations.
      * It's a bit weird mix of UI state and logic, but it works fine at the moment,
@@ -141,12 +152,6 @@ class File extends Keg {
      * @public
      */
     @observable show = true;
-    /**
-     * If upload cancel is initiated by user
-     * @member {boolean}
-     * @public
-     */
-    uploadCancelled = false;
     /**
      * Is this file currently shared with anyone.
      * @member {boolean} shared
@@ -167,6 +172,17 @@ class File extends Keg {
     @computed get ext() {
         return fileHelper.getFileExtension(this.name);
     }
+
+    @computed get isImage() {
+        return !!IMAGE_EXTS[this.ext];
+    }
+
+    @computed get fsSafeUid() {
+        return cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
+    }
+    @computed get tmpCachePath() {
+        return config.FileStream.getTempCachePath(`${this.fsSafeUid}.${this.ext}`);
+    }
     /**
      * currently mobile only: Full path to locally stored file
      * @member {string} cachePath
@@ -176,10 +192,9 @@ class File extends Keg {
      */
     @computed get cachePath() {
         if (!config.isMobile) return null;
-        // we need constant id to find file in cache, but fileId contains some restricted characters
-        const uid = cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
-        const name = `${this.name || uid}.${this.ext}`;
-        return config.FileStream.getFullPath(uid, name);
+
+        const name = `${this.name || this.fsSafeUid}.${this.ext}`;
+        return config.FileStream.getFullPath(this.fsSafeUid, name);
     }
     /**
      * Human readable file size
@@ -218,6 +233,10 @@ class File extends Keg {
      */
     get sizeWithOverhead() {
         return this.size + this.chunksCount * config.CHUNK_OVERHEAD;
+    }
+
+    @computed get isOverInlineSizeLimit() {
+        return clientApp.uiUserPrefs.limitInlineImageSize && this.size > config.chat.inlineImageSizeLimit;
     }
 
     serializeKegPayload() {
@@ -363,6 +382,16 @@ class File extends Keg {
                     return Promise.reject(err);
                 });
         }, 5);
+    }
+
+    tryToCacheTemporarily() {
+        if (this.tmpCached
+            || this.downloading
+            || !clientApp.uiUserPrefs.peerioContentEnabled
+            || this.isOverInlineSizeLimit
+            || this.cachingFailed) return;
+
+        this.downloadToTmpCache();
     }
 }
 

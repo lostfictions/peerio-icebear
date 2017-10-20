@@ -6,8 +6,8 @@ const newEmailLabel = 'confirm your new address';
 const invitedLabel = 'has invited you';
 
 const getMailbox = () => {
-    return new Promise((resolve, reject) => {
-        const inbox = `http://api.mailinator.com/api/inbox?to=${process.env.PEERIO_ADMIN_EMAIL}&token=${process.env.MAILINATOR_KEY}`;
+    return new Promise((resolve) => {
+        const inbox = `http://api.mailinator.com/api/inbox?to=${process.env.PEERIO_ADMIN_EMAIL}&token=${process.env.MAILINATOR_KEY}`; // eslint-disable-line
         http.get(inbox, (response) => {
             let emails = '';
             response.on('data', (chunk) => { emails += chunk; });
@@ -60,8 +60,8 @@ const getConfirmationLink = (body) => {
 };
 
 const getConfirmationEmail = (confirmationEmailId) => {
-    return new Promise((resolve, reject) => {
-        const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmailId}&token=${process.env.MAILINATOR_KEY}`;
+    return new Promise((resolve) => {
+        const emailUrl = `http://api.mailinator.com/api/email?id=${confirmationEmailId}&token=${process.env.MAILINATOR_KEY}`; // eslint-disable-line
 
         http.get(emailUrl, (res) => {
             let body = '';
@@ -76,7 +76,7 @@ const getConfirmationEmail = (confirmationEmailId) => {
 };
 
 const openConfirmationLink = (url) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         https.get(url, (resp) => {
             resp.on('data', () => { });
             resp.on('error', (e) => console.log(e.message));

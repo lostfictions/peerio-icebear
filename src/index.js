@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * Icebear client lib entry point.
  * @desc In addition to exporting public API, entry point, when first required,
@@ -13,6 +15,7 @@
 const Promise = require('bluebird');
 
 if (typeof window !== 'undefined') {
+    // @ts-ignore oddly should work with typescript, but can't seem to make jsdoc recognize it
     window.Promise = Promise;
 }
 
@@ -28,9 +31,11 @@ Promise.config({
     }
 });
 
+// @ts-ignore
 // extending native classes
 require('./extensions/uint8array');
 
+// @ts-ignore
 // for JSDoc's sake
 require('./typedefs');
 

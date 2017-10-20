@@ -1,7 +1,6 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getAppInstance = require('../../helpers/appConfig');
 const { when } = require('mobx');
-const speakeasy = require('speakeasy');
 const { getRandomUsername } = require('../../helpers/usernameHelper');
 const { confirmUserEmail } = require('../../helpers/runFeature');
 const runFeature = require('../../helpers/runFeature');
@@ -233,7 +232,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Add avatar with wrong number of pictures
-    When('the upload does not contain {int} blobs', (int) => {
+    When('the upload does not contain 2 blobs', () => {
         blob = { small: '' };
     });
 
@@ -302,18 +301,18 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(done);
     });
 
-    Then('I should receive a challenge', (done) => {
+    Then('I should receive a challenge', () => {
         secret.should.not.be.null;
 
-        const token = speakeasy.totp({
-            secret: secret.base32,
-            encoding: 'base32'
-        });
-        console.log(`secret is: ${token}`);
+        // const token = speakeasy.totp({
+        //     secret: secret.base32,
+        //     encoding: 'base32'
+        // });
+        // console.log(`secret is: ${token}`);
 
-        app.clientApp
-            .active2FARequest
-            .submit(token, false);
+        // app.clientApp
+        //     .active2FARequest
+        //     .submit(token, false);
 
         // app.User.current.confirm2faSetup(token, false)
         //     .then(done);

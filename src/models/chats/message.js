@@ -1,3 +1,4 @@
+// @ts-check
 
 const { observable, computed } = require('mobx');
 const contactStore = require('./../contacts/contact-store');
@@ -6,6 +7,18 @@ const Keg = require('./../kegs/keg');
 const moment = require('moment');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
+const unfurl = require('../../helpers/unfurl');
+const config = require('../../config');
+const clientApp = require('../client-app');
+const TaskQueue = require('../../helpers/task-queue');
+
+/**
+ * @typedef {{
+       url : string
+       length : number
+       oversized : boolean
+   }} ExternalImage
+ */
 
 /**
  * Message keg and model
@@ -17,8 +30,11 @@ class Message extends Keg {
     constructor(db) {
         super(null, 'message', db);
     }
+
+    static unfurlQueue = new TaskQueue(5);
     /**
      * @member {boolean} sending
+     * @type {boolean} sending
      * @memberof Message
      * @instance
      * @public
@@ -26,6 +42,7 @@ class Message extends Keg {
     @observable sending = false;
     /**
      * @member {boolean} sendError
+     * @type {boolean} sendError
      * @memberof Message
      * @instance
      * @public
@@ -34,6 +51,7 @@ class Message extends Keg {
     /**
      * array of usernames to render receipts for
      * @member {Array<string>} receipts
+     * @type {Array<string>} receipts
      * @memberof Message
      * @instance
      * @public
@@ -42,6 +60,7 @@ class Message extends Keg {
     /**
      * Which usernames are mentioned in this message.
      * @member {Array<string>} userMentions
+     * @type {Array<string>} userMentions
      * @memberof Message
      * @instance
      * @public
@@ -51,6 +70,7 @@ class Message extends Keg {
     /**
      * Is this message first in the day it was sent (and loaded message page)
      * @member {boolean} firstOfTheDay
+     * @type {boolean} firstOfTheDay
      * @memberof Message
      * @instance
      * @public
@@ -59,6 +79,7 @@ class Message extends Keg {
     /**
      * whether or not to group this message with previous one in message list.
      * @member {boolean} groupWithPrevious
+     * @type {boolean} groupWithPrevious
      * @memberof Message
      * @instance
      * @public
@@ -66,22 +87,23 @@ class Message extends Keg {
     @observable groupWithPrevious;
 
     /**
-     * for UI use
-     * @member {Array<string>} inlineImages
+     * External image urls mentioned in this chat and safe to render in agreement with all settings.
+     * @member {Array<ExternalImage>} externalImages
+     * @type {Array<ExternalImage>} externalImages
      * @memberof Message
      * @instance
      * @public
      */
-    @observable.shallow inlineImages = [];
+    @observable externalImages = [];
 
     /**
-     * Some properties are filly controlled by UI and when SDK replaces object with its updated equivalent copy
-     * we want to retain those properties.
-     * @protected
+     * Indicates if current message contains at least one url.
+     * @type {boolean}
+     * @memberof Message
+     * @public
      */
-    setUIPropsFrom(msg) {
-        this.inlineImages = msg.inlineImages;
-    }
+    @observable hasUrls = false;
+
     // -----
     /**
      * used to compare calendar days
@@ -122,6 +144,7 @@ class Message extends Keg {
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
 
+        // @ts-ignore we can't use jsdoc annotations to make bluebird promises assignable to global promises!
         return (this.systemData ? retryUntilSuccess(() => this.saveToServer()) : this.saveToServer())
             .catch(err => {
                 this.sendError = true;
@@ -235,10 +258,65 @@ class Message extends Keg {
         };
     }
 
+    /**
+     * Parses message to find urls or file attachments.
+     * Verifies external url type and size and fills this.inlineImages.
+     * @memberof Message
+     */
+    async parseExternalContent() {
+        this.externalImages.clear();
+        const settings = clientApp.uiUserPrefs;
+        // it's not nice to run regex on every message,
+        // but we'll remove this with richText release
+        let urls = unfurl.getUrls(this.text);
+        this.hasUrls = !!urls.length;
+
+        if (!settings.externalContentEnabled) {
+            return;
+        }
+
+        if (settings.externalContentJustForFavs && !this.sender.isMe) {
+            await this.sender.ensureLoaded(); // need to make sure this contact is in fav list
+            if (!this.sender.isAdded) return;
+        }
+
+        urls = Array.from(new Set(urls));// deduplicate
+        for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            if (unfurl.urlCache[url]) {
+                this._processUrlHeaders(url, unfurl.urlCache[url]);
+            } else {
+                this._queueUnfurl(url);
+            }
+        }
+    }
+
+    _queueUnfurl(url) {
+        Message.unfurlQueue.addTask(() => {
+            return unfurl.getContentHeaders(url)
+                .then((headers) => this._processUrlHeaders(url, headers));
+        });
+    }
+
+    _processUrlHeaders(url, headers) {
+        if (!headers) return;
+
+        const type = headers['content-type'];
+        const length = +(headers['content-length'] || 0);// careful, +undefined is NaN
+
+        if (!config.chat.allowedInlineContentTypes[type]) return;
+
+        this.externalImages.push({
+            url,
+            length,
+            oversized: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit
+        });
+    }
+
     serializeKegPayload() {
-        this.userMentions = this.text ? _.uniq(
-            this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username)
-        ) : [];
+        this.userMentions = this.text
+            ? _.uniq(this.db.participants.filter((u) => this.text.match(u.mentionRegex)).map((u) => u.username))
+            : [];
         const ret = {
             text: this.text,
             timestamp: this.timestamp.valueOf(),
@@ -247,6 +325,9 @@ class Message extends Keg {
         this._serializeFileAttachments(ret);
         if (this.systemData) {
             ret.systemData = this.systemData;
+        }
+        if (this.richText) {
+            ret.richText = this.richText;
         }
         return ret;
     }
@@ -262,6 +343,13 @@ class Message extends Keg {
          * @public
          */
         this.text = payload.text;
+
+        /**
+         * @member {Object=} richText
+         * @public
+         */
+        this.richText = payload.richText;
+
         /**
          * For system messages like chat rename fact.
          * @member {Object} systemData

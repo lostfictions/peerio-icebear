@@ -38,16 +38,17 @@ class ChatMessageHandler {
                 this.chat.updatedAfterReconnect = false;
             }
         }));
-        this._reactionsToDispose.push(reaction(() => clientApp.isFocused && clientApp.isInChatsView, (isFocused) => {
-            if (isFocused) {
-                this.markAllAsSeen();
-                this.removeMaker();
-            } else if (!this.chat.newMessagesMarkerPos && this.chat.messages.length) {
-                this.cancelTimers();
-                const lastId = this.chat.messages[this.chat.messages.length - 1].id;
-                this.chat.newMessagesMarkerPos = lastId;
-            }
-        }));
+        this._reactionsToDispose.push(reaction(() => clientApp.isFocused && clientApp.isInChatsView && this.chat.active,
+            (userIsReading) => {
+                if (userIsReading) {
+                    this.markAllAsSeen();
+                    this.removeMaker();
+                } else if (!this.chat.newMessagesMarkerPos && this.chat.messages.length) {
+                    this.cancelTimers();
+                    const lastId = this.chat.messages[this.chat.messages.length - 1].id;
+                    this.chat.newMessagesMarkerPos = lastId;
+                }
+            }));
     }
 
     maxUpdateId = '';

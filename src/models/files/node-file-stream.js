@@ -1,6 +1,8 @@
 const FileStreamAbstract = require('./file-stream-abstract');
 const errors = require('../../errors');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 /**
  * FileStreamAbstract implementation for nodejs, see {@link FileStreamAbstract} for docs.
@@ -73,17 +75,25 @@ class NodeFileStream extends FileStreamAbstract {
         this.pos = pos;
     }
 
-    static getStat(path) {
-        return Promise.resolve(fs.statSync(path));
+    static getStat(filePath) {
+        return Promise.resolve(fs.statSync(filePath));
     }
 
-    static delete(path) {
+    static delete(filePath) {
         return new Promise((resolve, reject) => {
-            fs.unlink(path, err => {
+            fs.unlink(filePath, err => {
                 if (err) reject(err);
                 else resolve();
             });
         });
+    }
+
+    static getTempCachePath(name) {
+        return path.join(os.tmpdir(), name);
+    }
+
+    static exists(filePath) {
+        return Promise.resolve(fs.existsSync(filePath));
     }
 }
 

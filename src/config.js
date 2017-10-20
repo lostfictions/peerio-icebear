@@ -276,7 +276,7 @@ const config = new class {
          * @memberof config
          * @public
          */
-        maxLoadedMessages: 80,
+        maxLoadedMessages: 130,
         /**
          * Delay (ms) between decryption of individual messages when processing a batch.
          * Increase to get more responsiveness, but increase page load time.
@@ -285,14 +285,47 @@ const config = new class {
          * @public
          */
         decryptQueueThrottle: 0,
-
         /**
-         * Maximum amount of participants for direct message (including creator)
-         * @member {number} chat.maxDMParticipants
+         * Maximum amount of recent files to maintain in chat object to be able to display the list on UI.
+         * @member {number} chat.recentFilesDisplayLimit
          * @memberof config
          * @public
          */
-        maxDMParticipants: 4
+        recentFilesDisplayLimit: 10,
+        /**
+         * Maximum number of characters chat name can have.
+         * Do not override this in clients, it's supposed to be a system limit.
+         * @member {number} chat.maxChatNameLength
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        maxChatNameLength: 24,
+        /**
+         * Maximum number of characters chat purpose can have.
+         * Do not override this in clients, it's supposed to be a system limit.
+         * @member {number} chat.maxChatPurposeLength
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        maxChatPurposeLength: 120,
+        /**
+         * Maximum number of bytes inline image can have (both peerio file and external)
+         * to allow auto-downloading and showing it inline
+         * @member {number} chat.inlineImageSizeLimit
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        inlineImageSizeLimit: 10 * 1024 * 1014,
+        allowedInlineContentTypes: {
+            'image/jpeg': true,
+            'image/bmp': true,
+            'image/gif': true,
+            'image/pjpeg': true,
+            'image/png': true
+        }
     };
 }();
 

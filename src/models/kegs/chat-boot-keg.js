@@ -1,5 +1,5 @@
 const { cryptoUtil, publicCrypto, keys } = require('../../crypto');
-const { observable, action, when } = require('mobx');
+const { observable, action } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
 const SyncedKeg = require('../kegs/synced-keg');
 
@@ -284,7 +284,9 @@ class ChatBootKeg extends SyncedKeg {
             };
             this.participants.forEach(c => {
                 if (c.deleted || c.notFound) return;
-                if (c.loading) throw new Error(`Can not save boot keg because participant Contact (${c.username}) is not loaded`);
+                if (c.loading) {
+                    throw new Error(`Can not save boot keg because participant Contact (${c.username}) is not loaded`);
+                }
                 const encKey = publicCrypto.encrypt(keyData.key, c.encryptionPublicKey, ephemeralKeyPair.secretKey);
                 k[id].keys[c.username] = cryptoUtil.bytesToB64(encKey);
             });

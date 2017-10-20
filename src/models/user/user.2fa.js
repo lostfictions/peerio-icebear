@@ -98,7 +98,8 @@ module.exports = function mixUser2faModule() {
                     };
                     socket.send('/noauth/2fa/authenticate', req)
                         .then(resp => {
-                            return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
+                            return TinyDb.system.setValue(`${this.username}:deviceToken`,
+                                cryptoUtil.bytesToB64(resp.deviceToken));
                         })
                         .then(resolve)
                         .catch(reject);

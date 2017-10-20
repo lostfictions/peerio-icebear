@@ -1,8 +1,10 @@
+// @ts-check
+
 const { observable, action, computed, reaction, autorunAsync, isObservableArray, when, runInAction } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
 const tracker = require('../update-tracker');
-const EventEmitter = require('eventemitter3');
+const { EventEmitter } = require('eventemitter3');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const MyChats = require('../chats/my-chats');
@@ -12,6 +14,10 @@ const { asPromise } = require('../../helpers/prombservable');
 const { getUser } = require('../../helpers/di-current-user');
 const warnings = require('../warnings');
 const { setChatStore } = require('../../helpers/di-chat-store');
+
+// Used for typechecking
+// eslint-disable-next-line no-unused-vars
+const Contact = require('../contacts/contact');
 
 /**
  * Chat store.
@@ -27,7 +33,7 @@ class ChatStore {
         autorunAsync(() => {
             this.sortChats();
         }, 500);
-        socket.onceAuthenticated(async() => {
+        socket.onceAuthenticated(async () => {
             this.unreadChatsAlwaysOnTop = !!(await TinyDb.user.getValue('pref_unreadChatsAlwaysOnTop'));
             autorunAsync(() => {
                 TinyDb.user.setValue('pref_unreadChatsAlwaysOnTop', this.unreadChatsAlwaysOnTop);
@@ -46,6 +52,7 @@ class ChatStore {
     /**
      * Currently emits just one event - 'messagesReceived' (1 sec. throttled)
      * @member {EventEmitter}
+     * @type {EventEmitter}
      * @public
      */
     events = new EventEmitter();
@@ -61,6 +68,7 @@ class ChatStore {
 
     /**
      * @member {boolean} unreadChatsAlwaysOnTop
+     * @type {boolean} unreadChatsAlwaysOnTop
      * @memberof ChatStore
      * @instance
      * @public
@@ -70,6 +78,7 @@ class ChatStore {
     /**
      * MyChats Keg
      * @member {MyChats} myChats
+     * @type {MyChats} myChats
      * @protected
      */
     myChats;
@@ -77,12 +86,14 @@ class ChatStore {
     /**
      * To prevent duplicates
      * @member {{chatId:Chat}}
+     * @type {{[chatId : string]: Chat}}
      * @private
      */
     chatMap = {};
     /**
      * True when chat list loading is in progress.
      * @member {boolean} loading
+     * @type {boolean} loading
      * @memberof ChatStore
      * @instance
      * @public
@@ -92,6 +103,7 @@ class ChatStore {
     /**
      * True when all chats has been updated after reconnect
      * @member {boolean} updatedAfterReconnect
+     * @type {boolean} updatedAfterReconnect
      * @memberof ChatStore
      * @instance
      * @public
@@ -103,6 +115,7 @@ class ChatStore {
     /**
      * currently selected/focused chat.
      * @member {Chat} activeChat
+     * @type {Chat} activeChat
      * @memberof ChatStore
      * @instance
      * @public
@@ -111,6 +124,7 @@ class ChatStore {
     /**
      * Chats set this flag and UI should use it to prevent user from spam-clicking the 'hide' button
      * @member {boolean} hidingChat
+     * @type {boolean} hidingChat
      * @memberof ChatStore
      * @instance
      * @public
@@ -119,6 +133,7 @@ class ChatStore {
     /**
      * True when loadAllChats() was called and finished once already.
      * @member {boolean} loaded
+     * @type {boolean} loaded
      * @memberof ChatStore
      * @instance
      * @public
@@ -128,6 +143,7 @@ class ChatStore {
     /**
      * Total unread messages in all chats.
      * @member {number} unreadMessages
+     * @type {number} unreadMessages
      * @memberof ChatStore
      * @readonly
      * @instance
@@ -140,6 +156,7 @@ class ChatStore {
     /**
      * Subset of ChatStore#chats, contains only direct message chats
      * @member {Array<Chat>} directMessages
+     * @type {Array<Chat>} directMessages
      * @memberof ChatStore
      * @readonly
      * @instance
@@ -152,6 +169,7 @@ class ChatStore {
     /**
      * Subset of ChatStore#chats, contains only channel chats
      * @member {Array<Chat>} channels
+     * @type {Array<Chat>} channels
      * @memberof ChatStore
      * @readonly
      * @instance
@@ -164,6 +182,7 @@ class ChatStore {
     /**
      * Does chat store has any channels or not.
      * @member {boolean} hasChannels
+     * @type {boolean} hasChannels
      * @memberof ChatStore
      * @readonly
      * @instance
@@ -199,7 +218,7 @@ class ChatStore {
      * @static
      * @param {Chat} a
      * @param {Chat} b
-     * @param {bool} unreadOnTop
+     * @param {boolean} unreadOnTop
      * @returns {number} -1, 0 or 1
      * @protected
      */
@@ -466,10 +485,10 @@ class ChatStore {
     /**
      * Starts new chat or loads existing one and
      * @function startChat
-     * @param {?Array<Contact>} participants
-     * @param {?bool} isChannel
-     * @param {?string} name
-     * @param {?string} purpose - only for channels, not relevant for DMs
+     * @param {Array<Contact>=} participants
+     * @param {boolean=} isChannel
+     * @param {string=} name
+     * @param {string=} purpose - only for channels, not relevant for DMs
      * @returns {?Chat} - can return null in case of paywall
      * @memberof ChatStore
      * @instance

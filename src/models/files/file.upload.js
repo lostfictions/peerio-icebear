@@ -108,10 +108,19 @@ function upload(filePath, fileName, resume) {
             })
             .catch(err => {
                 console.error(err);
-                !this.uploadCancelled && warnings.addSevere('error_uploadFailed', 'error', { fileName: this.name });
-                this._resetUploadState();
                 console.log('file.upload.js: stopped uploading');
-                return Promise.reject(new Error(err));
+                if (err) {
+                    if (err.name === 'UserCancelError') {
+                        return Promise.reject(err);
+                    }
+                    if (err.name === 'DisconnectedError') {
+                        this._resetUploadState();
+                        return Promise.reject(err);
+                    }
+                }
+                warnings.addSevere('error_uploadFailed', 'error', { fileName: this.name });
+                this.cancelUpload();
+                return Promise.reject(err || new Error('Upload failed'));
             });
     } catch (ex) {
         this._resetUploadState();
@@ -130,7 +139,6 @@ function upload(filePath, fileName, resume) {
 function cancelUpload() {
     if (this.readyForDownload) return Promise.reject();
     console.log('file.uploads.js: upload cancelled');
-    this.uploadCancelled = true;
     this._saveUploadEndFact();
     this._resetUploadState();
     return this.remove();

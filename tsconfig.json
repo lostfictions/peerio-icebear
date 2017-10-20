@@ -1,6 +1,15 @@
 {
   "compilerOptions": {
+    "target": "esnext",
     "experimentalDecorators": true,
-    "allowJs": true
-  }
+    "allowJs": true,
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "esnext"
+    ]
+  },
+  "files": [
+    "./src/index.js"
+  ]
 }

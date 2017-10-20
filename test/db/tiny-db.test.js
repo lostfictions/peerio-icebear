@@ -113,7 +113,6 @@ describe('TinyDB', () => {
     it('User db always encrypts values', () => {
         const db = require('../../src/db/tiny-db');
         const keys = require('../../src/crypto/keys');
-        const errors = require('../../src/errors');
         const vkey = 'test';
         const expected = 'encrypted value';
         return db.user.setValue(vkey, expected)

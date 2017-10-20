@@ -1,11 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../../helpers/appConfig');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
-    let app;
-
     Before(() => {
-        app = getAppInstance();
     });
 
     Given('I am a logged in user', (callback) => {

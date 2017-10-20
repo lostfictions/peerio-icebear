@@ -54,6 +54,17 @@ class ClientApp {
      */
     @observable active2FARequest = null;
 
+    /**
+     * UI should inject observable pref object in here,
+     * expected properties:
+     *   limitInlineImageSize: bool
+     *   externalContentConsented: bool
+     *   externalContentEnabled: bool
+     *   externalContentJustForFavs: bool,
+     *   peerioContentEnabled: bool
+     * @memberof ClientApp
+     */
+    @observable uiUserPrefs = {};
 
     /**
      * UI should listen to this and request entering of 2fa code from user and then pass ot back to icebear.

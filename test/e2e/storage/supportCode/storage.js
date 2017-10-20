@@ -5,7 +5,7 @@ const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
 const path = require('path');
 
-defineSupportCode(({ Before, Given, Then, When }) => {
+defineSupportCode(({ Before, Then, When }) => {
     let app;
     let numberOfFilesUploaded;
     const other = '360mzhrj8thigc9hi4t5qddvu4m8in';

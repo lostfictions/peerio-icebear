@@ -28,7 +28,9 @@
     -   [chat.pageSize](#chatpagesize)
     -   [chat.maxLoadedMessages](#chatmaxloadedmessages)
     -   [chat.decryptQueueThrottle](#chatdecryptqueuethrottle)
-    -   [chat.maxDMParticipants](#chatmaxdmparticipants)
+    -   [chat.recentFilesDisplayLimit](#chatrecentfilesdisplaylimit)
+    -   [chat.maxChatNameLength](#chatmaxchatnamelength)
+    -   [chat.maxChatPurposeLength](#chatmaxchatpurposelength)
 -   [crypto/keys](#cryptokeys)
     -   [deriveAccountKeys](#deriveaccountkeys)
     -   [deriveEphemeralKeys](#deriveephemeralkeys)
@@ -116,13 +118,13 @@
     -   [countUp](#countup)
     -   [countDown](#countdown)
     -   [stop](#stop)
--   [Queue](#queue)
+-   [helpers/system-messages](#helperssystem-messages)
+    -   [getSystemMessageText](#getsystemmessagetext)
+-   [TaskQueue](#taskqueue)
     -   [tasks](#tasks)
     -   [runningTasks](#runningtasks)
     -   [length](#length-1)
     -   [addTask](#addtask)
--   [helpers/system-messages](#helperssystem-messages)
-    -   [getSystemMessageText](#getsystemmessagetext)
 -   [helpers/field-validation](#helpersfield-validation)
     -   [addValidation](#addvalidation)
 -   [helpers/user-validators](#helpersuser-validators)
@@ -182,6 +184,8 @@
     -   [uploadQueue](#uploadqueue)
     -   [unreadCount](#unreadcount)
     -   [newMessagesMarkerPos](#newmessagesmarkerpos)
+    -   [loadingRecentFiles](#loadingrecentfiles)
+    -   [recentFiles](#recentfiles)
     -   [chatHead](#chathead-1)
     -   [isReadOnly](#isreadonly)
     -   [participantUsernames](#participantusernames)
@@ -306,7 +310,6 @@
     -   [updatedAfterReconnect](#updatedafterreconnect-2)
     -   [currentFilter](#currentfilter)
     -   [updating](#updating)
-    -   [uploadQueue](#uploadqueue-1)
     -   [hasSelectedFiles](#hasselectedfiles)
     -   [canShareSelectedFiles](#canshareselectedfiles)
     -   [allVisibleSelected](#allvisibleselected)
@@ -320,6 +323,7 @@
     -   [clearFilter](#clearfilter)
     -   [loadAllFiles](#loadallfiles)
     -   [getById](#getbyid)
+-   [uploadQueue](#uploadqueue-1)
 -   [upload](#upload)
 -   [FileStreamAbstract](#filestreamabstract)
     -   [filePath](#filepath)
@@ -354,7 +358,6 @@
     -   [cached](#cached)
     -   [selected](#selected)
     -   [show](#show)
-    -   [uploadCancelled](#uploadcancelled)
     -   [shared](#shared)
     -   [ext](#ext)
     -   [cachePath](#cachepath)
@@ -545,10 +548,10 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [KeyPair](#keypair)
 -   [InvitedContact](#invitedcontact)
--   [TwoFARequest](#twofarequest)
 -   [Address](#address)
+-   [KeyPair](#keypair)
+-   [TwoFARequest](#twofarequest)
 -   [util](#util)
     -   [convertBuffers](#convertbuffers)
     -   [formatBytes](#formatbytes)
@@ -751,9 +754,23 @@ Increase to get more responsiveness, but increase page load time.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
-### chat.maxDMParticipants
+### chat.recentFilesDisplayLimit
 
-Maximum amount of participants for direct message (including creator)
+Maximum amount of recent files to maintain in chat object to be able to display the list on UI.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxChatNameLength
+
+Maximum number of characters chat name can have.
+Do not override this in clients, it's supposed to be a system limit.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.maxChatPurposeLength
+
+Maximum number of characters chat purpose can have.
+Do not override this in clients, it's supposed to be a system limit.
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -1349,6 +1366,9 @@ Peerio custom error types and error handling helpers.
     CustomError.prototype = Object.create(Error.prototype);
     CustomError.prototype.constructor = CustomError;
 
+REFACTOR WARNING: before renaming any errors (not sure why you would do that though),
+                  make sure they haven't been used by name anywhere.
+
 ### normalize
 
 Use this helper to resolve returning error value.
@@ -1575,7 +1595,25 @@ Starts counting from passed seconds amount to 0, updates every second.
 
 Stops counting and resets counter to 0
 
-## Queue
+## helpers/system-messages
+
+Helpers for dealing with chat system messages. For UI use.
+
+Some chat messages are in fact sent automatically by client and instead of text they carry special systemData codes.
+We don't want clients to repeat handling logic of those codes when system message has to be rendered, this
+module should be used instead.
+
+### getSystemMessageText
+
+Checks message object for system data and returns translated string to render for the system data.
+
+**Parameters**
+
+-   `msg` **[Message](#message)** 
+
+Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system message
+
+## TaskQueue
 
 Observable task queue implementation
 
@@ -1617,24 +1655,6 @@ after returned promise is fulfilled.
 -   `onError` **callback&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>?** callback will be executed if task throws or rejects promise
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
-
-## helpers/system-messages
-
-Helpers for dealing with chat system messages. For UI use.
-
-Some chat messages are in fact sent automatically by client and instead of text they carry special systemData codes.
-We don't want clients to repeat handling logic of those codes when system message has to be rendered, this
-module should be used instead.
-
-### getSystemMessageText
-
-Checks message object for system data and returns translated string to render for the system data.
-
-**Parameters**
-
--   `msg` **[Message](#message)** 
-
-Returns **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** translated string to render for this system message
 
 ## helpers/field-validation
 
@@ -2020,6 +2040,18 @@ when user is not looking but chat is active and receiving updates,
 chat briefly sets this value to the id of last seen message so client can render separator marker.
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### loadingRecentFiles
+
+Indicates ongoing loading recent files list for this chat
+
+Type: bool
+
+### recentFiles
+
+List of recent file ids for this chat.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
 
 ### chatHead
 
@@ -2815,12 +2847,6 @@ Currently updating file list from server, this is not observable property.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-### uploadQueue
-
-Readonly
-
-Type: [Queue](#queue)
-
 ### hasSelectedFiles
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
@@ -2886,6 +2912,12 @@ Finds file by fileId.
 -   `fileId` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
 
 Returns **[File](#file)?** 
+
+## uploadQueue
+
+Readonly
+
+Type: [TaskQueue](#taskqueue)
 
 ## upload
 
@@ -3129,12 +3161,6 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 ### show
 
 Is this file visible or filtered by search. Also weird, needs refactor.
-
-Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
-
-### uploadCancelled
-
-If upload cancel is initiated by user
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
@@ -4494,17 +4520,6 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## KeyPair
-
-Virtual type representing asymmetric key pair.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
--   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
-
 ## InvitedContact
 
 Virtual type representing invited contact.
@@ -4518,18 +4533,6 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
 -   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
-## TwoFARequest
-
-Virtual type representing 2fa UI request.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `type` **strong** 'login' 'backupCodes' 'disable'
--   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
--   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
-
 ## Address
 
 Virtual type representing address as server sends it.
@@ -4542,6 +4545,29 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## KeyPair
+
+Virtual type representing asymmetric key pair.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `publicKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes
+-   `secretKey` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** 32 bytes or 64 bytes in case of signing key pair
+
+## TwoFARequest
+
+Virtual type representing 2fa UI request.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `type` **strong** 'login' 'backupCodes' 'disable'
+-   `submit` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), bool?>** function accepts TOTP code and 'trust this device' flag
+-   `cancel` **[Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** 
 
 ## util
 

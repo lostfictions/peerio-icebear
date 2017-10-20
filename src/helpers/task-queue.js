@@ -4,14 +4,14 @@ const { computed, observable, action } = require('mobx');
  * Observable task queue implementation
  * @param {number} [parallelism=1] - how many tasks can run(wait to be finished) at the same time
  * @param {number} [throttle=0] - how many milliseconds delay to make before running every task
- * @class Queue
+ * @class TaskQueue
  * @public
  */
-class Queue {
+class TaskQueue {
     /**
      * List of tasks in queue. Running tasks are not here.
      * @member {ObservableArray<function>} tasks
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @public
      */
@@ -19,7 +19,7 @@ class Queue {
     /**
      * Amount of currently running tasks
      * @member {Observable<number>} runningTasks
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @public
      */
@@ -27,7 +27,7 @@ class Queue {
     /**
      * Amount of currently running tasks + tasks in queue
      * @member {Computed<number>} length
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @public
      */
@@ -51,7 +51,7 @@ class Queue {
      * @param {callback} [onSuccess] - callback will be executed as soon as task is finished without error
      * @param {callback<Error>} [onError] - callback will be executed if task throws or rejects promise
      * @returns {Promise}
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @public
      */
@@ -77,7 +77,7 @@ class Queue {
     /**
      * Runs the next task in queue if it is possible
      * @function runTask
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @private
      */
@@ -110,7 +110,7 @@ class Queue {
     /**
      * Performs necessary actions when a task is finished
      * @function onTaskComplete
-     * @memberof Queue
+     * @memberof TaskQueue
      * @instance
      * @private
      */
@@ -122,4 +122,4 @@ class Queue {
     }
 }
 
-module.exports = Queue;
+module.exports = TaskQueue;

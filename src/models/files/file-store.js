@@ -9,7 +9,7 @@ const config = require('../../config');
 const _ = require('lodash');
 const { retryUntilSuccess } = require('../../helpers/retry');
 const clientApp = require('../client-app');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 const createMap = require('../../helpers/dynamic-array-map');
 
@@ -37,6 +37,15 @@ class FileStore {
      * @public
      */
     @observable files = observable.shallowArray([]);
+
+    /**
+     * Subset of files not currently hidden by any applied filters
+     * @readonly
+     * @memberof FileStore
+     */
+    @computed get visibleFiles() {
+        return this.files.filter(f => f.show);
+    }
     /**
      * Store is loading full file list for the first time.
      * @member {boolean} loading
@@ -78,10 +87,10 @@ class FileStore {
     knownUpdateId = '';
     /**
      * Readonly
-     * @member {Queue}
+     * @member {TaskQueue} uploadQueue
      * @public
      */
-    uploadQueue = new Queue(1);
+    uploadQueue = new TaskQueue(1);
 
     /**
      * @ignore
@@ -316,6 +325,11 @@ class FileStore {
                             this.resumeBrokenUploads();
                         }
                     }, 3000);
+                    for (let i = 0; i < this.files.length; i++) {
+                        if (this.files[i].cachingFailed) {
+                            this.files[i].cachingFailed = false;
+                        }
+                    }
                 });
                 reaction(() => this.unreadFiles === 0 || !clientApp.isInFilesView || !clientApp.isFocused,
                     (dontReport) => {

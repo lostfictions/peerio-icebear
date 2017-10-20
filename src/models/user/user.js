@@ -16,6 +16,7 @@ const { ServerError } = require('../../errors');
 const warnings = require('../warnings');
 const clientApp = require('../client-app');
 
+/** @type {User} */
 let currentUser;
 
 /**
@@ -321,8 +322,10 @@ class User {
      * @public
      */
     @computed get fileSizeLimit() {
-        if (this.quota == null || !this.quota.resultingQuotas
-            || !this.quota.resultingQuotas.upload || !this.quota.resultingQuotas.upload.length) return Number.MAX_SAFE_INTEGER;
+        if (this.quota == null
+            || !this.quota.resultingQuotas
+            || !this.quota.resultingQuotas.upload
+            || !this.quota.resultingQuotas.upload.length) return Number.MAX_SAFE_INTEGER;
 
         const found = this.quota.resultingQuotas.upload.find(
             item => item.period === 'total' && item.metric === 'maxSize'
@@ -405,7 +408,9 @@ class User {
         if (this.quota == null || !this.quota.quotasLeft
             || !this.quota.quotasLeft.channel || !this.quota.quotasLeft.channel.length) return 0;
 
-        const found = this.quota.quotasLeft.channel.find(item => item.period === 'total' && item.metric === 'participate');
+        const found = this.quota.quotasLeft.channel.find(
+            item => item.period === 'total' && item.metric === 'participate'
+        );
         if (!found) return 0;
         if (found.limit == null) return Number.MAX_SAFE_INTEGER;
         return found.limit;

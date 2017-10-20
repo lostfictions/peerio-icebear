@@ -1,3 +1,5 @@
+// @ts-check
+
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -6,7 +8,7 @@ const ChatFileHandler = require('./chat.file-handler');
 const ChatMessageHandler = require('./chat.message-handler');
 const ChatReceiptHandler = require('./chat.receipt-handler');
 const config = require('../../config');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
 const clientApp = require('../client-app');
 const ChatHead = require('./chat-head');
 const contactStore = require('../contacts/contact-store');
@@ -40,10 +42,22 @@ class Chat {
         this.isChannel = isChannel;
         if (!id) this.tempId = getTemporaryChatId();
         this.db = new ChatKegDb(id, participants, isChannel);
-        this._reactionsToDispose.push(reaction(() => this.active && clientApp.isFocused && clientApp.isInChatsView,
-            shouldSendReceipt => {
-                if (shouldSendReceipt) this._sendReceipt();
-            }));
+        this._reactionsToDispose.push(
+            reaction(
+                () => this.active && clientApp.isFocused && clientApp.isInChatsView,
+                shouldSendReceipt => {
+                    if (shouldSendReceipt) this._sendReceipt();
+                }
+            ),
+            reaction(
+                () => clientApp.uiUserPrefs.externalContentEnabled,
+                this.resetExternalContent
+            ),
+            reaction(
+                () => clientApp.uiUserPrefs.externalContentJustForFavs,
+                this.resetExternalContent
+            )
+        );
     }
 
     /**
@@ -88,7 +102,9 @@ class Chat {
         return this.db.boot.participants.filter(p => p.username !== User.current.username).sort(this.compareContacts);
     }
 
-    compareContacts(c1, c2) {
+    compareContacts = (c1, c2) => {
+        if (this.isAdmin(c1) && !this.isAdmin(c2)) return -1;
+        if (!this.isAdmin(c1) && this.isAdmin(c2)) return 1;
         return c1.fullNameAndUsername.localeCompare(c2.fullNameAndUsername);
     }
 
@@ -270,6 +286,34 @@ class Chat {
      * @public
      */
     @observable newMessagesMarkerPos = '';
+    /**
+     * Indicates ongoing loading recent files list for this chat
+     * @member {bool} loadingRecentFiles
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @observable loadingRecentFiles = false;
+    @observable _recentFiles = null;
+    /**
+     * List of recent file ids for this chat.
+     * @member {Array<string>} recentFiles
+     * @memberof Chat
+     * @instance
+     * @public
+     */
+    @computed get recentFiles() {
+        if (this._recentFiles === null && !this.loadingRecentFiles) {
+            this.loadingRecentFiles = true;
+            if (this.metaLoaded) {
+                this._fileHandler.getRecentFiles().then(res => {
+                    this._recentFiles = res;
+                    this.loadingRecentFiles = false;
+                });
+            }
+        }
+        return this._recentFiles || [];
+    }
 
     /**
      * Chat head keg.
@@ -285,7 +329,7 @@ class Chat {
     _fileHandler = null;
     _headHandler = null;
 
-    _addMessageQueue = new Queue(1, config.chat.decryptQueueThrottle || 0);
+    _addMessageQueue = new TaskQueue(1, config.chat.decryptQueueThrottle || 0);
 
     _reactionsToDispose = [];
     /**
@@ -482,6 +526,7 @@ class Chat {
             console.debug('empty message keg', keg);
             return;
         }
+        msg.parseExternalContent();
         accumulator.push(msg);
     }
 
@@ -526,7 +571,6 @@ class Chat {
             const existing = this._messageMap[msg.id];
             if (existing) {
                 this.messages.remove(existing);
-                msg.setUIPropsFrom(existing);
             } else {
                 // track number of new messages & mentions in 'batch'
                 newMessageCount += 1;
@@ -540,7 +584,7 @@ class Chat {
             this.messages.push(msg);
         }
         this.onNewMessageLoad(newMentionCount, newMessageCount, lastMentionId);
-
+        if (!this.canGoDown && this.initialPageLoaded) this.detectFileAttachments(accumulator);
         // sort
         this.sortMessages();
         // updating most recent message
@@ -601,6 +645,13 @@ class Chat {
         return -1;
     }
 
+    /**
+     * @function _sendMessage
+     * @param {Message} m
+     * @returns {Promise}
+     * @private
+     * @memberof Chat
+     */
     _sendMessage(m) {
         if (this.canGoDown) this.reset();
         // send() will fill message with data required for rendering
@@ -621,9 +672,11 @@ class Chat {
     }
 
     /**
+     * Create a new Message keg attached to this chat with the given
+     * plaintext (and optional files) and send it to the server.
      * @function sendMessage
      * @param {string} text
-     * @param {Array<File>} [files]
+     * @param {Array<string>} [files] an array of file ids.
      * @returns {Promise}
      * @memberof Chat
      */
@@ -631,6 +684,24 @@ class Chat {
         const m = new Message(this.db);
         m.files = files;
         m.text = text;
+        return this._sendMessage(m);
+    }
+
+    /**
+     * Create a new Message keg attached to this chat with the given
+     * plaintext (and optional files) and send it to the server.
+     * @function sendMessage
+     * @param {Object} richText A ProseMirror document tree, as JSON
+     * @param {string} legacyText The rendered HTML of the rich text, for back-compat with older clients
+     * @param {Array<string>} [files] An array of file ids
+     * @returns {Promise}
+     * @memberof Chat
+     */
+    @action sendRichTextMessage(richText, legacyText, files) {
+        const m = new Message(this.db);
+        m.files = files;
+        m.richText = richText;
+        m.text = legacyText;
         return this._sendMessage(m);
     }
 
@@ -732,7 +803,7 @@ class Chat {
      */
     rename(name) {
         let validated = name || '';
-        validated = validated.trim().substr(0, 120);
+        validated = validated.trim().substr(0, config.chat.maxChatNameLength);
         if (this.chatHead.chatName === validated || (!this.chatHead.chatName && !validated)) {
             return Promise.resolve(); // nothing to rename
         }
@@ -752,7 +823,7 @@ class Chat {
      */
     changePurpose(purpose) {
         let validated = purpose || '';
-        validated = validated.trim().substr(0, 120);
+        validated = validated.trim().substr(0, config.chat.maxChatPurposeLength);
         if (this.chatHead.purpose === validated || (!this.chatHead.purpose && !validated)) {
             return Promise.resolve(); // nothing to change
         }
@@ -823,6 +894,7 @@ class Chat {
         this._cancelTopPageLoad = false;
         this._cancelBottomPageLoad = false;
         this.updatedAfterReconnect = true;
+        this._recentFiles = null;
         this.loadMessages();
     }
 
@@ -904,9 +976,10 @@ class Chat {
 
     /**
      * Adds participants to a channel.
-     * @param {Array<string|Contact>} - mix of usernames and Contact objects.
-     *                                  Note that this function will ensure contacts are loaded before proceeding.
-     *                                  So if there are some invalid contacts - entire batch will fail.
+     * @param {Array<string|Contact>} participants - mix of usernames and Contact objects.
+     *                                               Note that this function will ensure contacts are loaded
+     *                                               before proceeding. So if there are some invalid
+     *                                               contacts - entire batch will fail.
      * @returns {Promise}
      * @public
      */
@@ -1017,9 +1090,9 @@ class Chat {
      */
     removeParticipant(participant, isUserKick = true) {
         let contact = participant;
-        if (typeof participant === 'string') {
+        if (typeof contact === 'string') {
             // we don't really care if it's loaded or not, we just need Contact instance
-            contact = contactStore.getContact(participant);
+            contact = contactStore.getContact(contact);
         }
         const boot = this.db.boot;
         const wasAdmin = boot.admins.includes(contact);
@@ -1039,6 +1112,7 @@ class Chat {
         ).then(() => {
             if (!isUserKick) return;
             const m = new Message(this.db);
+            // @ts-ignore
             m.setUserKickFact(contact.username);
             this._sendMessage(m);
         });
@@ -1071,6 +1145,40 @@ class Chat {
         const m = new Message(this.db);
         m.setChannelJoinFact();
         this._sendMessage(m);
+    }
+
+    /**
+     * Checks if there are any file attachments in new message batch and adds them to _recentFiles if needed.
+     * @private
+     */
+    @action detectFileAttachments(messages) {
+        if (!this._recentFiles) {
+            // console.error('detectFileAttachments was called before _recentFiles became available');
+            return;
+        }
+        for (let i = 0; i < messages.length; i++) {
+            const files = messages[i].files;
+            if (!files || !files.length) continue;
+            for (let j = 0; j < files.length; j++) {
+                if (!this._recentFiles.includes(files[j])) this._recentFiles.unshift(files[j]);
+            }
+        }
+        if (this._recentFiles.length > config.chat.recentFilesDisplayLimit) {
+            this._recentFiles.length = config.chat.recentFilesDisplayLimit;
+        }
+    }
+
+    resetExternalContent = () => {
+        if (this.resetScheduled) return;
+        this.resetScheduled = true;
+        when(() => this.active && clientApp.isInChatsView, this._doResetExternalContent);
+    }
+
+    @action.bound _doResetExternalContent() {
+        for (let i = 0; i < this.messages.length; i++) {
+            this.messages[i].parseExternalContent();
+        }
+        this.resetScheduled = false;
     }
 
     dispose() {

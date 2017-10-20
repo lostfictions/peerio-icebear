@@ -1,7 +1,17 @@
+// @ts-check
+
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
-const Queue = require('../../helpers/queue');
+const TaskQueue = require('../../helpers/task-queue');
+const { retryUntilSuccess } = require('../../helpers/retry');
+const socket = require('../../network/socket');
+
+// for typechecking:
+/* eslint-disable no-unused-vars */
+const Chat = require('./chat');
+const File = require('../files/file');
+/* eslint-enable no-unused-vars */
 
 /**
  * File handling module for Chat. Extracted for readability.
@@ -10,15 +20,18 @@ const Queue = require('../../helpers/queue');
  */
 class ChatFileHandler {
     constructor(chat) {
+        /**
+         * @type {Chat} chat
+         */
         this.chat = chat;
     }
 
     /**
-     * Queue of files to share for paced process.
-     * @member {Queue}
+     * TaskQueue of files to share for paced process.
+     * @member {TaskQueue} shareQueue
      * @protected
      */
-    shareQueue = new Queue(1, 2000);
+    shareQueue = new TaskQueue(1, 2000);
 
     /**
      * Initiates file upload and shares it to the chat afterwards.
@@ -26,7 +39,7 @@ class ChatFileHandler {
      * But chat message will not be sent.
      * @param {string} path - full file path
      * @param {string} [name] - override file name, specify to store the file keg with this name
-     * @param {bool} [deleteAfterUpload=false] - delete local file after successful upload
+     * @param {boolean} [deleteAfterUpload=false] - delete local file after successful upload
      * @returns {File}
      * @public
      */
@@ -55,6 +68,7 @@ class ChatFileHandler {
      * @returns {Promise}
      */
     share(files) {
+        // @ts-ignore no bluebird-promise assignability with jsdoc
         return Promise.map(files, (f) => {
             return this.shareQueue.addTask(() => {
                 const ids = this.shareFileKegs([f]);
@@ -82,6 +96,23 @@ class ChatFileHandler {
             ids.push(file.fileId);
         }
         return ids;
+    }
+
+    getRecentFiles() {
+        return retryUntilSuccess(() => {
+            return socket.send('/auth/kegs/db/files/latest',
+                { kegDbId: this.chat.id, count: config.chat.recentFilesDisplayLimit })
+                .then(res => {
+                    const ids = [];
+                    res.forEach(raw => {
+                        const fileIds = JSON.parse(raw);
+                        fileIds.forEach(id => {
+                            if (!ids.includes(id)) ids.push(id);
+                        });
+                    });
+                    return ids;
+                });
+        });
     }
 }
 module.exports = ChatFileHandler;

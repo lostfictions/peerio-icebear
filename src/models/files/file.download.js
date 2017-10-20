@@ -8,6 +8,7 @@ const FileDownloader = require('./file-downloader');
 const cryptoUtil = require('../../crypto/util');
 const FileNonceGenerator = require('./file-nonce-generator');
 const TinyDb = require('../../db/tiny-db');
+const { action } = require('mobx');
 
 function _getDlResumeParams(path) {
     return config.FileStream.getStat(path)
@@ -25,6 +26,11 @@ function _getDlResumeParams(path) {
         });
 }
 
+function downloadToTmpCache() {
+    return this.download(this.tmpCachePath, undefined, true)
+        .tapCatch(() => { this.cachingFailed = true; });
+}
+
 /**
  * Starts download.
  * @param {string} filePath - where to store file (including name)
@@ -34,7 +40,7 @@ function _getDlResumeParams(path) {
  * @memberof File
  * @public
  */
-function download(filePath, resume) {
+function download(filePath, resume, isTmpCacheDownload) {
     if (this.downloading || this.uploading) {
         return Promise.reject(new Error(`File is already ${this.downloading ? 'downloading' : 'uploading'}`));
     }
@@ -42,7 +48,7 @@ function download(filePath, resume) {
         this.progress = 0;
         this._resetDownloadState();
         this.downloading = true;
-        this._saveDownloadStartFact(filePath);
+        if (!isTmpCacheDownload) this._saveDownloadStartFact(filePath);
         const nonceGen = new FileNonceGenerator(0, this.chunksCount - 1, cryptoUtil.b64ToBytes(this.nonce));
         let stream, mode = 'write';
         let p = Promise.resolve(true);
@@ -64,16 +70,32 @@ function download(filePath, resume) {
                         return this.downloader.start();
                     });
             })
-            .then(() => {
-                this._saveDownloadEndFact();
+            .then(action(() => {
+                if (!isTmpCacheDownload) this._saveDownloadEndFact();
                 this._resetDownloadState(stream);
-                this.cached = true; // currently for mobile only
-                warnings.add('snackbar_downloadComplete');
-            })
+                if (!isTmpCacheDownload) {
+                    this.cached = true; // currently for mobile only
+                    warnings.add('snackbar_downloadComplete');
+                } else {
+                    this.tmpCached = true;
+                }
+            }))
             .catch(err => {
                 console.error(err);
-                warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
-                this._resetDownloadState();
+                if (err) {
+                    if (err.name === 'UserCancelError') {
+                        return Promise.reject(err);
+                    }
+                    if (err.name === 'DisconnectedError') {
+                        this._resetDownloadState();
+                        return Promise.reject(err);
+                    }
+                }
+                if (!isTmpCacheDownload) {
+                    warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
+                }
+                this.cancelDownload();
+                return Promise.reject(err || new Error('Download failed.'));
             });
     } catch (ex) {
         this._resetDownloadState();
@@ -122,6 +144,7 @@ function _resetDownloadState(stream) {
 module.exports = function(File) {
     File.prototype._getDlResumeParams = _getDlResumeParams;
     File.prototype.download = download;
+    File.prototype.downloadToTmpCache = downloadToTmpCache;
     File.prototype.cancelDownload = cancelDownload;
     File.prototype._saveDownloadStartFact = _saveDownloadStartFact;
     File.prototype._saveDownloadEndFact = _saveDownloadEndFact;

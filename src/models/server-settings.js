@@ -32,6 +32,14 @@ class ServerSettings {
      */
     @observable tag;
 
+    /**
+     * Observable array of timestamps for maintenance begin and end, if applicable.
+     * @member {Array} downtimeMaintenance
+     * @memberof ServerSettings
+     * @public
+     */
+    @observable maintenanceWindow;
+
     constructor() {
         reaction(() => socket.authenticated, (authenticated) => {
             if (authenticated) this.loadSettings();
@@ -49,8 +57,9 @@ class ServerSettings {
                     this.avatarServer = res.fileBaseUrl;
                     this.acceptableClientVersions = res.acceptsClientVersions;
                     this.tag = res.tag;
+                    this.maintenanceWindow = res.maintenance;
                     console.log('Server settings retrieved.', this.tag,
-                        this.avatarServer, this.acceptableClientVersions);
+                        this.avatarServer, this.acceptableClientVersions, this.maintenanceWindow);
                 });
         }, 'Server Settings Load');
     }
