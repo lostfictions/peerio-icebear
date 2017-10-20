@@ -6,8 +6,8 @@ Feature: Direct messages
     Background: 
         Given I am logged in
 
-    Scenario: Create DM
-        When I create a DM
+    Scenario: Create direct message
+        When I create a direct message
         Then the receiver gets notified
     
     Scenario: Favourite DM

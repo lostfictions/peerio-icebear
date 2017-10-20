@@ -19,15 +19,23 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     // Scenario: Create direct message
-    When('I create a direct message', (done) => {
+    When('I create a direct message', () => {
         const contactFromUsername = app.contactStore.getContact(other);
-        asPromise(contactFromUsername, 'loading', false)
+        return asPromise(contactFromUsername, 'loading', false)
             .then(() => {
                 const chat = store.startChat([contactFromUsername]);
-                when(() => chat.added, () => done);
+                return asPromise(chat, 'added', true);
             });
     });
 
-    Then('the receiver gets notified', () => {
+    Then('the receiver gets notified', (done) => {
+        store.loadAllChats()
+            .then(() => {
+                when(() => store.myChats.loaded, () => {
+                    console.log(store.chats.length);
+                    console.log(store.chats.map(x => console.log(x)));
+                    done();
+                });
+            });
     });
 });
