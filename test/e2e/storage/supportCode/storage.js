@@ -4,6 +4,7 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
 const path = require('path');
+const fs = require('fs');
 
 defineSupportCode(({ Before, Then, When }) => {
     let app;
@@ -58,8 +59,15 @@ defineSupportCode(({ Before, Then, When }) => {
             .then(done);
     });
 
-    Then('I can access the file locally', () => {
-
+    Then('I can access the file locally', (done) => {
+        const filePath = path.resolve(__dirname, `downloaded-${testDocument}`);
+        fs.stat(filePath, (err) => {
+            if (err == null) {
+                done();
+            } else {
+                done(err, 'failed');
+            }
+        });
     });
 
 
