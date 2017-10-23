@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.12.0"></a>
+# [2.12.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.11.1...v2.12.0) (2017-10-23)
+
+
+### Bug Fixes
+
+* make getUrls always return an array ([3a9f944](https://github.com/PeerioTechnologies/peerio-icebear/commit/3a9f944))
+* more reliable message re-processing when external content settings change ([e5cb4a4](https://github.com/PeerioTechnologies/peerio-icebear/commit/e5cb4a4))
+* one more pref for external content ([db6c34e](https://github.com/PeerioTechnologies/peerio-icebear/commit/db6c34e))
+* prevent endless file caching loop in case of error ([243b684](https://github.com/PeerioTechnologies/peerio-icebear/commit/243b684))
+* **typings:** correct typings for message keg ([#50](https://github.com/PeerioTechnologies/peerio-icebear/issues/50)) ([233e565](https://github.com/PeerioTechnologies/peerio-icebear/commit/233e565))
+
+
+### Features
+
+* **messages:** support rich text field in message kegs ([#49](https://github.com/PeerioTechnologies/peerio-icebear/issues/49)) ([66bd370](https://github.com/PeerioTechnologies/peerio-icebear/commit/66bd370))
+* **serverSettings:** support for maintenance window ([#48](https://github.com/PeerioTechnologies/peerio-icebear/issues/48)) ([7b51328](https://github.com/PeerioTechnologies/peerio-icebear/commit/7b51328))
+* add File#nameWithoutExtension ([be96cf1](https://github.com/PeerioTechnologies/peerio-icebear/commit/be96cf1))
+* chat inline content settings support ([04f43fc](https://github.com/PeerioTechnologies/peerio-icebear/commit/04f43fc))
+* refresh external content state on settings change ([d87f3a9](https://github.com/PeerioTechnologies/peerio-icebear/commit/d87f3a9))
+* unfurl and auto-download images ([0075a83](https://github.com/PeerioTechnologies/peerio-icebear/commit/0075a83))
+
+
+### Performance Improvements
+
+* increase chat scrolling window for better ux ([f715447](https://github.com/PeerioTechnologies/peerio-icebear/commit/f715447))
+* load files after chats to speed up startup time ([021b0b5](https://github.com/PeerioTechnologies/peerio-icebear/commit/021b0b5))
+* throttle unfurl, don't request same url in parallel ([d6019af](https://github.com/PeerioTechnologies/peerio-icebear/commit/d6019af))
+
+
+
 <a name="2.11.1"></a>
 ## [2.11.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.11.0...v2.11.1) (2017-10-02)
 

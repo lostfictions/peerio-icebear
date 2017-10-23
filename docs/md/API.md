@@ -31,6 +31,7 @@
     -   [chat.recentFilesDisplayLimit](#chatrecentfilesdisplaylimit)
     -   [chat.maxChatNameLength](#chatmaxchatnamelength)
     -   [chat.maxChatPurposeLength](#chatmaxchatpurposelength)
+    -   [chat.inlineImageSizeLimit](#chatinlineimagesizelimit)
 -   [crypto/keys](#cryptokeys)
     -   [deriveAccountKeys](#deriveaccountkeys)
     -   [deriveEphemeralKeys](#deriveephemeralkeys)
@@ -223,11 +224,13 @@
     -   [userMentions](#usermentions)
     -   [firstOfTheDay](#firstoftheday)
     -   [groupWithPrevious](#groupwithprevious)
-    -   [inlineImages](#inlineimages)
+    -   [externalImages](#externalimages)
     -   [dayFingerprint](#dayfingerprint)
     -   [messageTimestampText](#messagetimestamptext)
+    -   [observable](#observable)
 -   [sender](#sender)
 -   [text](#text)
+-   [richText](#richtext)
 -   [systemData](#systemdata)
 -   [timestamp](#timestamp)
 -   [files](#files)
@@ -360,6 +363,7 @@
     -   [show](#show)
     -   [shared](#shared)
     -   [ext](#ext)
+    -   [nameWithoutExt](#namewithoutext)
     -   [cachePath](#cachepath)
     -   [sizeFormatted](#sizeformatted)
     -   [chunksCount](#chunkscount)
@@ -441,6 +445,7 @@
     -   [avatarServer](#avatarserver)
     -   [acceptableClientVersions](#acceptableclientversions)
     -   [tag](#tag)
+    -   [downtimeMaintenance](#downtimemaintenance)
 -   [NodeJsonStorage](#nodejsonstorage)
 -   [Settings](#settings)
     -   [contactNotifications](#contactnotifications)
@@ -548,8 +553,8 @@
     -   [open](#open-1)
     -   [reset](#reset-1)
 -   [socket](#socket)
--   [InvitedContact](#invitedcontact)
 -   [Address](#address)
+-   [InvitedContact](#invitedcontact)
 -   [KeyPair](#keypair)
 -   [TwoFARequest](#twofarequest)
 -   [util](#util)
@@ -771,6 +776,13 @@ Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 
 Maximum number of characters chat purpose can have.
 Do not override this in clients, it's supposed to be a system limit.
+
+Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### chat.inlineImageSizeLimit
+
+Maximum number of bytes inline image can have (both peerio file and external)
+to allow auto-downloading and showing it inline
 
 Type: [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
@@ -1832,7 +1844,7 @@ Starts new chat or loads existing one and
 **Parameters**
 
 -   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[Contact](#contact)>?** 
--   `isChannel` **bool?** 
+-   `isChannel` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** 
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 -   `purpose` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** only for channels, not relevant for DMs
 
@@ -1895,7 +1907,7 @@ But chat message will not be sent.
 
 -   `path` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** full file path
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** override file name, specify to store the file keg with this name
--   `deleteAfterUpload` **bool** delete local file after successful upload (optional, default `false`)
+-   `deleteAfterUpload` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** delete local file after successful upload (optional, default `false`)
 
 Returns **[File](#file)** 
 
@@ -2175,10 +2187,10 @@ Adds participants to a channel.
 
 **Parameters**
 
--   `participants`  
--   `null-null` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))>** mix of usernames and Contact objects.
-                                     Note that this function will ensure contacts are loaded before proceeding.
-                                     So if there are some invalid contacts - entire batch will fail.
+-   `participants` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Contact](#contact))>** mix of usernames and Contact objects.
+                                                  Note that this function will ensure contacts are loaded
+                                                  before proceeding. So if there are some invalid
+                                                  contacts - entire batch will fail.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
@@ -2276,11 +2288,11 @@ whether or not to group this message with previous one in message list.
 
 Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 
-### inlineImages
+### externalImages
 
-for UI use
+External image urls mentioned in this chat and safe to render in agreement with all settings.
 
-Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;ExternalImage>
 
 ### dayFingerprint
 
@@ -2296,6 +2308,10 @@ TODO: resolve/unify this in favor of most performant method
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
+### observable
+
+Indicates if current message contains at least one url.
+
 ## sender
 
 Type: [Contact](#contact)
@@ -2303,6 +2319,8 @@ Type: [Contact](#contact)
 ## text
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+## richText
 
 ## systemData
 
@@ -3070,6 +3088,7 @@ Starts download.
 
 -   `filePath` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** where to store file (including name)
 -   `resume` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** for system use
+-   `isTmpCacheDownload`  
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
@@ -3173,6 +3192,10 @@ Type: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Referenc
 ### ext
 
 file extension
+
+Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### nameWithoutExt
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
@@ -3655,7 +3678,7 @@ Saves keg to server, creates keg (reserves id) first if needed
 
 **Parameters**
 
--   `cleanShareData` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** removes shared/sent keg metadata that is not needed after keg is re-encrypted.
+-   `cleanShareData` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)?** removes shared/sent keg metadata that is not needed after keg is re-encrypted.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
 
@@ -3819,6 +3842,12 @@ Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 Observable git tag for this server build
 
 Type: [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### downtimeMaintenance
+
+Observable array of timestamps for maintenance begin and end, if applicable.
+
+Type: [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
 
 ## NodeJsonStorage
 
@@ -4447,7 +4476,7 @@ Send a message to server
 **Parameters**
 
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** api method name
--   `data` **any** data to send
+-   `data` **any?** data to send
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** server response, always returns `{}` if response is empty
 
@@ -4520,19 +4549,6 @@ Normally this is the only instance you should use.
 It gets connection url from config and you have to call socket.start()
 once everything is ready.
 
-## InvitedContact
-
-Virtual type representing invited contact.
-Username appears when invited contact joins Peerio.
-
-Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
-
-**Properties**
-
--   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
--   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
--   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
-
 ## Address
 
 Virtual type representing address as server sends it.
@@ -4545,6 +4561,19 @@ Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
 -   `confirmed` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `primary` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** currently always == 'email'
+
+## InvitedContact
+
+Virtual type representing invited contact.
+Username appears when invited contact joins Peerio.
+
+Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+
+**Properties**
+
+-   `email` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** 
+-   `added` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 
+-   `username` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** 
 
 ## KeyPair
 
