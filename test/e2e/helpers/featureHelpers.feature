@@ -23,5 +23,9 @@ Feature: Common scenarios
 
     Scenario: Create account with username
         * Create account with username
+
+    Scenario: Read new message from account
+        Given I am logged in
+        Then  I can read my messages
     
     

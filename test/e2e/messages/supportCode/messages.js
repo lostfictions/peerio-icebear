@@ -2,7 +2,7 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getAppInstance = require('../../helpers/appConfig');
 const { when } = require('mobx');
 // const { receivedEmailInvite, confirmUserEmail } = require('../../helpers/mailinatorHelper');
-// const runFeature = require('../../helpers/runFeature');
+const runFeature = require('../../helpers/runFeature');
 // const { getRandomUsername } = require('../../helpers/usernameHelper');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 
@@ -10,7 +10,8 @@ defineSupportCode(({ Before, Then, When }) => {
     // const store;
     const app = getAppInstance();
     const store = app.chatStore;
-    const other = 'o6gl796m7ctzbv2u7nij74k1w5gqyi';
+    const other = 'gft99kr2e377zdgwygbjjonihd9x9y';
+    let chatId;
 
     Before((testCase, done) => {
         // const app = getAppInstance();
@@ -19,23 +20,48 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     // Scenario: Create direct message
-    When('I create a direct message', () => {
+    When('I create a direct message', { timeout: 10000 }, () => {
         const contactFromUsername = app.contactStore.getContact(other);
         return asPromise(contactFromUsername, 'loading', false)
             .then(() => {
                 const chat = store.startChat([contactFromUsername]);
-                return asPromise(chat, 'added', true);
+                chatId = chat.id;
+                return asPromise(chat, 'added', true).delay(1000);
             });
     });
 
-    Then('the receiver gets notified', (done) => {
-        store.loadAllChats()
-            .then(() => {
-                when(() => store.myChats.loaded, () => {
-                    console.log(store.chats.length);
-                    console.log(store.chats.map(x => console.log(x)));
-                    done();
-                });
+    Then('the receiver gets notified', (cb) => {
+        const data = { username: other, passphrase: 'secret secrets', chatId };
+        runFeature('Read new message from account', data)
+            .then(result => {
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
             });
+    });
+
+    Then('I can read my messages', (cb) => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            console.log(process.env.peerioData);
+            chatId = data.chatId;
+
+            if (chatId) {
+                store.loadAllChats()
+                    .then(() => {
+                        when(() => store.loaded, () => {
+                            const found = store.chats.find(x => x.id === chatId);
+                            found.should.be.ok;
+                            cb();
+                        });
+                    });
+            } else {
+                cb('No chat id passed in', 'failed');
+            }
+        } else {
+            cb('No data passed in', 'failed');
+        }
     });
 });
