@@ -28,14 +28,10 @@ Feature: Direct messages
         Then the receiver gets notified
         And  the receiver can read the message
     
-    Scenario: Send read receipt
-        When I read a message
-        Then the other user should get notified
-    
-    Scenario: Receive read receipt
-        When I send a message
-        And the other user reads it
-        Then I should get notified
+    Scenario: Send/receive read receipt
+        Given I send a direct message
+        When  the receiver reads the message
+        Then  I view a read receipt
     
     
 
