@@ -84,4 +84,25 @@ defineSupportCode(({ Before, Then, When }) => {
                 });
             });
     });
+
+    When('I unfavorite a direct message conversation', () => {
+        const found = store.chats.find(x => x.id === chatId);
+        found.should.be.ok;
+
+        const removed = store.myChats.removeFavorite(found);
+        removed.should.be.true;
+    });
+
+    Then('it appears in chronological order', (done) => {
+        store.loadAllChats()
+            .then(() => {
+                when(() => store.myChats.loaded, () => {
+                    const found = store.chats.find(x => x.id === chatId);
+                    const index = store.myChats.favorites.indexOf(found);
+
+                    index.should.be.equal(-1);
+                    done();
+                });
+            });
+    });
 });
