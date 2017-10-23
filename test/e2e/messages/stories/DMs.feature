@@ -10,13 +10,16 @@ Feature: Direct messages
         When I create a direct message
         Then the receiver gets notified
     
-    Scenario: Favourite DM
-        When I favourite a DM
-        Then ???
+    # also test more favs
+    Scenario: Favorite direct message conversation
+        Given I create a direct message
+        When  I favorite a direct message conversation
+        Then  it appears on top of others
     
-    Scenario: Unfavourite DM
-        When I unfavourite a DM
-        Then ???
+    Scenario: Unfavorite direct message conversation
+        Given I create a direct message
+        When  I unfavorite a direct message conversation
+        Then  it appears in chronological order
     
     Scenario: Send message in DM
         When I send a message

@@ -64,4 +64,24 @@ defineSupportCode(({ Before, Then, When }) => {
             cb('No data passed in', 'failed');
         }
     });
+
+    When('I favorite a direct message conversation', () => {
+        const found = store.chats.find(x => x.id === chatId);
+        found.should.be.ok;
+
+        const added = store.myChats.addFavorite(found);
+        added.should.be.true;
+    });
+
+    Then('it appears on top of others', (done) => {
+        store.loadAllChats()
+            .then(() => {
+                when(() => store.myChats.loaded, () => {
+                    const found = store.chats.find(x => x.id === chatId);
+                    const index = store.myChats.favorites.indexOf(found);
+                    index.should.be.equal(0);
+                    done();
+                });
+            });
+    });
 });
