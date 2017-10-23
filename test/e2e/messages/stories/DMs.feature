@@ -22,14 +22,11 @@ Feature: Direct messages
         When  I unfavorite a direct message conversation
         Then  it appears in chronological order
     
-    Scenario: Send message in DM
-        When I send a message
-        Then the message appears in the chat
-    
-    Scenario: Receive message in DM
-        When someone else messages me
-        Then the message appears in the chat
-        And I get notified that I have 1 unread message
+    Scenario: Send/receive message in direct message conversation
+        When I send a direct message
+        And  the message appears in the chat
+        Then the receiver gets notified
+        And  the receiver can read the message
     
     Scenario: Send read receipt
         When I read a message
