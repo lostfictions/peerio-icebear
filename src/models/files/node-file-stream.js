@@ -88,8 +88,40 @@ class NodeFileStream extends FileStreamAbstract {
         });
     }
 
+
     static getTempCachePath(name) {
-        return path.join(os.tmpdir(), name);
+        return path.join(os.tmpdir(), 'peerio', name);
+    }
+
+    static createTempCache() {
+        const tmpPath = this.getTempCachePath('');
+        if (!fs.existsSync(tmpPath)) {
+            fs.mkdirSync(tmpPath);
+        }
+    }
+
+    static deleteTempCache() {
+        const tmpPath = this.getTempCachePath('');
+
+        if (fs.existsSync(tmpPath)) {
+            fs.readdir(tmpPath, (readErr, files) => {
+                if (readErr) {
+                    throw readErr;
+                }
+
+                const fileDeletionPromises = [];
+                files.forEach(file => {
+                    const promise = new Promise(resolve => {
+                        fs.unlink(`${tmpPath}/${file}`, deleteErr => {
+                            if (deleteErr) console.error(deleteErr);
+                            resolve();
+                        });
+                    });
+                    fileDeletionPromises.push(promise);
+                });
+                Promise.all(fileDeletionPromises).then(() => fs.rmdirSync(tmpPath));
+            });
+        }
     }
 
     static exists(filePath) {
