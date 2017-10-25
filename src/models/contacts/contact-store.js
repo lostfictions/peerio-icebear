@@ -205,12 +205,16 @@ class ContactStore {
      */
     addContact(val) {
         const c = typeof val === 'string' ? this.getContact(val) : val;
-        if (this.myContacts.contacts[c.username]) return Promise.resolve(true);
         return new Promise((resolve, reject) => {
             when(() => !c.loading, () => {
                 if (c.notFound) {
                     resolve(false);
                 } else {
+                    // we do it here bcs it has to be as close as possible to saving my_contacts keg
+                    if (this.myContacts.contacts[c.username]) {
+                        resolve(true);
+                        return;
+                    }
                     this.myContacts.save(
                         () => this.myContacts.addContact(c),
                         () => this.myContacts.removeContact(c),
