@@ -43,7 +43,7 @@ function getSystemMessageText(msg) {
         case 'unassignRole':
             return t('title_roleUnassigned', { fullName: getFullName(msg), role: getRoleName(msg.systemData.role) });
         case 'videoCall':
-            return t('jitsi_message', { link: msg.systemData.link });
+            return t('videoCall_message', { link: msg.systemData.link });
         default:
             return '';
     }
