@@ -23,9 +23,9 @@ Feature: Direct messages
         Then  it appears in chronological order
     
     Scenario: Send/receive message in direct message conversation
-        When I send a direct message
-        And  the message appears in the chat
-        Then the receiver gets notified
+        When I create a direct message
+        And  I send a direct message
+        Then the message appears in the chat
         And  the receiver can read the message
     
     Scenario: Send/receive read receipt
