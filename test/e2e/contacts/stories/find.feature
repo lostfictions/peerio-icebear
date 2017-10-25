@@ -15,10 +15,11 @@ Feature: Find contacts
         And  the contact exists
         Then the contact is added in my contacts
 
+    #sometimes TypeError: Cannot read property 'should' of undefined
     @unregisteredUser
     Scenario: Send invite email
         When I search for an unregistered user
         And  no profiles are found
         And  I send an invitation to them
-        Then they are added in my invited contacts #sometimes TypeError: Cannot read property 'should' of undefined
+        Then they are added in my invited contacts
         And  they should receive an email invitation

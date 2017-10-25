@@ -24,8 +24,14 @@ Feature: Common scenarios
     Scenario: Create account with username
         * Create account with username
 
-    Scenario: Read new message from account
+    Scenario: Receive chat request from account
+        Given I am logged in
+        Then  a chat request pops up
+
+    Scenario: Receive new message from account
         Given I am logged in
         Then  I can read my messages
     
-    
+    Scenario: Read new message from account
+        Given I am logged in
+        Then  I read my messages

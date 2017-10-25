@@ -118,7 +118,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
     Then('the receiver can read the message', (cb) => {
         const data = { username: other, passphrase: 'secret secrets', chatId };
-        runFeature('Read new message from account', data)
+        runFeature('Receive new message from account', data)
             .then(result => {
                 if (result.succeeded) {
                     cb(null, 'done');
@@ -150,6 +150,46 @@ defineSupportCode(({ Before, Then, When }) => {
         }
     });
 
-    Then('I view a read receipt', () => {
+    Then('the receiver reads the message', { timeout: 10000 }, (cb) => {
+        const data = { username: other, passphrase: 'secret secrets', chatId };
+        runFeature('Read new message from account', data)
+            .then(result => {
+                if (result.succeeded) {
+                    cb(null, 'done');
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
+    });
+
+    Then('I read my messages', { timeout: 20000 }, (cb) => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            chatId = data.chatId;
+
+            if (chatId) {
+                app.clientApp.isFocused = true;
+                app.clientApp.isInChatsView = true;
+                store.loadAllChats()
+                    .then(() => {
+                        when(() => store.loaded, () => {
+                            Promise.delay(5000).then(cb);
+                        });
+                    });
+            } else {
+                cb('No message id passed in', 'failed');
+            }
+        } else {
+            cb('No data passed in', 'failed');
+        }
+    });
+
+    Then('I view a read receipt', { timeout: 10000 }, (done) => {
+        const chat = store.chats.find(x => x.id === chatId);
+        const found = chat.messages.find(x => x.text === message);
+        when(() => found.receipts, () => {
+            console.log(found.receipts);
+            done();
+        });
     });
 });
