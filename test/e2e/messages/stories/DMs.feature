@@ -16,6 +16,7 @@ Feature: Direct messages
         When  I favorite a direct message conversation
         Then  it appears on top of others
     
+    # failing
     Scenario: Unfavorite direct message conversation
         Given I create a direct message
         And   I favorite a direct message conversation
@@ -28,9 +29,11 @@ Feature: Direct messages
         Then the message appears in the chat
         And  the receiver can read the message
     
+    # failing
     Scenario: Send/receive read receipt
-        Given I send a direct message
-        When  the receiver reads the message
+        Given I create a direct message
+        When  I send a direct message
+        And   the receiver reads the message
         Then  I view a read receipt
     
     
