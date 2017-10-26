@@ -173,6 +173,16 @@ class File extends Keg {
         return fileHelper.getFileExtension(this.name);
     }
 
+    /**
+     * @member {string} nameWithoutExt
+     * @memberof File
+     * @instance
+     * @public
+     */
+    @computed get nameWithoutExtension() {
+        return fileHelper.getFileNameWithoutExtension(this.name);
+    }
+
     @computed get isImage() {
         return !!IMAGE_EXTS[this.ext];
     }
