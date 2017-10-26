@@ -35,3 +35,7 @@ Feature: Common scenarios
     Scenario: Read new message from account
         Given I am logged in
         Then  I read my messages
+    
+    Scenario: Receive room invite
+        Given I am logged in
+        Then  I receive a room invite

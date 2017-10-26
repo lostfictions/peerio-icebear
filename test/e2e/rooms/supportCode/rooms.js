@@ -4,29 +4,21 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
 
-defineSupportCode(({ Before, Given, Then, When }) => {
+defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
     const store = app.chatStore;
+
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
-    const invitedUserId = 'do38j9ncwji7frf48g4jew9vd3f17p';
-    let room;
-    const otherInvitedId = '360mzhrj8thigc9hi4t5qddvu4m8in';
+    const invitedUserId = '360mzhrj8thigc9hi4t5qddvu4m8in';
 
-    Before((testCase, done) => {
-        when(() => app.socket.connected, done);
-    });
+    let room;
 
     // Scenario: Create room
     When('I create a room', (done) => {
         console.log(`Channels left: ${app.User.current.channelsLeft}`);
 
-        const invited = new app.Contact(invitedUserId, {}, true);
-        room = store.startChat([invited], true, roomName, roomPurpose);
-        when(() => room.added === true, done);
-    });
-
-    Then('I can enter the room', (done) => {
+        room = store.startChat([], true, roomName, roomPurpose);
         when(() => room.added === true, done);
     });
 
@@ -61,12 +53,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Send invite
     When('I invite another user', { timeout: 10000 }, (done) => {
-        room.addParticipants([otherInvitedId])
+        room.addParticipants([invitedUserId])
             .then(done);
     });
 
     Then('they should get a room invite', { timeout: 10000 }, (cb) => {
-        runFeature('Receive room invite', { username: otherInvitedId, passphrase: 'secret secrets', chatId: room.id })
+        runFeature('Receive room invite', { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id })
             .then(result => {
                 if (result.succeeded) {
                     cb(null, 'done');
@@ -96,11 +88,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
 
-    When('I kick out {person}', (callback) => {
+    // Scenario: Kick member
+    When('someone has joined the room', (callback) => {
         callback(null, 'pending');
     });
 
-    Then('{person} should not be able to access {a room}', (callback) => {
+    Then('I them kick out', (callback) => {
+        callback(null, 'pending');
+    });
+
+    Then('they should not be in the room anymore', (callback) => {
         callback(null, 'pending');
     });
 
