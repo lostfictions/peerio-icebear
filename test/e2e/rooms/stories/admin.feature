@@ -11,26 +11,30 @@ Feature: Rooms
         Then I can rename the room
         And  I can change the room purpose
     
+    Scenario: Delete room
+        Given I create a room
+        Then  I can delete a room
+    
+    @registeredUser
     Scenario: Send invite
         When I create a room
         And  I invite another user
         Then they should get a room invite
     
-    Scenario: Delete room
-        Given I create a room
-        Then  I can delete a room
-    
+    @registeredUser
     Scenario: Kick member
         Given I create a room
         And   someone has joined the room 
         When  I them kick out
         Then  they should not be in the room anymore
     
+    @registeredUser
     Scenario: Promote member
         Given I create a room
         And   someone has joined the room 
         Then  I can promote them to admin
     
+    @registeredUser
     Scenario: Demote member
         Given I create a room
         And   someone has joined the room 

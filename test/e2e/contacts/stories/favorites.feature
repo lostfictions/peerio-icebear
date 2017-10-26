@@ -6,12 +6,12 @@ Feature: Favorite contacts
     Background: 
         Given I am logged in
 
-    @registeredUser
+    @confirmedUser
     Scenario: Favorite a contact
         When I favorite a registered user
         Then they will be in my favorite contacts
 
-    @registeredUser
+    @confirmedUser
     Scenario: Unfavorite a contact 
         Given I favorite a registered user
         And   they will be in my favorite contacts

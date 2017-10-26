@@ -4,18 +4,34 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
 
-defineSupportCode(({ Then, When }) => {
+defineSupportCode(({ Before, Then, When }) => {
     const app = getAppInstance();
     const store = app.chatStore;
 
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
-    const invitedUserId = 'eudw4n4rk7e2htfclue76pmlhwhjmx';
 
     let room;
+    let invitedUserId;
+
+    const assignRegisteredUser = (result) => {
+        invitedUserId = result.data.username;
+    };
+
+    Before({ tags: '@registeredUser', timeout: 10000 }, (testCase, cb) => {
+        runFeature('Account creation')
+            .then(result => {
+                if (result.succeeded) {
+                    assignRegisteredUser(result);
+                    cb();
+                } else {
+                    cb(result.errors, 'failed');
+                }
+            });
+    });
 
     // Scenario: Create room
-    When('I create a room', (done) => {
+    When('I create a room', { timeout: 10000 }, (done) => {
         console.log(`Channels left: ${app.User.current.channelsLeft}`);
 
         room = store.startChat([], true, roomName, roomPurpose);
@@ -140,14 +156,14 @@ defineSupportCode(({ Then, When }) => {
 
 
     // Scenario: Promote member
-    When('I can promote them to admin', () => {
+    When('I can promote them to admin', { timeout: 10000 }, () => {
         const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
         return room.promoteToAdmin(admin);
     });
 
 
     // Scenario: Demote member
-    Then('I can demote them as admin', () => {
+    Then('I can demote them as admin', { timeout: 10000 }, () => {
         const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
         return room.demoteAdmin(admin);
     });
