@@ -9,8 +9,8 @@ Feature: Rooms
     Scenario: Create room
         When I create a room
         Then I can enter the room
-        And  I can rename it
-        And  I can change the purpose
+        And  I can rename the room
+        And  I can change the room purpose
     
     #same as add participant?
     Scenario: Send invite

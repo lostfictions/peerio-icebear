@@ -1,16 +1,17 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const getAppInstance = require('../../helpers/appConfig');
 const { when } = require('mobx');
+const { asPromise } = require('../../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
-    let app;
+    const app = getAppInstance();
+    const store = app.chatStore;
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
     const invitedUserId = 'do38j9ncwji7frf48g4jew9vd3f17p';
     let chat;
 
     Before((testCase, done) => {
-        app = getAppInstance();
         when(() => app.socket.connected, done);
     });
 
@@ -19,22 +20,26 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         console.log(`Channels left: ${app.User.current.channelsLeft}`);
 
         const invited = new app.Contact(invitedUserId, {}, true);
-        chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
+        chat = store.startChat([invited], true, roomName, roomPurpose);
     });
 
     Then('I can enter the room', (done) => {
         when(() => chat.added === true, done);
     });
 
-    Then('I can rename it', (callback) => {
-        // Write code here that turns the phrase above into concrete actions
-        callback(null, 'pending');
+    Then('I can rename the room', () => {
+        const newChatName = 'superhero-hq';
+        chat.rename(newChatName);
+
+        return asPromise(chat, 'name', newChatName);
     });
 
 
-    Then('I can change the purpose', (callback) => {
-        // Write code here that turns the phrase above into concrete actions
-        callback(null, 'pending');
+    Then('I can change the room purpose', () => {
+        const newChatPurpose = 'discuss superhero business';
+        chat.changePurpose(newChatPurpose);
+
+        return asPromise(chat, 'purpose', newChatPurpose);
     });
 
     // Scenario: Delete room
