@@ -26,6 +26,17 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         when(() => chat.added === true, done);
     });
 
+    Then('I can rename it', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Then('I can change the purpose', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
     // Scenario: Delete room
     Given('I am an admin of a room', (done) => {
         when(() => chat.canIAdmin === true, done);
