@@ -27,14 +27,12 @@ Feature: Rooms
         Then  they should not be in the room anymore
     
     Scenario: Promote member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        When I promote {person} to admin
-        Then {person} should be admin
+        Given I create a room
+        And   someone has joined the room 
+        Then  I can promote them to admin
     
     Scenario: Demote member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        And {person} is admin of {a room} 
-        When I demote them
-        Then {person} should no longer be admin of {a room} 
+        Given I create a room
+        And   someone has joined the room 
+        And   I can promote them to admin
+        Then  I can demote them as admin

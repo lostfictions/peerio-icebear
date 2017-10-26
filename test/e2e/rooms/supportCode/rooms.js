@@ -4,7 +4,7 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const runFeature = require('../../helpers/runFeature');
 
-defineSupportCode(({ Given, Then, When }) => {
+defineSupportCode(({ Then, When }) => {
     const app = getAppInstance();
     const store = app.chatStore;
 
@@ -139,24 +139,17 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
 
-    When('I promote {person} to admin', (callback) => {
-        callback(null, 'pending');
+    // Scenario: Promote member
+    When('I can promote them to admin', () => {
+        const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
+        return room.promoteToAdmin(admin);
     });
 
-    Then('{person} should be admin', (callback) => {
-        callback(null, 'pending');
-    });
 
-    Given('{person} is admin of {a room}', (callback) => {
-        callback(null, 'pending');
-    });
-
-    When('I demote them', (callback) => {
-        callback(null, 'pending');
-    });
-
-    Then('{person} should no longer be admin of {a room}', (callback) => {
-        callback(null, 'pending');
+    // Scenario: Demote member
+    Then('I can demote them as admin', () => {
+        const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
+        return room.demoteAdmin(admin);
     });
 
 
