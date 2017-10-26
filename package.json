@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "prepush": "npm run validate",
-    "postcheckout": "opt --out npm-update --exec \"npm install && npm update\"",
-    "postmerge": "opt --out npm-update --exec \"npm install && npm update\"",
+    "postcheckout": "opt --in npm-update --exec \"npm install\"",
+    "postmerge": "opt --in npm-update --exec \"npm install\"",
     "precommit": "opt --out lint --exec \"eslint . --ext .js,.jsx --max-warnings 0\"",
     "postcommit": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
