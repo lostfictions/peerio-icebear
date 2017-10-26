@@ -496,14 +496,6 @@ class FileStore {
         };
         checkFile();
     }
-
-    createTempCache() {
-        config.FileStream.createTempCache();
-    }
-
-    deleteTempCache() {
-        config.FileStream.deleteTempCache();
-    }
 }
 const ret = new FileStore();
 setFileStore(ret);
