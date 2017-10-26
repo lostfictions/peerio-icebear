@@ -21,10 +21,10 @@ Feature: Rooms
         Then  I can delete a room
     
     Scenario: Kick member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        When I kick out {person}
-        Then {person} should not be able to access {a room} 
+        Given I create a room
+        And   someone has joined the room 
+        When  I them kick out
+        Then  they should not be in the room anymore
     
     Scenario: Promote member
         Given I am an admin of {a room}

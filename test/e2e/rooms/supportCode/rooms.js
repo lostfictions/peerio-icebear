@@ -10,7 +10,7 @@ defineSupportCode(({ Given, Then, When }) => {
 
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
-    const invitedUserId = '360mzhrj8thigc9hi4t5qddvu4m8in';
+    const invitedUserId = 'eudw4n4rk7e2htfclue76pmlhwhjmx';
 
     let room;
 
@@ -53,7 +53,8 @@ defineSupportCode(({ Given, Then, When }) => {
 
     // Scenario: Send invite
     When('I invite another user', { timeout: 10000 }, (done) => {
-        room.addParticipants([invitedUserId])
+        const participants = [invitedUserId];
+        room.addParticipants(participants)
             .then(done);
     });
 
@@ -89,16 +90,52 @@ defineSupportCode(({ Given, Then, When }) => {
 
 
     // Scenario: Kick member
-    When('someone has joined the room', (callback) => {
-        callback(null, 'pending');
+    When('someone has joined the room', { timeout: 20000 }, (cb) => {
+        const participants = [invitedUserId];
+        const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
+        room.addParticipants(participants)
+            .then(() => {
+                runFeature('Accept room invite', other)
+                    .then(result => {
+                        if (result.succeeded) {
+                            cb();
+                        } else {
+                            cb(result.errors, 'failed');
+                        }
+                    });
+            });
     });
 
-    Then('I them kick out', (callback) => {
-        callback(null, 'pending');
+    Then('I accept a room invite', { timeout: 10000 }, (cb) => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            const chatId = data.chatId;
+
+            if (chatId) {
+                when(() => app.chatInviteStore.received.length, () => {
+                    const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
+                    found.should.be.ok;
+
+                    app.chatInviteStore.acceptInvite(chatId).then(cb);
+                });
+            } else {
+                cb('No chat id passed in', 'failed');
+            }
+        } else {
+            cb('No data passed in', 'failed');
+        }
     });
 
-    Then('they should not be in the room anymore', (callback) => {
-        callback(null, 'pending');
+    Then('I them kick out', { timeout: 10000 }, (done) => {
+        const participants = room.joinedParticipants.length;
+        room.removeParticipant(invitedUserId);
+
+        when(() => room.joinedParticipants.length === participants - 1, done);
+    });
+
+    Then('they should not be in the room anymore', () => {
+        const exists = room.joinedParticipants.includes(x => x.username === invitedUserId);
+        exists.should.false;
     });
 
 
@@ -107,10 +144,6 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('{person} should be admin', (callback) => {
-        callback(null, 'pending');
-    });
-
-    Given('{person} has joined {a room}', (callback) => {
         callback(null, 'pending');
     });
 
