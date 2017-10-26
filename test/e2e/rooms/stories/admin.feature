@@ -12,16 +12,14 @@ Feature: Rooms
         And  I can rename the room
         And  I can change the room purpose
     
-    #same as add participant?
     Scenario: Send invite
         When I create a room
-        And I invite {other users}
-        Then {other users} should get notified
+        And  I invite another user
+        Then they should get a room invite
     
     Scenario: Delete room
-        Given I am an admin of {a room}
-        When I delete a room
-        Then nobody should be able to access {a room}
+        Given I create a room
+        Then  I can delete a room
     
     Scenario: Kick member
         Given I am an admin of {a room}

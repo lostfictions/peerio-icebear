@@ -10,7 +10,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
     const invitedUserId = 'do38j9ncwji7frf48g4jew9vd3f17p';
-    let chat;
+    let room;
     const otherInvitedId = '360mzhrj8thigc9hi4t5qddvu4m8in';
 
     Before((testCase, done) => {
@@ -22,38 +22,51 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         console.log(`Channels left: ${app.User.current.channelsLeft}`);
 
         const invited = new app.Contact(invitedUserId, {}, true);
-        chat = store.startChat([invited], true, roomName, roomPurpose);
-        when(() => chat.added === true, done);
+        room = store.startChat([invited], true, roomName, roomPurpose);
+        when(() => room.added === true, done);
     });
 
     Then('I can enter the room', (done) => {
-        when(() => chat.added === true, done);
+        when(() => room.added === true, done);
     });
 
     Then('I can rename the room', () => {
         const newChatName = 'superhero-hq';
-        chat.rename(newChatName);
+        room.rename(newChatName);
 
-        return asPromise(chat, 'name', newChatName);
+        return asPromise(room, 'name', newChatName);
     });
 
     Then('I can change the room purpose', () => {
         const newChatPurpose = 'discuss superhero business';
-        chat.changePurpose(newChatPurpose);
+        room.changePurpose(newChatPurpose);
 
-        return asPromise(chat, 'purpose', newChatPurpose);
+        return asPromise(room, 'purpose', newChatPurpose);
+    });
+
+
+    // Scenario: Delete room
+    Then('I can delete a room', (done) => {
+        const numberOfChats = store.chats.length;
+        room.delete()
+            .then(() => {
+                when(() => store.chats.length === numberOfChats - 1, () => {
+                    const roomExists = store.chats.includes(x => x === room);
+                    roomExists.should.be.false;
+                    done();
+                });
+            });
     });
 
 
     // Scenario: Send invite
     When('I invite another user', { timeout: 10000 }, (done) => {
-        chat.addParticipants([otherInvitedId])
+        room.addParticipants([otherInvitedId])
             .then(done);
     });
 
     Then('they should get a room invite', { timeout: 10000 }, (cb) => {
-        console.log(app.chatInviteStore.sent.size);
-        runFeature('Receive room invite', { username: otherInvitedId, passphrase: 'secret secrets', chatId: chat.id })
+        runFeature('Receive room invite', { username: otherInvitedId, passphrase: 'secret secrets', chatId: room.id })
             .then(result => {
                 if (result.succeeded) {
                     cb(null, 'done');
@@ -122,17 +135,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         const invited = new app.Contact(invitedUserId, {}, true);
         console.log(app.User.current.channelsLeft); // 0
 
-        chat = app.chatStore.startChat([invited], true, roomName, roomPurpose);
-        console.log(chat); // TypeError: Cannot read property 'added' of null
-    });
-
-
-    // Scenario: Delete room
-    Given('I am an admin of a room', (done) => {
-        when(() => chat.canIAdmin === true, done);
-    });
-
-    When('I can delete the room', () => {
-        return chat.delete();
+        room = app.chatStore.startChat([invited], true, roomName, roomPurpose);
+        console.log(room); // TypeError: Cannot read property 'added' of null
     });
 });
