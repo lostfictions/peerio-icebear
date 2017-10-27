@@ -1,8 +1,8 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../helpers/appConfig');
+const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const runFeature = require('../helpers/runFeature');
+const runFeature = require('./helpers/runFeature');
 const path = require('path');
 const fs = require('fs');
 
@@ -37,7 +37,7 @@ defineSupportCode(({ Before, Then, When }) => {
         numberOfFilesUploaded = app.fileStore.files.length;
         console.log(`Files in storage: ${numberOfFilesUploaded}`);
 
-        const file = `${__dirname}/${testDocument}`;
+        const file = `${__dirname}/helpers/${testDocument}`;
         const keg = app.fileStore.upload(file);
 
         when(() => keg.readyForDownload, done);
@@ -53,14 +53,14 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Download
     When('I download the file', (done) => {
-        const filePath = path.resolve(__dirname, `downloaded-${testDocument}`);
+        const filePath = path.resolve(`${__dirname}/helpers/`, `downloaded-${testDocument}`);
         findTestFile()
             .download(filePath, false)
             .then(done);
     });
 
     Then('I can access the file locally', (done) => {
-        const filePath = path.resolve(__dirname, `downloaded-${testDocument}`);
+        const filePath = path.resolve(`${__dirname}/helpers/`, `downloaded-${testDocument}`);
         fs.stat(filePath, (err) => {
             if (err == null) {
                 done();
