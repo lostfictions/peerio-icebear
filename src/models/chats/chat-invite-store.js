@@ -214,7 +214,6 @@ class ChatInviteStore {
         }
         return socket.send('/auth/kegs/channel/invite/accept', { kegDbId })
             .then(() => {
-                setTimeout(this.update, 250);
                 return new Promise(resolve => {
                     when(() => {
                         const chat = getChatStore().chats.find(c => c.id === kegDbId);
@@ -239,9 +238,7 @@ class ChatInviteStore {
      */
     rejectInvite(kegDbId) {
         return socket.send('/auth/kegs/channel/invite/reject', { kegDbId })
-            .then(() => {
-                setTimeout(this.update, 250);
-            }).catch(err => {
+            .catch(err => {
                 console.error('Failed to accept invite', kegDbId, err);
                 warnings.add('error_rejectChannelInvite');
                 return Promise.reject(err);
@@ -256,14 +253,13 @@ class ChatInviteStore {
     revokeInvite(kegDbId, username, noWarning = false) {
         return getChatStore().getChatWhenReady(kegDbId).then(chat => {
             if (!chat.canIAdmin) return Promise.resolve();
-            return chat.removeParticipant(username, false).then(() => {
-                setTimeout(this.update, 250);
-            }).catch(err => {
-                console.error(err);
-                if (!noWarning) {
-                    warnings.add('error_revokeChannelInvite');
-                }
-            });
+            return chat.removeParticipant(username, false)
+                .catch(err => {
+                    console.error(err);
+                    if (!noWarning) {
+                        warnings.add('error_revokeChannelInvite');
+                    }
+                });
         });
     }
 }

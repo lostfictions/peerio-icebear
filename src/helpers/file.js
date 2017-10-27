@@ -43,4 +43,30 @@ function getFileExtension(path) {
     return extension;
 }
 
-module.exports = { getFileName, getFileExtension, getFileNameWithoutExtension };
+/**
+ * For use with FileSpriteIcon. Determines general file "type" based on extension.
+ * @param {string} file extension
+ * @returns {string} file type
+ * @memberof helpers/file
+ * @public
+ */
+const fileIconType = {
+    txt: 'txt',
+    pdf: 'pdf',
+    ai: 'ai',
+    psd: 'psd'
+};
+function createFileType(ext, type) { fileIconType[ext] = type; }
+['bmp', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'tif', 'tiff'].forEach((ext) => createFileType(ext, 'img'));
+['aif', 'aiff', 'flac', 'm4a', 'mp3', 'ogg', 'opus', 'wav'].forEach((ext) => createFileType(ext, 'audio'));
+['avi', 'flv', 'm4v', 'mov', 'mp4', 'mpeg', 'mpg', 'wbm', 'wmv'].forEach((ext) => createFileType(ext, 'video'));
+['7z', 'gz', 'rar', 'zip', 'zipx'].forEach((ext) => createFileType(ext, 'zip'));
+['doc', 'docx'].forEach((ext) => createFileType(ext, 'word'));
+['xls', 'xlsx'].forEach((ext) => createFileType(ext, 'xls'));
+['ppt', 'pptx'].forEach((ext) => createFileType(ext, 'ppt'));
+
+function getFileIconType(ext) {
+    return fileIconType[ext] ? fileIconType[ext] : 'other';
+}
+
+module.exports = { getFileName, getFileExtension, getFileNameWithoutExtension, getFileIconType };

@@ -174,6 +174,17 @@ class File extends Keg {
     }
 
     /**
+     * file icon type
+     * @member {string} ext
+     * @memberof File
+     * @instance
+     * @public
+     */
+    @computed get iconType() {
+        return fileHelper.getFileIconType(this.ext);
+    }
+
+    /**
      * @member {string} nameWithoutExt
      * @memberof File
      * @instance
