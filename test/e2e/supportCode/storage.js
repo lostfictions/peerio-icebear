@@ -1,5 +1,4 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeature, checkResult } = require('./helpers/runFeature');
 const { waitForConnection, getFileStore, getContactWithName } = require('./client');
@@ -17,15 +16,16 @@ defineSupportCode(({ Before, Then, When }) => {
     const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
     const receiver = { username: other, passphrase: 'secret secrets' };
 
-    Before(() => {
+    Before({ tag: '@fileStoreLoaded' }, () => {
         return waitForConnection().then(store.loadAllFiles);
     });
 
     // Scenario: Upload
-    When('I upload a file', (done) => {
+    When('I upload a file', () => {
         numberOfFilesUploaded = store.files.length;
+
         const keg = store.upload(pathToUploadFrom);
-        when(() => keg.readyForDownload, done);
+        return asPromise(keg, 'readyForDownload', true);
     });
 
     Then('I should see it in my files', () => {
@@ -67,12 +67,10 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Share
-    When('I share it with a receiver', (done) => {
-        getContactWithName(other)
-            .then(user => {
-                return fileInStore()
-                    .share(user)
-                    .then(() => done());
+    When('I share it with a receiver', () => {
+        return getContactWithName(other)
+            .then(contact => {
+                return fileInStore().share(contact);
             });
     });
 
