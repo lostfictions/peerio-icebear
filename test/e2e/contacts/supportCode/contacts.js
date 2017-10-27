@@ -62,7 +62,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     // Scenario: Find contact
-    Given('I search for {string}', (someone) => {
+    Given(/I search for (a registered username|a registered email|an unregistered user)/, (someone) => {
         assignOtherUsername(someone);
         contactFromUsername = store.getContact(otherUsername);
         return contactLoaded();
