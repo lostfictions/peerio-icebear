@@ -1,7 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const runFeature = require('./helpers/runFeature');
+const { runFeature, checkResult } = require('./helpers/runFeature');
 const { waitForConnection, getFileStore, getContactWithName } = require('./client');
 const fs = require('fs');
 
@@ -15,6 +15,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
     let numberOfFilesUploaded;
     const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
+    const receiver = { username: other, passphrase: 'secret secrets' };
 
     Before(() => {
         return waitForConnection().then(store.loadAllFiles);
@@ -68,23 +69,16 @@ defineSupportCode(({ Before, Then, When }) => {
     // Scenario: Share
     When('I share it with a receiver', (done) => {
         getContactWithName(other)
-            .then(receiver => {
+            .then(user => {
                 return fileInStore()
-                    .share(receiver)
+                    .share(user)
                     .then(() => done());
             });
     });
 
-    Then('receiver should see it in their files', (cb) => {
-        const receiver = { username: other, passphrase: 'secret secrets' };
-        runFeature('Access my files', receiver)
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    Then('receiver should see it in their files', () => {
+        return runFeature('Access my files', receiver)
+            .then(checkResult);
     });
 
     Then('I should see my files', () => {
@@ -95,16 +89,9 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Delete after sharing
-    Then('it should be removed from receivers files', (cb) => {
-        const receiver = { username: other, passphrase: 'secret secrets' };
-        runFeature('Deleted files', receiver)
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    Then('it should be removed from receivers files', () => {
+        return runFeature('Deleted files', receiver)
+            .then(checkResult);
     });
 
     Then('I should not see deleted files', () => {

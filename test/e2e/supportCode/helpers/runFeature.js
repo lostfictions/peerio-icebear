@@ -85,4 +85,11 @@ const runFeature = (scenarioName, peerioData = null) => {
     });
 };
 
-module.exports = runFeature;
+const checkResult = (result) => {
+    if (result.succeeded) {
+        return Promise.resolve();
+    }
+    return Promise.reject(result.errors);
+};
+
+module.exports = { runFeature, checkResult };
