@@ -1,8 +1,8 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../../helpers/appConfig');
+const getAppInstance = require('../helpers/appConfig');
 const { when } = require('mobx');
-const { asPromise } = require('../../../../src/helpers/prombservable');
-const runFeature = require('../../helpers/runFeature');
+const { asPromise } = require('../../../src/helpers/prombservable');
+const runFeature = require('../helpers/runFeature');
 const path = require('path');
 const fs = require('fs');
 
