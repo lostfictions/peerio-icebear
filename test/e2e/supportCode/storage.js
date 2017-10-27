@@ -13,7 +13,7 @@ defineSupportCode(({ Before, Then, When }) => {
     const fileInStore = () => store.files.find(file => file.name === testDocument);
 
     let numberOfFilesUploaded;
-    const other = '360mzhrj8thigc9hi4t5qddvu4m8in'; // todo: generate user
+    const otherUser = '360mzhrj8thigc9hi4t5qddvu4m8in'; // todo: generate user
 
     Before({ tag: '@fileStoreLoaded' }, () => {
         return waitForConnection().then(store.loadAllFiles);
@@ -67,14 +67,14 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Share
     When('I share it with a receiver', () => {
-        return getContactWithName(other)
+        return getContactWithName(otherUser)
             .then(contact => {
                 return fileInStore().share(contact);
             });
     });
 
     Then('receiver should see it in their files', () => {
-        return runFeatureFromUsername('Access my files', other)
+        return runFeatureFromUsername('Access my files', otherUser)
             .then(checkResult);
     });
 
@@ -87,7 +87,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Delete after sharing
     Then('it should be removed from receivers files', () => {
-        return runFeatureFromUsername('Deleted files', other)
+        return runFeatureFromUsername('Deleted files', otherUser)
             .then(checkResult);
     });
 

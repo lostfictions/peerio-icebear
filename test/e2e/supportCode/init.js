@@ -8,14 +8,16 @@ defineSupportCode(({ Before, Given }) => {
     // let username, passphrase;
     let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
 
+    const setCredentialsIfAny = () => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            ({ username, passphrase } = data);
+        }
+    };
+
     Before(() => {
         return waitForConnection()
-            .then(() => {
-                if (process.env.peerioData) {
-                    const data = JSON.parse(process.env.peerioData);
-                    ({ username, passphrase } = data);
-                }
-            });
+            .then(setCredentialsIfAny);
     });
 
     Given('I am logged in', (done) => {
