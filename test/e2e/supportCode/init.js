@@ -2,9 +2,9 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { waitForConnection } = require('./client');
+const getAppInstance = require('./helpers/appConfig');
 
 defineSupportCode(({ Before, Given }) => {
-    let app;
     // let username, passphrase;
     let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
 
@@ -19,6 +19,7 @@ defineSupportCode(({ Before, Given }) => {
     });
 
     Given('I am logged in', (done) => {
+        const app = getAppInstance();
         const user = new app.User();
 
         user.username = username;

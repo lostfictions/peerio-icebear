@@ -41,6 +41,8 @@ const runFeature = (scenarioName, peerioData = null) => {
         const options = [
             featurePath,
             '-r',
+            'test/e2e/supportCode/helpers/global-setup.js',
+            '-r',
             supportCodePath,
             '--compiler',
             'js:babel-register',
