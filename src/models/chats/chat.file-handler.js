@@ -1,5 +1,3 @@
-// @ts-check
-
 const { when } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
@@ -19,10 +17,12 @@ const File = require('../files/file');
  * @public
  */
 class ChatFileHandler {
+    /**
+     * File handling module for Chat. Extracted for readability.
+     * @param {Chat} chat - chat creates an instance and passes itself to it.
+     * @public
+     */
     constructor(chat) {
-        /**
-         * @type {Chat} chat
-         */
         this.chat = chat;
     }
 
@@ -83,7 +83,7 @@ class ChatFileHandler {
      * This function performs only logical sharing, provides permissions/access for recipients.
      * It doesn't inform recipients in the chat about the fact of sharing.
      * @param {Array<File>} files
-     * @return {Array<string>} - fileId list
+     * @return {Array<string> | null} - fileId list
      * @private
      */
     shareFileKegs(files) {

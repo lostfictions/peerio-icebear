@@ -1,4 +1,3 @@
-// @ts-check
 const _ = require('lodash');
 const { observable, action, computed } = require('mobx');
 const socket = require('../../network/socket');

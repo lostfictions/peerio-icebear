@@ -1,5 +1,3 @@
-// @ts-check
-
 const { observable, computed, action, when, reaction } = require('mobx');
 const Message = require('./message');
 const ChatKegDb = require('../kegs/chat-keg-db');
@@ -36,6 +34,15 @@ const ACK_MSG = '👍';
  * @public
  */
 class Chat {
+    /**
+     * at least one of two arguments should be set
+     * @param {string} id - chat id
+     * @param {Array<Contact>} participants chat participants, will be used to
+     *                                      create chat or find it by participant list
+     * @param {*} store
+     * @param {boolean=} isChannel
+     * @public
+     */
     constructor(id, participants = [], store, isChannel = false) {
         this.id = id;
         this.store = store;

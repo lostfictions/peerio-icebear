@@ -14,9 +14,9 @@ let a; //eslint-disable-line
  * @memberof helpers/string
  * @protected
  */
-function getFirstLetter(str) {
+function getFirstLetter(str : string) : string {
     if (!str || !str.length) return '';
-    return String.fromCodePoint(str.codePointAt(0));
+    return String.fromCodePoint(str.codePointAt(0)!);
 }
 /**
  * Returns upper cased first unicode character of a string.
@@ -25,7 +25,7 @@ function getFirstLetter(str) {
  * @memberof helpers/string
  * @protected
  */
-function getFirstLetterUpperCase(str) {
+function getFirstLetterUpperCase(str : string) : string {
     return getFirstLetter(str).toLocaleUpperCase();
 }
 

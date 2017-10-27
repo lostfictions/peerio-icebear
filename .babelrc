@@ -1,17 +1,5 @@
 {
     "compact": false,
-    "plugins": [
-        "transform-decorators-legacy",
-        "transform-class-properties",
-        "transform-es2015-modules-commonjs",
-        "transform-export-extensions",
-        [
-            "transform-object-rest-spread",
-            {
-                "useBuiltIns": true
-            }
-        ]
-    ],
     "env": {
         "production": {
             "plugins": [

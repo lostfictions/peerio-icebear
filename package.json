@@ -2,7 +2,7 @@
   "name": "@peerio/peerio-icebear",
   "version": "2.12.0",
   "description": "Peerio Icebear client library",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "postcheckout": "opt --in npm-update --exec \"npm install\"",
     "postmerge": "opt --in npm-update --exec \"npm install\"",
@@ -10,19 +10,16 @@
     "postcommit": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --timeout 15000",
-    "start": "npm run mocha -- -w",
+    "start": "tsc -w",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
     "validate": "npm-run-all --serial lint",
-    "lint": "eslint . --fix --ext .js,.jsx",
+    "lint": "tsc --no-emit && eslint . --fix --ext .js,.jsx",
     "release": "./scripts/release.sh",
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
     "e2e": "cucumber.js test/e2e/contacts/stories --r test/global-setup.js -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register"
   },
-  "files": [
-    "src"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PeerioTechnologies/peerio-icebear.git"
@@ -63,6 +60,7 @@
   },
   "devDependencies": {
     "@types/bluebird-global": "3.5.3",
+    "@types/lodash": "4.14.80",
     "@types/node": "8.0.47",
     "babel-cli": "6.26.0",
     "babel-eslint": "8.0.1",
@@ -91,6 +89,7 @@
     "sinon-chai": "2.14.0",
     "source-map-support": "0.5.0",
     "standard-version": "4.2.0",
+    "typescript": "2.6.0-rc",
     "validate-commit-msg": "2.14.0",
     "w3c-xmlhttprequest": "2.1.2",
     "websocket": "1.0.25"

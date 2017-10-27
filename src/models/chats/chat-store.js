@@ -1,5 +1,3 @@
-// @ts-check
-
 const { observable, action, computed, reaction, autorunAsync, isObservableArray, when, runInAction } = require('mobx');
 const Chat = require('./chat');
 const socket = require('../../network/socket');
