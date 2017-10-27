@@ -1,29 +1,20 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const getAppInstance = require('./helpers/appConfig');
 const runFeature = require('./helpers/runFeature');
-const { waitForConnection, getFileStore } = require('./client');
-const path = require('path');
+const { waitForConnection, getFileStore, getContactWithName } = require('./client');
 const fs = require('fs');
 
 defineSupportCode(({ Before, Then, When }) => {
     const store = getFileStore();
-    let numberOfFilesUploaded;
+
     const testDocument = 'test.txt';
+    const pathToUploadFrom = `${__dirname}/helpers/${testDocument}`;
+    const pathToDownloadTo = `${__dirname}/helpers/downloaded-${testDocument}`;
+    const fileInStore = () => store.files.find(file => file.name === testDocument);
+
+    let numberOfFilesUploaded;
     const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
-
-    const findTestFile = () => {
-        return store.files.find(file => file.name === testDocument);
-    };
-
-    const getReceiver = () => {
-        return new Promise((resolve) => {
-            const app = getAppInstance();
-            const receiver = new app.Contact(other);
-            when(() => !receiver.loading, () => resolve(receiver));
-        });
-    };
 
     Before(() => {
         return waitForConnection().then(store.loadAllFiles);
@@ -32,11 +23,7 @@ defineSupportCode(({ Before, Then, When }) => {
     // Scenario: Upload
     When('I upload a file', (done) => {
         numberOfFilesUploaded = store.files.length;
-        console.log(`Files in storage: ${numberOfFilesUploaded}`);
-
-        const file = `${__dirname}/helpers/${testDocument}`;
-        const keg = store.upload(file);
-
+        const keg = store.upload(pathToUploadFrom);
         when(() => keg.readyForDownload, done);
     });
 
@@ -44,21 +31,19 @@ defineSupportCode(({ Before, Then, When }) => {
         store.files.length
             .should.be.equal(numberOfFilesUploaded + 1);
 
-        findTestFile().should.be.ok;
+        fileInStore().should.be.ok;
     });
 
 
     // Scenario: Download
     When('I download the file', (done) => {
-        const filePath = path.resolve(`${__dirname}/helpers/`, `downloaded-${testDocument}`);
-        findTestFile()
-            .download(filePath, false)
+        fileInStore()
+            .download(pathToDownloadTo, false)
             .then(done);
     });
 
     Then('I can access the file locally', (done) => {
-        const filePath = path.resolve(`${__dirname}/helpers/`, `downloaded-${testDocument}`);
-        fs.stat(filePath, (err) => {
+        fs.stat(pathToDownloadTo, (err) => {
             if (err == null) {
                 done();
             } else {
@@ -71,20 +56,20 @@ defineSupportCode(({ Before, Then, When }) => {
     // Scenario: Delete
     Then('I delete the file', () => {
         numberOfFilesUploaded = store.files.length;
-        return findTestFile().remove();
+        return fileInStore().remove();
     });
 
     Then('it should be removed from my files', () => {
-        findTestFile().deleted.should.be.true;
+        fileInStore().deleted.should.be.true;
         return asPromise(store.files, 'length', numberOfFilesUploaded - 1);
     });
 
 
     // Scenario: Share
     When('I share it with a receiver', (done) => {
-        getReceiver()
+        getContactWithName(other)
             .then(receiver => {
-                return findTestFile()
+                return fileInStore()
                     .share(receiver)
                     .then(() => done());
             });
@@ -103,7 +88,7 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I should see my files', () => {
-        findTestFile()
+        fileInStore()
             .should.not.be.null
             .and.should.be.ok;
     });
@@ -123,7 +108,6 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I should not see deleted files', () => {
-        store.files
-            .should.not.contain(x => x.name === testDocument);
+        store.files.should.not.contain(x => x.name === testDocument);
     });
 });
