@@ -6,45 +6,46 @@ const runFeature = require('./helpers/runFeature');
 const path = require('path');
 const fs = require('fs');
 
+const forForConnection = () => {
+    const app = getAppInstance();
+    return asPromise(app.socket, 'connected', true);
+};
+
 defineSupportCode(({ Before, Then, When }) => {
-    let app;
+    const store = getAppInstance().fileStore;
     let numberOfFilesUploaded;
-    const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
     const testDocument = 'test.txt';
+    const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
 
     const findTestFile = () => {
-        return app.fileStore.files.find(file => file.name === testDocument);
+        return store.files.find(file => file.name === testDocument);
     };
 
     const getReceiver = () => {
         return new Promise((resolve) => {
+            const app = getAppInstance();
             const receiver = new app.Contact(other);
             when(() => !receiver.loading, () => resolve(receiver));
         });
     };
 
-    Before((testCase, done) => {
-        app = getAppInstance();
-
-        when(() => app.socket.connected, () => {
-            app.fileStore.loadAllFiles();
-            done();
-        });
+    Before(() => {
+        return forForConnection().then(store.loadAllFiles);
     });
 
     // Scenario: Upload
     When('I upload a file', (done) => {
-        numberOfFilesUploaded = app.fileStore.files.length;
+        numberOfFilesUploaded = store.files.length;
         console.log(`Files in storage: ${numberOfFilesUploaded}`);
 
         const file = `${__dirname}/helpers/${testDocument}`;
-        const keg = app.fileStore.upload(file);
+        const keg = store.upload(file);
 
         when(() => keg.readyForDownload, done);
     });
 
     Then('I should see it in my files', () => {
-        app.fileStore.files.length
+        store.files.length
             .should.be.equal(numberOfFilesUploaded + 1);
 
         findTestFile().should.be.ok;
@@ -73,13 +74,13 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Delete
     Then('I delete the file', () => {
-        numberOfFilesUploaded = app.fileStore.files.length;
+        numberOfFilesUploaded = store.files.length;
         return findTestFile().remove();
     });
 
     Then('it should be removed from my files', () => {
         findTestFile().deleted.should.be.true;
-        return asPromise(app.fileStore.files, 'length', numberOfFilesUploaded - 1);
+        return asPromise(store.files, 'length', numberOfFilesUploaded - 1);
     });
 
 
@@ -126,7 +127,7 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I should not see deleted files', () => {
-        app.fileStore.files
+        store.files
             .should.not.contain(x => x.name === testDocument);
     });
 });
