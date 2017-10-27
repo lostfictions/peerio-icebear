@@ -1,6 +1,6 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { runFeature, checkResult } = require('./helpers/runFeature');
+const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
 const { waitForConnection, getFileStore, getContactWithName } = require('./client');
 const fs = require('fs');
 
@@ -13,8 +13,7 @@ defineSupportCode(({ Before, Then, When }) => {
     const fileInStore = () => store.files.find(file => file.name === testDocument);
 
     let numberOfFilesUploaded;
-    const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
-    const receiver = { username: other, passphrase: 'secret secrets' };
+    const other = '360mzhrj8thigc9hi4t5qddvu4m8in'; // todo: generate user
 
     Before({ tag: '@fileStoreLoaded' }, () => {
         return waitForConnection().then(store.loadAllFiles);
@@ -75,7 +74,7 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('receiver should see it in their files', () => {
-        return runFeature('Access my files', receiver)
+        return runFeatureFromUsername('Access my files', other)
             .then(checkResult);
     });
 
@@ -88,7 +87,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Delete after sharing
     Then('it should be removed from receivers files', () => {
-        return runFeature('Deleted files', receiver)
+        return runFeatureFromUsername('Deleted files', other)
             .then(checkResult);
     });
 

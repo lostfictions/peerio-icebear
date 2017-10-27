@@ -85,6 +85,11 @@ const runFeature = (scenarioName, peerioData = null) => {
     });
 };
 
+const runFeatureFromUsername = (feature, username) => {
+    const user = { username, passphrase: 'secret secrets' };
+    return runFeature(feature, user);
+};
+
 const checkResult = (result) => {
     if (result.succeeded) {
         return Promise.resolve();
@@ -92,4 +97,4 @@ const checkResult = (result) => {
     return Promise.reject(result.errors);
 };
 
-module.exports = { runFeature, checkResult };
+module.exports = { runFeature, runFeatureFromUsername, checkResult };
