@@ -19,7 +19,7 @@
     "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
     "doc:lint": "documentation lint src",
     "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "e2e": "cucumber.js test/e2e/contacts/stories -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register --require test/global-setup.js"
+    "e2e": "cucumber.js test/e2e/contacts/stories --r test/global-setup.js -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register"
   },
   "files": [
     "src"
@@ -77,8 +77,8 @@
     "babel-types": "6.26.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
+    "cucumber": "3.1.0",
     "cz-conventional-changelog": "2.0.0",
-    "cucumber": "2.1.0",
     "documentation": "5.3.3",
     "eslint-config-peerio": "1.20.0",
     "husky": "0.14.3",

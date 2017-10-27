@@ -42,13 +42,13 @@ const runFeature = (scenarioName, peerioData = null) => {
         const options = [
             featurePath,
             '-r',
+            'test/global-setup.js',
+            '-r',
             supportCodePath,
             '-r',
             supportCodePath2,
             '--compiler',
             'js:babel-register',
-            '--require',
-            'test/global-setup.js',
             '--name',
             scenarioName
         ];
@@ -57,7 +57,6 @@ const runFeature = (scenarioName, peerioData = null) => {
         if (peerioData !== null) {
             env.peerioData = JSON.stringify(peerioData);
         }
-
         const proc = spawn(cucumberPath, options, { env });
 
         proc.stdout.on('data', (data) => {

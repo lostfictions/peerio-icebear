@@ -224,7 +224,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         blob = null;
     });
 
-    Then('I should get an error saying {err}', (err) => {
+    Then('I should get an error saying {string}', (err) => {
         return app.User.current
             .saveAvatar(blob)
             .should.be.rejectedWith(err);
@@ -324,7 +324,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         app.User.current.twoFAEnabled = true;
     });
 
-    Then('I should receive an error saying {err}', (err) => {
+    Then('I should receive an error saying {string}', (err) => {
         return app.User.current
             .setup2fa()
             .should.be.rejectedWith(err);
