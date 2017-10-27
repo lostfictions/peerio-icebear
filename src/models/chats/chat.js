@@ -1147,6 +1147,12 @@ class Chat {
         this._sendMessage(m);
     }
 
+    createVideoCall(link) {
+        const m = new Message(this.db);
+        m.sendVideoLink(link);
+        this._sendMessage(m);
+    }
+
     /**
      * Checks if there are any file attachments in new message batch and adds them to _recentFiles if needed.
      * @private
