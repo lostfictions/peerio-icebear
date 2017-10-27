@@ -3,13 +3,13 @@ Feature: Find contacts
     Background: 
         Given I am logged in
 
-    @registeredUser
+    @confirmedUser
     Scenario: Find contact by username
         When I search for a registered username
         And  the contact exists
         Then the contact is added in my contacts
 
-    @registeredUser
+    @confirmedUser
     Scenario: Find contact by email
         When I search for a registered email
         And  the contact exists

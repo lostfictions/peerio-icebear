@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const featurePath = 'test/e2e/helpers/featureHelpers.feature';
 const supportCodePath = 'test/e2e/account/supportCode'; // todo: better way to do this
-const supportCodePath2 = 'test/e2e/messages/supportCode';
+const supportCodePath2 = 'test/e2e/rooms/supportCode';
 
 const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
