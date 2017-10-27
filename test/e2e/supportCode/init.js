@@ -1,20 +1,21 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
+const { waitForConnection } = require('./client');
 
 defineSupportCode(({ Before, Given }) => {
     let app;
     // let username, passphrase;
     let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
 
-    Before((testCase, done) => {
-        app = getAppInstance();
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            ({ username, passphrase } = data);
-        }
-        when(() => app.socket.connected, done);
+    Before(() => {
+        return waitForConnection()
+            .then(() => {
+                if (process.env.peerioData) {
+                    const data = JSON.parse(process.env.peerioData);
+                    ({ username, passphrase } = data);
+                }
+            });
     });
 
     Given('I am logged in', (done) => {

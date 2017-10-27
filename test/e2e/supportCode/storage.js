@@ -1,18 +1,14 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
+const getAppInstance = require('./helpers/appConfig');
 const runFeature = require('./helpers/runFeature');
+const { waitForConnection, getFileStore } = require('./client');
 const path = require('path');
 const fs = require('fs');
 
-const forForConnection = () => {
-    const app = getAppInstance();
-    return asPromise(app.socket, 'connected', true);
-};
-
 defineSupportCode(({ Before, Then, When }) => {
-    const store = getAppInstance().fileStore;
+    const store = getFileStore();
     let numberOfFilesUploaded;
     const testDocument = 'test.txt';
     const other = '360mzhrj8thigc9hi4t5qddvu4m8in';
@@ -30,7 +26,7 @@ defineSupportCode(({ Before, Then, When }) => {
     };
 
     Before(() => {
-        return forForConnection().then(store.loadAllFiles);
+        return waitForConnection().then(store.loadAllFiles);
     });
 
     // Scenario: Upload
