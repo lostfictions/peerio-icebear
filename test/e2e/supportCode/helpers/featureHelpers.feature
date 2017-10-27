@@ -13,9 +13,9 @@ Feature: Common scenarios
         When  I make the new email primary
         Then  the primary email should be updated
 
-    Scenario: Access my files
+    Scenario: Access shared file
         Given I am logged in
-        Then  I should see my files
+        Then  I should the shared file
 
     Scenario: Deleted files
         Given I am logged in

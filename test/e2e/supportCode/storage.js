@@ -28,10 +28,8 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I should see it in my files', () => {
-        store.files.length
-            .should.be.equal(numberOfFilesUploaded + 1);
-
-        fileInStore().should.be.ok;
+        store.files.length.should.be.equal(numberOfFilesUploaded + 1);
+        store.files.should.contain(x => x.name === testDocument);
     });
 
 
@@ -74,19 +72,17 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('receiver should see it in their files', () => {
-        return runFeatureFromUsername('Access my files', otherUser)
+        return runFeatureFromUsername('Access shared file', otherUser)
             .then(checkResult);
     });
 
-    Then('I should see my files', () => {
-        fileInStore()
-            .should.not.be.null
-            .and.should.be.ok;
+    Then('I should the shared file', () => {
+        store.files.should.contain(x => x.name === testDocument);
     });
 
 
     // Scenario: Delete after sharing
-    Then('it should be removed from receivers files', () => {
+    Then('it should be removed from receivers files', { timeout: 10000 }, () => {
         return runFeatureFromUsername('Deleted files', otherUser)
             .then(checkResult);
     });
