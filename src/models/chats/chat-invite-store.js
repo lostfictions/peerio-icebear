@@ -47,7 +47,7 @@ class ChatInviteStore {
      * @instance
      * @public
      */
-    @observable sent = observable.map();
+    @observable sent = observable.shallowMap();
 
     /**
      * List of users requested to leave channels. This is normally for internal icebear use.
@@ -59,7 +59,7 @@ class ChatInviteStore {
      * @instance
      * @protected
      */
-    @observable.shallow left = observable.map();
+    @observable left = observable.shallowMap();
 
     /**
      * List of users who rejected invites and are pending to be removed from boot keg.
@@ -68,7 +68,7 @@ class ChatInviteStore {
      * @instance
      * @protected
      */
-    @observable.shallow rejected = observable.map();
+    @observable rejected = observable.shallowMap();
 
     updating = false;
     updateAgain = false;

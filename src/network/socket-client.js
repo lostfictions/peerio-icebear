@@ -385,7 +385,7 @@ class SocketClient {
     send(name, data) {
         const id = this.requestId++;
         // <DEBUG>
-        this.requestLog[id] = { name, data, start: Date.now() };
+        // this.requestLog[id] = { name, data, start: Date.now() };
         // </DEBUG>
         return new Promise((resolve, reject) => {
             this.awaitingRequests[id] = reject;
@@ -401,9 +401,9 @@ class SocketClient {
             }
             const handler = (resp) => {
                 // <DEBUG>
-                const r = this.requestLog[id];
-                r.end = Date.now();
-                r.time = r.end - r.start;
+                // const r = this.requestLog[id];
+                // r.end = Date.now();
+                // r.time = r.end - r.start;
                 // </DEBUG>
                 this.throttled = (resp.error === 425);
                 if (resp && resp.error) {

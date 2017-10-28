@@ -389,7 +389,6 @@ class Chat {
         return !!(this.chatHead && this.chatHead.loaded);
     }
 
-
     /**
      * User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
      * @member {boolean} canSendAck

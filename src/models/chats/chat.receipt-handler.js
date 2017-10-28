@@ -1,4 +1,4 @@
-const { action, reaction } = require('mobx');
+const { action, reaction, observable } = require('mobx');
 const User = require('../user/user');
 const tracker = require('../update-tracker');
 const socket = require('../../network/socket');
@@ -13,8 +13,6 @@ const TaskQueue = require('../../helpers/task-queue');
  */
 
 class ChatReceiptHandler {
-    // receipts cache {username: ReadReceipt}
-    receipts = {};
     downloadedCollectionVersion = '';
     // this value means that something is scheduled to send
     pendingReceipt = null;
@@ -24,6 +22,8 @@ class ChatReceiptHandler {
 
     constructor(chat) {
         this.chat = chat;
+        // receipts cache {username: ReadReceipt}
+        this.chat.receipts = observable.shallowMap();
         tracker.onKegTypeUpdated(chat.id, 'read_receipt', this.onDigestUpdate);
         this.onDigestUpdate();
         this._reactionsToDispose.push(reaction(() => socket.authenticated, authenticated => {
@@ -49,7 +49,7 @@ class ChatReceiptHandler {
      */
     sendReceipt(pos) {
         // console.debug(`sendReceipt(${pos})`);
-        if (typeof pos !== 'number') throw new Error(`Attempt to send invalid receipt position ${pos}`);
+        pos = +pos;// eslint-disable-line no-param-reassign
         // console.debug('asked to send receipt: ', pos);
         // if something is currently in progress of sending we just want to adjust max value
         if (this.pendingReceipt) {
@@ -134,7 +134,7 @@ class ChatReceiptHandler {
                             this._ownReceipt = r;
                         }
                     } else {
-                        this.receipts[r.owner] = r;
+                        this.chat.receipts.set(r.owner, r);
                     }
                 } catch (err) {
                     // we don't want to break everything for one faulty receipt
@@ -151,13 +151,14 @@ class ChatReceiptHandler {
 
     // todo: can be faster
     @action applyReceipts() {
-        const users = Object.keys(this.receipts);
+        const users = this.chat.receipts.keys();
+
         for (let i = 0; i < this.chat.messages.length; i++) {
             const msg = this.chat.messages[i];
             msg.receipts = null;
             for (let k = 0; k < users.length; k++) {
                 const username = users[k];
-                const receipt = this.receipts[username];
+                const receipt = this.chat.receipts.get(username);
                 if (+msg.id !== receipt.chatPosition) continue;
                 // receiptError is already calculated, signature error MIGHT already have been calculated
                 if (receipt.receiptError || receipt.signatureError) continue;

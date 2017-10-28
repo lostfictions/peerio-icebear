@@ -1,3 +1,4 @@
+const { observable } = require('mobx');
 const Keg = require('../kegs/keg');
 
 /**
@@ -10,10 +11,10 @@ const Keg = require('../kegs/keg');
 class ReadReceipt extends Keg {
     /**
      * Id of the last read message
-     * @member {string}
+     * @member {number}
      * @public
      */
-    chatPosition;
+    @observable chatPosition;
     /**
      * true if this receipt's name doesn't match keg owner.
      * @member {bool}
@@ -28,12 +29,12 @@ class ReadReceipt extends Keg {
 
     serializeKegPayload() {
         return {
-            chatPosition: this.chatPosition
+            chatPosition: +this.chatPosition
         };
     }
 
     deserializeKegPayload(payload) {
-        this.chatPosition = payload.chatPosition || 0;
+        this.chatPosition = +(payload.chatPosition || 0);
     }
 
     afterLoad() {
