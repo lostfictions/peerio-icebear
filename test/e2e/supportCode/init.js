@@ -4,9 +4,11 @@ const { asPromise } = require('../../../src/helpers/prombservable');
 const { waitForConnection, setCurrentUser } = require('./client');
 const getAppInstance = require('./helpers/appConfig');
 
-defineSupportCode(({ Before, Given }) => {
+defineSupportCode(({ setDefaultTimeout, Before, Given }) => {
     // let username, passphrase;
     let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
+
+    setDefaultTimeout(10000);
 
     const setCredentialsIfAny = () => {
         if (process.env.peerioData) {
