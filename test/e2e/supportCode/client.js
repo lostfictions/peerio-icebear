@@ -8,10 +8,13 @@ const waitForConnection = () => {
     return asPromise(app.socket, 'connected', true);
 };
 
+const currentUser = () => app.User.current;
+
 const setCurrentUser = (username, passphrase) => {
     app.User.current = new app.User();
     app.User.current.username = username;
     app.User.current.passphrase = passphrase;
+    app.User.current.email = `${username}@mailinator.com`;
 
     return app.User.current;
 };
@@ -29,6 +32,7 @@ const getFileStore = () => {
 
 module.exports = {
     waitForConnection,
+    currentUser,
     setCurrentUser,
     getFileStore,
     getContactWithName

@@ -5,25 +5,18 @@ Feature: User account access
     
     Scenario: Account creation
         * I successfully create an account
-    
-    Scenario: Account deletion
-        Given I am logged in
-        And my email is confirmed
-        When I delete my account
-        Then I should not be able to login
 
     Scenario: Sign in
         Given I am a returning customer
         When I sign in
         Then I have access to my account
     
-    Scenario: Sign out
+   Scenario: Change primary email
         Given I am logged in
-        When I sign out
-        Then I can not access my account
-    
-    Scenario: Change primary email
-        * Change primary email
+        When  I add a new email
+        And   the new email is confirmed
+        When  I make the new email primary
+        Then  the primary email should be updated
     
     Scenario: Add new email
         Given I am logged in
@@ -36,3 +29,14 @@ Feature: User account access
         And I add a new email
         When I remove the new email
         Then the new email should not appear in my addresses
+    
+    # Scenario: Sign out
+    #     Given I am logged in
+    #     When I sign out
+    #     Then I can not access my account
+    
+    # Scenario: Account deletion
+    #     Given I am logged in
+    #     And my email is confirmed
+    #     When I delete my account
+    #     Then I should not be able to login

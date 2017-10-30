@@ -1,34 +1,10 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const { when } = require('mobx');
-const { asPromise } = require('../../../src/helpers/prombservable');
-const { waitForConnection, setCurrentUser } = require('./client');
-const getAppInstance = require('./helpers/appConfig');
 
-defineSupportCode(({ setDefaultTimeout, Before, Given }) => {
-    // let username, passphrase;
-    let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
-
+defineSupportCode(({ setDefaultTimeout, defineParameterType }) => {
     setDefaultTimeout(10000);
 
-    const setCredentialsIfAny = () => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            ({ username, passphrase } = data);
-        }
-    };
-
-    Before(() => {
-        return waitForConnection()
-            .then(setCredentialsIfAny);
-    });
-
-    Given('I am logged in', (done) => {
-        const app = getAppInstance();
-        const currentUser = setCurrentUser(username, passphrase);
-        currentUser.login()
-            .then(() => asPromise(app.socket, 'authenticated', true))
-            .then(() => asPromise(app.User.current, 'profileLoaded', true))
-            .then(() => asPromise(app.fileStore, 'loading', false))
-            .then(() => when(() => app.User.current.quota, done));
+    defineParameterType({
+        regexp: /(Blobs should be of ArrayBuffer type|Blobs array length should be 2|Already saving avatar, wait for it to finish.)/, // eslint-disable-line
+        name: 'err'
     });
 });

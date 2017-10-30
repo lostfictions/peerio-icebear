@@ -97,4 +97,11 @@ const checkResult = (result) => {
     return Promise.reject(result.errors);
 };
 
-module.exports = { runFeature, runFeatureFromUsername, checkResult };
+const checkResultAnd = (result) => {
+    if (result.succeeded) {
+        return Promise.resolve(result.data);
+    }
+    return Promise.reject(result.errors);
+};
+
+module.exports = { runFeature, runFeatureFromUsername, checkResult, checkResultAnd };

@@ -3,59 +3,65 @@ const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { getRandomUsername } = require('./helpers/usernameHelper');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature } = require('./helpers/runFeature');
+const { runFeature, checkResultAnd } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
-const { currentUser, getContactWithName } = require('./client');
+const { asPromise } = require('../../../src/helpers/prombservable');
+const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./client');
 
-defineSupportCode(({ defineParameterType, Given, Then, When }) => {
+defineSupportCode(({ Before, Given, Then, When }) => {
     const app = getAppInstance();
-    // let username, passphrase;
-    let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
+    const secretPassphrase = 'secret';
     let secret = null;
     let blob = null;
     let url = '';
     let newEmail;
 
-    defineParameterType({
-        regexp: /(Blobs should be of ArrayBuffer type|Blobs array length should be 2|Already saving avatar, wait for it to finish.)/, // eslint-disable-line
-        name: 'err'
+    let username, passphrase;
+    // let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
+
+    const notifyOfCredentials = () => {
+        const data = {
+            username: app.User.current.username,
+            passphrase: app.User.current.passphrase
+        };
+        console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
+    };
+    const setCredentialsIfAny = () => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            ({ username, passphrase } = data);
+        }
+    };
+
+    Before(() => {
+        return waitForConnection()
+            .then(setCredentialsIfAny);
+    });
+
+    Given('I am logged in', (done) => {
+        setCurrentUser(username, passphrase);
+        currentUser().login()
+            .then(() => asPromise(app.socket, 'authenticated', true))
+            .then(() => asPromise(app.User.current, 'profileLoaded', true))
+            .then(() => asPromise(app.fileStore, 'loading', false))
+            .then(() => when(() => app.User.current.quota, done));
     });
 
     // Scenario: Account creation
-    When('I successfully create an account', (cb) => {
-        runFeature('Account creation')
-            .then(result => {
-                if (result.succeeded) {
-                    ({ username, passphrase } = result.data);
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    When('I successfully create an account', () => {
+        return runFeature('Account creation')
+            .then(checkResultAnd)
+            .then(data => { ({ username, passphrase } = data); });
     });
 
     Given('I am a new customer', () => {
-        const user = new app.User();
-
-        const name = getRandomUsername();
-        user.username = name;
-        user.email = `${name}@mailinator.com`;
-        user.passphrase = 'secret secrets';
-
-        app.User.current = user;
+        setCurrentUser(getRandomUsername(), secretPassphrase);
     });
 
-    When('I successfully create a new account', (done) => {
-        app.User.current.createAccountAndLogin()
+    When('I successfully create a new account', () => {
+        return currentUser().createAccountAndLogin()
             .should.be.fulfilled
-            .then(() => {
-                const data = {
-                    username: app.User.current.username,
-                    passphrase: app.User.current.passphrase
-                };
-                console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
-            })
-            .then(done);
+            .then(notifyOfCredentials);
     });
 
     Then('I will be logged in', (done) => {
@@ -65,7 +71,7 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
     // Scenario: Account deletion
     When('my email is confirmed', (done) => {
-        confirmUserEmail(app.User.current.username,
+        confirmUserEmail(currentUser().email,
             () => {
                 app.User.current.primaryAddressConfirmed = true;
                 done();
@@ -73,7 +79,7 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     });
 
     Given('I delete my account', () => {
-        return app.User.current.deleteAccount(username);
+        return app.User.current.deleteAccount(currentUser().username);
     });
 
     Then('I should not be able to login', () => {
@@ -85,18 +91,12 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
     // Scenario: Sign in
     Given('I am a returning customer', () => {
-        const user = new app.User();
-
-        user.username = username;
-        user.passphrase = passphrase;
-
-        app.User.current = user;
+        setCurrentUser(username, passphrase);
     });
 
-    When('I sign in', (done) => {
-        app.User.current.login()
-            .should.be.fulfilled
-            .then(done);
+    When('I sign in', () => {
+        return currentUser().login()
+            .should.be.fulfilled;
     });
 
     Then('I have access to my account', (done) => {
@@ -106,7 +106,7 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
     // Scenario: Sign out
     When('I sign out', () => {
-        return app.User.current.signout(); // isserverWarning_emailConfirmationSent
+        return currentUser().signout(); // isserverWarning_emailConfirmationSent
     });
 
     Then('I can not access my account', (done) => {
@@ -115,20 +115,9 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
 
     // Scenario: Primary email
-    When('Change primary email', { timeout: 10000 }, (cb) => {
-        runFeature('Change primary email', { username, passphrase })
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
-    });
-
-    When('I add a new email', (done) => {
+    When('I add a new email', () => {
         newEmail = `${getRandomUsername()}@mailinator.com`;
-        app.User.current.addEmail(newEmail).then(done);
+        return currentUser().addEmail(newEmail);
     });
 
     When('the new email is confirmed', (done) => {
@@ -136,22 +125,21 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     });
 
     When('I make the new email primary', () => {
-        return app.User.current.makeEmailPrimary(newEmail);
+        return currentUser().makeEmailPrimary(newEmail);
     });
 
-    Then('the primary email should be updated', (done) => {
-        app.User.current.login()
+    Then('the primary email should be updated', () => {
+        return currentUser().login()
             .then(() => {
                 const primaryAddress = app.User.current.addresses.find(x => x.primary);
                 primaryAddress.should.not.be.null.and.equal(newEmail);
-            })
-            .then(done);
+            });
     });
 
 
     // Scenario: Add new email
     Then('new email is in my addresses', () => {
-        app.User.current.addresses
+        currentUser().addresses
             .find(x => x.address === newEmail)
             .should.not.be.null;
     });
@@ -159,11 +147,11 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
     // Scenario: Remove email
     When('I remove the new email', () => {
-        return app.User.current.removeEmail(newEmail);
+        return currentUser().removeEmail(newEmail);
     });
 
     Then('the new email should not appear in my addresses', () => {
-        app.User.current.addresses
+        currentUser().addresses
             .includes(x => x.address === newEmail)
             .should.be.false;
     });
@@ -171,15 +159,15 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
     // Scenario: Update display name
     When('I change my display name', () => {
-        app.User.current.firstName = 'Alice';
-        app.User.current.lastName = 'Carroll';
+        currentUser().firstName = 'Alice';
+        currentUser().lastName = 'Carroll';
 
-        return app.User.current.saveProfile();
+        return currentUser().saveProfile();
     });
 
     Then('it should be updated', () => {
-        app.User.current.firstName.should.equal('Alice');
-        app.User.current.lastName.should.equal('Carroll');
+        currentUser().firstName.should.equal('Alice');
+        currentUser().lastName.should.equal('Carroll');
     });
 
 
@@ -229,9 +217,7 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
             .should.be.fulfilled
             .then(() => {
                 return getContactWithName(currentUser().username)
-                    .then(user => {
-                        url = user.largeAvatarUrl;
-                    });
+                    .then(user => { url = user.largeAvatarUrl; });
             });
     });
 
@@ -323,16 +309,9 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
             done(null, 'failed');
         }
 
-        const user = new app.User();
-        user.username = username;
-        user.email = `${username}@mailinator.com`;
-        user.passphrase = 'secret secrets';
-
-        app.User.current = user;
-
-        app.User.current.createAccountAndLogin()
+        setCurrentUser(username, secretPassphrase);
+        currentUser().createAccountAndLogin()
             .should.be.fulfilled
             .then(done);
     });
 });
-
