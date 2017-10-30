@@ -15,18 +15,18 @@ defineSupportCode(({ Given, Then, When }) => {
 
     const assignChatId = (id) => { chatId = id; };
 
+    const startChatWith = (user) => {
+        const chat = store.startChat([user]);
+
+        return asPromise(chat, 'added', true)
+            .delay(500)
+            .then(() => Promise.resolve(chat.id));
+    };
+
     // Scenario: Create direct message
     When('I create a direct message', () => {
         return getContactWithName(other)
-            .then(user => {
-                return asPromise(user, 'loading', false)
-                    .then(() => {
-                        const chat = store.startChat([user]);
-                        return asPromise(chat, 'added', true)
-                            .delay(500)
-                            .then(() => assignChatId(chat.id));
-                    });
-            });
+            .then(user => startChatWith(user).then(assignChatId));
     });
 
     Then('the receiver gets notified', () => {
