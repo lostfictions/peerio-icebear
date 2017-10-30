@@ -4,21 +4,23 @@
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
   "scripts": {
-    "postcheckout": "opt --in npm-update --exec \"npm install\"",
-    "postmerge": "opt --in npm-update --exec \"npm install\"",
-    "precommit": "opt --out lint --exec \"eslint . --ext .js,.jsx --max-warnings 0\"",
-    "postcommit": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
+    "_1": " === HOOKS ========= ",
+    "postcheckout": "npm run _warn-npm-install",
+    "postmerge": "npm run _warn-npm-install",
+    "precommit": "opt --out lint --exec \"npm run code:verify\"",
+    "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
+    "_2": " === TESTS ========= ",
     "mocha": "mocha test/**/*.test.js --require test/global-setup --compilers js:babel-register -R progress --timeout 15000",
-    "start": "npm run mocha -- -w",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
-    "validate": "npm-run-all --serial lint",
-    "lint": "eslint . --fix --ext .js,.jsx",
+    "e2e": "cucumber.js test/e2e/contacts/stories --r test/global-setup.js -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register",
+    "_3": " === VALIDATION ==== ",
+    "code:lint": "eslint . --fix --ext .js",
+    "code:verify": "eslint . --ext .js --max-warnings 0",
+    "_4": " === RELEASE ======= ",
     "release": "./scripts/release.sh",
-    "doc:serve": "documentation serve src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -w -t ./docs/src/theme",
-    "doc:lint": "documentation lint src",
-    "doc:build": "documentation build src -a public -f md -o docs/md/API.md && documentation build src -c ./docs/src/config.yml -a public -a protected -a private -a undefined -g -t ./docs/src/theme -f html -o ./docs/html",
-    "e2e": "cucumber.js test/e2e/contacts/stories --r test/global-setup.js -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register"
+    "_5": " === HELPERS ======= ",
+    "_warn-npm-install": "echo \"$(tput setaf 0)$(tput setab 11) Red text and white background $(tput sgr 0)\""
   },
   "files": [
     "src"
@@ -78,7 +80,6 @@
     "chai-as-promised": "7.1.1",
     "cucumber": "3.1.0",
     "cz-conventional-changelog": "2.0.0",
-    "documentation": "5.3.3",
     "eslint-config-peerio": "1.20.0",
     "husky": "0.14.3",
     "mocha": "4.0.1",
@@ -118,9 +119,7 @@
     }
   },
   "standard-version": {
-    "scripts": {
-      "postbump": "node ./scripts/postbump.js"
-    }
+    "scripts": {}
   },
   "devEngines": {
     "node": "7.x",
