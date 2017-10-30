@@ -1,13 +1,6 @@
-const { resetApp } = require('../helpers');
+const getFirstLetterUpperCase = require('../../../src/helpers/string').getFirstLetterUpperCase;
 
 describe('String helper should', () => {
-    let getFirstLetterUpperCase;
-
-    beforeEach(() => {
-        resetApp();
-        getFirstLetterUpperCase = require('../../src/helpers/string').getFirstLetterUpperCase;
-    });
-
     it('return empty string for no input', () => {
         const name = null;
 
@@ -18,7 +11,7 @@ describe('String helper should', () => {
     });
 
     it('return first letter from word', () => {
-        const name = 'iceabear';
+        const name = 'icebear';
 
         const expected = 'I';
         const actual = getFirstLetterUpperCase(name);
