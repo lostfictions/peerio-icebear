@@ -15,7 +15,7 @@ defineSupportCode(({ Before, Then, When }) => {
     let numberOfFilesUploaded;
     const otherUser = '360mzhrj8thigc9hi4t5qddvu4m8in'; // todo: generate user
 
-    Before({ tag: '@fileStoreLoaded' }, () => {
+    Before({ tags: '@fileStoreLoaded' }, () => {
         return waitForConnection().then(store.loadAllFiles);
     });
 
