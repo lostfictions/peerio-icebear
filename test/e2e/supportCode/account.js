@@ -5,6 +5,7 @@ const { getRandomUsername } = require('./helpers/usernameHelper');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { runFeature } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
+const { currentUser, getContactWithName } = require('./client');
 
 defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     const app = getAppInstance();
@@ -14,15 +15,6 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     let blob = null;
     let url = '';
     let newEmail;
-
-    // Before((testCase, done) => {
-    //     app = getAppInstance();
-    //     if (process.env.peerioData) {
-    //         const data = JSON.parse(process.env.peerioData);
-    //         ({ username, passphrase } = data);
-    //     }
-    //     when(() => app.socket.connected, done);
-    // });
 
     defineParameterType({
         regexp: /(Blobs should be of ArrayBuffer type|Blobs array length should be 2|Already saving avatar, wait for it to finish.)/, // eslint-disable-line
@@ -195,27 +187,24 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     When('I upload an avatar', () => {
         blob = [new ArrayBuffer(42), new ArrayBuffer(42)];
 
-        return app.User.current
-            .saveAvatar(blob)
+        return currentUser().saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('it should appear in my profile', () => {
-        app.contactStore.getContact(app.User.current.username)
-            .hasAvatar
-            .should.be.true;
+        return getContactWithName(currentUser().username)
+            .then(user => user.hasAvatar.should.be.true);
     });
 
 
     // Scenario: Add avatar when another one is being loaded
     When('another avatar upload is in progress', () => {
-        app.User.current.savingAvatar = true;
+        currentUser().savingAvatar = true;
         blob = null;
     });
 
     Then('I should get an error saying {err}', (err) => {
-        return app.User.current
-            .saveAvatar(blob)
+        return currentUser().saveAvatar(blob)
             .should.be.rejectedWith(err);
     });
 
@@ -233,34 +222,29 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
 
 
     // Scenario: Update avatar
-    Given('I have an avatar', (done) => {
+    Given('I have an avatar', () => {
         blob = [new ArrayBuffer(42), new ArrayBuffer(42)];
 
-        app.User.current
-            .saveAvatar(blob)
+        return currentUser().saveAvatar(blob)
             .should.be.fulfilled
             .then(() => {
-                url = app.contactStore
-                    .getContact(app.User.current.username)
-                    .largeAvatarUrl;
-            })
-            .then(done);
+                return getContactWithName(currentUser().username)
+                    .then(user => {
+                        url = user.largeAvatarUrl;
+                    });
+            });
     });
 
     When('I upload a new avatar', () => {
         blob = [new ArrayBuffer(43), new ArrayBuffer(43)];
 
-        return app.User.current
-            .saveAvatar(blob)
+        return currentUser().saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('the new avatar should be displayed', () => {
-        const newURl = app.contactStore
-            .getContact(app.User.current.username)
-            .largeAvatarUrl;
-
-        newURl.should.not.equal(url);
+        return getContactWithName(currentUser().username)
+            .then(user => user.largeAvatarUrl.should.not.equal(url));
     });
 
 
@@ -268,15 +252,13 @@ defineSupportCode(({ defineParameterType, Given, Then, When }) => {
     When('I delete my avatar', () => {
         blob = null;
 
-        return app.User.current
-            .saveAvatar(blob)
+        return currentUser().saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('my avatar should be empty', () => {
-        app.contactStore.getContact(app.User.current.username)
-            .hasAvatar
-            .should.be.false;
+        return getContactWithName(currentUser().username)
+            .then(user => user.hasAvatar.should.be.false);
     });
 
 
