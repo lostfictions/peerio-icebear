@@ -36,6 +36,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     };
 
     const contactLoaded = () => {
+        contactFromUsername = store.getContact(otherUsername);
         return asPromise(contactFromUsername, 'loading', false);
     };
 
@@ -55,7 +56,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Find contact
     Given(/I search for (a registered username|a registered email|an unregistered user)/, (someone) => {
         assignOtherUsername(someone);
-        contactFromUsername = store.getContact(otherUsername);
         return contactLoaded();
     });
 
@@ -64,7 +64,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('the contact is added in my contacts', () => {
-        store.contacts.should.contain(c => c.username === otherUsername);
+        store.contacts.should.contain(c => c === contactFromUsername);
     });
 
 
@@ -78,10 +78,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('they are added in my invited contacts', () => {
-        contactFromUsername = store.getContact(otherUsername);
-
         return contactLoaded()
-            .then(() => store.invitedContacts.should.contain(c => c.email === otherUsername));
+            .then(() => store.invitedContacts.should.contain(c => c === contactFromUsername));
     });
 
     Then('they should receive an email invitation', () => {
@@ -92,8 +90,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: favorite a contact
     When('I favorite a registered user', () => {
         otherUsername = registeredUsername;
-        contactFromUsername = store.getContact(otherUsername);
-
         return contactLoaded()
             .then(() => {
                 return store.addContact(registeredUsername)
@@ -102,8 +98,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('they will be in my favorite contacts', () => {
-        contactFromUsername = store.getContact(otherUsername);
-
         return contactLoaded()
             .then(() => {
                 return asPromise(contactFromUsername, 'isAdded', true)
@@ -118,12 +112,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('they will not be in my favorites', () => {
-        contactFromUsername = store.getContact(otherUsername);
-
         return contactLoaded()
             .then(() => {
                 store.addedContacts
-                    .should.not.contain(c => c.username === otherUsername);
+                    .should.not.contain(c => c === contactFromUsername);
             });
     });
 
