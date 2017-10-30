@@ -1,13 +1,13 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
-const { when } = require('mobx');
 const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
-const runFeature = require('./helpers/runFeature');
+const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 const { getRandomUsername } = require('./helpers/usernameHelper');
 const { asPromise } = require('./../../../src/helpers/prombservable');
+const { getContactStore } = require('./client');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
-    let store;
+    const store = getContactStore();
+
     let contactFromUsername;
     let otherUsername;
     let registeredUsername, registeredEmail;
@@ -18,8 +18,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         unregisteredEmail = `${unregisteredUsername}@mailinator.com`;
     };
 
-    const assignRegisteredUser = (result) => {
-        registeredUsername = result.data.username;
+    const assignRegisteredUser = (data) => {
+        registeredUsername = data.username;
         registeredEmail = `${registeredUsername}@mailinator.com`;
     };
 
@@ -39,21 +39,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         return asPromise(contactFromUsername, 'loading', false);
     };
 
-    Before((testCase, done) => {
-        const app = getAppInstance();
-        store = app.contactStore;
-        when(() => app.socket.connected, done);
-    });
-
-    Before({ tag: '@confirmedUser', timeout: 10000 }, (testCase, cb) => {
-        runFeature('Account creation')
-            .then(result => {
-                if (result.succeeded) {
-                    assignRegisteredUser(result);
-                    confirmUserEmail(registeredEmail, cb);
-                } else {
-                    cb(result.errors, 'failed');
-                }
+    Before('@confirmedUser', () => {
+        return runFeature('Account creation')
+            .then(checkResultAnd)
+            .then(data => {
+                assignRegisteredUser(data);
+                return confirmUserEmail(registeredEmail);
             });
     });
 
@@ -69,40 +60,28 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('the contact exists', () => {
-        contactFromUsername
-            .notFound
-            .should.be.false;
+        contactFromUsername.notFound.should.be.false;
     });
 
     Then('the contact is added in my contacts', () => {
-        store.contacts
-            .find(c => c === contactFromUsername)
-            .should.be.ok;
+        store.contacts.should.contain(c => c.username === otherUsername);
     });
 
 
     // Scenario: Send invite email
     When('no profiles are found', () => {
-        contactFromUsername
-            .notFound
-            .should.be.true;
+        contactFromUsername.notFound.should.be.true;
     });
 
-    When('I send an invitation to them', (done) => {
-        store.invite(otherUsername)
-            .should.be.fulfilled
-            .then(done);
+    When('I send an invitation to them', () => {
+        return store.invite(otherUsername).should.be.fulfilled;
     });
 
     Then('they are added in my invited contacts', () => {
         contactFromUsername = store.getContact(otherUsername);
 
         return contactLoaded()
-            .then(() => {
-                store.invitedContacts
-                    .find(c => c.email === otherUsername)
-                    .should.be.ok;
-            });
+            .then(() => store.invitedContacts.should.contain(c => c.email === otherUsername));
     });
 
     Then('they should receive an email invitation', () => {
@@ -113,20 +92,22 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: favorite a contact
     When('I favorite a registered user', () => {
         otherUsername = registeredUsername;
-        return store.addContact(registeredUsername)
-            .then(result => {
-                result.should.be.true;
+        contactFromUsername = store.getContact(otherUsername);
+
+        return contactLoaded()
+            .then(() => {
+                return store.addContact(registeredUsername)
+                    .then(result => result.should.be.true);
             });
     });
 
-    Then('they will be in my favorite contacts', { timeout: 10000 }, () => {
+    Then('they will be in my favorite contacts', () => {
         contactFromUsername = store.getContact(otherUsername);
 
-        return asPromise(contactFromUsername, 'isAdded', true)
+        return contactLoaded()
             .then(() => {
-                store.addedContacts
-                    .find(c => c.username === otherUsername)
-                    .should.be.ok;
+                return asPromise(contactFromUsername, 'isAdded', true)
+                    .then(() => store.addedContacts.should.contain(contactFromUsername));
             });
     });
 
@@ -136,7 +117,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         store.removeContact(otherUsername);
     });
 
-    Then('they will not be in my favorites', { timeout: 10000 }, () => {
+    Then('they will not be in my favorites', () => {
         contactFromUsername = store.getContact(otherUsername);
 
         return contactLoaded()
@@ -154,24 +135,19 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .should.be.fulfilled;
     });
 
-    When('they sign up', (cb) => {
-        runFeature('Create account with username', { username: otherUsername })
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    When('they sign up', () => {
+        const otherUser = { username: otherUsername };
+        return runFeature('Create account with username', otherUser)
+            .then(checkResult);
     });
 
-    When('they confirm their email', (done) => {
-        confirmUserEmail(unregisteredEmail, done);
+    When('they confirm their email', () => {
+        return confirmUserEmail(unregisteredEmail);
     });
 
 
     // Scenario: Remove favorite contact before email confirmation
     When('I remove the invitation', () => {
-        store.removeInvite(unregisteredEmail);
+        return store.removeInvite(unregisteredEmail);
     });
 });
