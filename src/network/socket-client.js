@@ -11,6 +11,7 @@ const config = require('../config');
 const util = require('../util');
 const Timer = require('../helpers/observable-timer');
 const { getUser } = require('../helpers/di-current-user');
+const TaskPacer = require('../helpers/task-pacer');
 
 const STATES = {
     open: 'open',
@@ -66,6 +67,7 @@ class SocketClient {
      * @private
      */
     socket = null;
+    taskPacer = new TaskPacer(40);// todo: maybe move to config
     /**
      * Was socket started or not
      * @public
@@ -373,8 +375,6 @@ class SocketClient {
         }
     }
 
-    requestLog = {};
-
     /**
      * Send a message to server
      * @param {string} name - api method name
@@ -384,44 +384,42 @@ class SocketClient {
      */
     send(name, data) {
         const id = this.requestId++;
-        // <DEBUG>
-        // this.requestLog[id] = { name, data, start: Date.now() };
-        // </DEBUG>
         return new Promise((resolve, reject) => {
             this.awaitingRequests[id] = reject;
-            if (!this.connected) {
-                console.error(`Attempt to send ${name} while disconnected`);
-                reject(new DisconnectedError());
-                return;
-            }
-            if (name.startsWith('/auth/') && !this.preauthenticated) {
-                console.error(`Attempt to send ${name} while not authenticated`);
-                reject(new NotAuthenticatedError());
-                return;
-            }
-            const handler = (resp) => {
-                // <DEBUG>
-                // const r = this.requestLog[id];
-                // r.end = Date.now();
-                // r.time = r.end - r.start;
-                // </DEBUG>
-                this.throttled = (resp.error === 425);
-                if (resp && resp.error) {
-                    if (resp.error === ServerError.codes.accountClosed) {
-                        getUser().deleted = true;
-                        this.close();
-                    }
-                    if (resp.error === ServerError.codes.accountBlacklisted) {
-                        getUser().blacklisted = true;
-                        this.close();
-                    }
-                    reject(new ServerError(resp.error, resp.message));
+            this.taskPacer.run(() => {
+                if (!this.awaitingRequests[id]) {
+                    // promise timed out while waiting in queue
                     return;
                 }
-                resolve(resp);
-            };
-            // console.debug(id, name, data);
-            this.socket.emit(name, data, handler);
+                if (!this.connected) {
+                    console.error(`Attempt to send ${name} while disconnected`);
+                    reject(new DisconnectedError());
+                    return;
+                }
+                if (name.startsWith('/auth/') && !this.preauthenticated) {
+                    console.error(`Attempt to send ${name} while not authenticated`);
+                    reject(new NotAuthenticatedError());
+                    return;
+                }
+                const handler = (resp) => {
+                    this.throttled = (resp.error === 425);
+                    if (resp && resp.error) {
+                        if (resp.error === ServerError.codes.accountClosed) {
+                            getUser().deleted = true;
+                            this.close();
+                        }
+                        if (resp.error === ServerError.codes.accountBlacklisted) {
+                            getUser().blacklisted = true;
+                            this.close();
+                        }
+                        reject(new ServerError(resp.error, resp.message));
+                        return;
+                    }
+                    resolve(resp);
+                };
+                // console.debug(id, name, data);
+                this.socket.emit(name, data, handler);
+            });
         })
             .timeout(60000)
             .finally(() => {
