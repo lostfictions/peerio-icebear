@@ -12,7 +12,7 @@ jobs:
       - checkout
       - run:
           name: update-npm-version
-          command: 'sudo npm install -g npm@latest'
+          command: 'sudo npm update -g npm'
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:

@@ -20,7 +20,7 @@
     "_4": " === RELEASE ======= ",
     "release": "./scripts/release.sh",
     "_5": " === HELPERS ======= ",
-    "_warn-npm-install": "echo \"$(tput setaf 0)$(tput setab 11) Red text and white background $(tput sgr 0)\""
+    "_warn-npm-install": "echo \"$(tput -Txterm-256color setaf 0)$(tput -Txterm-256color setab 11) Reminder to run `npm install` $(tput -Txterm-256color sgr 0)\""
   },
   "files": [
     "src"
