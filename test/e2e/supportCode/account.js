@@ -70,11 +70,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Account deletion
-    When('my email is confirmed', (done) => {
-        confirmUserEmail(currentUser().email,
-            () => {
+    When('my email is confirmed', () => {
+        return confirmUserEmail(currentUser().email)
+            .then(() => {
                 app.User.current.primaryAddressConfirmed = true;
-                done();
             });
     });
 
@@ -120,8 +119,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         return currentUser().addEmail(newEmail);
     });
 
-    When('the new email is confirmed', (done) => {
-        confirmUserEmail(newEmail, done);
+    When('the new email is confirmed', () => {
+        return confirmUserEmail(newEmail);
     });
 
     When('I make the new email primary', () => {

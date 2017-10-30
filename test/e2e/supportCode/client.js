@@ -8,6 +8,8 @@ const waitForConnection = () => {
     return asPromise(app.socket, 'connected', true);
 };
 
+
+// User
 const currentUser = () => app.User.current;
 
 const setCurrentUser = (username, passphrase) => {
@@ -19,6 +21,8 @@ const setCurrentUser = (username, passphrase) => {
     return app.User.current;
 };
 
+
+// Contacts
 const getContactWithName = (name) => {
     return new Promise((resolve) => {
         const receiver = new app.Contact(name);
@@ -26,6 +30,11 @@ const getContactWithName = (name) => {
     });
 };
 
+const getContactStore = () => {
+    return app.contactStore;
+};
+
+// Storage
 const getFileStore = () => {
     return app.fileStore;
 };
@@ -35,5 +44,6 @@ module.exports = {
     currentUser,
     setCurrentUser,
     getFileStore,
-    getContactWithName
+    getContactWithName,
+    getContactStore
 };

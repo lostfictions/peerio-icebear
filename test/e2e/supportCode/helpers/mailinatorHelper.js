@@ -85,15 +85,12 @@ const openConfirmationLink = (url) => {
     });
 };
 
-const confirmUserEmail = (user, done) => {
-    getMailbox()
+const confirmUserEmail = (user) => {
+    return getMailbox()
         .then(emails => {
             const email = getConfirmationEmailId(user, emails);
-            getConfirmationEmail(email)
-                .then(url => {
-                    openConfirmationLink(url)
-                        .then(done);
-                });
+            return getConfirmationEmail(email)
+                .then(url => openConfirmationLink(url));
         });
 };
 
