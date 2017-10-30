@@ -657,7 +657,7 @@ class Chat {
         const promise = m.send();
         this.limboMessages.push(m);
         this._detectLimboGrouping();
-        when(() => !!m.id, action(() => {
+        when(() => m.version > 1, action(() => {
             this.limboMessages.remove(m);
             m.tempId = null;
             // unless user already scrolled too high up, we add the message
