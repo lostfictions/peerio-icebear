@@ -76,7 +76,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Delete after sharing
-    Then('it should be removed from receivers files', { timeout: 10000 }, () => {
+    Then('it should be removed from receivers files', () => {
         return runFeatureFromUsername('Deleted files', otherUser)
             .then(checkResult);
     });
