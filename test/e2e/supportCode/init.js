@@ -1,7 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { waitForConnection } = require('./client');
+const { waitForConnection, setCurrentUser } = require('./client');
 const getAppInstance = require('./helpers/appConfig');
 
 defineSupportCode(({ Before, Given }) => {
@@ -22,14 +22,8 @@ defineSupportCode(({ Before, Given }) => {
 
     Given('I am logged in', (done) => {
         const app = getAppInstance();
-        const user = new app.User();
-
-        user.username = username;
-        user.passphrase = passphrase;
-
-        app.User.current = user;
-
-        app.User.current.login()
+        const currentUser = setCurrentUser(username, passphrase);
+        currentUser.login()
             .then(() => asPromise(app.socket, 'authenticated', true))
             .then(() => asPromise(app.User.current, 'profileLoaded', true))
             .then(() => asPromise(app.fileStore, 'loading', false))

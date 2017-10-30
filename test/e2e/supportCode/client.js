@@ -8,8 +8,12 @@ const waitForConnection = () => {
     return asPromise(app.socket, 'connected', true);
 };
 
-const getFileStore = () => {
-    return app.fileStore;
+const setCurrentUser = (username, passphrase) => {
+    app.User.current = new app.User();
+    app.User.current.username = username;
+    app.User.current.passphrase = passphrase;
+
+    return app.User.current;
 };
 
 const getContactWithName = (name) => {
@@ -19,8 +23,13 @@ const getContactWithName = (name) => {
     });
 };
 
+const getFileStore = () => {
+    return app.fileStore;
+};
+
 module.exports = {
     waitForConnection,
+    setCurrentUser,
     getFileStore,
     getContactWithName
 };
