@@ -1,10 +1,10 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../../helpers/appConfig');
+const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
-const { receivedEmailInvite, confirmUserEmail } = require('../../helpers/mailinatorHelper');
-const runFeature = require('../../helpers/runFeature');
-const { getRandomUsername } = require('../../helpers/usernameHelper');
-const { asPromise } = require('../../../../src/helpers/prombservable');
+const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
+const runFeature = require('./helpers/runFeature');
+const { getRandomUsername } = require('./helpers/usernameHelper');
+const { asPromise } = require('./../../../src/helpers/prombservable');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     let store;
