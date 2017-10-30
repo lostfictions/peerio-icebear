@@ -7,7 +7,7 @@
     "_1": " === HOOKS ========= ",
     "postcheckout": "npm run _warn-npm-install",
     "postmerge": "npm run _warn-npm-install",
-    "precommit": "opt --out lint --exec \"npm run code:verify\"",
+    "precommit": "opt --in lint --exec \"npm run code:verify\"",
     "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
     "_2": " === TESTS ========= ",
