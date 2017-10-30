@@ -16,8 +16,8 @@ Feature: Chat
         And receiver should receive an invite
     
     Scenario: Send files in a chat
-        Given I am in a chat with {receiver}
-        When I send {receiver} {a file}
-        Then {receiver} should be able download {a file} contents
+        Given I am in a chat with receiver
+        When I send receiver a file
+        Then receiver should be able download a file contents
     
         

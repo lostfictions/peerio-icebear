@@ -34,6 +34,11 @@ const getContactStore = () => {
     return app.contactStore;
 };
 
+// Chat
+const getChatStore = () => {
+    return app.chatStore;
+};
+
 // Storage
 const getFileStore = () => {
     return app.fileStore;
@@ -45,5 +50,6 @@ module.exports = {
     setCurrentUser,
     getFileStore,
     getContactWithName,
-    getContactStore
+    getContactStore,
+    getChatStore
 };

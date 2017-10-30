@@ -1,45 +1,38 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../../helpers/appConfig');
+const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
-const runFeature = require('../../helpers/runFeature');
-// const { getRandomUsername } = require('../../helpers/usernameHelper');
-const { asPromise } = require('../../../../src/helpers/prombservable');
+const { runFeature, checkResult } = require('./helpers/runFeature');
+const { getChatStore, getContactWithName } = require('./client');
+const { asPromise } = require('./../../../src/helpers/prombservable');
 
-defineSupportCode(({ Before, Then, When }) => {
+defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
-    const store = app.chatStore;
+    const store = getChatStore();
     const other = 'gft99kr2e377zdgwygbjjonihd9x9y';
     let chatId;
     const message = 'Hello world';
     let numberOfMessages = -1;
 
-    Before((testCase, done) => {
-        // const app = getAppInstance();
-        // store = app.chatStore;
-        when(() => app.socket.connected, done);
-    });
+    const assignChatId = (id) => { chatId = id; };
 
     // Scenario: Create direct message
-    When('I create a direct message', { timeout: 10000 }, () => {
-        const contactFromUsername = app.contactStore.getContact(other);
-        return asPromise(contactFromUsername, 'loading', false)
-            .then(() => {
-                const chat = store.startChat([contactFromUsername]);
-                chatId = chat.id;
-                return asPromise(chat, 'added', true).delay(1000);
+    When('I create a direct message', () => {
+        return getContactWithName(other)
+            .then(user => {
+                return asPromise(user, 'loading', false)
+                    .then(() => {
+                        const chat = store.startChat([user]);
+                        return asPromise(chat, 'added', true)
+                            .delay(500)
+                            .then(() => assignChatId(chat.id));
+                    });
             });
     });
 
-    Then('the receiver gets notified', (cb) => {
+    Then('the receiver gets notified', () => {
         const data = { username: other, passphrase: 'secret secrets', chatId };
-        runFeature('Receive chat request from account', data)
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+        return runFeature('Receive chat request from account', data)
+            .then(checkResult);
     });
 
     Then('a chat request pops up', (cb) => {
@@ -191,5 +184,71 @@ defineSupportCode(({ Before, Then, When }) => {
             console.log(found.receipts);
             done();
         });
+    });
+
+    Given('I have never chatted with receiver before', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+    When('I enter a new chat', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Then('there should be no history', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Then('receiver should receive an invite', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Given('I have chatted with receiver before', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+    When('I enter a new chat', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Then('I should see our chat history', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+    Then('receiver should receive an invite', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    Given('I am in a chat with {string}', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+
+    When('I send receiver a file', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+    Then('receiver should be able download a file contents', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
+    });
+
+    Given('I am in a chat with receiver', (callback) => {
+        // Write code here that turns the phrase above into concrete actions
+        callback(null, 'pending');
     });
 });
