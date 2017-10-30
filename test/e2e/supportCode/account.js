@@ -1,29 +1,33 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('../../helpers/appConfig');
+const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
-const { getRandomUsername } = require('../../helpers/usernameHelper');
-const { confirmUserEmail } = require('../../helpers/runFeature');
-const runFeature = require('../../helpers/runFeature');
-const { asPromise } = require('../../../../src/helpers/prombservable');
-const { DisconnectedError } = require('../../../../src/errors');
+const { getRandomUsername } = require('./helpers/usernameHelper');
+const { confirmUserEmail } = require('./helpers/mailinatorHelper');
+const { runFeature } = require('./helpers/runFeature');
+const { DisconnectedError } = require('./../../../src/errors');
 
-defineSupportCode(({ Before, Given, Then, When }) => {
-    let app;
-    let username, passphrase;
+defineSupportCode(({ defineParameterType, Given, Then, When }) => {
+    const app = getAppInstance();
+    // let username, passphrase;
+    let username = 'v9ul3pmbaaxgb0nqsb4sc63pn502ly', passphrase = 'secret secrets';
     let secret = null;
     let blob = null;
     let url = '';
     let newEmail;
 
-    Before((testCase, done) => {
-        app = getAppInstance();
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            ({ username, passphrase } = data);
-        }
-        when(() => app.socket.connected, done);
-    });
+    // Before((testCase, done) => {
+    //     app = getAppInstance();
+    //     if (process.env.peerioData) {
+    //         const data = JSON.parse(process.env.peerioData);
+    //         ({ username, passphrase } = data);
+    //     }
+    //     when(() => app.socket.connected, done);
+    // });
 
+    defineParameterType({
+        regexp: /(Blobs should be of ArrayBuffer type|Blobs array length should be 2|Already saving avatar, wait for it to finish.)/, // eslint-disable-line
+        name: 'err'
+    });
 
     // Scenario: Account creation
     When('I successfully create an account', (cb) => {
@@ -109,21 +113,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Sign out
-    Given('I am logged in', (done) => {
-        const user = new app.User();
-
-        user.username = username;
-        user.passphrase = passphrase;
-
-        app.User.current = user;
-
-        app.User.current.login()
-            .then(() => asPromise(app.socket, 'authenticated', true))
-            .then(() => asPromise(app.User.current, 'profileLoaded', true))
-            .then(() => asPromise(app.fileStore, 'loading', false))
-            .then(() => when(() => app.User.current.quota, done));
-    });
-
     When('I sign out', () => {
         return app.User.current.signout(); // isserverWarning_emailConfirmationSent
     });
@@ -224,7 +213,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         blob = null;
     });
 
-    Then('I should get an error saying {string}', (err) => {
+    Then('I should get an error saying {err}', (err) => {
         return app.User.current
             .saveAvatar(blob)
             .should.be.rejectedWith(err);
