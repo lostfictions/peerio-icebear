@@ -8,7 +8,7 @@ const { asPromise } = require('./../../../src/helpers/prombservable');
 defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
     const store = getChatStore();
-    const other = 'gft99kr2e377zdgwygbjjonihd9x9y';
+    const otherUsername = 'gft99kr2e377zdgwygbjjonihd9x9y';
     let chatId;
     const message = 'Hello world';
     let numberOfMessages = -1;
@@ -23,38 +23,43 @@ defineSupportCode(({ Given, Then, When }) => {
             .then(() => Promise.resolve(chat.id));
     };
 
+    const getPropFromEnv = (prop) => {
+        if (process.env.peerioData) {
+            const data = JSON.parse(process.env.peerioData);
+            const found = data[prop];
+
+            if (found) {
+                return found;
+            }
+            throw new Error('Prop not present');
+        }
+        throw new Error('No data passed in');
+    };
+
+    const loadChats = () => {
+        return store.loadAllChats()
+            .then(() => asPromise(store, 'loaded', true));
+    };
+
     // Scenario: Create direct message
     When('I create a direct message', () => {
-        return getContactWithName(other)
+        return getContactWithName(otherUsername)
             .then(user => startChatWith(user).then(assignChatId));
     });
 
     Then('the receiver gets notified', () => {
-        const data = { username: other, passphrase: 'secret secrets', chatId };
-        return runFeature('Receive chat request from account', data)
+        const user = { username: otherUsername, passphrase: 'secret secrets', chatId };
+        return runFeature('Receive chat request from account', user)
             .then(checkResult);
     });
 
-    Then('a chat request pops up', (cb) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            chatId = data.chatId;
-
-            if (chatId) {
-                store.loadAllChats()
-                    .then(() => {
-                        when(() => store.loaded, () => {
-                            const found = store.chats.find(x => x.id === chatId);
-                            found.should.be.ok;
-                            cb();
-                        });
-                    });
-            } else {
-                cb('No chat id passed in', 'failed');
-            }
-        } else {
-            cb('No data passed in', 'failed');
-        }
+    Then('a chat request pops up', () => {
+        chatId = getPropFromEnv('chatId');
+        return loadChats()
+            .then(() => {
+                const found = store.chats.find(x => x.id === chatId);
+                found.should.be.ok;
+            });
     });
 
     When('I favorite a direct message conversation', () => {
@@ -110,7 +115,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver can read the message', (cb) => {
-        const data = { username: other, passphrase: 'secret secrets', chatId };
+        const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
         runFeature('Receive new message from account', data)
             .then(result => {
                 if (result.succeeded) {
@@ -144,7 +149,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver reads the message', { timeout: 10000 }, (cb) => {
-        const data = { username: other, passphrase: 'secret secrets', chatId };
+        const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
         runFeature('Read new message from account', data)
             .then(result => {
                 if (result.succeeded) {
