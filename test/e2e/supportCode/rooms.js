@@ -4,6 +4,7 @@ const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { getChatStore, getChatInviteStore, currentUser } = require('./client');
+const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Before, Then, When, After }) => {
     const chatStore = getChatStore();
@@ -78,25 +79,24 @@ defineSupportCode(({ Before, Then, When, After }) => {
     });
 
     Then('they should get a room invite', () => {
-        const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
+        const other = { username: invitedUserId, passphrase: secretPassphrase, chatId: room.id };
         return runFeature('Receive room invite', other)
             .then(checkResult);
     });
 
-    Then('I receive a room invite', (cb) => {
+    Then('I receive a room invite', (done) => {
         const chatId = getPropFromEnv('chatId');
-
         when(() => inviteStore.received.length, () => {
             const found = inviteStore.received.find(x => x.kegDbId === chatId);
             found.should.be.ok;
-            cb();
+            done();
         });
     });
 
 
     // Scenario: Kick member
     When('someone has joined the room', { timeout: 20000 }, () => {
-        const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
+        const other = { username: invitedUserId, passphrase: secretPassphrase, chatId: room.id };
         return room.addParticipants([invitedUserId])
             .then(() => {
                 return runFeature('Accept room invite', other)

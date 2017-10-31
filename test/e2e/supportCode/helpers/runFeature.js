@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const featurePath = 'test/e2e/supportCode/helpers/featureHelpers.feature';
 const supportCodePath = 'test/e2e/supportCode';
+const { secretPassphrase } = require('./constants');
 
 const getPeerioDataFrom = (output) => {
     const dataRegex = /<peerioData>.+<\/peerioData>/g;
@@ -86,7 +87,7 @@ const runFeature = (scenarioName, peerioData = null) => {
 };
 
 const runFeatureFromUsername = (feature, username) => {
-    const user = { username, passphrase: 'secret secrets' };
+    const user = { username, passphrase: secretPassphrase };
     return runFeature(feature, user);
 };
 

@@ -5,6 +5,7 @@ const { runFeature, checkResult } = require('./helpers/runFeature');
 const { getChatStore, getContactWithName } = require('./client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
+const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
@@ -36,7 +37,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver gets notified', () => {
-        const user = { username: otherUsername, passphrase: 'secret secrets', chatId };
+        const user = { username: otherUsername, passphrase: secretPassphrase, chatId };
         return runFeature('Receive chat request from account', user)
             .then(checkResult);
     });
@@ -87,7 +88,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver can read the message', () => {
-        const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
+        const data = { username: otherUsername, passphrase: secretPassphrase, chatId };
         return runFeature('Receive new message from account', data)
             .then(checkResult);
     });
@@ -102,7 +103,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver reads the message', () => {
-        const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
+        const data = { username: otherUsername, passphrase: secretPassphrase, chatId };
         runFeature('Read new message from account', data)
             .then(checkResult);
     });

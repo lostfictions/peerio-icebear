@@ -7,10 +7,10 @@ const { runFeature, checkResultAnd } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./client');
+const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
     const app = getAppInstance();
-    const secretPassphrase = 'secret';
     let secret = null;
     let blob = null;
     let url = '';
