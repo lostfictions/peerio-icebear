@@ -2,7 +2,7 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { runFeature } = require('./helpers/runFeature');
+const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 
 defineSupportCode(({ Before, Then, When }) => {
     const app = getAppInstance();
@@ -14,20 +14,14 @@ defineSupportCode(({ Before, Then, When }) => {
     let room;
     let invitedUserId;
 
-    const assignRegisteredUser = (result) => {
-        invitedUserId = result.data.username;
+    const assignRegisteredUser = (data) => {
+        invitedUserId = data.username;
     };
 
-    Before({ tags: '@registeredUser', timeout: 10000 }, (testCase, cb) => {
-        runFeature('Account creation')
-            .then(result => {
-                if (result.succeeded) {
-                    assignRegisteredUser(result);
-                    cb();
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    Before('@registeredUser', () => {
+        return runFeature('Account creation')
+            .then(checkResultAnd)
+            .then(assignRegisteredUser);
     });
 
     // Scenario: Create room
@@ -54,35 +48,27 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Delete room
-    Then('I can delete a room', (done) => {
+    Then('I can delete a room', () => {
         const numberOfChats = store.chats.length;
-        room.delete()
+        return room.delete()
             .then(() => {
                 when(() => store.chats.length === numberOfChats - 1, () => {
                     const roomExists = store.chats.includes(x => x === room);
                     roomExists.should.be.false;
-                    done();
                 });
             });
     });
 
 
     // Scenario: Send invite
-    When('I invite another user', (done) => {
-        const participants = [invitedUserId];
-        room.addParticipants(participants)
-            .then(done);
+    When('I invite another user', () => {
+        return room.addParticipants([invitedUserId]);
     });
 
-    Then('they should get a room invite', (cb) => {
-        runFeature('Receive room invite', { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id })
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+    Then('they should get a room invite', () => {
+        const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
+        return runFeature('Receive room invite', other)
+            .then(checkResult);
     });
 
     Then('I receive a room invite', (cb) => {
@@ -106,19 +92,13 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Kick member
-    When('someone has joined the room', { timeout: 20000 }, (cb) => {
+    When('someone has joined the room', { timeout: 20000 }, () => {
         const participants = [invitedUserId];
         const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
-        room.addParticipants(participants)
+        return room.addParticipants(participants)
             .then(() => {
                 runFeature('Accept room invite', other)
-                    .then(result => {
-                        if (result.succeeded) {
-                            cb();
-                        } else {
-                            cb(result.errors, 'failed');
-                        }
-                    });
+                    .then(checkResult);
             });
     });
 
