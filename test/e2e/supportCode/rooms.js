@@ -26,9 +26,9 @@ defineSupportCode(({ Before, Then, When, After }) => {
             .then(assignRegisteredUser);
     });
 
-    After(() => {
+    After('@rooms', () => {
         return Promise.each(chatStore.chats, chat => {
-            if (chat.canIAdmin) {
+            if (chat.canIAdmin && chat.isChannel) {
                 return chat.delete();
             }
             return Promise.resolve();

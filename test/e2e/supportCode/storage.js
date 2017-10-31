@@ -13,7 +13,7 @@ defineSupportCode(({ Before, Then, When }) => {
     const fileInStore = () => store.files.find(file => file.name === testDocument);
 
     let numberOfFilesUploaded;
-    const otherUser = '360mzhrj8thigc9hi4t5qddvu4m8in'; // todo: generate user
+    const otherUser = '9mjw0c0niacbq0cpiq9ba2ib8ybl4g'; // todo: generate user
 
     Before({ tags: '@fileStoreLoaded' }, () => {
         return waitForConnection().then(store.loadAllFiles);
