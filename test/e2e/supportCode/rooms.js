@@ -1,13 +1,13 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
+const { getChatStore, getChatInviteStore, currentUser } = require('./client');
 
 defineSupportCode(({ Before, Then, When }) => {
-    const app = getAppInstance();
-    const store = app.chatStore;
+    const chatStore = getChatStore();
+    const inviteStore = getChatInviteStore();
 
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
@@ -27,9 +27,9 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Create room
     When('I create a room', (done) => {
-        console.log(`Channels left: ${app.User.current.channelsLeft}`);
+        console.log(`Channels left: ${currentUser().channelsLeft}`);
 
-        room = store.startChat([], true, roomName, roomPurpose);
+        room = chatStore.startChat([], true, roomName, roomPurpose);
         when(() => room.added === true, done);
     });
 
@@ -50,11 +50,11 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Delete room
     Then('I can delete a room', () => {
-        const numberOfChats = store.chats.length;
+        const numberOfChats = chatStore.chats.length;
         return room.delete()
             .then(() => {
-                when(() => store.chats.length === numberOfChats - 1, () => {
-                    const roomExists = store.chats.includes(x => x === room);
+                when(() => chatStore.chats.length === numberOfChats - 1, () => {
+                    const roomExists = chatStore.chats.includes(x => x === room);
                     roomExists.should.be.false;
                 });
             });
@@ -75,8 +75,8 @@ defineSupportCode(({ Before, Then, When }) => {
     Then('I receive a room invite', (cb) => {
         const chatId = getPropFromEnv('chatId');
 
-        when(() => app.chatInviteStore.received.length, () => {
-            const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
+        when(() => inviteStore.received.length, () => {
+            const found = inviteStore.received.find(x => x.kegDbId === chatId);
             found.should.be.ok;
             cb();
         });
@@ -85,11 +85,10 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Kick member
     When('someone has joined the room', { timeout: 20000 }, () => {
-        const participants = [invitedUserId];
         const other = { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id };
-        return room.addParticipants(participants)
+        return room.addParticipants([invitedUserId])
             .then(() => {
-                runFeature('Accept room invite', other)
+                return runFeature('Accept room invite', other)
                     .then(checkResult);
             });
     });
@@ -97,11 +96,11 @@ defineSupportCode(({ Before, Then, When }) => {
     Then('I accept a room invite', (cb) => {
         const chatId = getPropFromEnv('chatId');
 
-        when(() => app.chatInviteStore.received.length, () => {
-            const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
+        when(() => inviteStore.received.length, () => {
+            const found = inviteStore.received.find(x => x.kegDbId === chatId);
             found.should.be.ok;
 
-            app.chatInviteStore.acceptInvite(chatId).then(cb);
+            inviteStore.acceptInvite(chatId).then(cb);
         });
     });
 
@@ -134,10 +133,10 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Can not create more than 3 rooms
     When('I created 3 rooms', () => {
-        const invited = new app.Contact(invitedUserId, {}, true);
-        console.log(app.User.current.channelsLeft); // 0
+        // const invited = new app.Contact(invitedUserId, {}, true);
+        // console.log(currentUser().channelsLeft); // 0
 
-        room = app.chatStore.startChat([invited], true, roomName, roomPurpose);
-        console.log(room); // TypeError: Cannot read property 'added' of null
+        // room = chatStore.startChat([invited], true, roomName, roomPurpose);
+        // console.log(room); // TypeError: Cannot read property 'added' of null
     });
 });

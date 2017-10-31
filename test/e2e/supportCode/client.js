@@ -39,6 +39,10 @@ const getChatStore = () => {
     return app.chatStore;
 };
 
+const getChatInviteStore = () => {
+    return app.chatInviteStore;
+};
+
 // Storage
 const getFileStore = () => {
     return app.fileStore;
@@ -51,5 +55,6 @@ module.exports = {
     getFileStore,
     getContactWithName,
     getContactStore,
-    getChatStore
+    getChatStore,
+    getChatInviteStore
 };
