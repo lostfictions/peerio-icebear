@@ -62,39 +62,29 @@ defineSupportCode(({ Given, Then, When }) => {
             });
     });
 
-    const findChatWithId = (id) => store.chats.find(x => x.id === id);
-
-    const indexOfChat = (id) => {
-        const found = findChatWithId(id);
-        const index = store.myChats.favorites.indexOf(found);
-
-        return index;
-    };
+    const indexOfCurrentChat = () => store.myChats.favorites.indexOf(store.activeChat);
 
     When('I favorite a direct message conversation', () => {
-        const found = findChatWithId(chatId);
-        found.should.be.ok;
+        const current = store.activeChat;
+        const added = store.myChats.addFavorite(current);
 
-        const added = store.myChats.addFavorite(found);
         added.should.be.true;
     });
 
     Then('it appears on top of others', () => {
         return loadChats()
-            .then(() => indexOfChat(chatId).should.be.equal(0));
+            .then(() => indexOfCurrentChat().should.be.equal(0));
     });
 
     When('I unfavorite a direct message conversation', () => {
-        const found = findChatWithId(chatId);
-        found.should.be.ok;
-
-        const removed = store.myChats.removeFavorite(found);
+        const current = store.activeChat;
+        const removed = store.myChats.removeFavorite(current);
         removed.should.be.true;
     });
 
     Then('it appears in chronological order', () => {
         return loadChats()
-            .then(() => indexOfChat(chatId).should.be.equal(-1));
+            .then(() => indexOfCurrentChat().should.be.equal(-1));
     });
 
     Then('I send a direct message', (done) => {
@@ -115,11 +105,11 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('I can read my messages', () => {
-        chatId = getPropFromEnv('chatId'); // todo - need chatId here?
         return loadChats()
             .then(() => {
-                const found = store.activeChat.messages.find(x => x.text === message);
-                found.should.be.ok;
+                store.activeChat.messages
+                    .find(x => x.text === message)
+                    .should.be.ok;
             });
     });
 
