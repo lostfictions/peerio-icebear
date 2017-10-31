@@ -43,7 +43,7 @@ jobs:
       - image: circleci/node:8.6
     working_directory: ~/repo
     steps:
-      run: ./scripts/dev-release.sh
+      - run: ./scripts/dev-release.sh
 
 workflows:
   version: 2
