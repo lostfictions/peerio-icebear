@@ -4,6 +4,7 @@ const { when } = require('mobx');
 const { runFeature, checkResult } = require('./helpers/runFeature');
 const { getChatStore, getContactWithName } = require('./client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
+const { getPropFromEnv } = require('./helpers/envHelper');
 
 defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
@@ -21,19 +22,6 @@ defineSupportCode(({ Given, Then, When }) => {
         return asPromise(chat, 'added', true)
             .delay(500)
             .then(() => Promise.resolve(chat.id));
-    };
-
-    const getPropFromEnv = (prop) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            const found = data[prop];
-
-            if (found) {
-                return found;
-            }
-            throw new Error('Prop not present');
-        }
-        throw new Error('No data passed in');
     };
 
     const loadChats = () => {

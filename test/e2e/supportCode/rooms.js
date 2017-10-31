@@ -3,6 +3,7 @@ const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
+const { getPropFromEnv } = require('./helpers/envHelper');
 
 defineSupportCode(({ Before, Then, When }) => {
     const app = getAppInstance();
@@ -72,22 +73,13 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I receive a room invite', (cb) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            const chatId = data.chatId;
+        const chatId = getPropFromEnv('chatId');
 
-            if (chatId) {
-                when(() => app.chatInviteStore.received.length, () => {
-                    const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
-                    found.should.be.ok;
-                    cb();
-                });
-            } else {
-                cb('No chat id passed in', 'failed');
-            }
-        } else {
-            cb('No data passed in', 'failed');
-        }
+        when(() => app.chatInviteStore.received.length, () => {
+            const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
+            found.should.be.ok;
+            cb();
+        });
     });
 
 
@@ -103,23 +95,14 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     Then('I accept a room invite', (cb) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            const chatId = data.chatId;
+        const chatId = getPropFromEnv('chatId');
 
-            if (chatId) {
-                when(() => app.chatInviteStore.received.length, () => {
-                    const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
-                    found.should.be.ok;
+        when(() => app.chatInviteStore.received.length, () => {
+            const found = app.chatInviteStore.received.find(x => x.kegDbId === chatId);
+            found.should.be.ok;
 
-                    app.chatInviteStore.acceptInvite(chatId).then(cb);
-                });
-            } else {
-                cb('No chat id passed in', 'failed');
-            }
-        } else {
-            cb('No data passed in', 'failed');
-        }
+            app.chatInviteStore.acceptInvite(chatId).then(cb);
+        });
     });
 
     Then('I them kick out', (done) => {
