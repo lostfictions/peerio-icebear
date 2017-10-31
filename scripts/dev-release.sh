@@ -5,6 +5,6 @@ branch="$(git rev-parse --abbrev-ref HEAD)"
 echo branch $branch
 if [ $branch == "dev" ]; then
     echo "releasing dev version"
-    standard-version -m "chore(dev-release): %s [skip ci]"
+    ./node_modules/.bin/standard-version -m "chore(dev-release): %s [skip ci]"
     git push --follow-tags origin master
 fi
