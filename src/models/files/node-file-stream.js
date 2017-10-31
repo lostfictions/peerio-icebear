@@ -93,39 +93,62 @@ class NodeFileStream extends FileStreamAbstract {
         return path.join(os.tmpdir(), 'peerio', name);
     }
 
-    static createTempCache() {
-        const tmpPath = this.getTempCachePath('');
-        if (!fs.existsSync(tmpPath)) {
-            fs.mkdirSync(tmpPath);
-        }
+    static exists(filePath) {
+        return Promise.resolve(fs.existsSync(filePath));
     }
 
-    static deleteTempCache() {
-        const tmpPath = this.getTempCachePath('');
+    static createDir(folderPath) {
+        return new Promise((resolve, reject) => {
+            fs.mkdir(folderPath, err => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+    }
 
-        if (fs.existsSync(tmpPath)) {
-            fs.readdir(tmpPath, (readErr, files) => {
-                if (readErr) {
-                    throw readErr;
-                }
+    static removeDir(folderPath) {
+        return new Promise((resolve, reject) => {
+            fs.readdir(folderPath, (readErr, files) => {
+                if (readErr) reject(readErr);
 
                 const fileDeletionPromises = [];
                 files.forEach(file => {
-                    const promise = new Promise(resolve => {
-                        fs.unlink(`${tmpPath}/${file}`, deleteErr => {
-                            if (deleteErr) console.error(deleteErr);
-                            resolve();
+                    const promise = new Promise(resolveUnlink => {
+                        fs.unlink(`${folderPath}/${file}`, deleteErr => {
+                            if (deleteErr) reject(deleteErr);
+                            resolveUnlink();
                         });
                     });
                     fileDeletionPromises.push(promise);
                 });
-                Promise.all(fileDeletionPromises).then(() => fs.rmdirSync(tmpPath));
+                Promise.all(fileDeletionPromises).then(() => {
+                    fs.rmdir(folderPath, rmdirError => {
+                        if (rmdirError) reject(rmdirError);
+                        resolve();
+                    });
+                });
             });
-        }
+        });
     }
 
-    static exists(filePath) {
-        return Promise.resolve(fs.existsSync(filePath));
+    static createTempCache() {
+        const tmpPath = this.getTempCachePath('');
+        return new Promise((resolve, reject) => {
+            this.createDir(tmpPath, err => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+    }
+
+    static deleteTempCache() {
+        const tmpPath = this.getTempCachePath('');
+        return new Promise((resolve, reject) => {
+            this.removeDir(tmpPath, err => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
     }
 }
 
