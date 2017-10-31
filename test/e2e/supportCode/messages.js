@@ -62,45 +62,39 @@ defineSupportCode(({ Given, Then, When }) => {
             });
     });
 
+    const findChatWithId = (id) => store.chats.find(x => x.id === id);
+
+    const indexOfChat = (id) => {
+        const found = findChatWithId(id);
+        const index = store.myChats.favorites.indexOf(found);
+
+        return index;
+    };
+
     When('I favorite a direct message conversation', () => {
-        const found = store.chats.find(x => x.id === chatId);
+        const found = findChatWithId(chatId);
         found.should.be.ok;
 
         const added = store.myChats.addFavorite(found);
         added.should.be.true;
     });
 
-    Then('it appears on top of others', (done) => {
-        store.loadAllChats()
-            .then(() => {
-                when(() => store.myChats.loaded, () => {
-                    const found = store.chats.find(x => x.id === chatId);
-                    const index = store.myChats.favorites.indexOf(found);
-                    index.should.be.equal(0);
-                    done();
-                });
-            });
+    Then('it appears on top of others', () => {
+        return loadChats()
+            .then(() => indexOfChat(chatId).should.be.equal(0));
     });
 
     When('I unfavorite a direct message conversation', () => {
-        const found = store.chats.find(x => x.id === chatId);
+        const found = findChatWithId(chatId);
         found.should.be.ok;
 
         const removed = store.myChats.removeFavorite(found);
         removed.should.be.true;
     });
 
-    Then('it appears in chronological order', (done) => {
-        store.loadAllChats()
-            .then(() => {
-                when(() => store.myChats.loaded, () => {
-                    const found = store.chats.find(x => x.id === chatId);
-                    const index = store.myChats.favorites.indexOf(found);
-
-                    index.should.be.equal(-1);
-                    done();
-                });
-            });
+    Then('it appears in chronological order', () => {
+        return loadChats()
+            .then(() => indexOfChat(chatId).should.be.equal(-1));
     });
 
     Then('I send a direct message', (done) => {
@@ -114,75 +108,37 @@ defineSupportCode(({ Given, Then, When }) => {
         return asPromise(store.activeChat.messages, 'length', numberOfMessages + 1);
     });
 
-    Then('the receiver can read the message', (cb) => {
+    Then('the receiver can read the message', () => {
         const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
-        runFeature('Receive new message from account', data)
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
+        return runFeature('Receive new message from account', data)
+            .then(checkResult);
+    });
+
+    Then('I can read my messages', () => {
+        chatId = getPropFromEnv('chatId'); // todo - need chatId here?
+        return loadChats()
+            .then(() => {
+                const found = store.activeChat.messages.find(x => x.text === message);
+                found.should.be.ok;
             });
     });
 
-    Then('I can read my messages', (cb) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            chatId = data.chatId;
-
-            if (chatId) {
-                store.loadAllChats()
-                    .then(() => {
-                        when(() => store.loaded, () => {
-                            const found = store.activeChat.messages.find(x => x.text === message);
-                            found.should.be.ok;
-                            cb();
-                        });
-                    });
-            } else {
-                cb('No message id passed in', 'failed');
-            }
-        } else {
-            cb('No data passed in', 'failed');
-        }
-    });
-
-    Then('the receiver reads the message', { timeout: 10000 }, (cb) => {
+    Then('the receiver reads the message', () => {
         const data = { username: otherUsername, passphrase: 'secret secrets', chatId };
         runFeature('Read new message from account', data)
-            .then(result => {
-                if (result.succeeded) {
-                    cb(null, 'done');
-                } else {
-                    cb(result.errors, 'failed');
-                }
-            });
+            .then(checkResult);
     });
 
-    Then('I read my messages', { timeout: 20000 }, (cb) => {
-        if (process.env.peerioData) {
-            const data = JSON.parse(process.env.peerioData);
-            chatId = data.chatId;
+    Then('I read my messages', { timeout: 20000 }, () => {
+        chatId = getPropFromEnv('chatId');
 
-            if (chatId) {
-                app.clientApp.isFocused = true;
-                app.clientApp.isInChatsView = true;
-                store.loadAllChats()
-                    .then(() => {
-                        when(() => store.loaded, () => {
-                            Promise.delay(5000).then(cb);
-                        });
-                    });
-            } else {
-                cb('No message id passed in', 'failed');
-            }
-        } else {
-            cb('No data passed in', 'failed');
-        }
+        app.clientApp.isFocused = true;
+        app.clientApp.isInChatsView = true;
+
+        return store.loadAllChats().delay(5000);
     });
 
-    Then('I view a read receipt', { timeout: 10000 }, (done) => {
+    Then('I view a read receipt', (done) => {
         const chat = store.chats.find(x => x.id === chatId);
         const found = chat.messages.find(x => x.text === message);
         when(() => found.receipts, () => {
