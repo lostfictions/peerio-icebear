@@ -4,23 +4,23 @@
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
   "scripts": {
-    "_1": " === HOOKS ========= ",
+    "=== HOOKS": "",
     "postcheckout": "npm run _warn-npm-install",
     "postmerge": "npm run _warn-npm-install",
     "precommit": "opt --in lint --exec \"npm run code:verify\"",
     "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
-    "_2": " === TESTS ========= ",
-    "mocha": "mocha test/**/*.test.js --require babel-register --require test/unit/unit-global-setup -R progress --timeout 15000",
+    "=== TESTS": "",
+    "mocha": "mocha test/**/*.test.js --require babel-register --require test/unit/unit-global-setup --timeout 15000",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
     "e2e": "cucumber.js test/e2e/contacts/stories --r test/e2e/e2e-global-setup.js -r test/e2e/contacts/supportCode -r test/e2e/account/supportCode --compiler js:babel-register",
-    "_3": " === VALIDATION ==== ",
+    "=== VALIDATION": "",
     "code:lint": "eslint . --fix --ext .js",
     "code:verify": "eslint . --ext .js --max-warnings 0",
-    "_4": " === RELEASE ======= ",
+    "=== RELEASE": "",
     "release": "./scripts/release.sh",
-    "_5": " === HELPERS ======= ",
-    "_warn-npm-install": "echo \"$(tput -Txterm-256color setaf 0)$(tput -Txterm-256color setab 11) Reminder to run `npm install` $(tput -Txterm-256color sgr 0)\""
+    "=== HELPERS": "",
+    "_warn-npm-install": "echo \"$(tput -Txterm-256color setaf 0)$(tput -Txterm-256color setab 11) Reminder to run 'npm install' $(tput -Txterm-256color sgr 0)\""
   },
   "files": [
     "src"
