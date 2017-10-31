@@ -118,7 +118,9 @@
     }
   },
   "standard-version": {
-    "scripts": {}
+    "scripts": {
+      "postbump": "node ./scripts/postbump.js"
+    }
   },
   "devEngines": {
     "node": "7.x",

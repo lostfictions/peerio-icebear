@@ -7,6 +7,6 @@ git config user.name "Anri Asaturov"
 echo branch $branch
 if [ $branch == "dev" ]; then
     echo "releasing dev version"
-    ./node_modules/.bin/standard-version -m "chore(dev-release): %s [skip ci]"
+    ./node_modules/.bin/standard-version -a -m "chore(dev-release): %s [skip ci]"
     git push --follow-tags origin dev
 fi
