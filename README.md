@@ -1,6 +1,6 @@
 # ʕ•ᴥ•ʔ peerio-icebear
 
-Documentation: https://peeriotechnologies.github.io/peerio-icebear/html/
+Dev branch: [![CircleCI](https://circleci.com/gh/PeerioTechnologies/peerio-icebear/tree/dev.svg?style=svg&circle-token=f116e6b2b6a049ae747da0189c4ec33cbb71187c)](https://circleci.com/gh/PeerioTechnologies/peerio-icebear/tree/dev)
 
 Peerio Icebear is a client library supporting Peerio apps
 * https://github.com/PeerioTechnologies/peerio-desktop

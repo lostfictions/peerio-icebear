@@ -50,12 +50,6 @@ class Keg {
          */
         this.overrideKey = null;
         /**
-         * Keg version, when first created and empty, keg has version === 1
-         * @member {number}
-         * @public
-         */
-        this.version = 0;
-        /**
          * Keg format version, client tracks kegs structure changes with this property
          * @member {number}
          * @public
@@ -124,6 +118,13 @@ class Keg {
      * @public
      */
     @observable tempId;
+    /**
+     * Keg version, when first created and empty, keg has version === 1
+     * @member {number}
+     * @public
+     */
+    @observable version = 0;
+
     /**
      * @member {boolean} deleted
      * @memberof Keg

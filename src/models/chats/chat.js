@@ -389,7 +389,6 @@ class Chat {
         return !!(this.chatHead && this.chatHead.loaded);
     }
 
-
     /**
      * User should not be able to send multiple ack messages in a row. We don't limit it on SDK level, but GUIs should.
      * @member {boolean} canSendAck
@@ -658,7 +657,7 @@ class Chat {
         const promise = m.send();
         this.limboMessages.push(m);
         this._detectLimboGrouping();
-        when(() => !!m.id, action(() => {
+        when(() => m.version > 1, action(() => {
             this.limboMessages.remove(m);
             m.tempId = null;
             // unless user already scrolled too high up, we add the message
@@ -1153,8 +1152,7 @@ class Chat {
      */
     @action detectFileAttachments(messages) {
         if (!this._recentFiles) {
-            // console.error('detectFileAttachments was called before _recentFiles became available');
-            return;
+            this._recentFiles = [];
         }
         for (let i = 0; i < messages.length; i++) {
             const files = messages[i].files;
