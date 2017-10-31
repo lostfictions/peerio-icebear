@@ -5,7 +5,7 @@ const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeatur
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { getChatStore, getChatInviteStore, currentUser } = require('./client');
 
-defineSupportCode(({ Before, Then, When }) => {
+defineSupportCode(({ Before, Then, When, After }) => {
     const chatStore = getChatStore();
     const inviteStore = getChatInviteStore();
 
@@ -23,6 +23,17 @@ defineSupportCode(({ Before, Then, When }) => {
         return runFeature('Account creation')
             .then(checkResultAnd)
             .then(assignRegisteredUser);
+    });
+
+    After(() => {
+        return Promise.each(chatStore.chats, chat => {
+            if (chat.canIAdmin) {
+                return chat.delete();
+            }
+            return Promise.resolve();
+        }).then(() => {
+            console.log(`---Channels left: ${currentUser().channelsLeft}`);
+        });
     });
 
     // Scenario: Create room
