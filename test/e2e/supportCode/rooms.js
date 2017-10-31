@@ -2,7 +2,7 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const runFeature = require('./helpers/runFeature');
+const { runFeature } = require('./helpers/runFeature');
 
 defineSupportCode(({ Before, Then, When }) => {
     const app = getAppInstance();
@@ -31,7 +31,7 @@ defineSupportCode(({ Before, Then, When }) => {
     });
 
     // Scenario: Create room
-    When('I create a room', { timeout: 10000 }, (done) => {
+    When('I create a room', (done) => {
         console.log(`Channels left: ${app.User.current.channelsLeft}`);
 
         room = store.startChat([], true, roomName, roomPurpose);
@@ -68,13 +68,13 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Send invite
-    When('I invite another user', { timeout: 10000 }, (done) => {
+    When('I invite another user', (done) => {
         const participants = [invitedUserId];
         room.addParticipants(participants)
             .then(done);
     });
 
-    Then('they should get a room invite', { timeout: 10000 }, (cb) => {
+    Then('they should get a room invite', (cb) => {
         runFeature('Receive room invite', { username: invitedUserId, passphrase: 'secret secrets', chatId: room.id })
             .then(result => {
                 if (result.succeeded) {
@@ -85,7 +85,7 @@ defineSupportCode(({ Before, Then, When }) => {
             });
     });
 
-    Then('I receive a room invite', { timeout: 10000 }, (cb) => {
+    Then('I receive a room invite', (cb) => {
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
             const chatId = data.chatId;
@@ -122,7 +122,7 @@ defineSupportCode(({ Before, Then, When }) => {
             });
     });
 
-    Then('I accept a room invite', { timeout: 10000 }, (cb) => {
+    Then('I accept a room invite', (cb) => {
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
             const chatId = data.chatId;
@@ -142,7 +142,7 @@ defineSupportCode(({ Before, Then, When }) => {
         }
     });
 
-    Then('I them kick out', { timeout: 10000 }, (done) => {
+    Then('I them kick out', (done) => {
         const participants = room.joinedParticipants.length;
         room.removeParticipant(invitedUserId);
 
@@ -156,14 +156,14 @@ defineSupportCode(({ Before, Then, When }) => {
 
 
     // Scenario: Promote member
-    When('I can promote them to admin', { timeout: 10000 }, () => {
+    When('I can promote them to admin', () => {
         const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
         return room.promoteToAdmin(admin);
     });
 
 
     // Scenario: Demote member
-    Then('I can demote them as admin', { timeout: 10000 }, () => {
+    Then('I can demote them as admin', () => {
         const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
         return room.demoteAdmin(admin);
     });
