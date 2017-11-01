@@ -2,8 +2,8 @@ const otherUser = {
     id: null
 };
 
-const assignRegisteredUser = (data) => {
+const assignOtherUserId = (data) => {
     otherUser.id = data.username;
 };
 
-module.exports = { otherUser, assignRegisteredUser };
+module.exports = { otherUser, assignOtherUserId };

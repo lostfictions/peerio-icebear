@@ -8,14 +8,14 @@ const { otherUser } = require('./helpers/otherUser');
 defineSupportCode(({ Given, Then, When }) => {
     const store = getContactStore();
 
-    let contactFromUsername;
     const otherUserEmail = () => `${otherUser.id}@mailinator.com`;
 
+    let contactFromUsername;
     const contactLoaded = () => {
         contactFromUsername = store.getContact(otherUser.id);
         return asPromise(contactFromUsername, 'loading', false).delay(500);
     };
-
+    
     // Scenario: Find contact
     Given(/I search for (?:a registered username|a registered email|an unregistered user)/, () => {
         return contactLoaded();

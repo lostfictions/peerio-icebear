@@ -1,6 +1,6 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { runFeature, checkResultAnd } = require('./helpers/runFeature');
-const { assignRegisteredUser } = require('./helpers/otherUser');
+const { assignOtherUserId } = require('./helpers/otherUser');
 const { getChatStore, currentUser, waitForConnection, getFileStore } = require('./client');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { getRandomUsername } = require('./helpers/usernameHelper');
@@ -16,14 +16,14 @@ defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) =>
     Before('@registeredUser', () => {
         return runFeature('Account creation')
             .then(checkResultAnd)
-            .then(assignRegisteredUser);
+            .then(assignOtherUserId);
     });
 
     Before('@confirmedUser', () => {
         return runFeature('Account creation')
             .then(checkResultAnd)
             .then(data => {
-                assignRegisteredUser(data);
+                assignOtherUserId(data);
 
                 const email = `${data.username}@mailinator.com`;
                 return confirmUserEmail(email);
@@ -32,7 +32,7 @@ defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) =>
 
     Before('@unregisteredUser', () => {
         const username = getRandomUsername();
-        assignRegisteredUser({ username });
+        assignOtherUserId({ username });
     });
 
     Before({ tags: '@fileStoreLoaded' }, () => {
