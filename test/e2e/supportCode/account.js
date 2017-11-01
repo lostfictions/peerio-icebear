@@ -16,8 +16,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     let url = '';
     let newEmail;
 
-    let username, passphrase;
-    // let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
+    // let username, passphrase;
+    let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
 
     const notifyOfCredentials = () => {
         const data = {
@@ -49,7 +49,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Account creation
     When('I successfully create an account', () => {
-        return runFeature('Account creation')
+        return runFeature('Create new user')
             .then(checkResultAnd)
             .then(data => { ({ username, passphrase } = data); });
     });
@@ -299,7 +299,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         //     .then(done);
     });
 
-    // Helper
+    // Helpers
     Then('Create account with username', (done) => {
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
@@ -312,5 +312,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         currentUser().createAccountAndLogin()
             .should.be.fulfilled
             .then(done);
+    });
+
+    Given('Create new account', () => {
+        setCurrentUser(getRandomUsername(), secretPassphrase);
+        return currentUser().createAccountAndLogin()
+            .should.be.fulfilled
+            .then(notifyOfCredentials);
     });
 });

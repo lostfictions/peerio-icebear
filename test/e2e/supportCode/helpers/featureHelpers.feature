@@ -1,9 +1,15 @@
 Feature: Common scenarios
     
-    Scenario: Account creation
+    Scenario: Create new user
         Given I am a new customer
         When  I successfully create a new account
         Then  I will be logged in
+
+    Scenario: Create new account
+        * Create new account
+
+    Scenario: Create account with username
+        * Create account with username
 
     Scenario: Access shared file
         Given I am logged in
@@ -12,9 +18,6 @@ Feature: Common scenarios
     Scenario: Deleted files
         Given I am logged in
         Then  I should not see deleted files
-
-    Scenario: Create account with username
-        * Create account with username
 
     Scenario: Receive chat request from account
         Given I am logged in
