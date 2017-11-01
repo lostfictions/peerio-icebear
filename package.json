@@ -1,5 +1,5 @@
 {
-  "name": "@peerio/peerio-icebear",
+  "name": "peerio-icebear",
   "version": "2.13.1",
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
@@ -123,7 +123,7 @@
     }
   },
   "devEngines": {
-    "node": "7.x",
-    "npm": "4.x"
+    "node": "8.x",
+    "npm": "5.x"
   }
 }
