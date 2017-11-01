@@ -1,6 +1,6 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature, checkResult } = require('./helpers/runFeature');
+const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getContactStore } = require('./client');
 const { otherUser } = require('./helpers/otherUser');
@@ -17,8 +17,7 @@ defineSupportCode(({ Given, Then, When }) => {
     };
 
     // Scenario: Find contact
-    Given(/I search for (a registered username|a registered email|an unregistered user)/, (someone) => {
-        console.log(someone);
+    Given(/I search for (?:a registered username|a registered email|an unregistered user)/, () => {
         return contactLoaded();
     });
 
@@ -34,10 +33,6 @@ defineSupportCode(({ Given, Then, When }) => {
     // Scenario: Send invite email
     When('no profiles are found', () => {
         contactFromUsername.notFound.should.be.true;
-    });
-
-    When('I send an invitation to them', () => {
-        return store.invite(otherUserEmail()).should.be.fulfilled;
     });
 
     Then('they are added in my invited contacts', () => {
@@ -77,14 +72,12 @@ defineSupportCode(({ Given, Then, When }) => {
 
 
     // Scenario: Create favorite contact
-    When('I invite an unregistered user', () => {
-        return store.invite((otherUserEmail()))
-            .should.be.fulfilled;
+    When(/(?:I invite an unregistered user|I send an invitation to them)/, () => {
+        return store.invite(otherUserEmail());
     });
 
     When('they sign up', () => {
-        const other = { username: otherUser.id };
-        return runFeature('Create account with username', other)
+        return runFeatureFromUsername('Create account with username', otherUser.id)
             .then(checkResult);
     });
 
