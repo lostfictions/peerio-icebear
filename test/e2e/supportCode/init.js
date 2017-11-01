@@ -14,13 +14,13 @@ defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) =>
     });
 
     Before('@registeredUser', () => {
-        return runFeature('Account creation')
+        return runFeature('Create new account')
             .then(checkResultAnd)
             .then(assignOtherUserId);
     });
 
     Before('@confirmedUser', () => {
-        return runFeature('Account creation')
+        return runFeature('Create new account')
             .then(checkResultAnd)
             .then(data => {
                 assignOtherUserId(data);
