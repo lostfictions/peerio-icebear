@@ -1,13 +1,13 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
+const { runFeature, checkResult } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { getChatStore, getChatInviteStore, currentUser } = require('./client');
 const { secretPassphrase } = require('./helpers/constants');
-const { otherUser, assignRegisteredUser } = require('./helpers/otherUser');
+const { otherUser } = require('./helpers/otherUser');
 
-defineSupportCode(({ Before, Then, When, After }) => {
+defineSupportCode(({ Then, When }) => {
     const chatStore = getChatStore();
     const inviteStore = getChatInviteStore();
 
@@ -15,23 +15,6 @@ defineSupportCode(({ Before, Then, When, After }) => {
     const roomPurpose = 'test-room';
 
     let room;
-
-    Before('@registeredUser', () => {
-        return runFeature('Account creation')
-            .then(checkResultAnd)
-            .then(assignRegisteredUser);
-    });
-
-    After('@rooms', () => {
-        return Promise.each(chatStore.chats, chat => {
-            if (chat.canIAdmin && chat.isChannel) {
-                return chat.delete();
-            }
-            return Promise.resolve();
-        }).then(() => {
-            console.log(`---Channels left: ${currentUser().channelsLeft}`);
-        });
-    });
 
     // Scenario: Create room
     When('I create a room', (done) => {
