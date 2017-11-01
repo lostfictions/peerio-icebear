@@ -40,8 +40,8 @@ class FileFolder {
             return folder;
         }
         if (folder.parent) {
-            console.error(`file-folders.js: folder already belongs to a folder`);
-            return folder;
+            console.debug(`file-folders.js: moving folder from parent`);
+            folder.parent.freeFolder(folder);
         }
         folder.parent = this;
         this.folders.push(folder);
@@ -104,7 +104,7 @@ class FileFolder {
     }
 
     serialize() {
-        const { name, folderId } = this;
+        const { name, folderId, parent } = this;
         const files = this.files.map(f => f.fileId);
         const folders = this.folders.map(f => f.serialize());
         return { name, folderId, files, folders };
