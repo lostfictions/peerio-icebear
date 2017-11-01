@@ -1,10 +1,9 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
-const { runFeature, checkResult } = require('./helpers/runFeature');
+const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
 const { getChatStore, getContactWithName, showChatUI } = require('./client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
-const { secretPassphrase } = require('./helpers/constants');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {
@@ -35,8 +34,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver gets notified', () => {
-        const user = { username: otherUser.id, passphrase: secretPassphrase, chatId };
-        return runFeature('Receive chat request from account', user)
+        return runFeatureForChatId('Receive chat request from account', otherUser.id, chatId)
             .then(checkResult);
     });
 
@@ -86,8 +84,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver can read the message', () => {
-        const data = { username: otherUser.id, passphrase: secretPassphrase, chatId };
-        return runFeature('Receive new message from account', data)
+        return runFeatureForChatId('Receive new message from account', otherUser.id, chatId)
             .then(checkResult);
     });
 
@@ -101,8 +98,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver reads the message', () => {
-        const data = { username: otherUser.id, passphrase: secretPassphrase, chatId };
-        runFeature('Read new message from account', data)
+        runFeatureForChatId('Read new message from account', otherUser.id, chatId)
             .then(checkResult);
     });
 

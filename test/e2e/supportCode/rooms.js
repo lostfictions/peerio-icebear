@@ -1,10 +1,9 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { runFeature, checkResult } = require('./helpers/runFeature');
+const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { getChatStore, getChatInviteStore, currentUser } = require('./client');
-const { secretPassphrase } = require('./helpers/constants');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Then, When }) => {
@@ -58,8 +57,7 @@ defineSupportCode(({ Then, When }) => {
     });
 
     Then('they should get a room invite', () => {
-        const other = { username: otherUser.id, passphrase: secretPassphrase, chatId: room.id };
-        return runFeature('Receive room invite', other)
+        return runFeatureForChatId('Receive room invite', otherUser.id, room.id)
             .then(checkResult);
     });
 
@@ -75,10 +73,9 @@ defineSupportCode(({ Then, When }) => {
 
     // Scenario: Kick member
     When('someone has joined the room', { timeout: 20000 }, () => {
-        const other = { username: otherUser.id, passphrase: secretPassphrase, chatId: room.id };
         return room.addParticipants([otherUser.id])
             .then(() => {
-                return runFeature('Accept room invite', other)
+                return runFeatureForChatId('Accept room invite', otherUser.id, room.id)
                     .then(checkResult);
             });
     });

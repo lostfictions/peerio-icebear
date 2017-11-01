@@ -91,6 +91,11 @@ const runFeatureFromUsername = (feature, username) => {
     return runFeature(feature, user);
 };
 
+const runFeatureForChatId = (feature, username, chatId) => {
+    const data = { username, passphrase: secretPassphrase, chatId };
+    return runFeature(feature, data);
+};
+
 const checkResult = (result) => {
     if (result.succeeded) {
         return Promise.resolve();
@@ -105,4 +110,10 @@ const checkResultAnd = (result) => {
     return Promise.reject(result.errors);
 };
 
-module.exports = { runFeature, runFeatureFromUsername, checkResult, checkResultAnd };
+module.exports = {
+    runFeature,
+    runFeatureFromUsername,
+    runFeatureForChatId,
+    checkResult,
+    checkResultAnd
+};
