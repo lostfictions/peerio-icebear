@@ -50,16 +50,14 @@ class FileFolders {
             await this.keg.saveToServer();
         }
         const { files } = this.fileStore;
-        // this.fileResolveMap = {};
+        this.fileResolveMap = {};
         if (this._intercept) {
             this._intercept();
             this._intercept = null;
         }
         const { fileResolveMap, folderResolveMap, root } = this;
         const newFolderResolveMap = {};
-        console.log('file-folders: step 0');
         root.deserialize(this.keg, null, fileResolveMap, folderResolveMap, newFolderResolveMap);
-        console.log('file-folders: step 1');
         // remove files from folders if they aren't present in the keg
         files.forEach(f => {
             if (f.folder && f.folder !== root && !fileResolveMap[f.fileId]) {
@@ -73,7 +71,6 @@ class FileFolders {
             }
         }
         this.folderResolveMap = newFolderResolveMap;
-        console.log('file-folders: step 2');
         files.forEach(this._addFile);
         this._intercept = files.intercept(delta => {
             for (let i = delta.removedCount; i > 0; i--) {
