@@ -1,61 +1,24 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
-const { getRandomUsername } = require('./helpers/usernameHelper');
+const { runFeature, checkResult } = require('./helpers/runFeature');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getContactStore } = require('./client');
+const { otherUser } = require('./helpers/otherUser');
 
-defineSupportCode(({ Before, Given, Then, When }) => {
+defineSupportCode(({ Given, Then, When }) => {
     const store = getContactStore();
 
     let contactFromUsername;
-    let otherUsername;
-    let registeredUsername, registeredEmail;
-    let unregisteredUsername, unregisteredEmail;
-
-    const assignUnregisteredUser = () => {
-        unregisteredUsername = getRandomUsername();
-        unregisteredEmail = `${unregisteredUsername}@mailinator.com`;
-    };
-
-    const assignRegisteredUser = (data) => {
-        registeredUsername = data.username;
-        registeredEmail = `${registeredUsername}@mailinator.com`;
-    };
-
-    const assignOtherUsername = (someone) => {
-        if (someone === 'a registered username') {
-            otherUsername = registeredUsername;
-        }
-        if (someone === 'a registered email') {
-            otherUsername = registeredEmail;
-        }
-        if (someone === 'an unregistered user') {
-            otherUsername = unregisteredEmail;
-        }
-    };
+    const otherUserEmail = () => `${otherUser.id}@mailinator.com`;
 
     const contactLoaded = () => {
-        contactFromUsername = store.getContact(otherUsername);
-        return asPromise(contactFromUsername, 'loading', false);
+        contactFromUsername = store.getContact(otherUser.id);
+        return asPromise(contactFromUsername, 'loading', false).delay(500);
     };
-
-    Before('@confirmedUser', () => {
-        return runFeature('Account creation')
-            .then(checkResultAnd)
-            .then(data => {
-                assignRegisteredUser(data);
-                return confirmUserEmail(registeredEmail);
-            });
-    });
-
-    Before('@unregisteredUser', () => {
-        assignUnregisteredUser();
-    });
 
     // Scenario: Find contact
     Given(/I search for (a registered username|a registered email|an unregistered user)/, (someone) => {
-        assignOtherUsername(someone);
+        console.log(someone);
         return contactLoaded();
     });
 
@@ -74,7 +37,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('I send an invitation to them', () => {
-        return store.invite(otherUsername).should.be.fulfilled;
+        return store.invite(otherUserEmail()).should.be.fulfilled;
     });
 
     Then('they are added in my invited contacts', () => {
@@ -83,16 +46,15 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('they should receive an email invitation', () => {
-        return receivedEmailInvite(otherUsername);
+        return receivedEmailInvite(otherUserEmail());
     });
 
 
     // Scenario: favorite a contact
     When('I favorite a registered user', () => {
-        otherUsername = registeredUsername;
         return contactLoaded()
             .then(() => {
-                return store.addContact(registeredUsername)
+                return store.addContact(otherUser)
                     .then(result => result.should.be.true);
             });
     });
@@ -108,7 +70,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Unfavorite a contact
     When('I unfavorite them', () => {
-        store.removeContact(otherUsername);
+        store.removeContact(otherUser.id);
     });
 
     Then('they will not be in my favorites', () => {
@@ -122,24 +84,23 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Create favorite contact
     When('I invite an unregistered user', () => {
-        otherUsername = unregisteredUsername;
-        return store.invite(unregisteredEmail)
+        return store.invite((otherUserEmail()))
             .should.be.fulfilled;
     });
 
     When('they sign up', () => {
-        const otherUser = { username: otherUsername };
-        return runFeature('Create account with username', otherUser)
+        const other = { username: otherUser.id };
+        return runFeature('Create account with username', other)
             .then(checkResult);
     });
 
     When('they confirm their email', () => {
-        return confirmUserEmail(unregisteredEmail);
+        return confirmUserEmail(otherUserEmail());
     });
 
 
     // Scenario: Remove favorite contact before email confirmation
     When('I remove the invitation', () => {
-        return store.removeInvite(unregisteredEmail);
+        return store.removeInvite(otherUserEmail());
     });
 });
