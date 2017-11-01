@@ -1,15 +1,13 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { runFeature, checkResult } = require('./helpers/runFeature');
-const { getChatStore, getContactWithName } = require('./client');
+const { getChatStore, getContactWithName, showChatUI } = require('./client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { secretPassphrase } = require('./helpers/constants');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {
-    const app = getAppInstance();
     const store = getChatStore();
     let chatId;
     const message = 'Hello world';
@@ -109,11 +107,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('I read my messages', { timeout: 20000 }, () => {
-        chatId = getPropFromEnv('chatId');
-
-        app.clientApp.isFocused = true;
-        app.clientApp.isInChatsView = true;
-
+        showChatUI();
         return store.loadAllChats().delay(5000);
     });
 

@@ -8,6 +8,10 @@ const waitForConnection = () => {
     return asPromise(app.socket, 'connected', true);
 };
 
+const showChatUI = () => {
+    app.clientApp.isFocused = true;
+    app.clientApp.isInChatsView = true;
+};
 
 // User
 const currentUser = () => app.User.current;
@@ -20,7 +24,6 @@ const setCurrentUser = (username, passphrase) => {
 
     return app.User.current;
 };
-
 
 // Contacts
 const getContactWithName = (name) => {
@@ -50,6 +53,7 @@ const getFileStore = () => {
 
 module.exports = {
     waitForConnection,
+    showChatUI,
     currentUser,
     setCurrentUser,
     getFileStore,
