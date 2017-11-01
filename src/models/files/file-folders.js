@@ -31,9 +31,6 @@ class FileFolders {
     _addFile = (file) => {
         const { fileResolveMap, root } = this;
         const folderToResolve = fileResolveMap[file.fileId];
-        if (folderToResolve) {
-            console.log(`this file has folder to resolve`);
-        }
         if (file.folder && file.folder === folderToResolve) return;
         if (folderToResolve) {
             file.folder && file.folder.free(file);
