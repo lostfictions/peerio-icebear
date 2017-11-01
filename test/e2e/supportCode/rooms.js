@@ -5,6 +5,7 @@ const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeatur
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { getChatStore, getChatInviteStore, currentUser } = require('./client');
 const { secretPassphrase } = require('./helpers/constants');
+const { otherUser, assignRegisteredUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Before, Then, When, After }) => {
     const chatStore = getChatStore();
@@ -14,11 +15,6 @@ defineSupportCode(({ Before, Then, When, After }) => {
     const roomPurpose = 'test-room';
 
     let room;
-    let invitedUserId;
-
-    const assignRegisteredUser = (data) => {
-        invitedUserId = data.username;
-    };
 
     Before('@registeredUser', () => {
         return runFeature('Account creation')
@@ -75,11 +71,11 @@ defineSupportCode(({ Before, Then, When, After }) => {
 
     // Scenario: Send invite
     When('I invite another user', () => {
-        return room.addParticipants([invitedUserId]);
+        return room.addParticipants([otherUser.id]);
     });
 
     Then('they should get a room invite', () => {
-        const other = { username: invitedUserId, passphrase: secretPassphrase, chatId: room.id };
+        const other = { username: otherUser.id, passphrase: secretPassphrase, chatId: room.id };
         return runFeature('Receive room invite', other)
             .then(checkResult);
     });
@@ -96,8 +92,8 @@ defineSupportCode(({ Before, Then, When, After }) => {
 
     // Scenario: Kick member
     When('someone has joined the room', { timeout: 20000 }, () => {
-        const other = { username: invitedUserId, passphrase: secretPassphrase, chatId: room.id };
-        return room.addParticipants([invitedUserId])
+        const other = { username: otherUser.id, passphrase: secretPassphrase, chatId: room.id };
+        return room.addParticipants([otherUser.id])
             .then(() => {
                 return runFeature('Accept room invite', other)
                     .then(checkResult);
@@ -117,34 +113,34 @@ defineSupportCode(({ Before, Then, When, After }) => {
 
     Then('I them kick out', (done) => {
         const participants = room.joinedParticipants.length;
-        room.removeParticipant(invitedUserId);
+        room.removeParticipant(otherUser.id);
 
         when(() => room.joinedParticipants.length === participants - 1, done);
     });
 
     Then('they should not be in the room anymore', () => {
-        const exists = room.joinedParticipants.includes(x => x.username === invitedUserId);
+        const exists = room.joinedParticipants.includes(x => x.username === otherUser.id);
         exists.should.false;
     });
 
 
     // Scenario: Promote member
     When('I can promote them to admin', () => {
-        const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
+        const admin = room.joinedParticipants.find(x => x.username === otherUser.id);
         return room.promoteToAdmin(admin);
     });
 
 
     // Scenario: Demote member
     Then('I can demote them as admin', () => {
-        const admin = room.joinedParticipants.find(x => x.username === invitedUserId);
+        const admin = room.joinedParticipants.find(x => x.username === otherUser.id);
         return room.demoteAdmin(admin);
     });
 
 
     // Scenario: Can not create more than 3 rooms
     When('I created 3 rooms', () => {
-        // const invited = new app.Contact(invitedUserId, {}, true);
+        // const invited = new app.Contact(otherUser.id, {}, true);
         // console.log(currentUser().channelsLeft); // 0
 
         // room = chatStore.startChat([invited], true, roomName, roomPurpose);
