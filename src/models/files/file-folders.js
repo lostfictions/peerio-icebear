@@ -40,7 +40,7 @@ class FileFolders {
             folderToResolve.add(file);
             delete fileResolveMap[file.fileId];
         } else {
-            root.add(file);
+            !file.folder && root.add(file);
         }
     }
 
@@ -72,7 +72,7 @@ class FileFolders {
         }
         this.folderResolveMap = newFolderResolveMap;
         files.forEach(this._addFile);
-        this._intercept = files.intercept(delta => {
+        this._intercept = files.observe(delta => {
             for (let i = delta.removedCount; i > 0; i--) {
                 const el = delta.object[delta.index + i - 1];
                 if (el.folder) el.folder.free(el);
