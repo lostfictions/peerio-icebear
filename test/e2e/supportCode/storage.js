@@ -1,10 +1,11 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
-const { waitForConnection, getFileStore, getContactWithName } = require('./client');
+const { getFileStore, getContactWithName } = require('./client');
+const { otherUser } = require('./helpers/otherUser');
 const fs = require('fs');
 
-defineSupportCode(({ Before, Then, When }) => {
+defineSupportCode(({ Then, When }) => {
     const store = getFileStore();
 
     const testDocument = 'test.txt';
@@ -13,11 +14,6 @@ defineSupportCode(({ Before, Then, When }) => {
     const fileInStore = () => store.files.find(file => file.name === testDocument);
 
     let numberOfFilesUploaded;
-    const otherUser = '9mjw0c0niacbq0cpiq9ba2ib8ybl4g'; // todo: generate user
-
-    Before({ tags: '@fileStoreLoaded' }, () => {
-        return waitForConnection().then(store.loadAllFiles);
-    });
 
     // Scenario: Upload
     When('I upload a file', () => {
@@ -59,14 +55,14 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Share
     When('I share it with a receiver', () => {
-        return getContactWithName(otherUser)
+        return getContactWithName(otherUser.id)
             .then(contact => {
                 return fileInStore().share(contact);
             });
     });
 
     Then('receiver should see it in their files', () => {
-        return runFeatureFromUsername('Access shared file', otherUser)
+        return runFeatureFromUsername('Access shared file', otherUser.id)
             .then(checkResult);
     });
 
@@ -77,7 +73,7 @@ defineSupportCode(({ Before, Then, When }) => {
 
     // Scenario: Delete after sharing
     Then('it should be removed from receivers files', () => {
-        return runFeatureFromUsername('Deleted files', otherUser)
+        return runFeatureFromUsername('Deleted files', otherUser.id)
             .then(checkResult);
     });
 

@@ -1,7 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { runFeature, checkResultAnd } = require('./helpers/runFeature');
 const { assignRegisteredUser } = require('./helpers/otherUser');
-const { getChatStore, currentUser } = require('./client');
+const { getChatStore, currentUser, waitForConnection, getFileStore } = require('./client');
 
 defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) => {
     setDefaultTimeout(10000);
@@ -15,6 +15,11 @@ defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) =>
         return runFeature('Account creation')
             .then(checkResultAnd)
             .then(assignRegisteredUser);
+    });
+
+    Before({ tags: '@fileStoreLoaded' }, () => {
+        const fileStore = getFileStore();
+        return waitForConnection().then(fileStore.loadAllFiles);
     });
 
     After('@rooms', () => {

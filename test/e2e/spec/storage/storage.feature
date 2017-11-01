@@ -16,6 +16,7 @@ Feature: Files in storage
         When  I download the file
         Then  I can access the file locally
 
+    @registeredUser
     Scenario: Share
         Given I upload a file
         When  I share it with a receiver
@@ -26,6 +27,7 @@ Feature: Files in storage
         When  I delete the file
         Then  it should be removed from my files
 
+    @registeredUser
     Scenario: Delete after sharing
         Given I upload a file
         And   I share it with a receiver
