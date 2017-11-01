@@ -4,9 +4,6 @@ const { observable } = require('mobx');
 class FileFoldersKeg extends SyncedKeg {
     constructor(db) {
         super('file_folders', db);
-        this.onUpdated = () => {
-            console.log(`file folders updated: ${this.loaded}`);
-        };
     }
 
     @observable formatVersion;
@@ -18,6 +15,7 @@ class FileFoldersKeg extends SyncedKeg {
     }
 
     deserializeKegPayload(payload) {
+        console.log('deserialize file folders keg');
         const { formatVersion, folders } = payload;
         Object.assign(this, { formatVersion, folders });
     }

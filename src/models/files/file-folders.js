@@ -1,15 +1,19 @@
-const { observable, when } = require('mobx');
+const { observable, action } = require('mobx');
 const { getUser } = require('../../helpers/di-current-user');
 const socket = require('../../network/socket');
 const FileFolder = require('./file-folder');
 const FileFoldersKeg = require('./file-folders-keg');
+const cryptoUtil = require('../../crypto/util');
 
 class FileFolders {
     constructor(fileStore) {
         this.fileStore = fileStore;
-        when(() => this.loaded, () => this.init());
         socket.onceAuthenticated(() => {
             this.keg = new FileFoldersKeg(getUser().kegDb);
+            this.keg.onUpdated = () => {
+                console.log(`file folders updated`);
+                this.sync();
+            };
         });
     }
     @observable initialized;
@@ -21,12 +25,18 @@ class FileFolders {
 
     root = new FileFolder(null, '/');
 
-    fileResolveMap;
+    fileResolveMap = {};
+    folderResolveMap = {};
 
     _addFile = (file) => {
         const { fileResolveMap, root } = this;
         const folderToResolve = fileResolveMap[file.fileId];
         if (folderToResolve) {
+            console.log(`this file has folder to resolve`);
+        }
+        if (file.folder && file.folder === folderToResolve) return;
+        if (folderToResolve) {
+            file.folder && file.folder.free(file);
             folderToResolve.add(file);
             delete fileResolveMap[file.fileId];
         } else {
@@ -34,19 +44,36 @@ class FileFolders {
         }
     }
 
-    async init() {
+    @action async sync() {
         if (!this.keg.formatVersion) {
             this.createDefault();
             await this.keg.saveToServer();
         }
         const { files } = this.fileStore;
-        this.fileResolveMap = {};
+        // this.fileResolveMap = {};
         if (this._intercept) {
             this._intercept();
             this._intercept = null;
         }
-        const { fileResolveMap, root } = this;
-        root.deserialize(this.keg, null, fileResolveMap);
+        const { fileResolveMap, folderResolveMap, root } = this;
+        const newFolderResolveMap = {};
+        console.log('file-folders: step 0');
+        root.deserialize(this.keg, null, fileResolveMap, folderResolveMap, newFolderResolveMap);
+        console.log('file-folders: step 1');
+        // remove files from folders if they aren't present in the keg
+        files.forEach(f => {
+            if (f.folder && f.folder !== root && !fileResolveMap[f.fileId]) {
+                f.folder.free(f);
+            }
+        });
+        // remove folders if they aren't present in the keg
+        for (const folderId in folderResolveMap) {
+            if (!newFolderResolveMap[folderId]) {
+                folderResolveMap[folderId].freeSelf();
+            }
+        }
+        this.folderResolveMap = newFolderResolveMap;
+        console.log('file-folders: step 2');
         files.forEach(this._addFile);
         this._intercept = files.intercept(delta => {
             for (let i = delta.removedCount; i > 0; i--) {
@@ -56,6 +83,7 @@ class FileFolders {
             delta.added.forEach(this._addFile);
             return delta;
         });
+        console.log('file-folders: step 3');
         this.initialized = true;
     }
 
@@ -68,10 +96,19 @@ class FileFolders {
         this.save();
     }
 
+    createFolder(name, parent) {
+        const folder = new FileFolder(name);
+        const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
+        folder.folderId = folderId;
+        this.folderResolveMap[folderId] = folder;
+        (parent || this.root).addFolder(folder);
+        return folder;
+    }
+
     save() {
         this.keg.save(() => {
             this.keg.folders = this.root.folders.map(f => f.serialize());
-        }, () => this.init(), 'error_savingFileFolders');
+        }, () => this.sync(), 'error_savingFileFolders');
     }
 }
 

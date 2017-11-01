@@ -1,7 +1,5 @@
 const { observable } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
-const cryptoUtil = require('../../crypto/util');
-const { getUser } = require('../../helpers/di-current-user');
 
 class FileFolder {
     @observable files = [];
@@ -11,6 +9,7 @@ class FileFolder {
     parent = null;
     isFolder = true;
     get isRoot() { return !this.parent; }
+    get hasNested() { return this.folders && this.folders.length; }
 
     constructor(name) {
         const m = createMap(this.files, 'fileId');
@@ -18,11 +17,12 @@ class FileFolder {
         this.fileId = name;
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
+        const m2 = createMap(this.folders, 'folderId');
+        this.folderMap = m2.map;
     }
 
     add(file) {
         if (this.fileMap[file.fileId]) {
-            console.debug(`file-folders.js: file already exists ${file.fileId}`);
             return;
         }
         if (file.folder) {
@@ -33,14 +33,12 @@ class FileFolder {
         this.files.push(file);
     }
 
-    createFolder(name) {
-        const folder = new FileFolder(name);
-        folder.folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
-        this.addFolder(folder);
-        return folder;
-    }
-
     addFolder(folder) {
+        if (folder.parent === this) return folder;
+        if (this.folderMap[folder.folderId]) {
+            console.error(`file-folders.js: folder already exists here`);
+            return folder;
+        }
         if (folder.parent) {
             console.error(`file-folders.js: folder already belongs to a folder`);
             return folder;
@@ -51,6 +49,10 @@ class FileFolder {
     }
 
     free(file) {
+        if (!this.fileMap[file.fileId]) {
+            console.error(`file-folders.js: file does not belong to a folder`);
+            return;
+        }
         const i = this.files.indexOf(file);
         if (i !== -1) {
             this.files.splice(i, 1);
@@ -75,11 +77,15 @@ class FileFolder {
         let root = this;
         while (!root.isRoot) root = root.parent;
         this.files.forEach(file => {
-            this.free(file);
             root.add(file);
         });
-        this.folders.forEach(folder => this.freeFolder(folder));
-        this.parent.freeFolder(this);
+        this.files = [];
+        this.folders.forEach(folder => {
+            folder.parent = null;
+            folder.freeSelf();
+        });
+        this.folders = [];
+        this.parent && this.parent.freeFolder(this);
     }
 
     moveInto(file) {
@@ -94,15 +100,19 @@ class FileFolder {
         return { name, folderId, files, folders };
     }
 
-    deserialize(dataItem, parent, fileResolveMap) {
+    deserialize(dataItem, parent, fileResolveMap, folderResolveMap, newFolderResolveMap) {
         const { folderId, name, files, folders } = dataItem;
         Object.assign(this, { folderId, name });
         files && files.forEach(fileId => {
             fileResolveMap[fileId] = this;
         });
         folders && folders.map(f => {
-            const folder = new FileFolder();
-            folder.deserialize(f, this, fileResolveMap);
+            let folder = folderResolveMap[f.folderId];
+            if (!folder) {
+                folder = new FileFolder();
+            }
+            folder.deserialize(f, this, fileResolveMap, folderResolveMap, newFolderResolveMap);
+            newFolderResolveMap[f.folderId] = folder;
             return folder;
         });
         parent && parent.addFolder(this);
