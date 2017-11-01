@@ -90,8 +90,17 @@ class FileFolder {
     }
 
     moveInto(file) {
-        if (file.folder) file.folder.free(file);
-        this.add(file);
+        if (file.isFolder) {
+            if (file === this) {
+                console.error('cannot move folder in itself');
+                return;
+            }
+            file.parent.freeFolder(file);
+            this.addFolder(file);
+        } else {
+            if (file.folder) file.folder.free(file);
+            this.add(file);
+        }
     }
 
     serialize() {
