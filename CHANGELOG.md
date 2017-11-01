@@ -2,6 +2,109 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.13.2"></a>
+## [2.13.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.1...v2.13.2) (2017-11-01)
+
+
+
+<a name="2.13.1"></a>
+## [2.13.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.0...v2.13.1) (2017-10-31)
+
+
+
+<a name="2.13.0"></a>
+# [2.13.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.12.0...v2.13.0) (2017-10-31)
+
+
+### Bug Fixes
+
+* chain callback to wait for result ([ca8f1fa](https://github.com/PeerioTechnologies/peerio-icebear/commit/ca8f1fa))
+* cleanup ([ca4c9ae](https://github.com/PeerioTechnologies/peerio-icebear/commit/ca4c9ae))
+* delete room test ([7dee8b5](https://github.com/PeerioTechnologies/peerio-icebear/commit/7dee8b5))
+* failed messages displaced if managed to get keg id ([41447d1](https://github.com/PeerioTechnologies/peerio-icebear/commit/41447d1))
+* file not appearing in sidebar in new DMs ([7775b3d](https://github.com/PeerioTechnologies/peerio-icebear/commit/7775b3d))
+* find email contact ([cabad11](https://github.com/PeerioTechnologies/peerio-icebear/commit/cabad11))
+* make first test pass ([d93536c](https://github.com/PeerioTechnologies/peerio-icebear/commit/d93536c))
+* make sure data from scenario is not null before processing it ([38b4769](https://github.com/PeerioTechnologies/peerio-icebear/commit/38b4769))
+* merge scenarios for Send/receive read receipt ([59a379a](https://github.com/PeerioTechnologies/peerio-icebear/commit/59a379a))
+* merge send/receive scenarios ([66a0a65](https://github.com/PeerioTechnologies/peerio-icebear/commit/66a0a65))
+* move test from util to keys ([898954a](https://github.com/PeerioTechnologies/peerio-icebear/commit/898954a))
+* move test related packages to devDependencies ([bc25beb](https://github.com/PeerioTechnologies/peerio-icebear/commit/bc25beb))
+* potential duplication of contacts now is prevented in sdk ([c7e39ea](https://github.com/PeerioTechnologies/peerio-icebear/commit/c7e39ea))
+* profile tests ([f450da2](https://github.com/PeerioTechnologies/peerio-icebear/commit/f450da2))
+* receiver can't see deleted files ([0414bd4](https://github.com/PeerioTechnologies/peerio-icebear/commit/0414bd4))
+* redo contact filter story ([189b0d1](https://github.com/PeerioTechnologies/peerio-icebear/commit/189b0d1))
+* remove filters tests ([615df7e](https://github.com/PeerioTechnologies/peerio-icebear/commit/615df7e))
+* remove mailinator package from dependencies b/c causing errors in returned response ([79e58a2](https://github.com/PeerioTechnologies/peerio-icebear/commit/79e58a2))
+* remove unused feature ([965088f](https://github.com/PeerioTechnologies/peerio-icebear/commit/965088f))
+* resolve error response after sharing file ([1e1e898](https://github.com/PeerioTechnologies/peerio-icebear/commit/1e1e898))
+* run primary address test on separate instance ([d5f83f1](https://github.com/PeerioTechnologies/peerio-icebear/commit/d5f83f1))
+* storage stories ([f37f23a](https://github.com/PeerioTechnologies/peerio-icebear/commit/f37f23a))
+* storage test path ([9ff28d6](https://github.com/PeerioTechnologies/peerio-icebear/commit/9ff28d6))
+* stringify passed data; unify support code ([2971832](https://github.com/PeerioTechnologies/peerio-icebear/commit/2971832))
+* undo reset code ([7131005](https://github.com/PeerioTechnologies/peerio-icebear/commit/7131005))
+* update docs ([2a1f1af](https://github.com/PeerioTechnologies/peerio-icebear/commit/2a1f1af))
+* update story ([d1d6b76](https://github.com/PeerioTechnologies/peerio-icebear/commit/d1d6b76))
+* wait on contact being loaded to check if it's in the invites or not ([d877295](https://github.com/PeerioTechnologies/peerio-icebear/commit/d877295))
+
+
+### Features
+
+* 2fa ([5518773](https://github.com/PeerioTechnologies/peerio-icebear/commit/5518773))
+* add a few test scenarios ([8e69b86](https://github.com/PeerioTechnologies/peerio-icebear/commit/8e69b86))
+* add create account with username helper ([94a8bb0](https://github.com/PeerioTechnologies/peerio-icebear/commit/94a8bb0))
+* add icebear source in e2e tests ([b5ac74e](https://github.com/PeerioTechnologies/peerio-icebear/commit/b5ac74e))
+* add input data as process env to scenario runner ([e188e5c](https://github.com/PeerioTechnologies/peerio-icebear/commit/e188e5c))
+* add sign in test implementation ([24d9c33](https://github.com/PeerioTechnologies/peerio-icebear/commit/24d9c33))
+* add tests for ghost chats ([3c1b172](https://github.com/PeerioTechnologies/peerio-icebear/commit/3c1b172))
+* added more happy path tests and few edge cases ([b1ca9f1](https://github.com/PeerioTechnologies/peerio-icebear/commit/b1ca9f1))
+* avatar tests ([7bb888c](https://github.com/PeerioTechnologies/peerio-icebear/commit/7bb888c))
+* clear require cache ([50c3071](https://github.com/PeerioTechnologies/peerio-icebear/commit/50c3071))
+* Create favorite contact from invited user ([f1e0651](https://github.com/PeerioTechnologies/peerio-icebear/commit/f1e0651))
+* cucumber child process helper ([4c0c982](https://github.com/PeerioTechnologies/peerio-icebear/commit/4c0c982))
+* delete account feature ([849965a](https://github.com/PeerioTechnologies/peerio-icebear/commit/849965a))
+* delete file test implementation ([9b49754](https://github.com/PeerioTechnologies/peerio-icebear/commit/9b49754))
+* delete room ([8d2a582](https://github.com/PeerioTechnologies/peerio-icebear/commit/8d2a582))
+* end to end test project with sample test and docs ([cba2a03](https://github.com/PeerioTechnologies/peerio-icebear/commit/cba2a03))
+* End to end tests for Icebear ([#51](https://github.com/PeerioTechnologies/peerio-icebear/issues/51)) ([6595b71](https://github.com/PeerioTechnologies/peerio-icebear/commit/6595b71))
+* favorite dm ([e88b3d7](https://github.com/PeerioTechnologies/peerio-icebear/commit/e88b3d7))
+* file icon types ([#52](https://github.com/PeerioTechnologies/peerio-icebear/issues/52)) ([d2d152b](https://github.com/PeerioTechnologies/peerio-icebear/commit/d2d152b))
+* made receipts observable ([68d2596](https://github.com/PeerioTechnologies/peerio-icebear/commit/68d2596))
+* make 'download file from storage' test pass ([07ccb27](https://github.com/PeerioTechnologies/peerio-icebear/commit/07ccb27))
+* new test case for deleting file after sharing it ([06534ee](https://github.com/PeerioTechnologies/peerio-icebear/commit/06534ee))
+* promservable and string unit tests ([2e182d3](https://github.com/PeerioTechnologies/peerio-icebear/commit/2e182d3))
+* receive DM ([fe77e7c](https://github.com/PeerioTechnologies/peerio-icebear/commit/fe77e7c))
+* remove favorite ([d6e377e](https://github.com/PeerioTechnologies/peerio-icebear/commit/d6e377e))
+* Remove favorite contact before email confirmation ([8df5305](https://github.com/PeerioTechnologies/peerio-icebear/commit/8df5305))
+* run scenario on separate thread and pass back data to calling feature ([0b4d144](https://github.com/PeerioTechnologies/peerio-icebear/commit/0b4d144))
+* run scenarios by name ([675bb91](https://github.com/PeerioTechnologies/peerio-icebear/commit/675bb91))
+* search folders for features ([5a80478](https://github.com/PeerioTechnologies/peerio-icebear/commit/5a80478))
+* send chat invite, log in as receiver and view invite ([58c7cf9](https://github.com/PeerioTechnologies/peerio-icebear/commit/58c7cf9))
+* Send invite email test ([4a2a924](https://github.com/PeerioTechnologies/peerio-icebear/commit/4a2a924))
+* separate cucumber scripts ([70263ec](https://github.com/PeerioTechnologies/peerio-icebear/commit/70263ec))
+* share a file and login as receiver to view it ([9c2b39d](https://github.com/PeerioTechnologies/peerio-icebear/commit/9c2b39d))
+* task pacer helper ([917157f](https://github.com/PeerioTechnologies/peerio-icebear/commit/917157f))
+* test for changing primary address ([0e5d3e4](https://github.com/PeerioTechnologies/peerio-icebear/commit/0e5d3e4))
+* test implementation for sign out, add/remove email ([de5e2c5](https://github.com/PeerioTechnologies/peerio-icebear/commit/de5e2c5))
+* test that admin can change room name and purpose ([c3bbb4f](https://github.com/PeerioTechnologies/peerio-icebear/commit/c3bbb4f))
+* test that i can make other user admin / not admin in room i created ([e42ae2b](https://github.com/PeerioTechnologies/peerio-icebear/commit/e42ae2b))
+* test that i can remove participant from room i created ([c62e497](https://github.com/PeerioTechnologies/peerio-icebear/commit/c62e497))
+* tests for file helper ([35fe207](https://github.com/PeerioTechnologies/peerio-icebear/commit/35fe207))
+* update access scenarios ([1f7eb65](https://github.com/PeerioTechnologies/peerio-icebear/commit/1f7eb65))
+* update test cases for avatar and user email ([f4da42c](https://github.com/PeerioTechnologies/peerio-icebear/commit/f4da42c))
+* upload file test ([da429ee](https://github.com/PeerioTechnologies/peerio-icebear/commit/da429ee))
+* use another id to invite for every room test ([7fa15a3](https://github.com/PeerioTechnologies/peerio-icebear/commit/7fa15a3))
+* wait for chat to be added to chat list, verify that message is received ([3a0c86c](https://github.com/PeerioTechnologies/peerio-icebear/commit/3a0c86c))
+* wait on auth and profile loaded in login step ([54afce9](https://github.com/PeerioTechnologies/peerio-icebear/commit/54afce9))
+
+
+### Performance Improvements
+
+* manual updates of chat invites are not needed anymore ([04144aa](https://github.com/PeerioTechnologies/peerio-icebear/commit/04144aa))
+* pace socket requests ([17ed012](https://github.com/PeerioTechnologies/peerio-icebear/commit/17ed012))
+
+
+
 <a name="2.12.0"></a>
 # [2.12.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.11.1...v2.12.0) (2017-10-23)
 

@@ -1,7 +1,7 @@
 //
 //  Crypto utilities module testing
 //
-const util = require('../../src/crypto/util');
+const util = require('~/crypto/util');
 
 describe('Crypto Utilities module', () => {
     [
@@ -9,7 +9,8 @@ describe('Crypto Utilities module', () => {
             name: '2 non-empty arrays',
             arg1: new Uint8Array([1, 5, 7]),
             arg2: new Uint8Array([8, 3, 5, 3, 2]),
-            expected: new Uint8Array([1, 5, 7, 8, 3, 5, 3, 2]) },
+            expected: new Uint8Array([1, 5, 7, 8, 3, 5, 3, 2])
+        },
         {
             name: 'first array is empty',
             arg1: new Uint8Array([]),

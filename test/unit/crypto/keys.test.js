@@ -1,11 +1,11 @@
 //
 //  Crypto keys module testing
 //
-const crypto = require('../../src/crypto/keys');
-const util = require('../../src/crypto/util');
+const crypto = require('~/crypto/keys');
+const util = require('~/crypto/util');
 
 describe('Crypto Keys module', function() {
-    this.timeout(15000);
+    this.timeout(5000);
 
     describe('account keys', () => {
         before(() => {
