@@ -52,11 +52,8 @@ defineSupportCode(({ Given, Then, When }) => {
 
     // Scenario: favorite a contact
     When('I favorite a registered user', () => {
-        return contactLoaded()
-            .then(() => {
-                return store.addContact(otherUser)
-                    .then(result => result.should.be.true);
-            });
+        return store.addContact(otherUser.id)
+            .then(result => result.should.be.true);
     });
 
     Then('they will be in my favorite contacts', () => {
@@ -75,10 +72,7 @@ defineSupportCode(({ Given, Then, When }) => {
 
     Then('they will not be in my favorites', () => {
         return contactLoaded()
-            .then(() => {
-                store.addedContacts
-                    .should.not.contain(c => c === contactFromUsername);
-            });
+            .then(() => store.addedContacts.should.not.contain(contactFromUsername));
     });
 
 
