@@ -77,6 +77,7 @@ class FileFolder {
         let root = this;
         while (!root.isRoot) root = root.parent;
         this.files.forEach(file => {
+            file.folder = null;
             root.add(file);
         });
         this.files = [];
