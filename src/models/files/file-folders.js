@@ -46,18 +46,7 @@ class FileFolders {
             this._intercept = null;
         }
         const { fileResolveMap, root } = this;
-        const { folders } = this.keg;
-        if (folders) {
-            folders.forEach(f => {
-                const { folderId, name } = f;
-                const folder = new FileFolder();
-                Object.assign(folder, { folderId, name });
-                f.files.forEach(fileId => {
-                    fileResolveMap[fileId] = folder;
-                });
-                root.addFolder(folder);
-            });
-        }
+        root.deserialize(this.keg, null, fileResolveMap);
         files.forEach(this._addFile);
         this._intercept = files.intercept(delta => {
             for (let i = delta.removedCount; i > 0; i--) {
@@ -81,12 +70,7 @@ class FileFolders {
 
     save() {
         this.keg.save(() => {
-            this.keg.folders = this.root.folders.map(
-                folder => {
-                    const { name, folderId } = folder;
-                    const files = folder.files.map(f => f.fileId);
-                    return { name, folderId, files };
-                });
+            this.keg.folders = this.root.folders.map(f => f.serialize());
         }, () => this.init(), 'error_savingFileFolders');
     }
 }

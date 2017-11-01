@@ -87,8 +87,26 @@ class FileFolder {
         this.add(file);
     }
 
-    getFiles() {
-        return this.files;
+    serialize() {
+        const { name, folderId } = this;
+        const files = this.files.map(f => f.fileId);
+        const folders = this.folders.map(f => f.serialize());
+        return { name, folderId, files, folders };
+    }
+
+    deserialize(dataItem, parent, fileResolveMap) {
+        const { folderId, name, files, folders } = dataItem;
+        Object.assign(this, { folderId, name });
+        files && files.forEach(fileId => {
+            fileResolveMap[fileId] = this;
+        });
+        folders && folders.map(f => {
+            const folder = new FileFolder();
+            folder.deserialize(f, this, fileResolveMap);
+            return folder;
+        });
+        parent && parent.addFolder(this);
+        return this;
     }
 }
 

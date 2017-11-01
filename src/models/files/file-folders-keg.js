@@ -18,8 +18,6 @@ class FileFoldersKeg extends SyncedKeg {
     }
 
     deserializeKegPayload(payload) {
-        console.log('file-folders-keg');
-        console.log(payload);
         const { formatVersion, folders } = payload;
         Object.assign(this, { formatVersion, folders });
     }
