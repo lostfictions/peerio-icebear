@@ -94,6 +94,7 @@ class FileFolders {
         const folder = new FileFolder(name);
         const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
         folder.folderId = folderId;
+        folder.createdAt = new Date();
         this.folderResolveMap[folderId] = folder;
         (parent || this.root).addFolder(folder);
         return folder;

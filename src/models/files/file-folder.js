@@ -5,6 +5,7 @@ class FileFolder {
     @observable files = [];
     @observable folders = [];
     @observable name;
+    @observable createdAt;
 
     parent = null;
     isFolder = true;
@@ -104,10 +105,10 @@ class FileFolder {
     }
 
     serialize() {
-        const { name, folderId, parent } = this;
+        const { name, folderId, createdAt } = this;
         const files = this.files.map(f => f.fileId);
         const folders = this.folders.map(f => f.serialize());
-        return { name, folderId, files, folders };
+        return { name, folderId, createdAt, files, folders };
     }
 
     deserialize(dataItem, parent, fileResolveMap, folderResolveMap, newFolderResolveMap) {
