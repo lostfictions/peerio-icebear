@@ -6,11 +6,11 @@ const { getChatStore, getContactWithName } = require('./client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { secretPassphrase } = require('./helpers/constants');
+const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {
     const app = getAppInstance();
     const store = getChatStore();
-    const otherUsername = 'gft99kr2e377zdgwygbjjonihd9x9y';
     let chatId;
     const message = 'Hello world';
     let numberOfMessages = -1;
@@ -32,12 +32,12 @@ defineSupportCode(({ Given, Then, When }) => {
 
     // Scenario: Create direct message
     When('I create a direct message', () => {
-        return getContactWithName(otherUsername)
+        return getContactWithName(otherUser.id)
             .then(user => startChatWith(user).then(assignChatId));
     });
 
     Then('the receiver gets notified', () => {
-        const user = { username: otherUsername, passphrase: secretPassphrase, chatId };
+        const user = { username: otherUser.id, passphrase: secretPassphrase, chatId };
         return runFeature('Receive chat request from account', user)
             .then(checkResult);
     });
@@ -88,7 +88,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver can read the message', () => {
-        const data = { username: otherUsername, passphrase: secretPassphrase, chatId };
+        const data = { username: otherUser.id, passphrase: secretPassphrase, chatId };
         return runFeature('Receive new message from account', data)
             .then(checkResult);
     });
@@ -103,7 +103,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver reads the message', () => {
-        const data = { username: otherUsername, passphrase: secretPassphrase, chatId };
+        const data = { username: otherUser.id, passphrase: secretPassphrase, chatId };
         runFeature('Read new message from account', data)
             .then(checkResult);
     });

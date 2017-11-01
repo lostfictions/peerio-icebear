@@ -1,3 +1,4 @@
+@registeredUser
 Feature: Direct messages
     As a user
     In order to communicate with others
