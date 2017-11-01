@@ -7,6 +7,7 @@ Feature: Files in storage
     Background: 
         Given I am logged in
 
+    @wip
     Scenario: Upload
         When I upload a file
         Then I should see it in my files

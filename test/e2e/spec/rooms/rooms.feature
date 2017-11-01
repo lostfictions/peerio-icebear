@@ -1,3 +1,4 @@
+@wip
 Feature: Rooms
     As a user
     In order to communicate with a group

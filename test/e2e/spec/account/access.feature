@@ -11,6 +11,7 @@ Feature: User account access
         When I sign in
         Then I have access to my account
     
+   @wip
    Scenario: Change primary email
         Given I am logged in
         When  I add a new email

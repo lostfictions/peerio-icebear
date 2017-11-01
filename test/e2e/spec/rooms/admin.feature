@@ -12,6 +12,7 @@ Feature: Rooms
         Then I can rename the room
         And  I can change the room purpose
     
+    @wip
     Scenario: Delete room
         Given I create a room
         Then  I can delete a room
