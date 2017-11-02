@@ -40,10 +40,12 @@ class ChatFileHandler {
      * @param {string} path - full file path
      * @param {string} [name] - override file name, specify to store the file keg with this name
      * @param {boolean} [deleteAfterUpload=false] - delete local file after successful upload
+     * @param {function} [beforeShareCallback=null] - function returning Promise which will be waited for
+     *                                                before file is shared. We need this to finish keg preparations.
      * @returns {File}
      * @public
      */
-    uploadAndShare(path, name, deleteAfterUpload = false) {
+    uploadAndShare(path, name, deleteAfterUpload = false, beforeShareCallback = null) {
         const file = fileStore.upload(path, name);
         file.uploadQueue = this.chat.uploadQueue; // todo: change, this is dirty
         this.chat.uploadQueue.push(file);
@@ -52,7 +54,11 @@ class ChatFileHandler {
         });
         when(() => file.readyForDownload, () => {
             this.chat.uploadQueue.remove(file);
-            this.share([file]);
+            if (beforeShareCallback) {
+                beforeShareCallback().then(() => this.share([file]));
+            } else {
+                this.share([file]);
+            }
             if (deleteAfterUpload) {
                 config.FileStream.delete(path);
             }
