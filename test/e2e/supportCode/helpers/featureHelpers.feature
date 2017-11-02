@@ -1,3 +1,4 @@
+@helper
 Feature: Common scenarios
     
     Scenario: Create new user

@@ -3,7 +3,7 @@ const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { getRandomUsername } = require('./helpers/usernameHelper');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature, checkResultAnd } = require('./helpers/runFeature');
+const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./client');
@@ -16,8 +16,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     let url = '';
     let newEmail;
 
-    // let username, passphrase;
-    let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
+    let username, passphrase;
+    // let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
 
     const notifyOfCredentials = () => {
         const data = {
@@ -26,6 +26,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         };
         console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
     };
+
     const setCredentialsIfAny = () => {
         if (process.env.peerioData) {
             const data = JSON.parse(process.env.peerioData);
@@ -33,12 +34,19 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         }
     };
 
+    Before('not @helper', () => {
+        return runFeature('Create new user')
+            .then(checkResultAnd)
+            .then(data => { ({ username, passphrase } = data); });
+    });
+
     Before(() => {
         return waitForConnection()
             .then(setCredentialsIfAny);
     });
 
     Given('I am logged in', (done) => {
+        console.log(username, passphrase);
         setCurrentUser(username, passphrase);
         currentUser().login()
             .then(() => asPromise(app.socket, 'authenticated', true))
@@ -50,8 +58,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Account creation
     When('I successfully create an account', () => {
         return runFeature('Create new user')
-            .then(checkResultAnd)
-            .then(data => { ({ username, passphrase } = data); });
+            .then(checkResult);
     });
 
     Given('I am a new customer', () => {
