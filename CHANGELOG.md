@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.0"></a>
+# [2.14.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.4...v2.14.0) (2017-11-02)
+
+
+### Bug Fixes
+
+* some tweaks in marking unread items logic ([04ccf5e](https://github.com/PeerioTechnologies/peerio-icebear/commit/04ccf5e))
+
+
+### Features
+
+* beforeShareCallback in FileStore#shareAndUpload allows you to add last modifications to keg before sharing ([26c1754](https://github.com/PeerioTechnologies/peerio-icebear/commit/26c1754))
+
+
+
+<a name="2.13.4"></a>
+## [2.13.4](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.3...v2.13.4) (2017-11-01)
+
+
+
+<a name="2.13.3"></a>
+## [2.13.3](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.2...v2.13.3) (2017-11-01)
+
+
+
 <a name="2.13.2"></a>
 ## [2.13.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.1...v2.13.2) (2017-11-01)
 
