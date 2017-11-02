@@ -133,14 +133,19 @@ class Message extends Keg {
         return timestamp ? moment(timestamp).format('LT') : null;
     }
     /**
-     * Sends current message (saves the keg)
+     * Sends current message (saves the keg).
+     * This function can be called as a reaction to user clicking 'retry' on failed message.
+     * But because failure might have happened after we got a get id - we need to clear the keg id and version,
+     * so the message doesn't confusingly appear out of order (messages are sorted by id)
      * @returns {Promise}
      * @protected
      */
     send() {
         this.sending = true;
         this.sendError = false;
-        this.assignTemporaryId();
+        if (!this.tempId) this.assignTemporaryId();
+        this.id = null;
+        this.version = 0;
         this.sender = contactStore.getContact(User.current.username);
         this.timestamp = new Date();
 
