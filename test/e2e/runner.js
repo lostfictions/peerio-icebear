@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const Promise = require('bluebird');
+const { runFeature } = require('./supportCode/helpers/runFeature');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const featurePath = 'test/e2e/spec';
@@ -30,13 +31,15 @@ const listScenarios = () => {
     });
 };
 
-listScenarios().then((data) => {
-    const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
-    const features = JSON.parse(json);
-    const scenarios = features
-        .map(x => x.elements)
-        .reduce((a, b) => a.concat(b))
-        .map(x => x.name);
+listScenarios()
+    .then((data) => {
+        const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
+        const features = JSON.parse(json);
+        const scenarios = features
+            .map(x => x.elements)
+            .reduce((a, b) => a.concat(b))
+            .map(x => x.name);
 
-    console.log(scenarios);
-});
+        console.log(scenarios);
+        Promise.each(scenarios, runFeature);
+    });

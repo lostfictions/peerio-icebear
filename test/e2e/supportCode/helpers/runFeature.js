@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const Promise = require('bluebird');
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
-const featurePath = 'test/e2e/supportCode/helpers/featureHelpers.feature';
+const featurePath = 'test/e2e';
 const supportCodePath = 'test/e2e/supportCode';
 const { secretPassphrase } = require('./constants');
 
