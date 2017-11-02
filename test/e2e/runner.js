@@ -19,9 +19,9 @@ const listScenarios = () => {
             '--compiler',
             'js:babel-register',
             '--format',
-            'json'
-            // '--tags',
-            // '\'not @wip\''
+            'json',
+            '--tags',
+            'not @wip'
         ];
 
         const proc = spawn(cucumberPath, options);
