@@ -15,7 +15,7 @@ defineSupportCode(({ Given, Then, When }) => {
         contactFromUsername = store.getContact(otherUser.id);
         return asPromise(contactFromUsername, 'loading', false).delay(500);
     };
-    
+
     // Scenario: Find contact
     Given(/I search for (?:a registered username|a registered email|an unregistered user)/, () => {
         return contactLoaded();

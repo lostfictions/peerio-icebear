@@ -31,7 +31,12 @@ const listScenarios = () => {
 };
 
 listScenarios().then((data) => {
-    console.log(data);
-    // const result = JSON.parse(data[0]);
-    // console.log(result);
+    const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
+    const features = JSON.parse(json);
+    const scenarios = features
+        .map(x => x.elements)
+        .reduce((a, b) => a.concat(b))
+        .map(x => x.name);
+
+    console.log(scenarios);
 });
