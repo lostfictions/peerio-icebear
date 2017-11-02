@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.1"></a>
+## [2.14.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.0...v2.14.1) (2017-11-02)
+
+
+### Bug Fixes
+
+* beforeShareCallback was not being passed to uploadAndShare ([#55](https://github.com/PeerioTechnologies/peerio-icebear/issues/55)) ([7c8453a](https://github.com/PeerioTechnologies/peerio-icebear/commit/7c8453a))
+
+
+
 <a name="2.14.0"></a>
 # [2.14.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.13.4...v2.14.0) (2017-11-02)
 
