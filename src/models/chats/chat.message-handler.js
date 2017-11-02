@@ -38,7 +38,7 @@ class ChatMessageHandler {
                 this.chat.updatedAfterReconnect = false;
             }
         }));
-        this._reactionsToDispose.push(reaction(() => clientApp.isFocused && clientApp.isInChatsView && this.chat.active,
+        this._reactionsToDispose.push(reaction(() => socket.authenticated && clientApp.isFocused && clientApp.isInChatsView && this.chat.active,
             (userIsReading) => {
                 if (userIsReading) {
                     this.markAllAsSeen();
@@ -72,7 +72,7 @@ class ChatMessageHandler {
             this._removeMarkerTimer = null;
             if (!clientApp.isFocused || !clientApp.isInChatsView || !this.chat.active) return;
             this.chat.newMessagesMarkerPos = null;
-        }, 20000);
+        }, 15000);
     }
 
     // one of the reasons to throttle is to avoid changing unreadCount observable inside a reaction to it's change
