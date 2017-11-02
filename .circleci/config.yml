@@ -1,0 +1,74 @@
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.6
+    working_directory: ~/repo
+    steps:
+      - checkout
+      #
+      # - run:
+      #     name: "Update npm"
+      #     command: |
+      #       npm install npm@latest
+      #       sudo rm -rf /usr/local/lib/node_modules/npm
+      #       sudo mv node_modules/npm /usr/local/lib/node_modules/npm
+      #       sudo chown -R 500:500 /usr/local/lib/node_modules/npm
+      - run:
+          name: "Checking Versions"
+          command: |
+            node --version
+            npm --version
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-dependencies
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: eslint
+          command: npm run code:verify
+      - run:
+          name: test
+          command: npm test
+      - store_artifacts:
+          path: coverage
+          prefix: coverage
+  deploy:
+    docker:
+      - image: circleci/node:8.6
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "2e:53:61:1e:34:dd:22:fd:d6:2d:4f:2b:44:ef:56:28"
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-dependencies
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: ./.circleci/create-netrc.sh
+      - run: ./.circleci/dev-release.sh
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
+
