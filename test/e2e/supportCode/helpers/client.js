@@ -8,6 +8,10 @@ const waitForConnection = () => {
     return asPromise(app.socket, 'connected', true);
 };
 
+const waitForAuth = () => {
+    return asPromise(app.socket, 'authenticated', true);
+};
+
 const showChatUI = () => {
     app.clientApp.isFocused = true;
     app.clientApp.isInChatsView = true;
@@ -53,6 +57,7 @@ const getFileStore = () => {
 
 module.exports = {
     waitForConnection,
+    waitForAuth,
     showChatUI,
     currentUser,
     setCurrentUser,

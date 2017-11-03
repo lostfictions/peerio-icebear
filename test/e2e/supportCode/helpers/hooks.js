@@ -5,7 +5,7 @@ const { waitForConnection, getFileStore } = require('./client');
 const { confirmUserEmail } = require('./mailinatorHelper');
 const { getRandomUsername } = require('./usernameHelper');
 
-defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) => {
+defineSupportCode(({ setDefaultTimeout, defineParameterType, Before }) => {
     setDefaultTimeout(10000);
 
     defineParameterType({

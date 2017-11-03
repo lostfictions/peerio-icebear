@@ -1,16 +1,14 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const getAppInstance = require('./helpers/appConfig');
 const { when } = require('mobx');
 const { getRandomUsername } = require('./helpers/usernameHelper');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
+const { runFeature, checkResult } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./helpers/client');
+const { waitForConnection, waitForAuth, currentUser, setCurrentUser, getContactWithName } = require('./helpers/client');
 const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
-    const app = getAppInstance();
     let secret = null;
     let blob = null;
     let url = '';
@@ -20,8 +18,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     const notifyOfCredentials = () => {
         const data = {
-            username: app.User.current.username,
-            passphrase: app.User.current.passphrase
+            username: currentUser().username,
+            passphrase: currentUser().passphrase
         };
         console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
     };
@@ -40,17 +38,17 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Before('not @helper', (done) => {
         setCurrentUser(getRandomUsername(), secretPassphrase);
-        return currentUser()
+        currentUser()
             .createAccountAndLogin()
             .then(() => asPromise(currentUser(), 'profileLoaded', true))
-            .then(() => when(() => currentUser(), done));
+            .then(() => when(() => currentUser().quota, done));
     });
 
     Given('I am logged in', (done) => {
         setCurrentUser(username, passphrase);
         currentUser().login()
             .then(() => asPromise(currentUser(), 'profileLoaded', true))
-            .then(() => when(() => currentUser(), done));
+            .then(() => when(() => currentUser().quota, done));
     });
 
 
@@ -70,8 +68,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(notifyOfCredentials);
     });
 
-    Then('I will be logged in', (done) => {
-        when(() => app.socket.authenticated, done);
+    Then('I will be logged in', () => {
+        return waitForAuth();
     });
 
 
@@ -79,16 +77,16 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     When('my email is confirmed', () => {
         return confirmUserEmail(currentUser().email)
             .then(() => {
-                app.User.current.primaryAddressConfirmed = true;
+                currentUser().primaryAddressConfirmed = true;
             });
     });
 
     Given('I delete my account', () => {
-        return app.User.current.deleteAccount(currentUser().username);
+        return currentUser().deleteAccount(currentUser().username);
     });
 
     Then('I should not be able to login', () => {
-        return app.User.current
+        return currentUser()
             .login()
             .should.be.rejectedWith(DisconnectedError);
     });
@@ -104,8 +102,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .should.be.fulfilled;
     });
 
-    Then('I have access to my account', (done) => {
-        when(() => app.socket.authenticated, done);
+    Then('I have access to my account', () => {
+        return waitForAuth();
     });
 
 
@@ -136,7 +134,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Then('the primary email should be updated', () => {
         return currentUser().login()
             .then(() => {
-                const primaryAddress = app.User.current.addresses.find(x => x.primary);
+                const primaryAddress = currentUser().addresses.find(x => x.primary);
                 primaryAddress.should.not.be.null.and.equal(newEmail);
             });
     });
@@ -255,9 +253,9 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Enable 2FA
     When('I enable 2FA', (done) => {
-        app.User.current.twoFAEnabled = false;
+        currentUser().twoFAEnabled = false;
 
-        app.User.current
+        currentUser()
             .setup2fa()
             .then((s) => { secret = s; })
             .then(done);
@@ -283,11 +281,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Try to enable 2FA when it's already active
     When('2FA is already enabled', () => {
-        app.User.current.twoFAEnabled = true;
+        currentUser().twoFAEnabled = true;
     });
 
     Then('I should receive an error saying {string}', (err) => {
-        return app.User.current
+        return currentUser()
             .setup2fa()
             .should.be.rejectedWith(err);
     });
