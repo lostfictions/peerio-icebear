@@ -18,7 +18,7 @@ Feature: Rooms
         Then  I can delete a room
     
     @registeredUser
-    Scenario: Send invite
+    Scenario: Send room invite
         When I create a room
         And  I invite another user
         Then they should get a room invite

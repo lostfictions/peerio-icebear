@@ -59,6 +59,7 @@ const runFeature = (scenarioName, peerioData = null) => {
 
         const env = Object.create(process.env);
         if (peerioData !== null) {
+            env.peerioData = null;
             env.peerioData = JSON.stringify(peerioData);
         }
         const proc = spawn(cucumberPath, options, { env });

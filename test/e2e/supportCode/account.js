@@ -35,7 +35,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     };
 
     Before('not @helper', () => {
-        return runFeature('Create new user')
+        return runFeature('Create new account')
             .then(checkResultAnd)
             .then(data => { ({ username, passphrase } = data); });
     });

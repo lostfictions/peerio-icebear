@@ -32,7 +32,7 @@ const listScenarios = () => {
 };
 
 listScenarios()
-    .then((data) => {
+    .then(async (data) => {
         const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
         const features = JSON.parse(json);
         const scenarios = features
@@ -41,5 +41,7 @@ listScenarios()
             .map(x => x.name);
 
         console.log(scenarios);
-        Promise.each(scenarios, runFeature);
+        Promise.each(scenarios, async (x) => {
+            await runFeature(x);
+        });
     });
