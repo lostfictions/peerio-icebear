@@ -10,3 +10,4 @@ env.sh
 build
 .nyc_output
 .vscode
+.opt-in
