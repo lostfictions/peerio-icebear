@@ -15,8 +15,12 @@ const getPeerioDataFrom = (output) => {
         found = found.map(x => x.replace('</peerioData>', ''));
     }
 
-    const result = JSON.parse(found);
-    return result;
+    try {
+        const result = JSON.parse(found);
+        return result;
+    } catch (err) {
+        return {};
+    }
 };
 
 const getScenarioSummary = (output) => {
