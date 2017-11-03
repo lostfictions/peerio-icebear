@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const Promise = require('bluebird');
 const { runFeature } = require('./supportCode/helpers/runFeature');
+const expect = require('chai').expect;
 
 const cucumberPath = 'node_modules/.bin/cucumber.js';
 const featurePath = 'test/e2e/spec';
@@ -55,15 +56,20 @@ const runScenariosSync = (scenarios) => {
     });
 };
 
-listScenarios()
-    .then((data) => {
-        const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
-        const scenarios = getScenarioNames(json);
-        console.log(scenarios);
+describe('E2E tests', () => {
+    it('', () => {
+        return listScenarios()
+            .then((data) => {
+                const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
+                const scenarios = getScenarioNames(json);
+                console.log(scenarios);
 
-        return runScenariosSync(scenarios)
-            .then(({ passed, failed }) => {
-                console.log('Passed:', passed);
-                console.log('Failed:', failed);
+                return runScenariosSync(scenarios)
+                    .then(({ passed, failed }) => {
+                        console.log('Passed:', passed);
+                        console.log('Failed:', failed);
+                        expect(failed).to.be.empty;
+                    });
             });
     });
+});

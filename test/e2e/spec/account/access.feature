@@ -3,8 +3,8 @@ Feature: User account access
     In order to use the app
     I want to have an account
     
-    Scenario: Account creation
-        * I successfully create an account
+    # Scenario: Account creation
+    #     * I successfully create an account
 
     Scenario: Sign in
         Given I am a returning customer
