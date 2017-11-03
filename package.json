@@ -1,26 +1,26 @@
 {
-  "name": "@peerio/peerio-icebear",
-  "version": "2.12.0",
+  "name": "peerio-icebear",
+  "version": "2.14.2",
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
   "scripts": {
-    "=== HOOKS": "",
+    "=== HOOKS ===": "",
     "postcheckout": "npm run _warn-npm-install",
     "postmerge": "npm run _warn-npm-install",
     "precommit": "opt --in lint --exec \"npm run code:verify\"",
     "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
-    "=== TESTS": "",
+    "=== TESTS ===": "",
     "mocha": "mocha test/**/*.test.js --require babel-register --require test/unit/unit-global-setup --timeout 15000",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
     "e2e": "cucumber.js test/e2e/spec -r test/e2e/supportCode/helpers/global-setup.js -r test/e2e/supportCode --compiler js:babel-register --format node_modules/cucumber-pretty --tags 'not @wip'",
     "testRunner": "mocha test/e2e/runner.js --timeout 10000000",
-    "=== VALIDATION": "",
+    "=== VALIDATION ===": "",
     "code:lint": "eslint . --fix --ext .js",
     "code:verify": "eslint . --ext .js --max-warnings 0",
-    "=== RELEASE": "",
+    "=== RELEASE ===": "",
     "release": "./scripts/release.sh",
-    "=== HELPERS": "",
+    "=== HELPERS ===": "",
     "_warn-npm-install": "echo \"$(tput -Txterm-256color setaf 0)$(tput -Txterm-256color setab 11) Reminder to run 'npm install' $(tput -Txterm-256color sgr 0)\""
   },
   "files": [
@@ -86,14 +86,9 @@
     "eslint-config-peerio": "1.20.0",
     "husky": "0.14.3",
     "mocha": "4.0.1",
-    "mock-require": "2.0.2",
     "npm-run-all": "4.1.1",
     "nyc": "11.2.1",
     "opt-cli": "1.6.0",
-    "rimraf": "2.6.2",
-    "sinon": "4.0.2",
-    "sinon-chai": "2.14.0",
-    "source-map-support": "0.5.0",
     "standard-version": "4.2.0",
     "validate-commit-msg": "2.14.0",
     "w3c-xmlhttprequest": "2.1.2",
@@ -122,10 +117,12 @@
     }
   },
   "standard-version": {
-    "scripts": {}
+    "scripts": {
+      "postbump": "node ./scripts/postbump.js"
+    }
   },
   "devEngines": {
-    "node": "7.x",
-    "npm": "4.x"
+    "node": "8.x",
+    "npm": "5.x"
   }
 }
