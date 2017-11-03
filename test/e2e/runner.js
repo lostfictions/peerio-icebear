@@ -15,7 +15,7 @@ const listScenarios = () => {
             '--dry-run',
             featurePath,
             '-r',
-            'test/e2e/supportCode/helpers/global-setup.js',
+            'test/e2e/e2e-global-setup.js',
             '-r',
             supportCodePath,
             '--compiler',

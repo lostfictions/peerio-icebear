@@ -46,7 +46,7 @@ const runFeature = (scenarioName, peerioData = null) => {
         const options = [
             featurePath,
             '-r',
-            'test/e2e/supportCode/helpers/global-setup.js',
+            'test/e2e/e2e-global-setup.js',
             '-r',
             supportCodePath,
             '--compiler',
