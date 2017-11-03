@@ -1,7 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
-const { getFileStore, getContactWithName } = require('./client');
+const { getFileStore, getContactWithName } = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 const fs = require('fs');
 

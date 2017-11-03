@@ -1,5 +1,5 @@
-const getAppInstance = require('./helpers/appConfig');
-const { asPromise } = require('../../../src/helpers/prombservable');
+const getAppInstance = require('./appConfig');
+const { asPromise } = require('../../../../src/helpers/prombservable');
 const { when } = require('mobx');
 
 const app = getAppInstance();

@@ -2,7 +2,7 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
 const { asPromise } = require('./../../../src/helpers/prombservable');
-const { getContactStore } = require('./client');
+const { getContactStore } = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {

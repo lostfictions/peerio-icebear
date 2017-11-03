@@ -1,7 +1,7 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
-const { getChatStore, getContactWithName, showChatUI } = require('./client');
+const { getChatStore, getContactWithName, showChatUI } = require('./helpers/client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { otherUser } = require('./helpers/otherUser');

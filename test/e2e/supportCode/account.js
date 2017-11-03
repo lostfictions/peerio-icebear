@@ -6,7 +6,7 @@ const { confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { runFeature, checkResult, checkResultAnd } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./client');
+const { waitForConnection, currentUser, setCurrentUser, getContactWithName } = require('./helpers/client');
 const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Before, Given, Then, When }) => {

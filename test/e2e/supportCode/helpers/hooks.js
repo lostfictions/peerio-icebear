@@ -1,9 +1,9 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
-const { runFeature, checkResultAnd } = require('./helpers/runFeature');
-const { assignOtherUserId } = require('./helpers/otherUser');
-const { getChatStore, currentUser, waitForConnection, getFileStore } = require('./client');
-const { confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { getRandomUsername } = require('./helpers/usernameHelper');
+const { runFeature, checkResultAnd } = require('./runFeature');
+const { assignOtherUserId } = require('./otherUser');
+const { waitForConnection, getFileStore } = require('./client');
+const { confirmUserEmail } = require('./mailinatorHelper');
+const { getRandomUsername } = require('./usernameHelper');
 
 defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) => {
     setDefaultTimeout(10000);
@@ -38,17 +38,5 @@ defineSupportCode(({ setDefaultTimeout, defineParameterType, Before, After }) =>
     Before({ tags: '@fileStoreLoaded' }, () => {
         const fileStore = getFileStore();
         return waitForConnection().then(fileStore.loadAllFiles);
-    });
-
-    After('@rooms', () => {
-        const chatStore = getChatStore();
-        return Promise.each(chatStore.chats, chat => {
-            if (chat.canIAdmin && chat.isChannel) {
-                return chat.delete();
-            }
-            return Promise.resolve();
-        }).then(() => {
-            console.log(`---Channels left: ${currentUser().channelsLeft}`);
-        });
     });
 });

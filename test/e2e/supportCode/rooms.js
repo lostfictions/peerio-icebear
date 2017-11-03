@@ -3,7 +3,7 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
-const { getChatStore, getChatInviteStore, currentUser } = require('./client');
+const { getChatStore, getChatInviteStore, currentUser } = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Then, When }) => {
