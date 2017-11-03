@@ -31,17 +31,39 @@ const listScenarios = () => {
     });
 };
 
-listScenarios()
-    .then(async (data) => {
-        const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
-        const features = JSON.parse(json);
-        const scenarios = features
-            .map(x => x.elements)
-            .reduce((a, b) => a.concat(b))
-            .map(x => x.name);
+const getScenarioNames = (json) => {
+    const features = JSON.parse(json);
+    return features
+        .map(x => x.elements)
+        .reduce((a, b) => a.concat(b))
+        .map(x => x.name);
+};
 
+const runScenariosSync = (scenarios) => {
+    return new Promise((resolve) => {
+        const passed = [];
+        const failed = [];
+
+        Promise.each(scenarios, async (scenario) => {
+            const result = await runFeature(scenario);
+            if (result.succeeded) {
+                passed.push(scenario);
+            } else {
+                failed.push({ scenario, errors: result.errors });
+            }
+        }).then(() => resolve({ passed, failed }));
+    });
+};
+
+listScenarios()
+    .then((data) => {
+        const json = data.toString().replace('Starting socket: wss://hocuspocus.peerio.com\n', '');
+        const scenarios = getScenarioNames(json);
         console.log(scenarios);
-        Promise.each(scenarios, async (x) => {
-            await runFeature(x);
-        });
+
+        return runScenariosSync(scenarios)
+            .then(({ passed, failed }) => {
+                console.log('Passed:', passed);
+                console.log('Failed:', failed);
+            });
     });

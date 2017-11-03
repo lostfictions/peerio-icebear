@@ -46,7 +46,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Given('I am logged in', (done) => {
-        console.log(username, passphrase);
         setCurrentUser(username, passphrase);
         currentUser().login()
             .then(() => asPromise(app.socket, 'authenticated', true))
@@ -323,7 +322,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Given('Create new account', () => {
         setCurrentUser(getRandomUsername(), secretPassphrase);
-        return currentUser().createAccountAndLogin()
+        return currentUser()
+            .createAccountAndLogin()
             .should.be.fulfilled
             .then(notifyOfCredentials);
     });
