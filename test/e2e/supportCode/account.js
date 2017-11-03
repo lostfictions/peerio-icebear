@@ -42,19 +42,15 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         setCurrentUser(getRandomUsername(), secretPassphrase);
         return currentUser()
             .createAccountAndLogin()
-            .then(() => asPromise(app.socket, 'authenticated', true))
-            .then(() => asPromise(app.User.current, 'profileLoaded', true))
-            .then(() => asPromise(app.fileStore, 'loading', false))
-            .then(() => when(() => app.User.current.quota, done));
+            .then(() => asPromise(currentUser(), 'profileLoaded', true))
+            .then(() => when(() => currentUser(), done));
     });
 
     Given('I am logged in', (done) => {
         setCurrentUser(username, passphrase);
         currentUser().login()
-            .then(() => asPromise(app.socket, 'authenticated', true))
-            .then(() => asPromise(app.User.current, 'profileLoaded', true))
-            .then(() => asPromise(app.fileStore, 'loading', false))
-            .then(() => when(() => app.User.current.quota, done));
+            .then(() => asPromise(currentUser(), 'profileLoaded', true))
+            .then(() => when(() => currentUser(), done));
     });
 
 
