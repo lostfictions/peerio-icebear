@@ -1,7 +1,6 @@
 Feature: Favorite contacts
     @confirmedUser
     Scenario: Unfavorite a contact 
-        Given I am logged in
         Given I favorite a registered user
         And   they will be in my favorite contacts
         When  I unfavorite them

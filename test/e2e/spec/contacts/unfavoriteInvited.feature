@@ -1,7 +1,6 @@
 Feature: Favorite contacts
     @unregisteredUser
     Scenario: Remove favorite contact before email confirmation
-        Given I am logged in
         Given I invite an unregistered user
         But   I remove the invitation
         When  they sign up

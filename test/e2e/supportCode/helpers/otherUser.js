@@ -3,7 +3,9 @@ const otherUser = {
 };
 
 const assignOtherUserId = (data) => {
-    otherUser.id = data.username;
+    if (data.username) {
+        otherUser.id = data.username;
+    }
 };
 
 module.exports = { otherUser, assignOtherUserId };

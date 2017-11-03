@@ -17,7 +17,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     let newEmail;
 
     let username, passphrase;
-    // let username = '5ypz1br61npnlmlerhxg19jnjcft3l', passphrase = 'secret';
 
     const notifyOfCredentials = () => {
         const data = {
@@ -34,15 +33,19 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         }
     };
 
-    Before('not @helper', () => {
-        return runFeature('Create new account')
-            .then(checkResultAnd)
-            .then(data => { ({ username, passphrase } = data); });
-    });
-
     Before(() => {
         return waitForConnection()
             .then(setCredentialsIfAny);
+    });
+
+    Before('not @helper', (done) => {
+        setCurrentUser(getRandomUsername(), secretPassphrase);
+        return currentUser()
+            .createAccountAndLogin()
+            .then(() => asPromise(app.socket, 'authenticated', true))
+            .then(() => asPromise(app.User.current, 'profileLoaded', true))
+            .then(() => asPromise(app.fileStore, 'loading', false))
+            .then(() => when(() => app.User.current.quota, done));
     });
 
     Given('I am logged in', (done) => {
@@ -53,6 +56,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(() => asPromise(app.fileStore, 'loading', false))
             .then(() => when(() => app.User.current.quota, done));
     });
+
 
     // Scenario: Account creation
     When('I successfully create an account', () => {

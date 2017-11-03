@@ -2,7 +2,6 @@
 Feature: Rooms
     @registeredUser
     Scenario: Demote member
-        Given I am logged in
         Given I create a room
         And   someone has joined the room 
         And   I can promote them to admin
