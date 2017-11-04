@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.5"></a>
+## [2.14.5](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.4...v2.14.5) (2017-11-04)
+
+
+### Bug Fixes
+
+* NodeFileStream#getStat was throwing instead of rejecting promise ([28f9ce5](https://github.com/PeerioTechnologies/peerio-icebear/commit/28f9ce5))
+
+
+
 <a name="2.14.4"></a>
 ## [2.14.4](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.3...v2.14.4) (2017-11-04)
 
