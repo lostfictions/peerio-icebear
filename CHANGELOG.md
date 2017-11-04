@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.6"></a>
+## [2.14.6](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.5...v2.14.6) (2017-11-04)
+
+
+### Bug Fixes
+
+* copy ([68009d9](https://github.com/PeerioTechnologies/peerio-icebear/commit/68009d9))
+* tiny db records for download resume were never deleted in case of keg removal ([c29d9f4](https://github.com/PeerioTechnologies/peerio-icebear/commit/c29d9f4))
+
+
+
 <a name="2.14.5"></a>
 ## [2.14.5](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.4...v2.14.5) (2017-11-04)
 
