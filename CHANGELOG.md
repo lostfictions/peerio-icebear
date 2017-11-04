@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.3"></a>
+## [2.14.3](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.2...v2.14.3) (2017-11-04)
+
+
+### Bug Fixes
+
+* chat paging no longer breaks if entire page of deleted/empty messages was received ([3387b23](https://github.com/PeerioTechnologies/peerio-icebear/commit/3387b23))
+
+
+
 <a name="2.14.2"></a>
 ## [2.14.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.1...v2.14.2) (2017-11-03)
 
