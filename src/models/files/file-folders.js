@@ -4,6 +4,7 @@ const socket = require('../../network/socket');
 const FileFolder = require('./file-folder');
 const FileFoldersKeg = require('./file-folders-keg');
 const cryptoUtil = require('../../crypto/util');
+const warnings = require('../warnings');
 
 class FileFolders {
     constructor(fileStore) {
@@ -70,10 +71,9 @@ class FileFolders {
         this.folderResolveMap = newFolderResolveMap;
         files.forEach(this._addFile);
         this._intercept = files.observe(delta => {
-            for (let i = delta.removedCount; i > 0; i--) {
-                const el = delta.object[delta.index + i - 1];
-                if (el.folder) el.folder.free(el);
-            }
+            delta.removed.forEach(file => {
+                if (file.folder) file.folder.free(file);
+            });
             delta.added.forEach(this._addFile);
             return delta;
         });
@@ -91,12 +91,17 @@ class FileFolders {
     }
 
     createFolder(name, parent) {
+        const target = parent || this.root;
+        if (target.findFolderByName(name)) {
+            warnings.addSevere('error_folderAlreadyExists');
+            return;
+        }
         const folder = new FileFolder(name);
         const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
         folder.folderId = folderId;
         folder.createdAt = new Date();
         this.folderResolveMap[folderId] = folder;
-        (parent || this.root).addFolder(folder);
+        target.addFolder(folder);
         return folder;
     }
 

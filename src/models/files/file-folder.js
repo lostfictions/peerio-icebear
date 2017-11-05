@@ -1,4 +1,4 @@
-const { observable } = require('mobx');
+const { observable, computed } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
 
 class FileFolder {
@@ -6,6 +6,21 @@ class FileFolder {
     @observable folders = [];
     @observable name;
     @observable createdAt;
+
+    @computed get normalizedName() { return this.name ? this.name.toLowerCase() : ''; }
+
+    @computed get foldersSortedByName() {
+        return this.folders.sort((f1, f2) => f1.normalizedName > f2.normalizedName);
+    }
+
+    @computed get filesSortedByDate() {
+        return this.files.sort((f1, f2) => f2.uploadedAt - f1.uploadedAt);
+    }
+
+    @computed get foldersAndFilesDefaultSorting() {
+        const { foldersSortedByName, filesSortedByDate } = this;
+        return foldersSortedByName.concat(filesSortedByDate);
+    }
 
     parent = null;
     isFolder = true;
@@ -104,6 +119,11 @@ class FileFolder {
         }
     }
 
+    findFolderByName(name) {
+        let normalizedName = name.toLowerCase();
+        return this.folders.find(f => f.normalizedName === normalizedName)
+    }
+
     serialize() {
         const { name, folderId, createdAt } = this;
         const files = this.files.map(f => f.fileId);
@@ -112,8 +132,8 @@ class FileFolder {
     }
 
     deserialize(dataItem, parent, fileResolveMap, folderResolveMap, newFolderResolveMap) {
-        const { folderId, name, files, folders } = dataItem;
-        Object.assign(this, { folderId, name });
+        const { folderId, name, createdAt, files, folders } = dataItem;
+        Object.assign(this, { folderId, name, createdAt });
         files && files.forEach(fileId => {
             fileResolveMap[fileId] = this;
         });
