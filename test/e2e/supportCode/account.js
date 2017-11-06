@@ -37,7 +37,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Before('not @helper', (done) => {
-        setCurrentUser(getRandomUsername(), secretPassphrase);
+        username = getRandomUsername();
+        passphrase = secretPassphrase;
+        setCurrentUser(username, passphrase);
+        
         return currentUser()
             .createAccountAndLogin()
             .then(() => asPromise(currentUser(), 'profileLoaded', true))
@@ -46,7 +49,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     Given('I am logged in', (done) => {
         setCurrentUser(username, passphrase);
-        return currentUser().login()
+        currentUser().login()
             .then(() => asPromise(currentUser(), 'profileLoaded', true))
             .then(() => when(() => currentUser().quota, done));
     });
