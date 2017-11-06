@@ -13,7 +13,7 @@
     "=== TESTS ===": "",
     "mocha": "mocha test/**/*.test.js --require babel-register --require test/unit/unit-global-setup --timeout 15000",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
-    "e2e": "cucumber.js test/e2e/spec -r test/e2e/supportCode/helpers/global-setup.js -r test/e2e/supportCode --compiler js:babel-register --format node_modules/cucumber-pretty --tags 'not @wip'",
+    "e2e": "cucumber.js test/e2e/spec/messages/createDM.feature -r test/e2e/e2e-global-setup.js -r test/e2e/supportCode --compiler js:babel-register --format node_modules/cucumber-pretty --tags 'not @wip' --tags 'not @subScenario'",
     "testRunner": "mocha test/e2e/runner.js --timeout 10000000",
     "=== VALIDATION ===": "",
     "code:lint": "eslint . --fix --ext .js",

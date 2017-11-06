@@ -1,13 +1,13 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
-const { getChatStore, getContactWithName, showChatUI } = require('./helpers/client');
+const client = require('./helpers/client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {
-    const store = getChatStore();
+    const store = client.getChatStore();
     let chatId;
     const message = 'Hello world';
     let numberOfMessages = -1;
@@ -29,7 +29,7 @@ defineSupportCode(({ Given, Then, When }) => {
 
     // Scenario: Create direct message
     When('I create a direct message', () => {
-        return getContactWithName(otherUser.id)
+        return client.getContactWithName(otherUser.id)
             .then(user => startChatWith(user).then(assignChatId));
     });
 
@@ -103,7 +103,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('I read my messages', { timeout: 20000 }, () => {
-        showChatUI();
+        client.showChatUI();
         return store.loadAllChats().delay(5000);
     });
 

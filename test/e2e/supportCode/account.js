@@ -5,7 +5,7 @@ const { confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { runFeature, checkResult } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
-const { waitForConnection, waitForAuth, currentUser, setCurrentUser, getContactWithName } = require('./helpers/client');
+const client = require('./helpers/client');
 const { secretPassphrase } = require('./helpers/constants');
 
 defineSupportCode(({ Before, Given, Then, When }) => {
@@ -18,8 +18,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     const notifyOfCredentials = () => {
         const data = {
-            username: currentUser().username,
-            passphrase: currentUser().passphrase
+            username: client.currentUser.username,
+            passphrase: client.currentUser.passphrase
         };
         console.log(`<peerioData>${JSON.stringify(data)}</peerioData>`);
     };
@@ -32,26 +32,26 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     };
 
     Before(() => {
-        return waitForConnection()
+        return client.waitForConnection()
             .then(setCredentialsIfAny);
     });
 
     Before('not @subScenario', (done) => {
         username = getRandomUsername();
         passphrase = secretPassphrase;
-        setCurrentUser(username, passphrase);
+        client.setCurrentUser(username, passphrase);
 
-        return currentUser()
+        return client.currentUser
             .createAccountAndLogin()
-            .then(() => asPromise(currentUser(), 'profileLoaded', true))
-            .then(() => when(() => currentUser().quota, done));
+            .then(() => asPromise(client.currentUser, 'profileLoaded', true))
+            .then(() => when(() => client.currentUser.quota, done));
     });
 
     Given('I am logged in', (done) => {
-        setCurrentUser(username, passphrase);
-        currentUser().login()
-            .then(() => asPromise(currentUser(), 'profileLoaded', true))
-            .then(() => when(() => currentUser().quota, done));
+        client.setCurrentUser(username, passphrase);
+        client.currentUser.login()
+            .then(() => asPromise(client.currentUser, 'profileLoaded', true))
+            .then(() => when(() => client.currentUser.quota, done));
     });
 
 
@@ -62,34 +62,34 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Given('I am a new customer', () => {
-        setCurrentUser(getRandomUsername(), secretPassphrase);
+        client.setCurrentUser(getRandomUsername(), secretPassphrase);
     });
 
     When('I successfully create a new account', () => {
-        return currentUser().createAccountAndLogin()
+        return client.currentUser.createAccountAndLogin()
             .should.be.fulfilled
             .then(notifyOfCredentials);
     });
 
     Then('I will be logged in', () => {
-        return waitForAuth();
+        return client.waitForAuth();
     });
 
 
     // Scenario: Account deletion
     When('my email is confirmed', () => {
-        return confirmUserEmail(currentUser().email)
+        return confirmUserEmail(client.currentUser.email)
             .then(() => {
-                currentUser().primaryAddressConfirmed = true;
+                client.currentUser.primaryAddressConfirmed = true;
             });
     });
 
     Given('I delete my account', () => {
-        return currentUser().deleteAccount(currentUser().username);
+        return client.currentUser.deleteAccount(client.currentUser.username);
     });
 
     Then('I should not be able to login', () => {
-        return currentUser()
+        return client.currentUser
             .login()
             .should.be.rejectedWith(DisconnectedError);
     });
@@ -97,22 +97,22 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Sign in
     Given('I am a returning customer', () => {
-        setCurrentUser(username, passphrase);
+        client.setCurrentUser(username, passphrase);
     });
 
     When('I sign in', () => {
-        return currentUser().login()
+        return client.currentUser.login()
             .should.be.fulfilled;
     });
 
     Then('I have access to my account', () => {
-        return waitForAuth();
+        return client.waitForAuth();
     });
 
 
     // Scenario: Sign out
     When('I sign out', () => {
-        return currentUser().signout(); // isserverWarning_emailConfirmationSent
+        return client.currentUser.signout(); // isserverWarning_emailConfirmationSent
     });
 
     Then('I can not access my account', (done) => {
@@ -123,7 +123,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     // Scenario: Primary email
     When('I add a new email', () => {
         newEmail = `${getRandomUsername()}@mailinator.com`;
-        return currentUser().addEmail(newEmail);
+        return client.currentUser.addEmail(newEmail);
     });
 
     When('the new email is confirmed', () => {
@@ -131,13 +131,13 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     When('I make the new email primary', () => {
-        return currentUser().makeEmailPrimary(newEmail);
+        return client.currentUser.makeEmailPrimary(newEmail);
     });
 
     Then('the primary email should be updated', () => {
-        return currentUser().login()
+        return client.currentUser.login()
             .then(() => {
-                const primaryAddress = currentUser().addresses.find(x => x.primary);
+                const primaryAddress = client.currentUser.addresses.find(x => x.primary);
                 primaryAddress.should.not.be.null.and.equal(newEmail);
             });
     });
@@ -145,7 +145,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Add new email
     Then('new email is in my addresses', () => {
-        currentUser().addresses
+        client.currentUser.addresses
             .find(x => x.address === newEmail)
             .should.not.be.null;
     });
@@ -153,11 +153,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Remove email
     When('I remove the new email', () => {
-        return currentUser().removeEmail(newEmail);
+        return client.currentUser.removeEmail(newEmail);
     });
 
     Then('the new email should not appear in my addresses', () => {
-        currentUser().addresses
+        client.currentUser.addresses
             .includes(x => x.address === newEmail)
             .should.be.false;
     });
@@ -165,15 +165,15 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Update display name
     When('I change my display name', () => {
-        currentUser().firstName = 'Alice';
-        currentUser().lastName = 'Carroll';
+        client.currentUser.firstName = 'Alice';
+        client.currentUser.lastName = 'Carroll';
 
-        return currentUser().saveProfile();
+        return client.currentUser.saveProfile();
     });
 
     Then('it should be updated', () => {
-        currentUser().firstName.should.equal('Alice');
-        currentUser().lastName.should.equal('Carroll');
+        client.currentUser.firstName.should.equal('Alice');
+        client.currentUser.lastName.should.equal('Carroll');
     });
 
 
@@ -181,24 +181,24 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     When('I upload an avatar', () => {
         blob = [new ArrayBuffer(42), new ArrayBuffer(42)];
 
-        return currentUser().saveAvatar(blob)
+        return client.currentUser.saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('it should appear in my profile', () => {
-        return getContactWithName(currentUser().username)
+        return client.getContactWithName(client.currentUser.username)
             .then(user => user.hasAvatar.should.be.true);
     });
 
 
     // Scenario: Add avatar when another one is being loaded
     When('another avatar upload is in progress', () => {
-        currentUser().savingAvatar = true;
+        client.currentUser.savingAvatar = true;
         blob = null;
     });
 
     Then('I should get an error saying {err}', (err) => {
-        return currentUser().saveAvatar(blob)
+        return client.currentUser.saveAvatar(blob)
             .should.be.rejectedWith(err);
     });
 
@@ -219,10 +219,10 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     Given('I have an avatar', () => {
         blob = [new ArrayBuffer(42), new ArrayBuffer(42)];
 
-        return currentUser().saveAvatar(blob)
+        return client.currentUser.saveAvatar(blob)
             .should.be.fulfilled
             .then(() => {
-                return getContactWithName(currentUser().username)
+                return client.getContactWithName(client.currentUser.username)
                     .then(user => { url = user.largeAvatarUrl; });
             });
     });
@@ -230,12 +230,12 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     When('I upload a new avatar', () => {
         blob = [new ArrayBuffer(43), new ArrayBuffer(43)];
 
-        return currentUser().saveAvatar(blob)
+        return client.currentUser.saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('the new avatar should be displayed', () => {
-        return getContactWithName(currentUser().username)
+        return client.getContactWithName(client.currentUser.username)
             .then(user => user.largeAvatarUrl.should.not.equal(url));
     });
 
@@ -244,21 +244,21 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     When('I delete my avatar', () => {
         blob = null;
 
-        return currentUser().saveAvatar(blob)
+        return client.currentUser.saveAvatar(blob)
             .should.be.fulfilled;
     });
 
     Then('my avatar should be empty', () => {
-        return getContactWithName(currentUser().username)
+        return client.getContactWithName(client.currentUser.username)
             .then(user => user.hasAvatar.should.be.false);
     });
 
 
     // Scenario: Enable 2FA
     When('I enable 2FA', (done) => {
-        currentUser().twoFAEnabled = false;
+        client.currentUser.twoFAEnabled = false;
 
-        currentUser()
+        client.currentUser
             .setup2fa()
             .then((s) => { secret = s; })
             .then(done);
@@ -284,11 +284,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Try to enable 2FA when it's already active
     When('2FA is already enabled', () => {
-        currentUser().twoFAEnabled = true;
+        client.currentUser.twoFAEnabled = true;
     });
 
     Then('I should receive an error saying {string}', (err) => {
-        return currentUser()
+        return client.currentUser
             .setup2fa()
             .should.be.rejectedWith(err);
     });
@@ -315,15 +315,15 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             done(null, 'failed');
         }
 
-        setCurrentUser(username, secretPassphrase);
-        currentUser().createAccountAndLogin()
+        client.setCurrentUser(username, secretPassphrase);
+        client.currentUser.createAccountAndLogin()
             .should.be.fulfilled
             .then(done);
     });
 
     Given('Create new account', () => {
-        setCurrentUser(getRandomUsername(), secretPassphrase);
-        return currentUser()
+        client.setCurrentUser(getRandomUsername(), secretPassphrase);
+        return client.currentUser
             .createAccountAndLogin()
             .should.be.fulfilled
             .then(notifyOfCredentials);

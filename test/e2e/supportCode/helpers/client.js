@@ -1,47 +1,38 @@
-const getAppInstance = require('./appConfig');
+const getappInstance = require('./appConfig');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const { when } = require('mobx');
 
-const app = getAppInstance();
+class Client {
+    app = getappInstance();
 
-const waitForConnection = () => asPromise(app.socket, 'connected', true);
-const waitForAuth = () => asPromise(app.socket, 'authenticated', true);
-const currentUser = () => app.User.current;
-const getContactStore = () => app.contactStore;
-const getChatStore = () => app.chatStore;
-const getChatInviteStore = () => app.chatInviteStore;
-const getFileStore = () => app.fileStore;
+    get currentUser() { return this.app.User.current; }
+    waitForConnection = () => asPromise(this.app.socket, 'connected', true);
+    waitForAuth = () => asPromise(this.app.socket, 'authenticated', true);
+    getContactStore = () => this.app.contactStore;
+    getChatStore = () => this.app.chatStore;
+    getChatInviteStore = () => this.app.chatInviteStore;
+    getFileStore = () => this.app.fileStore;
 
-const setCurrentUser = (username, passphrase) => {
-    app.User.current = new app.User();
-    app.User.current.username = username;
-    app.User.current.passphrase = passphrase;
-    app.User.current.email = `${username}@mailinator.com`;
+    setCurrentUser = (username, passphrase) => {
+        this.app.User.current = new this.app.User();
+        this.app.User.current.username = username;
+        this.app.User.current.passphrase = passphrase;
+        this.app.User.current.email = `${username}@mailinator.com`;
 
-    return app.User.current;
-};
+        return this.app.User.current;
+    };
 
-const getContactWithName = (name) => {
-    return new Promise((resolve) => {
-        const receiver = new app.Contact(name);
-        when(() => !receiver.loading, () => resolve(receiver));
-    });
-};
+    getContactWithName = (name) => {
+        return new Promise((resolve) => {
+            const receiver = new this.app.Contact(name);
+            when(() => !receiver.loading, () => resolve(receiver));
+        });
+    };
 
-const showChatUI = () => {
-    app.clientApp.isFocused = true;
-    app.clientApp.isInChatsView = true;
-};
+    showChatUI = () => {
+        this.app.clientApp.isFocused = true;
+        this.app.clientApp.isInChatsView = true;
+    };
+}
 
-module.exports = {
-    waitForConnection,
-    waitForAuth,
-    showChatUI,
-    currentUser,
-    setCurrentUser,
-    getFileStore,
-    getContactWithName,
-    getContactStore,
-    getChatStore,
-    getChatInviteStore
-};
+module.exports = new Client();

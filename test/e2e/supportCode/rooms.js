@@ -3,12 +3,12 @@ const { when } = require('mobx');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureForChatId, checkResult } = require('./helpers/runFeature');
 const { getPropFromEnv } = require('./helpers/envHelper');
-const { getChatStore, getChatInviteStore, currentUser } = require('./helpers/client');
+const client = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Then, When }) => {
-    const chatStore = getChatStore();
-    const inviteStore = getChatInviteStore();
+    const chatStore = client.getChatStore();
+    const inviteStore = client.getChatInviteStore();
 
     const roomName = 'test-room';
     const roomPurpose = 'test-room';
@@ -17,7 +17,7 @@ defineSupportCode(({ Then, When }) => {
 
     // Scenario: Create room
     When('I create a room', (done) => {
-        console.log(`Channels left: ${currentUser().channelsLeft}`);
+        console.log(`Channels left: ${client.currentUser.channelsLeft}`);
 
         room = chatStore.startChat([], true, roomName, roomPurpose);
         when(() => room.added === true, done);
@@ -121,7 +121,7 @@ defineSupportCode(({ Then, When }) => {
     // Scenario: Can not create more than 3 rooms
     When('I created 3 rooms', () => {
         // const invited = new app.Contact(otherUser.id, {}, true);
-        // console.log(currentUser().channelsLeft); // 0
+        // console.log(client.currentUser.channelsLeft); // 0
 
         // room = chatStore.startChat([invited], true, roomName, roomPurpose);
         // console.log(room); // TypeError: Cannot read property 'added' of null

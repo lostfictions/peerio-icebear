@@ -2,11 +2,11 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const { receivedEmailInvite, confirmUserEmail } = require('./helpers/mailinatorHelper');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
 const { asPromise } = require('./../../../src/helpers/prombservable');
-const { getContactStore } = require('./helpers/client');
+const client = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 
 defineSupportCode(({ Given, Then, When }) => {
-    const store = getContactStore();
+    const store = client.getContactStore();
 
     const otherUserEmail = () => `${otherUser.id}@mailinator.com`;
 

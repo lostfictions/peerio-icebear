@@ -1,12 +1,12 @@
 const defineSupportCode = require('cucumber').defineSupportCode;
 const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
-const { getFileStore, getContactWithName } = require('./helpers/client');
+const client = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
 const fs = require('fs');
 
 defineSupportCode(({ Then, When }) => {
-    const store = getFileStore();
+    const store = client.getFileStore();
 
     const testDocument = 'test.txt';
     const pathToUploadFrom = `${__dirname}/helpers/${testDocument}`;
@@ -55,7 +55,7 @@ defineSupportCode(({ Then, When }) => {
 
     // Scenario: Share
     When('I share it with a receiver', () => {
-        return getContactWithName(otherUser.id)
+        return client.getContactWithName(otherUser.id)
             .then(contact => {
                 return fileInStore().share(contact);
             });
