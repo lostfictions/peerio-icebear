@@ -24,7 +24,7 @@ class FileFolders {
 
     get formatVersion() { return this.keg.formatVersion; }
 
-    root = new FileFolder(null, '/');
+    root = new FileFolder('/');
 
     fileResolveMap = {};
     folderResolveMap = {};

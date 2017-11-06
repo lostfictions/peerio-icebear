@@ -22,7 +22,7 @@ class FileFolder {
         return foldersSortedByName.concat(filesSortedByDate);
     }
 
-    parent = null;
+    @observable parent = null;
     isFolder = true;
     get isRoot() { return !this.parent; }
     get hasNested() { return this.folders && this.folders.length; }
