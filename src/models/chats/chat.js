@@ -513,7 +513,7 @@ class Chat {
             for (let i = 0; i < kegs.length; i++) {
                 this._addMessageQueue.addTask(this._parseMessageKeg, this, [kegs[i], accumulator]);
             }
-            this._addMessageQueue.addTask(this._finishAddMessages, this, [accumulator, prepend], resolve);
+            this._addMessageQueue.addTask(this._finishAddMessages, this, [accumulator, prepend, kegs], resolve);
         });
     }
 
@@ -551,12 +551,24 @@ class Chat {
         }
     }
 
+    _reTriggerPaging(prepend, kegs) {
+        const ids = kegs.map(k => k.kegId);
+        const startPoint = prepend ? Math.min(...ids) : Math.max(...ids);
+        // protection against infinite loop in result of weird data
+        if (!startPoint) return;
+        setTimeout(() => this._messageHandler.getPage(prepend, startPoint.toString()));
+    }
+
     // all kegs are decrypted and parsed, now we just push them to the observable array
-    @action _finishAddMessages(accumulator, prepend) {
+    @action _finishAddMessages(accumulator, prepend, kegs) {
         let newMessageCount = 0;
         let newMentionCount = 0;
         let lastMentionId;
-
+        if (!accumulator.length) {
+            // this was en entire page of empty/deleted messages
+            this._reTriggerPaging(prepend, kegs);
+        }
+        let addedCount = 0;
         for (let i = 0; i < accumulator.length; i++) {
             const msg = accumulator[i];
             // deleted message case
@@ -581,6 +593,11 @@ class Chat {
             // new message case
             this._messageMap[msg.id] = msg;
             this.messages.push(msg);
+            addedCount++;
+        }
+        if (!addedCount) {
+            // this was en entire page of empty/deleted messages
+            this._reTriggerPaging(prepend, kegs);
         }
         this.onNewMessageLoad(newMentionCount, newMessageCount, lastMentionId);
         if (!this.canGoDown && this.initialPageLoaded) this.detectFileAttachments(accumulator);

@@ -1,12 +1,12 @@
 {
   "name": "peerio-icebear",
-  "version": "2.14.2",
+  "version": "2.14.6",
   "description": "Peerio Icebear client library",
   "main": "src/index.js",
   "scripts": {
     "=== HOOKS ===": "",
-    "postcheckout": "npm run _warn-npm-install",
-    "postmerge": "npm run _warn-npm-install",
+    "postcheckout": "opt --in npm-install --exec \"npm install\"",
+    "postmerge": "opt --in npm-install --exec \"npm install\"",
     "precommit": "opt --in lint --exec \"npm run code:verify\"",
     "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
@@ -19,9 +19,7 @@
     "code:lint": "eslint . --fix --ext .js",
     "code:verify": "eslint . --ext .js --max-warnings 0",
     "=== RELEASE ===": "",
-    "release": "./scripts/release.sh",
-    "=== HELPERS ===": "",
-    "_warn-npm-install": "echo \"$(tput -Txterm-256color setaf 0)$(tput -Txterm-256color setab 11) Reminder to run 'npm install' $(tput -Txterm-256color sgr 0)\""
+    "release": "./scripts/release.sh"
   },
   "files": [
     "src"
