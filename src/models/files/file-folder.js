@@ -97,10 +97,7 @@ class FileFolder {
             root.add(file);
         });
         this.files = [];
-        this.folders.forEach(folder => {
-            folder.parent = null;
-            folder.freeSelf();
-        });
+        this.folders.forEach(folder => folder.freeSelf());
         this.folders = [];
         this.parent && this.parent.freeFolder(this);
     }
@@ -120,8 +117,8 @@ class FileFolder {
     }
 
     findFolderByName(name) {
-        let normalizedName = name.toLowerCase();
-        return this.folders.find(f => f.normalizedName === normalizedName)
+        const normalizedName = name.toLowerCase();
+        return this.folders.find(f => f.normalizedName === normalizedName);
     }
 
     serialize() {
