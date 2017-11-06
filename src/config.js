@@ -318,7 +318,7 @@ const config = new class {
          * @readonly
          * @public
          */
-        inlineImageSizeLimit: 10 * 1024 * 1014,
+        inlineImageSizeLimit: 10 * 1024 * 1024,
         allowedInlineContentTypes: {
             'image/jpeg': true,
             'image/bmp': true,
