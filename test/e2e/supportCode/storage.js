@@ -37,7 +37,13 @@ defineSupportCode(({ Then, When }) => {
     });
 
     Then('I can access the file locally', (done) => {
-        fs.stat(pathToDownloadTo, (err) => { err ? done(err, 'failed') : done(); });
+        fs.stat(pathToDownloadTo, (err) => {
+            if (err) {
+                done(err, 'failed');
+            } else {
+                fs.unlink(pathToDownloadTo, done);
+            }
+        });
     });
 
 
