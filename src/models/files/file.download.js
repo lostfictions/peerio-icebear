@@ -92,7 +92,7 @@ function download(filePath, resume, isTmpCacheDownload) {
                     }
                 }
                 if (!isTmpCacheDownload) {
-                    warnings.addSevere('error_downloadFailed', 'error', { fileName: this.name });
+                    warnings.addSevere('error_downloadFailed', 'title_error', { fileName: this.name });
                 }
                 this.cancelDownload();
                 return Promise.reject(err || new Error('Download failed.'));

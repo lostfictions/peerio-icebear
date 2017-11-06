@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.7"></a>
+## [2.14.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.6...v2.14.7) (2017-11-06)
+
+
+### Bug Fixes
+
+* inline image file limit because it doesnt format well ([#56](https://github.com/PeerioTechnologies/peerio-icebear/issues/56)) ([5f9d9fe](https://github.com/PeerioTechnologies/peerio-icebear/commit/5f9d9fe))
+
+
+
+<a name="2.14.6"></a>
+## [2.14.6](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.5...v2.14.6) (2017-11-04)
+
+
+### Bug Fixes
+
+* copy ([68009d9](https://github.com/PeerioTechnologies/peerio-icebear/commit/68009d9))
+* tiny db records for download resume were never deleted in case of keg removal ([c29d9f4](https://github.com/PeerioTechnologies/peerio-icebear/commit/c29d9f4))
+
+
+
+<a name="2.14.5"></a>
+## [2.14.5](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.4...v2.14.5) (2017-11-04)
+
+
+### Bug Fixes
+
+* NodeFileStream#getStat was throwing instead of rejecting promise ([28f9ce5](https://github.com/PeerioTechnologies/peerio-icebear/commit/28f9ce5))
+
+
+
+<a name="2.14.4"></a>
+## [2.14.4](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.3...v2.14.4) (2017-11-04)
+
+
+
+<a name="2.14.3"></a>
+## [2.14.3](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.2...v2.14.3) (2017-11-04)
+
+
+### Bug Fixes
+
+* chat paging no longer breaks if entire page of deleted/empty messages was received ([3387b23](https://github.com/PeerioTechnologies/peerio-icebear/commit/3387b23))
+
+
+
+<a name="2.14.2"></a>
+## [2.14.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.1...v2.14.2) (2017-11-03)
+
+
+
 <a name="2.14.1"></a>
 ## [2.14.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.0...v2.14.1) (2017-11-02)
 

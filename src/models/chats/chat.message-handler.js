@@ -206,8 +206,8 @@ class ChatMessageHandler {
                 }
             });
     }
-
-    getPage(pagingUp = true) {
+    // startingKegId means that full page of empty messages has been detected and paging re-triggered
+    getPage(pagingUp = true, startingKegId = null) {
         if (!this.chat.initialPageLoaded
             || (pagingUp && this.chat.loadingTopPage)
             || (!pagingUp && this.chat.loadingBottomPage)) {
@@ -233,7 +233,7 @@ class ChatMessageHandler {
             options: {
                 type: 'message',
                 reverse: pagingUp,
-                fromKegId: this.chat.messages[pagingUp ? 0 : this.chat.messages.length - 1].id,
+                fromKegId: startingKegId || this.chat.messages[pagingUp ? 0 : this.chat.messages.length - 1].id,
                 count: config.chat.pageSize
             }
         }))

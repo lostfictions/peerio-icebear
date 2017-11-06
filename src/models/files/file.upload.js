@@ -18,7 +18,7 @@ function _getUlResumeParams(path) {
     return config.FileStream.getStat(path)
         .then(stat => {
             if (stat.size !== this.size) {
-                warnings.addSevere('error_fileSizeChanged', 'error', { fileName: this.name });
+                warnings.addSevere('error_fileSizeChanged', 'title_error', { fileName: this.name });
                 throw new Error(`Upload file size mismatch. Was ${this.size} now ${stat.size}`);
             }
             // check file state on server
@@ -118,7 +118,7 @@ function upload(filePath, fileName, resume) {
                         return Promise.reject(err);
                     }
                 }
-                warnings.addSevere('error_uploadFailed', 'error', { fileName: this.name });
+                warnings.addSevere('error_uploadFailed', 'title_error', { fileName: this.name });
                 this.cancelUpload();
                 return Promise.reject(err || new Error('Upload failed'));
             });
