@@ -451,6 +451,7 @@ class FileStore {
      * @protected
      */
     resumeBrokenDownloads() {
+        if (!this.loaded) return;
         console.log('Checking for interrupted downloads.');
         const regex = /^DOWNLOAD:(.*)$/;
         TinyDb.user.getAllKeys()
@@ -462,6 +463,8 @@ class FileStore {
                     if (file) {
                         console.log(`Requesting download resume for ${keys[i]}`);
                         TinyDb.user.getValue(keys[i]).then(dlInfo => file.download(dlInfo.path, true));
+                    } else {
+                        TinyDb.user.removeValue(keys[i]);
                     }
                 }
             });
