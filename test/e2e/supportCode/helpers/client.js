@@ -1,9 +1,9 @@
-const getappInstance = require('./appConfig');
+const getAppInstance = require('./appConfig');
 const { asPromise } = require('../../../../src/helpers/prombservable');
 const { when } = require('mobx');
 
 class Client {
-    app = getappInstance();
+    app = getAppInstance();
 
     get currentUser() { return this.app.User.current; }
     waitForConnection = () => asPromise(this.app.socket, 'connected', true);
