@@ -47,7 +47,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(() => when(() => client.currentUser.quota, done));
     });
 
-    Given('I am logged in', (testCase, done) => {
+    Given('I am logged in', (done) => {
         client.setCurrentUser(username, passphrase);
         client.currentUser.login()
             .then(() => asPromise(client.currentUser, 'profileLoaded', true))
