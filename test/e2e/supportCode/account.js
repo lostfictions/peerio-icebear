@@ -36,11 +36,11 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(setCredentialsIfAny);
     });
 
-    Before('not @helper', (done) => {
+    Before('not @subScenario', (done) => {
         username = getRandomUsername();
         passphrase = secretPassphrase;
         setCurrentUser(username, passphrase);
-        
+
         return currentUser()
             .createAccountAndLogin()
             .then(() => asPromise(currentUser(), 'profileLoaded', true))

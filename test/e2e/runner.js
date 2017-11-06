@@ -23,7 +23,9 @@ const listScenarios = () => {
             '--format',
             'json',
             '--tags',
-            'not @wip'
+            'not @wip',
+            '--tags',
+            'not @subScenario'
         ];
 
         const proc = spawn(cucumberPath, options);

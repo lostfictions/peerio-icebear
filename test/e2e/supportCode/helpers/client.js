@@ -4,21 +4,13 @@ const { when } = require('mobx');
 
 const app = getAppInstance();
 
-const waitForConnection = () => {
-    return asPromise(app.socket, 'connected', true);
-};
-
-const waitForAuth = () => {
-    return asPromise(app.socket, 'authenticated', true);
-};
-
-const showChatUI = () => {
-    app.clientApp.isFocused = true;
-    app.clientApp.isInChatsView = true;
-};
-
-// User
+const waitForConnection = () => asPromise(app.socket, 'connected', true);
+const waitForAuth = () => asPromise(app.socket, 'authenticated', true);
 const currentUser = () => app.User.current;
+const getContactStore = () => app.contactStore;
+const getChatStore = () => app.chatStore;
+const getChatInviteStore = () => app.chatInviteStore;
+const getFileStore = () => app.fileStore;
 
 const setCurrentUser = (username, passphrase) => {
     app.User.current = new app.User();
@@ -29,7 +21,6 @@ const setCurrentUser = (username, passphrase) => {
     return app.User.current;
 };
 
-// Contacts
 const getContactWithName = (name) => {
     return new Promise((resolve) => {
         const receiver = new app.Contact(name);
@@ -37,22 +28,9 @@ const getContactWithName = (name) => {
     });
 };
 
-const getContactStore = () => {
-    return app.contactStore;
-};
-
-// Chat
-const getChatStore = () => {
-    return app.chatStore;
-};
-
-const getChatInviteStore = () => {
-    return app.chatInviteStore;
-};
-
-// Storage
-const getFileStore = () => {
-    return app.fileStore;
+const showChatUI = () => {
+    app.clientApp.isFocused = true;
+    app.clientApp.isInChatsView = true;
 };
 
 module.exports = {
