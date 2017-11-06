@@ -1,5 +1,4 @@
 Feature: User account access
-   @wip
    Scenario: Change primary email
         When  I add a new email
         And   the new email is confirmed
