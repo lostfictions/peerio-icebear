@@ -36,18 +36,18 @@ defineSupportCode(({ Before, Given, Then, When }) => {
             .then(setCredentialsIfAny);
     });
 
-    Before('not @subScenario', (done) => {
+    Before('not @subScenario', (testCase, done) => {
         username = getRandomUsername();
         passphrase = secretPassphrase;
         client.setCurrentUser(username, passphrase);
 
-        return client.currentUser
+        client.currentUser
             .createAccountAndLogin()
             .then(() => asPromise(client.currentUser, 'profileLoaded', true))
             .then(() => when(() => client.currentUser.quota, done));
     });
 
-    Given('I am logged in', (done) => {
+    Given('I am logged in', (testCase, done) => {
         client.setCurrentUser(username, passphrase);
         client.currentUser.login()
             .then(() => asPromise(client.currentUser, 'profileLoaded', true))
