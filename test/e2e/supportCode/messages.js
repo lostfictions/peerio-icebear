@@ -103,16 +103,18 @@ defineSupportCode(({ Given, Then, When }) => {
             .then(checkResult);
     });
 
-    Then('I read my messages', { timeout: 20000 }, () => {
+    Then('I read my messages', () => {
         client.showChatUI();
-        return store.loadAllChats().delay(5000);
+        return loadChats()
+            .then(() => Promise.delay(2000));
     });
 
     Then('I view a read receipt', (done) => {
         const chat = store.chats.find(x => x.id === chatId);
         const found = chat.messages.find(x => x.text === message);
         when(() => found.receipts, () => {
-            console.log(found.receipts);
+            found.receipts.should.not.be.null;
+            found.receipts.length.should.be.equal(1);
             done();
         });
     });
