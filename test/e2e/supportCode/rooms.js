@@ -80,17 +80,6 @@ defineSupportCode(({ Then, When }) => {
             });
     });
 
-    Then('I accept a room invite', (cb) => {
-        const chatId = getPropFromEnv('chatId');
-
-        when(() => inviteStore.received.length, () => {
-            const found = inviteStore.received.find(x => x.kegDbId === chatId);
-            found.should.be.ok;
-
-            inviteStore.acceptInvite(chatId).then(cb);
-        });
-    });
-
     Then('I them kick out', (done) => {
         const participants = room.joinedParticipants.length;
         room.removeParticipant(otherUser.id);
@@ -125,5 +114,31 @@ defineSupportCode(({ Then, When }) => {
 
         // room = chatStore.startChat([invited], true, roomName, roomPurpose);
         // console.log(room); // TypeError: Cannot read property 'added' of null
+    });
+
+    // Accept invite
+    When('they can accept the room invite', () => {
+        return runFeatureForChatId('Accept room invite', otherUser.id, room.id)
+            .then(checkResult);
+    });
+
+    Then('I accept the room invite', (done) => {
+        const chatId = getPropFromEnv('chatId');
+        when(() => inviteStore.received.length, () => {
+            inviteStore.acceptInvite(chatId).then(done);
+        });
+    });
+
+    // Reject invite
+    When('they can reject the room invite', () => {
+        return runFeatureForChatId('Reject room invite', otherUser.id, room.id)
+            .then(checkResult);
+    });
+
+    Then('I reject the room invite', (done) => {
+        const chatId = getPropFromEnv('chatId');
+        when(() => inviteStore.received.length, () => {
+            inviteStore.acceptInvite(chatId).then(done);
+        });
     });
 });

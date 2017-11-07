@@ -7,4 +7,9 @@ Feature: subScenarios
     @subScenario
     Scenario: Accept room invite
         Given I am logged in
-        Then  I accept a room invite
+        Then  I accept the room invite
+    
+    @subScenario
+    Scenario: Reject room invite
+        Given I am logged in
+        Then  I reject the room invite

@@ -1,6 +1,6 @@
-@wip
 Feature: Rooms
-    Scenario: Reject invite
-        When I receive an invitation
-        And reject it
-        Then notification will disappear
+    @registeredUser
+    Scenario: Accept invite
+        Given I create a room
+        And   I invite another user
+        Then  they can reject the room invite

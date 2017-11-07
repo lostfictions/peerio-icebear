@@ -1,7 +1,6 @@
-@wip
 Feature: Rooms
+    @registeredUser
     Scenario: Accept invite
-        When I receive an invitation
-        And accept it
-        Then notification will disappear
-        And I should access the room
+        Given I create a room
+        And   I invite another user
+        Then  they can accept the room invite
