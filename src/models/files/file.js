@@ -260,6 +260,10 @@ class File extends Keg {
         return clientApp.uiUserPrefs.limitInlineImageSize && this.size > config.chat.inlineImageSizeLimit;
     }
 
+    @computed get isOversizeCutoff() {
+        return clientApp.uiUserPrefs.limitInlineImageSize && this.size > config.chat.inlineImageSizeLimitCutoff;
+    }
+
     serializeKegPayload() {
         return {
             name: this.name,
