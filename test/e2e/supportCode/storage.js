@@ -3,16 +3,12 @@ const { asPromise } = require('../../../src/helpers/prombservable');
 const { runFeatureFromUsername, checkResult } = require('./helpers/runFeature');
 const client = require('./helpers/client');
 const { otherUser } = require('./helpers/otherUser');
+const { testDocument, pathToUploadFrom, pathToDownloadTo } = require('./helpers/constants');
 const fs = require('fs');
 
 defineSupportCode(({ Then, When }) => {
     const store = client.getFileStore();
-
-    const testDocument = 'test.txt';
-    const pathToUploadFrom = `${__dirname}/helpers/${testDocument}`;
-    const pathToDownloadTo = `${__dirname}/helpers/downloaded-${testDocument}`;
     const fileInStore = () => store.files.find(file => file.name === testDocument);
-
     let numberOfFilesUploaded;
 
     // Scenario: Upload

@@ -5,6 +5,7 @@ const client = require('./helpers/client');
 const { asPromise } = require('./../../../src/helpers/prombservable');
 const { getPropFromEnv } = require('./helpers/envHelper');
 const { otherUser } = require('./helpers/otherUser');
+const { testDocument, pathToUploadFrom } = require('./helpers/constants');
 
 defineSupportCode(({ Given, Then, When }) => {
     const store = client.getChatStore();
@@ -167,10 +168,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
 
-    const testDocument = 'test.txt';
     When('I upload and share a file in chat', () => {
-        const pathToUploadFrom = `${__dirname}/helpers/${testDocument}`;
-
         return store.activeChat.uploadAndShareFile(pathToUploadFrom, testDocument);
     });
 
@@ -184,9 +182,9 @@ defineSupportCode(({ Given, Then, When }) => {
             const fileStore = client.getFileStore();
 
             const fileId = store.activeChat.messages[0].files[0];
-            when(() => fileStore.loading === false, () => {
+            return when(() => fileStore.loading === false, () => {
                 const file = fileStore.getById(fileId);
-                file.name.should.not.equal(testDocument);
+                file.name.should.equal(testDocument);
                 done();
             });
         });
