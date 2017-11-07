@@ -2,7 +2,6 @@ const defineSupportCode = require('cucumber').defineSupportCode;
 const { when } = require('mobx');
 const { getRandomUsername } = require('./helpers/usernameHelper');
 const { confirmUserEmail } = require('./helpers/mailinatorHelper');
-const { runFeature, checkResult } = require('./helpers/runFeature');
 const { DisconnectedError } = require('./../../../src/errors');
 const { asPromise } = require('../../../src/helpers/prombservable');
 const client = require('./helpers/client');
@@ -217,8 +216,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         return client.currentUser.saveAvatar(blob)
             .should.be.fulfilled
             .then(() => {
-                return client.getContactWithName(client.currentUser.username)
-                    .then(user => { url = user.largeAvatarUrl; });
+                const contact = client.getContactStore().getContact(username);
+                url = contact.profileVersion;
             });
     });
 
@@ -230,8 +229,8 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     Then('the new avatar should be displayed', () => {
-        return client.getContactWithName(client.currentUser.username)
-            .then(user => user.largeAvatarUrl.should.not.equal(url));
+        const contact = client.getContactStore().getContact(username);
+        contact.profileVersion.should.be.equal(url + 1);
     });
 
 
