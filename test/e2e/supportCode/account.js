@@ -56,11 +56,6 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
 
     // Scenario: Account creation
-    When('I successfully create an account', () => {
-        return runFeature('Create new user')
-            .then(checkResult);
-    });
-
     Given('I am a new customer', () => {
         client.setCurrentUser(getRandomUsername(), secretPassphrase);
     });
