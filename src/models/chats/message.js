@@ -315,8 +315,9 @@ class Message extends Keg {
         this.externalImages.push({
             url,
             length,
-            isOverInlineSizeLimit: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit,
-            isOversizeCutoff: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimitCutoff
+            isOverInlineSizeLimit:
+                clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit,
+            isOversizeCutoff: length > config.chat.inlineImageSizeLimitCutoff
         });
     }
 
