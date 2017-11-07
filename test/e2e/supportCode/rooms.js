@@ -117,7 +117,7 @@ defineSupportCode(({ Then, When }) => {
     });
 
     // Accept invite
-    When('they can accept the room invite', () => {
+    When(/they (?:can |)accept the room invite/, () => {
         return runFeatureForChatId('Accept room invite', otherUser.id, room.id)
             .then(checkResult);
     });
@@ -139,6 +139,20 @@ defineSupportCode(({ Then, When }) => {
         const chatId = getPropFromEnv('chatId');
         when(() => inviteStore.received.length, () => {
             inviteStore.acceptInvite(chatId).then(done);
+        });
+    });
+
+    // Leave room
+    Then('they can leave the room', () => {
+        return runFeatureForChatId('Leave room previously I joined', otherUser.id, room.id)
+            .then(checkResult);
+    });
+
+    Then('I can leave a room I joined', (done) => {
+        const chatId = getPropFromEnv('chatId');
+        when(() => chatStore.loaded, () => {
+            chatStore.activeChat.leave();
+            when(() => !chatStore.chats.includes(x => x.id === chatId), done);
         });
     });
 });

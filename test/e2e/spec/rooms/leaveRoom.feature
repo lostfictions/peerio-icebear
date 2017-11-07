@@ -1,6 +1,7 @@
-@wip
 Feature: Rooms
+    @registeredUser
     Scenario: Leave room
-        And belong to {a room}
-        When I leave {a room}
-        Then I should not be able to access {a room}
+        Given I create a room
+        And   I invite another user
+        And   they accept the room invite
+        Then  they can leave the room
