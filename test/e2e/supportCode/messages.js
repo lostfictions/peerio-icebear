@@ -68,7 +68,7 @@ defineSupportCode(({ Given, Then, When }) => {
         removed.should.be.true;
     });
 
-    Then('it appears in chronological order', () => {
+    Then('it does not appear in my favorite conversations', () => {
         return loadChats()
             .then(() => indexOfCurrentChat().should.be.equal(-1));
     });
