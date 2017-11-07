@@ -20,7 +20,7 @@ defineSupportCode(({ Then, When }) => {
         console.log(`Channels left: ${client.currentUser.channelsLeft}`);
 
         room = chatStore.startChat([], true, roomName, roomPurpose);
-        when(() => room.added === true, done);
+        when(() => room.added, done);
     });
 
     Then('I can rename the room', () => {
@@ -108,15 +108,21 @@ defineSupportCode(({ Then, When }) => {
 
 
     // Scenario: Can not create more than 3 rooms
-    When('I created 3 rooms', () => {
-        // const invited = new app.Contact(otherUser.id, {}, true);
-        // console.log(client.currentUser.channelsLeft); // 0
+    When('I created 3 rooms', (done) => {
+        const room1 = chatStore.startChat([], true, roomName, roomPurpose);
+        const room2 = chatStore.startChat([], true, roomName, roomPurpose);
+        const room3 = chatStore.startChat([], true, roomName, roomPurpose);
 
-        // room = chatStore.startChat([invited], true, roomName, roomPurpose);
-        // console.log(room); // TypeError: Cannot read property 'added' of null
+        when(() => room1.added && room2.added && room3.added, done);
     });
 
-    // Accept invite
+    When('I should not be able to create another room', () => {
+        const room4 = chatStore.startChat([], true, roomName, roomPurpose);
+        room4.should.be.null;
+    });
+
+
+    // Scenario: Accept invite
     When(/they (?:can |)accept the room invite/, () => {
         return runFeatureForChatId('Accept room invite', otherUser.id, room.id)
             .then(checkResult);
@@ -129,7 +135,8 @@ defineSupportCode(({ Then, When }) => {
         });
     });
 
-    // Reject invite
+
+    // Scenario: Reject invite
     When('they can reject the room invite', () => {
         return runFeatureForChatId('Reject room invite', otherUser.id, room.id)
             .then(checkResult);
@@ -141,6 +148,7 @@ defineSupportCode(({ Then, When }) => {
             inviteStore.acceptInvite(chatId).then(done);
         });
     });
+
 
     // Leave room
     Then('they can leave the room', () => {
@@ -154,5 +162,11 @@ defineSupportCode(({ Then, When }) => {
             chatStore.activeChat.leave();
             when(() => !chatStore.chats.includes(x => x.id === chatId), done);
         });
+    });
+
+
+    // List members
+    Then('the room should have 2 members', () => {
+        chatStore.activeChat.participants.length.should.be.equal(1);
     });
 });

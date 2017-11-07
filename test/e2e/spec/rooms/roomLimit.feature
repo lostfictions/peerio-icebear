@@ -1,6 +1,4 @@
-@wip
 Feature: Rooms
     Scenario: Can not create more than 3 rooms
         Given I created 3 rooms
-        When I try to create {another room} 
-        Then {another room} should not be created
+        Then  I should not be able to create another room

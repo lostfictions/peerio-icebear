@@ -1,5 +1,7 @@
-@wip
 Feature: Rooms
+    @registeredUser
     Scenario: List members
-        When I enter {a room}
-        Then I should see all {room} members
+        Given I create a room
+        And   I invite another user
+        And   they accept the room invite
+        Then  the room should have 2 members
