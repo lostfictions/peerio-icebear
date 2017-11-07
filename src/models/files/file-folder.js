@@ -1,5 +1,6 @@
 const { observable, computed } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
+const warnings = require('../warnings');
 
 class FileFolder {
     @observable files = [];
@@ -22,7 +23,7 @@ class FileFolder {
         return foldersSortedByName.concat(filesSortedByDate);
     }
 
-    parent = null;
+    @observable parent = null;
     isFolder = true;
     get isRoot() { return !this.parent; }
     get hasNested() { return this.folders && this.folders.length; }
@@ -104,6 +105,10 @@ class FileFolder {
 
     moveInto(file) {
         if (file.isFolder) {
+            if (this.folders.find(f => f.normalizedName === file.normalizedName)) {
+                warnings.addSevere('error_folderAlreadyExists');
+                throw new Error('error_folderAlreadyExists');
+            }
             if (file === this) {
                 console.error('cannot move folder in itself');
                 return;
@@ -114,6 +119,14 @@ class FileFolder {
             if (file.folder) file.folder.free(file);
             this.add(file);
         }
+    }
+
+    rename(name) {
+        if (this.parent.findFolderByName(name)) {
+            warnings.addSevere('error_folderAlreadyExists');
+            throw new Error('error_folderAlreadyExists');
+        }
+        this.name = name;
     }
 
     findFolderByName(name) {

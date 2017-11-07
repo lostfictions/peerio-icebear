@@ -24,7 +24,7 @@ class FileFolders {
 
     get formatVersion() { return this.keg.formatVersion; }
 
-    root = new FileFolder(null, '/');
+    root = new FileFolder('/');
 
     fileResolveMap = {};
     folderResolveMap = {};
@@ -94,7 +94,7 @@ class FileFolders {
         const target = parent || this.root;
         if (target.findFolderByName(name)) {
             warnings.addSevere('error_folderAlreadyExists');
-            return;
+            throw new Error('error_folderAlreadyExists');
         }
         const folder = new FileFolder(name);
         const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
