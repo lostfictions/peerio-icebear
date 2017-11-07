@@ -409,11 +409,12 @@ class File extends Keg {
         }, 5);
     }
 
-    tryToCacheTemporarily() {
+    tryToCacheTemporarily(force) {
         if (this.tmpCached
             || this.downloading
             || !clientApp.uiUserPrefs.peerioContentEnabled
-            || this.isOverInlineSizeLimit
+            || (!force && this.isOverInlineSizeLimit)
+            || this.isOversizeCutoff
             || this.cachingFailed) return;
 
         this.downloadToTmpCache();
