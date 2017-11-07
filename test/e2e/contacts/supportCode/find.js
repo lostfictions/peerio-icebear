@@ -45,7 +45,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
         when(() => app.socket.connected, done);
     });
 
-    Before({ tag: '@registeredUser', timeout: 10000 }, (testCase, cb) => {
+    Before({ tag: '@confirmedUser', timeout: 10000 }, (testCase, cb) => {
         runFeature('Account creation')
             .then(result => {
                 if (result.succeeded) {
@@ -62,7 +62,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
     });
 
     // Scenario: Find contact
-    Given('I search for {someone}', (someone) => {
+    Given('I search for {string}', (someone) => {
         assignOtherUsername(someone);
         contactFromUsername = store.getContact(otherUsername);
         return contactLoaded();

@@ -8,36 +8,35 @@ Feature: Rooms
 
     Scenario: Create room
         When I create a room
-        Then I can enter the room
-        And  I can rename it
-        And  I can change the purpose
-    
-    #same as add participant?
-    Scenario: Send invite
-        When I create a room
-        And I invite {other users}
-        Then {other users} should get notified
+        Then I can rename the room
+        And  I can change the room purpose
     
     Scenario: Delete room
-        Given I am an admin of {a room}
-        When I delete a room
-        Then nobody should be able to access {a room}
+        Given I create a room
+        Then  I can delete a room
     
+    @registeredUser
+    Scenario: Send invite
+        When I create a room
+        And  I invite another user
+        Then they should get a room invite
+    
+    @registeredUser
     Scenario: Kick member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        When I kick out {person}
-        Then {person} should not be able to access {a room} 
+        Given I create a room
+        And   someone has joined the room 
+        When  I them kick out
+        Then  they should not be in the room anymore
     
+    @registeredUser
     Scenario: Promote member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        When I promote {person} to admin
-        Then {person} should be admin
+        Given I create a room
+        And   someone has joined the room 
+        Then  I can promote them to admin
     
+    @registeredUser
     Scenario: Demote member
-        Given I am an admin of {a room}
-        And {person} has joined {a room} 
-        And {person} is admin of {a room} 
-        When I demote them
-        Then {person} should no longer be admin of {a room} 
+        Given I create a room
+        And   someone has joined the room 
+        And   I can promote them to admin
+        Then  I can demote them as admin

@@ -1,10 +1,11 @@
 {
-    "rules":{
+    "rules": {
         "no-unused-expressions": 0,
         "import/no-extraneous-dependencies": 0,
+        "import/no-unresolved": 0,
         "global-require": 0
     },
-    "globals":{
+    "globals": {
         "beforeEach": false,
         "afterEach": false,
         "before": false,
