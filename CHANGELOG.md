@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.7...v3.0.0) (2017-11-07)
+
+
+### Features
+
+* rename oversized to match file property. add oversizeCutoff ([#57](https://github.com/PeerioTechnologies/peerio-icebear/issues/57)) ([3eb41d7](https://github.com/PeerioTechnologies/peerio-icebear/commit/3eb41d7))
+
+
+### BREAKING CHANGES
+
+* `Message#externalImages` array objects property renamed `oversized` => `isOverInlineSizeLimit` 
+
+
+
 <a name="2.14.7"></a>
 ## [2.14.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.6...v2.14.7) (2017-11-06)
 
