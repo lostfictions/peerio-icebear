@@ -271,6 +271,10 @@ class File extends Keg {
         return clientApp.uiUserPrefs.limitInlineImageSize && this.size > config.chat.inlineImageSizeLimit;
     }
 
+    @computed get isOversizeCutoff() {
+        return this.size > config.chat.inlineImageSizeLimitCutoff;
+    }
+
     serializeKegPayload() {
         return {
             name: this.name,
@@ -416,11 +420,12 @@ class File extends Keg {
         }, 5);
     }
 
-    tryToCacheTemporarily() {
+    tryToCacheTemporarily(force) {
         if (this.tmpCached
             || this.downloading
             || !clientApp.uiUserPrefs.peerioContentEnabled
-            || this.isOverInlineSizeLimit
+            || (!force && this.isOverInlineSizeLimit)
+            || this.isOversizeCutoff
             || this.cachingFailed) return;
 
         this.downloadToTmpCache();

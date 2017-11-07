@@ -16,7 +16,8 @@ const TaskQueue = require('../../helpers/task-queue');
  * @typedef {{
        url : string
        length : number
-       oversized : boolean
+       isOverInlineSizeLimit : boolean
+       isOversizeCutoff : boolean
    }} ExternalImage
  */
 
@@ -326,7 +327,9 @@ class Message extends Keg {
         this.externalImages.push({
             url,
             length,
-            oversized: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit
+            isOverInlineSizeLimit:
+                clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit,
+            isOversizeCutoff: length > config.chat.inlineImageSizeLimitCutoff
         });
     }
 

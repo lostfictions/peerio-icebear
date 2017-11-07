@@ -133,6 +133,7 @@ function _resetDownloadState(stream) {
     this.downloader && this.downloader.cancel();
     this.uploader = null;
     this.downloader = null;
+    this.cachingFailed = false;
     // this.progress = 0;
     try {
         if (stream) stream.close();
