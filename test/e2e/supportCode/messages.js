@@ -98,7 +98,7 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
     Then('the receiver reads the message', () => {
-        runFeatureForChatId('Read new message from account', otherUser.id, chatId)
+        return runFeatureForChatId('Read new message from account', otherUser.id, chatId)
             .then(checkResult);
     });
 
@@ -167,18 +167,28 @@ defineSupportCode(({ Given, Then, When }) => {
     });
 
 
-    When('I send receiver a file', (callback) => {
-        // Write code here that turns the phrase above into concrete actions
-        callback(null, 'pending');
+    const testDocument = 'test.txt';
+    When('I upload and share a file in chat', () => {
+        const pathToUploadFrom = `${__dirname}/helpers/${testDocument}`;
+
+        return store.activeChat.uploadAndShareFile(pathToUploadFrom, testDocument);
     });
 
-    Then('receiver should be able download a file contents', (callback) => {
-        // Write code here that turns the phrase above into concrete actions
-        callback(null, 'pending');
+    Then('the receiver should see the file', () => {
+        return runFeatureForChatId('Receive new file from account', otherUser.id, chatId)
+            .then(checkResult);
     });
 
-    Given('I am in a chat with receiver', (callback) => {
-        // Write code here that turns the phrase above into concrete actions
-        callback(null, 'pending');
+    Then('I can access file received in chat', (done) => {
+        loadChats().then(() => {
+            const fileStore = client.getFileStore();
+
+            const fileId = store.activeChat.messages[0].files[0];
+            when(() => fileStore.loading === false, () => {
+                const file = fileStore.getById(fileId);
+                file.name.should.not.equal(testDocument);
+                done();
+            });
+        });
     });
 });

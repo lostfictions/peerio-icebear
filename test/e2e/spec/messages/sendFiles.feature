@@ -1,8 +1,8 @@
-@wip
 Feature: Chat
+    @registeredUser
     Scenario: Send files in a chat
-        Given I am in a chat with receiver
-        When I send receiver a file
-        Then receiver should be able download a file contents
+        Given I create a direct message
+        When  I upload and share a file in chat
+        Then  the receiver should see the file
     
         
