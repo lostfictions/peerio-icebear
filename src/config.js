@@ -312,13 +312,22 @@ const config = new class {
         maxChatPurposeLength: 120,
         /**
          * Maximum number of bytes inline image can have (both peerio file and external)
-         * to allow auto-downloading and showing it inline
+         * to allow auto-downloading and showing it inline with "show big files" enabled
+         * or with manual "Display this image"
          * @member {number} chat.inlineImageSizeLimit
          * @memberof config
          * @readonly
          * @public
          */
-        inlineImageSizeLimit: 10 * 1024 * 1014,
+        inlineImageSizeLimit: 10 * 1024 * 1024,
+        /**
+         * Image bigger than this is not downloaded inline even with manual "Display this image"
+         * @member {number} chat.inlineImageSizeLimitCutoff
+         * @memberof config
+         * @readonly
+         * @public
+         */
+        inlineImageSizeLimitCutoff: 30 * 1024 * 1024,
         allowedInlineContentTypes: {
             'image/jpeg': true,
             'image/bmp': true,

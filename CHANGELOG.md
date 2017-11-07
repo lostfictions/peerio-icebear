@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.1"></a>
+## [3.0.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.0...v3.0.1) (2017-11-07)
+
+
+### Bug Fixes
+
+* clear Download Failed notice on new download attempt ([#58](https://github.com/PeerioTechnologies/peerio-icebear/issues/58)) ([0dafa48](https://github.com/PeerioTechnologies/peerio-icebear/commit/0dafa48))
+
+
+
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.7...v3.0.0) (2017-11-07)
+
+
+### Features
+
+* rename oversized to match file property. add oversizeCutoff ([#57](https://github.com/PeerioTechnologies/peerio-icebear/issues/57)) ([3eb41d7](https://github.com/PeerioTechnologies/peerio-icebear/commit/3eb41d7))
+
+
+### BREAKING CHANGES
+
+* `Message#externalImages` array objects property renamed `oversized` => `isOverInlineSizeLimit` 
+
+
+
+<a name="2.14.7"></a>
+## [2.14.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.6...v2.14.7) (2017-11-06)
+
+
+### Bug Fixes
+
+* inline image file limit because it doesnt format well ([#56](https://github.com/PeerioTechnologies/peerio-icebear/issues/56)) ([5f9d9fe](https://github.com/PeerioTechnologies/peerio-icebear/commit/5f9d9fe))
+
+
+
 <a name="2.14.6"></a>
 ## [2.14.6](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.5...v2.14.6) (2017-11-04)
 
