@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.14.7"></a>
+## [2.14.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.6...v2.14.7) (2017-11-06)
+
+
+### Bug Fixes
+
+* inline image file limit because it doesnt format well ([#56](https://github.com/PeerioTechnologies/peerio-icebear/issues/56)) ([5f9d9fe](https://github.com/PeerioTechnologies/peerio-icebear/commit/5f9d9fe))
+
+
+
 <a name="2.14.6"></a>
 ## [2.14.6](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.5...v2.14.6) (2017-11-04)
 
