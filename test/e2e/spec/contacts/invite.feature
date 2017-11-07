@@ -1,5 +1,4 @@
 Feature: Find contacts
-    #sometimes TypeError: Cannot read property 'should' of undefined
     @unregisteredUser
     Scenario: Send invite email
         When I search for an unregistered user

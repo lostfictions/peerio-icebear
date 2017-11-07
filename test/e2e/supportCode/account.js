@@ -72,7 +72,7 @@ defineSupportCode(({ Before, Given, Then, When }) => {
 
     // Scenario: Account deletion
     When('my email is confirmed', () => {
-        return confirmUserEmail(client.currentUser.email)
+        return confirmUserEmail(`${username}@mailinator.com`)
             .then(() => {
                 client.currentUser.primaryAddressConfirmed = true;
             });
