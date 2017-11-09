@@ -12,7 +12,6 @@ const fileHelper = require('../../helpers/file');
 const FileNonceGenerator = require('./file-nonce-generator');
 const TinyDb = require('../../db/tiny-db');
 const User = require('../user/user');
-const { getFileStore } = require('../../helpers/di-file-store');
 
 function _getUlResumeParams(path) {
     return config.FileStream.getStat(path)
@@ -104,7 +103,7 @@ function upload(filePath, fileName, resume) {
                 this._saveUploadEndFact();
                 this._resetUploadState(stream);
                 // 1 means there's only current task in queue
-                if (getFileStore().uploadQueue.length === 1) warnings.add('snackbar_uploadComplete');
+                // if (getFileStore().uploadQueue.length === 1) warnings.add('snackbar_uploadComplete');
             })
             .catch(err => {
                 console.error(err);

@@ -212,9 +212,14 @@ class File extends Keg {
     @computed get fsSafeUid() {
         return cryptoUtil.getHexHash(16, cryptoUtil.b64ToBytes(this.fileId));
     }
+
     @computed get tmpCachePath() {
-        return config.FileStream.getTempCachePath(`${this.fsSafeUid}.${this.ext}`);
+        return this.customTempCachePath ||
+            config.FileStream.getTempCachePath(`${this.fsSafeUid}.${this.ext}`);
     }
+
+    @observable customTempCachePath;
+
     /**
      * currently mobile only: Full path to locally stored file
      * @member {string} cachePath

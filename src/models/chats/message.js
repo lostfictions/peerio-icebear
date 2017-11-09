@@ -133,6 +133,16 @@ class Message extends Keg {
         const { timestamp } = this;
         return timestamp ? moment(timestamp).format('LT') : null;
     }
+
+    prepopulate() {
+        this.sending = true;
+        this.sendError = false;
+        if (!this.tempId) this.assignTemporaryId();
+        this.id = null;
+        this.version = 0;
+        this.sender = contactStore.getContact(User.current.username);
+        this.timestamp = new Date();
+    }
     /**
      * Sends current message (saves the keg).
      * This function can be called as a reaction to user clicking 'retry' on failed message.
@@ -142,14 +152,7 @@ class Message extends Keg {
      * @protected
      */
     send() {
-        this.sending = true;
-        this.sendError = false;
-        if (!this.tempId) this.assignTemporaryId();
-        this.id = null;
-        this.version = 0;
-        this.sender = contactStore.getContact(User.current.username);
-        this.timestamp = new Date();
-
+        if (!this.tempId) this.prepopulate();
         // @ts-ignore we can't use jsdoc annotations to make bluebird promises assignable to global promises!
         return (this.systemData ? retryUntilSuccess(() => this.saveToServer()) : this.saveToServer())
             .catch(err => {

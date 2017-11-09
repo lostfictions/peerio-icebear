@@ -13,6 +13,7 @@ const TaskQueue = require('../../helpers/task-queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 const createMap = require('../../helpers/dynamic-array-map');
 const FileFolders = require('./file-folders');
+const cryptoUtil = require('../../crypto/util');
 
 /**
  * File store.
@@ -418,6 +419,7 @@ class FileStore {
      */
     upload = (filePath, fileName) => {
         const keg = new File(User.current.kegDb);
+        keg.fileId = cryptoUtil.getRandomUserSpecificIdB64(User.current.username);
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;
@@ -429,18 +431,19 @@ class FileStore {
                 warnings.addSevere('error_fileUploadSizeExceeded', 'error_uploadFailed');
                 return;
             }
-            this.uploadQueue.addTask(() => {
-                const ret = keg.upload(filePath, fileName);
-                this.files.unshift(keg);
+            when(() => socket.authenticated, () =>
+                this.uploadQueue.addTask(() => {
+                    const ret = keg.upload(filePath, fileName);
+                    this.files.unshift(keg);
 
-                const disposer = when(() => keg.deleted, () => {
-                    this.files.remove(keg);
-                });
-                when(() => keg.readyForDownload, () => {
-                    disposer();
-                });
-                return ret;
-            });
+                    const disposer = when(() => keg.deleted, () => {
+                        this.files.remove(keg);
+                    });
+                    when(() => keg.readyForDownload, () => {
+                        disposer();
+                    });
+                    return ret;
+                }));
         });
 
         return keg;
