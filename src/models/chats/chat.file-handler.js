@@ -53,18 +53,23 @@ class ChatFileHandler {
         file.uploadQueue = this.chat.uploadQueue; // todo: change, this is dirty
         this.chat.uploadQueue.push(file);
         fileStore.files.push(file);
-        const deletedDisposer = when(() => file.deleted, () => {
+        let limboMessage = null;
+        const cleanup = () => {
+            this.chat.limboMessages.remove(limboMessage);
             this.chat.uploadQueue.remove(file);
             // TODO @anri: if upload fails, file needs to be deleted
             // is this ok?
             fileStore.files.remove(file);
-        });
-        const limboMessage = this.chat.createLimboFilesMessage([file.fileId]);
+        };
+        const deletedDisposer = when(() => file.deleted, cleanup);
+        limboMessage = this.chat.createLimboFilesMessage([file.fileId]);
         when(() => file.readyForDownload, action(async () => {
             this.chat.uploadQueue.remove(file);
             if (beforeShareCallback) {
                 await beforeShareCallback();
             }
+            const deleteMessageDisposer = when(() => limboMessage.sendError, cleanup);
+            when(() => !limboMessage.sending, deleteMessageDisposer);
             this.shareLimboMessage(limboMessage, file);
             if (deleteAfterUpload) {
                 config.FileStream.delete(path);
@@ -98,8 +103,13 @@ class ChatFileHandler {
     shareLimboMessage(m, file) {
         // @ts-ignore no bluebird-promise assignability with jsdoc
         return this.shareQueue.addTask(() => {
-            this.shareFileKegs([file]);
-            return this.chat.pushLimboFilesMessage(m);
+            return this.shareFileKegsPromise([file])
+                .then(() => this.chat.pushLimboFilesMessage(m))
+                .catch(e => {
+                    console.error('error sharing limbo file message');
+                    console.error(e);
+                    m.sendError = true;
+                });
         });
     }
 
@@ -122,6 +132,28 @@ class ChatFileHandler {
         }
         return ids;
     }
+
+    /**
+     * Shares existing Peerio files with a chat.
+     * This function performs only logical sharing, provides permissions/access for recipients.
+     * It doesn't inform recipients in the chat about the fact of sharing.
+     * @param {Array<File>} files
+     * @return {Array<string>} - fileId list
+     * @private
+     */
+    shareFileKegsPromise(files) {
+        if (!files || !files.length) return null;
+        const ids = [];
+        const promises = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            // todo: handle failure
+            promises.push(file.share(this.chat.participants));
+            ids.push(file.fileId);
+        }
+        return Promise.all(promises).then(() => ids);
+    }
+
 
     getRecentFiles() {
         return retryUntilSuccess(() => {
