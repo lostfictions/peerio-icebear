@@ -1,7 +1,7 @@
-[PR guideline](https://github.com/PeerioTechnologies/peerio-icebear/blob/dev/docs/CONTRIBUTING.md)
-*If something is not applicable to your case - acknowledge the fact by checking the box or writing n/a.*
+[PR guideline.](https://github.com/PeerioTechnologies/peerio-icebear/blob/dev/docs/CONTRIBUTING.md)
 
 ## PR author
+*If something is not applicable to your case - acknowledge the fact by writing n/a.*
 
 <table>
   <tr>
