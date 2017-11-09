@@ -2,6 +2,9 @@
 
 ### Pull request
 
+#### One pull request == one feature/bugfix/refactor.
+It's easier to review and gives more choices in terms of merging something while waiting on something else.
+
 #### Document breaking changes
 
 Breaking changes should be described 
@@ -23,9 +26,6 @@ List views and functionality to test, cases, and possible regressions.
 
 
 ### Code
-
-#### One pull request == one feature/bugfix/refactor.
-It's easier to review and gives more choices in terms of merging something while waiting on something else.
   
 #### Add jsdoc summaries and add typescript typings.
 One can't overestimate the value of good descriptions and typings.</dd>
@@ -55,5 +55,5 @@ If you can unit test it without mocks/stubs - do it.
 #### Write e2e tests.
 Cucumber ftw.
 
-### Think about performance.
+#### Think about performance.
 No need to go crazy, but try to figure which parts of your code are likely to get executed a lot and make them performant.
