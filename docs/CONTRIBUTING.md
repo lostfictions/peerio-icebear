@@ -53,7 +53,7 @@ If you add 'one more' of something that already exists (for example another sett
 If you can unit test it without mocks/stubs - do it.
 
 #### Write e2e tests.
-Cucumber ftw.
+Cucumber ftw. Lots of useful info [in this doc](https://github.com/PeerioTechnologies/peerio-icebear/tree/dev/test/e2e).
 
 #### Think about performance.
 No need to go over the top, but try to figure which parts of your code are likely to get executed a lot and make them performant.
