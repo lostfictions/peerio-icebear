@@ -582,6 +582,9 @@ class Chat {
             const existing = this._messageMap[msg.id];
             if (existing) {
                 this.messages.remove(existing);
+                // keeping tempId consistent
+                // TODO: is this ok, @anri?
+                if (existing.tempId) msg.tempId = existing.tempId;
             } else {
                 // track number of new messages & mentions in 'batch'
                 newMessageCount += 1;
@@ -670,21 +673,32 @@ class Chat {
      */
     _sendMessage(m) {
         if (this.canGoDown) this.reset();
-        // send() will fill message with data required for rendering
-        const promise = m.send();
-        this.limboMessages.push(m);
-        this._detectLimboGrouping();
-        when(() => m.version > 1, action(() => {
-            this.limboMessages.remove(m);
-            m.tempId = null;
-            // unless user already scrolled too high up, we add the message
-            if (!this.canGoDown) {
-                this._finishAddMessages([m], false);
-            } else {
-                this._detectLimboGrouping();
-            }
-        }));
-        return promise;
+        // prepopulate() will fill message with data required for rendering
+        m.prepopulate();
+        if (!m.isLimboFile) {
+            // this probably needs to be generalized
+            this.limboMessages.push(m);
+            this._detectLimboGrouping();
+        }
+        // @seavan: I would rather use async/await here, but you rely on BlueBird
+        // also about waiting for files to finish uploading to preserve sorting
+        // this could be done better
+        return new Promise(resolve =>
+            when(() => m.isLimboFile || !this.limboMessages.find(i => i.isLimboFile), resolve))
+            .then(() => {
+                const promise = m.send();
+                when(() => m.version > 1, action(() => {
+                    this.limboMessages.remove(m);
+                    // m.tempId = null;
+                    // unless user already scrolled too high up, we add the message
+                    if (!this.canGoDown) {
+                        this._finishAddMessages([m], false);
+                    } else {
+                        this._detectLimboGrouping();
+                    }
+                }));
+                return promise;
+            });
     }
 
     /**
@@ -700,6 +714,37 @@ class Chat {
         const m = new Message(this.db);
         m.files = files;
         m.text = text;
+        return this._sendMessage(m);
+    }
+
+    /**
+     * Create and display a limbo message with files
+     * @function createLimboFilesMessage
+     * @param {Array<File>} files an array of file ids.
+     * @returns {Message}
+     * @memberof Chat
+     */
+    @action createLimboFilesMessage(files) {
+        const m = new Message(this.db);
+        global.lastLimbo = m;
+        // mostly for debug purposes
+        m.isLimboFile = true;
+        m.files = files;
+        m.prepopulate();
+        // this probably needs to be generalized
+        this.limboMessages.push(m);
+        this._detectLimboGrouping();
+        return m;
+    }
+
+    /**
+     * Push forward the limbo message with file
+     * @function pushLimboFilesMessage
+     * @param {Message} m
+     * @returns {Promise}
+     * @memberof Chat
+     */
+    @action pushLimboFilesMessage(m) {
         return this._sendMessage(m);
     }
 

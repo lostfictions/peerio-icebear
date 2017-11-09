@@ -218,6 +218,15 @@ class FileStreamAbstract {
     static getTempCachePath(name) {
         throw new AbstractCallError();
     }
+
+    /**
+     * Copies a file. Used for caching files before upload
+     * @static
+     * @memberof FileStreamAbstract
+     */
+    static copyFile(source, target) {
+        throw new AbstractCallError();
+    }
 }
 
 module.exports = FileStreamAbstract;

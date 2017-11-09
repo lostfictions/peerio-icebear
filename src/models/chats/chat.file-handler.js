@@ -1,6 +1,6 @@
 // @ts-check
 
-const { when } = require('mobx');
+const { when, action } = require('mobx');
 const fileStore = require('../files/file-store');
 const config = require('../../config');
 const TaskQueue = require('../../helpers/task-queue');
@@ -47,23 +47,30 @@ class ChatFileHandler {
      */
     uploadAndShare(path, name, deleteAfterUpload = false, beforeShareCallback = null) {
         const file = fileStore.upload(path, name);
+        file.name = name;
+        file.customTempCachePath = path;
+        file.tmpCached = true;
         file.uploadQueue = this.chat.uploadQueue; // todo: change, this is dirty
         this.chat.uploadQueue.push(file);
+        fileStore.files.push(file);
         const deletedDisposer = when(() => file.deleted, () => {
             this.chat.uploadQueue.remove(file);
+            // TODO @anri: if upload fails, file needs to be deleted
+            // is this ok?
+            fileStore.files.remove(file);
         });
-        when(() => file.readyForDownload, () => {
+        const limboMessage = this.chat.createLimboFilesMessage([file.fileId]);
+        when(() => file.readyForDownload, action(async () => {
             this.chat.uploadQueue.remove(file);
             if (beforeShareCallback) {
-                beforeShareCallback().then(() => this.share([file]));
-            } else {
-                this.share([file]);
+                await beforeShareCallback();
             }
+            this.shareLimboMessage(limboMessage, file);
             if (deleteAfterUpload) {
                 config.FileStream.delete(path);
             }
             deletedDisposer();
-        });
+        }));
         return file;
     }
 
@@ -83,6 +90,18 @@ class ChatFileHandler {
         });
     }
 
+    /**
+     * Shares previously uploaded files to chat.
+     * @param {Message} message
+     * @returns {Promise}
+     */
+    shareLimboMessage(m, file) {
+        // @ts-ignore no bluebird-promise assignability with jsdoc
+        return this.shareQueue.addTask(() => {
+            this.shareFileKegs([file]);
+            return this.chat.pushLimboFilesMessage(m);
+        });
+    }
 
     /**
      * Shares existing Peerio files with a chat.
