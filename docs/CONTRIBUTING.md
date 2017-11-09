@@ -32,7 +32,7 @@ One can't overestimate the value of good descriptions and typings.</dd>
   
 #### Comment your logic.
 
-The more the merrier, ofcourse nobody wants to see something like
+The more the merrier, of course nobody wants to see something like
 ```
 // message count constant
 const messageCount;
@@ -47,7 +47,7 @@ If you can't follow code execution it in your mind - something is likely wrong.
 If you want to refactor something that touches more then just your changes - consider making a separate PR for refactored code.
 
 #### Maintain coding style and patterns
-If you add 'one more' of someting that already exists (for example another settings parameter, or another method to a Message class. Look for established pattern of how similar things are done/organized and do it the same way. Or, if you have a good reason to change the pattern - refactor it everywhere so the code remains uniform.  
+If you add 'one more' of something that already exists (for example another settings parameter, or another method to a Message class) look for established pattern of how similar things are done/organized and do it the same way. Or, if you have a good reason to change the pattern - refactor it everywhere so the code remains uniform.  
  
 #### Write unit tests for simple modules without internal dependencies.
 If you can unit test it without mocks/stubs - do it.
@@ -56,4 +56,4 @@ If you can unit test it without mocks/stubs - do it.
 Cucumber ftw.
 
 #### Think about performance.
-No need to go crazy, but try to figure which parts of your code are likely to get executed a lot and make them performant.
+No need to go over the top, but try to figure which parts of your code are likely to get executed a lot and make them performant.
