@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.7"></a>
+## [3.0.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.6...v3.0.7) (2017-11-09)
+
+
+
+<a name="3.0.6"></a>
+## [3.0.6](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.5...v3.0.6) (2017-11-09)
+
+
+
+<a name="3.0.5"></a>
+## [3.0.5](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.4...v3.0.5) (2017-11-09)
+
+
+
+<a name="3.0.4"></a>
+## [3.0.4](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.3...v3.0.4) (2017-11-09)
+
+
+
+<a name="3.0.3"></a>
+## [3.0.3](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.2...v3.0.3) (2017-11-09)
+
+
+
+<a name="3.0.2"></a>
+## [3.0.2](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.1...v3.0.2) (2017-11-09)
+
+
+
+<a name="3.0.1"></a>
+## [3.0.1](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.0...v3.0.1) (2017-11-07)
+
+
+### Bug Fixes
+
+* clear Download Failed notice on new download attempt ([#58](https://github.com/PeerioTechnologies/peerio-icebear/issues/58)) ([0dafa48](https://github.com/PeerioTechnologies/peerio-icebear/commit/0dafa48))
+
+
+
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.7...v3.0.0) (2017-11-07)
+
+
+### Features
+
+* rename oversized to match file property. add oversizeCutoff ([#57](https://github.com/PeerioTechnologies/peerio-icebear/issues/57)) ([3eb41d7](https://github.com/PeerioTechnologies/peerio-icebear/commit/3eb41d7))
+
+
+### BREAKING CHANGES
+
+* `Message#externalImages` array objects property renamed `oversized` => `isOverInlineSizeLimit` 
+
+
+
 <a name="2.14.7"></a>
 ## [2.14.7](https://github.com/PeerioTechnologies/peerio-icebear/compare/v2.14.6...v2.14.7) (2017-11-06)
 
