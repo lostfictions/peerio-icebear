@@ -399,12 +399,23 @@ class FileStore {
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
                     if (keg.deleted) {
-                        if (existing) this.files.remove(existing);
+                        if (existing) {
+                            this.files.remove(existing);
+                            // remove file from folder, too
+                            if (existing.folder) existing.folder.free(existing);
+                        }
                         continue;
                     }
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
+                    if (file.folderId !== keg.folderId) {
+                        // resolve folder
+                        const folder = this.fileFolders.getById(keg.folderId);
+                        if (folder) folder.moveInto(file);
+                    }
                     if (!existing) {
                         dirty = true;
+                        // if new file keg already has folderId set
+                        // it will be parsed automatically
                         this.files.unshift(file);
                     }
                 }
@@ -442,8 +453,9 @@ class FileStore {
      * @param {string} [fileName] - if u want to override name in filePath
      * @public
      */
-    upload = (filePath, fileName) => {
+    upload = (filePath, fileName, folderId) => {
         const keg = new File(User.current.kegDb);
+        keg.folderId = folderId;
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;

@@ -45,6 +45,14 @@ class File extends Keg {
      */
     @observable fileId = null;
     /**
+     * Folder id
+     * @member {string} folderId
+     * @memberof File
+     * @instance
+     * @public
+     */
+    @observable folderId = null;
+    /**
      * @member {string} name
      * @memberof File
      * @instance
@@ -292,6 +300,7 @@ class File extends Keg {
     serializeProps() {
         return {
             fileId: this.fileId,
+            folderId: this.folderId,
             size: this.size,
             ext: this.ext, // don't really need to store, since it's computed, but we want to search by extension
             uploadedAt: this.uploadedAt.valueOf(),
@@ -301,6 +310,7 @@ class File extends Keg {
 
     @action deserializeProps(props) {
         this.fileId = props.fileId;
+        this.folderId = props.folderId;
         this.readyForDownload = props.fileProcessingState === 'ready' || !!props.sharedBy;
         this.size = +props.size;
         this.uploadedAt = new Date(+props.uploadedAt);

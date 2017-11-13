@@ -26,17 +26,19 @@ class FileFolders {
 
     root = new FileFolder('/');
 
-    fileResolveMap = {};
     folderResolveMap = {};
 
+    getById(id) {
+        return this.folderResolveMap[id];
+    }
+
     _addFile = (file) => {
-        const { fileResolveMap, root } = this;
-        const folderToResolve = fileResolveMap[file.fileId];
+        const { root } = this;
+        const folderToResolve = this.getById(file.folderId);
         if (file.folder && file.folder === folderToResolve) return;
         if (folderToResolve) {
             file.folder && file.folder.free(file);
             folderToResolve.add(file);
-            delete fileResolveMap[file.fileId];
         } else {
             !file.folder && root.add(file);
         }
@@ -48,19 +50,19 @@ class FileFolders {
             await this.keg.saveToServer();
         }
         const { files } = this.fileStore;
-        this.fileResolveMap = {};
         if (this._intercept) {
             this._intercept();
             this._intercept = null;
         }
-        const { fileResolveMap, folderResolveMap, root } = this;
+        const { folderResolveMap, root } = this;
         const newFolderResolveMap = {};
-        root.deserialize(this.keg, null, fileResolveMap, folderResolveMap, newFolderResolveMap);
+        root.deserialize(this.keg, null, folderResolveMap, newFolderResolveMap);
         // remove files from folders if they aren't present in the keg
         files.forEach(f => {
-            if (f.folder && f.folder !== root && !fileResolveMap[f.fileId]) {
-                f.folder.free(f);
-            }
+            if (f.folderId) {
+                const folder = this.getById(f.folderId);
+                if (folder) folder.moveInto(f);
+            } else if (f.folder) f.folder.free(f);
         });
         // remove folders if they aren't present in the keg
         for (const folderId in folderResolveMap) {

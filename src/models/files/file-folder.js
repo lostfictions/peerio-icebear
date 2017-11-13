@@ -1,4 +1,4 @@
-const { observable, computed } = require('mobx');
+const { observable, computed, when } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
 const warnings = require('../warnings');
 
@@ -47,6 +47,11 @@ class FileFolder {
             return;
         }
         file.folder = this;
+        file.folderId = this.folderId;
+        // TODO: should the error be handled here?
+        // this is a check to not simultaneiously save file keg from two places
+        // should be replaced by queueing saves
+        when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
         this.files.push(file);
     }
 
@@ -136,23 +141,19 @@ class FileFolder {
 
     serialize() {
         const { name, folderId, createdAt } = this;
-        const files = this.files.map(f => f.fileId);
         const folders = this.folders.map(f => f.serialize());
-        return { name, folderId, createdAt, files, folders };
+        return { name, folderId, createdAt, folders };
     }
 
-    deserialize(dataItem, parent, fileResolveMap, folderResolveMap, newFolderResolveMap) {
-        const { folderId, name, createdAt, files, folders } = dataItem;
+    deserialize(dataItem, parent, folderResolveMap, newFolderResolveMap) {
+        const { folderId, name, createdAt, folders } = dataItem;
         Object.assign(this, { folderId, name, createdAt });
-        files && files.forEach(fileId => {
-            fileResolveMap[fileId] = this;
-        });
         folders && folders.map(f => {
             let folder = folderResolveMap[f.folderId];
             if (!folder) {
                 folder = new FileFolder();
             }
-            folder.deserialize(f, this, fileResolveMap, folderResolveMap, newFolderResolveMap);
+            folder.deserialize(f, this, folderResolveMap, newFolderResolveMap);
             newFolderResolveMap[f.folderId] = folder;
             return folder;
         });
