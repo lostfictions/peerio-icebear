@@ -5,8 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "=== HOOKS ===": "",
-    "postcheckout": "opt --in npm-install --exec \"npm install\"",
-    "postmerge": "opt --in npm-install --exec \"npm install\"",
+    "postinstall": "md5 -q package.json > .package.json.md5",
+    "postcheckout": "opt --in npm-install --exec \"node ./scripts/npm_install_if_changed.js\"",
+    "postmerge": "opt --in npm-install --exec \"node ./scripts/npm_install_if_changed.js\"",
     "precommit": "opt --in lint --exec \"npm run code:verify\"",
     "prepush": "git fetch --prune origin '+refs/tags/*:refs/tags/*'",
     "commitmsg": "validate-commit-msg",
