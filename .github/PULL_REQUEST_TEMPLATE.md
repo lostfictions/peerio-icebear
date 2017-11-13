@@ -3,28 +3,19 @@
 ## PR author
 *If something is not applicable to your case - acknowledge the fact by writing n/a.*
 
-<table>
-  <tr>
-    <td>Relevant issue tracker links</td>
-    <td>...</td>
-  </tr>
-  <tr>
-    <td>Linked PRs in other repos</td>
-    <td>...</td>
-  </tr>
-  <tr>
-    <td>Manual testing instructions</td>
-    <td>...</td>
-  </tr>
-  <tr>
-    <td>Breaking changes</td>
-    <td>...</td>
-  </tr>
-  <tr>
-    <td>Additional notes</td>
-    <td>...</td>
-  </tr>
-</table>
+|    📝   |
+| ------- |
+| **Relevant issue tracker links:** | 
+| ....... |
+| **Linked PRs in other repos:** | 
+| ....... | 
+| **Manual testing instructions:** | 
+| ....... |
+| **Breaking changes:** | 
+| ....... |
+| **Additional notes:** | 
+| ....... |
+
 
 
 ## Reviewer
