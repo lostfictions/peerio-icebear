@@ -51,6 +51,16 @@ class FileStore {
     }
 
     /**
+     * Subset of files and folders not currently hidden by any applied filters
+     * @readonly
+     * @memberof FileStore
+     */
+    @computed get visibleFilesAndFolders() {
+        const folders = this.fileFolders.searchAllFoldersNyName(this.currentFilter);
+        return folders.concat(this.files.filter(f => f.show));
+    }
+
+    /**
      * Human readable maximum auto-expandable inline image size limit
      * @readonly
      * @memberof FileStore

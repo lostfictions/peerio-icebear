@@ -69,6 +69,8 @@ class FileFolders {
             }
         }
         this.folderResolveMap = newFolderResolveMap;
+        this.folderResolveMapSorted = Object.values(this.folderResolveMap)
+            .sort((f1, f2) => f1.normalizedName > f2.normalizedName);
         files.forEach(this._addFile);
         this._intercept = files.observe(delta => {
             delta.removed.forEach(file => {
@@ -79,6 +81,12 @@ class FileFolders {
         });
         console.log('file-folders: step 3');
         this.initialized = true;
+    }
+
+    searchAllFoldersNyName(name) {
+        const q = name ? name.toLowerCase() : '';
+        return this.folderResolveMapSorted
+            .filter(f => f.normalizedName.includes(q));
     }
 
     createDefault() {
