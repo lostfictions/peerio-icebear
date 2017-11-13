@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 
 try {
     const existing = fs.readFileSync('.package.json.md5');
-    const actual = execSync('md5 -q package.json');
+    const actual = execSync(process.platform === 'darwin' ? 'md5 -q package.json' : 'md5sum package.json');
     if (existing.toString !== actual.toString) {
         console.log('package.json has changed, running npm install.');
         execSync('npm install');
