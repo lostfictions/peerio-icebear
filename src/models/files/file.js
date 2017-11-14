@@ -194,7 +194,7 @@ class File extends Keg {
 
     /**
      * which folder is this file located in
-     * default: undefined (folders have not been initialized)
+     * default: undefined (folders have not been loaded)
      * null: file is in the root folder
      * @member {FileFolder} folder
      * @memberof File

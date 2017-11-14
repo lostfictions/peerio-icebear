@@ -17,7 +17,8 @@ class FileStoreFolders {
             };
         });
     }
-    @observable initialized;
+
+    @observable loaded;
     @observable keg = null;
 
     get loaded() { return this.keg && this.keg.loaded; }
@@ -76,7 +77,7 @@ class FileStoreFolders {
             return delta;
         });
         console.log('file-folders: step 3');
-        this.initialized = true;
+        this.loaded = true;
     }
 
     searchAllFoldersNyName(name) {
