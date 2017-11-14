@@ -21,8 +21,6 @@ class FileStoreFolders {
     @observable loaded;
     @observable keg = null;
 
-    get loaded() { return this.keg && this.keg.loaded; }
-
     root = new FileFolder('/');
 
     folderResolveMap = {};
