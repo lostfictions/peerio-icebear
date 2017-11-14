@@ -25,7 +25,7 @@ class FileStore {
         const m = createMap(this.files, 'fileId');
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
-        this.fileFolders = new FileStoreFolders(this);
+        this.folders = new FileStoreFolders(this);
 
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');
@@ -56,7 +56,7 @@ class FileStore {
      * @memberof FileStore
      */
     @computed get visibleFilesAndFolders() {
-        const folders = this.fileFolders.searchAllFoldersNyName(this.currentFilter);
+        const folders = this.folders.searchAllFoldersNyName(this.currentFilter);
         return folders.concat(this.files.filter(f => f.show));
     }
 
@@ -316,9 +316,9 @@ class FileStore {
         console.time('loadAllFiles');
         this.loading = true;
 
-        when(() => !this.loading && this.fileFolders.initialized, () => {
+        when(() => !this.loading && this.folders.initialized, () => {
             console.log('file folders initialized');
-            const { formatVersion } = this.fileFolders;
+            const { formatVersion } = this.folders;
             console.log(`formatVersion: ${formatVersion}`);
         });
 
@@ -409,7 +409,7 @@ class FileStore {
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
                     if (file.folderId !== keg.folderId) {
                         // resolve folder
-                        const folder = this.fileFolders.getById(keg.folderId);
+                        const folder = this.folders.getById(keg.folderId);
                         if (folder) folder.moveInto(file);
                     }
                     if (!existing) {
