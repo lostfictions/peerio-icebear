@@ -43,7 +43,7 @@ class FileFolder {
             return;
         }
         if (file.folder) {
-            console.error(`file-folders.js: file already belongs to a folder`);
+            console.error('file already belongs to a folder');
             return;
         }
         file.folder = this;
@@ -58,11 +58,11 @@ class FileFolder {
     addFolder(folder) {
         if (folder.parent === this) return folder;
         if (this.folderMap[folder.folderId]) {
-            console.error(`file-folders.js: folder already exists here`);
+            console.error('folder already exists here');
             return folder;
         }
         if (folder.parent) {
-            console.debug(`file-folders.js: moving folder from parent`);
+            console.debug('moving folder from parent');
             folder.parent.freeFolder(folder);
         }
         folder.parent = this;
@@ -72,7 +72,7 @@ class FileFolder {
 
     free(file) {
         if (!this.fileMap[file.fileId]) {
-            console.error(`file-folders.js: file does not belong to a folder`);
+            console.error('file does not belong to a folder');
             return;
         }
         const i = this.files.indexOf(file);
@@ -80,7 +80,7 @@ class FileFolder {
             this.files.splice(i, 1);
             file.folder = null;
         } else {
-            console.error(`file-folders.js: free cannot find the file`);
+            console.error('free cannot find the file');
         }
     }
 
@@ -90,7 +90,7 @@ class FileFolder {
             this.folders.splice(i, 1);
             folder.parent = null;
         } else {
-            console.error(`file-folders.js: free cannot find the folder`);
+            console.error('free cannot find the folder');
         }
     }
 

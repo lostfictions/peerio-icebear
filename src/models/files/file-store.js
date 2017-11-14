@@ -13,7 +13,7 @@ const clientApp = require('../client-app');
 const TaskQueue = require('../../helpers/task-queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 const createMap = require('../../helpers/dynamic-array-map');
-const FileFolders = require('./file-folders');
+const FileStoreFolders = require('./file-store.folders');
 
 /**
  * File store.
@@ -25,7 +25,7 @@ class FileStore {
         const m = createMap(this.files, 'fileId');
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
-        this.fileFolders = new FileFolders(this);
+        this.fileFolders = new FileStoreFolders(this);
 
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');

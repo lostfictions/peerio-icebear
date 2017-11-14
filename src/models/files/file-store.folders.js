@@ -6,7 +6,7 @@ const FileFoldersKeg = require('./file-folders-keg');
 const cryptoUtil = require('../../crypto/util');
 const warnings = require('../warnings');
 
-class FileFolders {
+class FileStoreFolders {
     constructor(fileStore) {
         this.fileStore = fileStore;
         socket.onceAuthenticated(() => {
@@ -122,4 +122,4 @@ class FileFolders {
     }
 }
 
-module.exports = FileFolders;
+module.exports = FileStoreFolders;
