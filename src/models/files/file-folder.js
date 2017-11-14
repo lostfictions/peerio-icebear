@@ -43,7 +43,7 @@ class FileFolder {
         this.folderMap = m2.map;
     }
 
-    add(file) {
+    add(file, skipSaving) {
         if (this.fileMap[file.fileId]) {
             return;
         }
@@ -52,11 +52,13 @@ class FileFolder {
             return;
         }
         file.folder = this;
-        file.folderId = this.folderId;
+        file.folderId = this.isRoot ? null : this.folderId;
         // TODO: should the error be handled here?
         // this is a check to not simultaneously save file keg from two places
         // should be replaced by queueing saves
-        when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
+        if (!skipSaving) {
+            when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
+        }
         this.files.push(file);
     }
 

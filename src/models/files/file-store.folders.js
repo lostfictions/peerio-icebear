@@ -35,9 +35,9 @@ class FileStoreFolders {
         if (file.folder && file.folder === folderToResolve) return;
         if (folderToResolve) {
             file.folder && file.folder.free(file);
-            folderToResolve.add(file);
+            folderToResolve.add(file, true);
         } else {
-            !file.folder && root.add(file);
+            !file.folder && root.add(file, true);
         }
     }
 
