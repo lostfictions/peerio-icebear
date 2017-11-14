@@ -1,14 +1,16 @@
-const { observable, computed } = require('mobx');
+const { observable, computed, when } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
 const warnings = require('../warnings');
 
 class FileFolder {
-    @observable files = [];
-    @observable folders = [];
+    @observable.shallow files = [];
+    @observable.shallow folders = [];
     @observable name;
     @observable createdAt;
 
-    @computed get normalizedName() { return this.name ? this.name.toLowerCase() : ''; }
+    @computed get normalizedName() {
+        return this.name ? this.name.toLowerCase() : '';
+    }
 
     @computed get foldersSortedByName() {
         return this.folders.sort((f1, f2) => f1.normalizedName > f2.normalizedName);
@@ -25,39 +27,49 @@ class FileFolder {
 
     @observable parent = null;
     isFolder = true;
-    get isRoot() { return !this.parent; }
-    get hasNested() { return this.folders && this.folders.length; }
+    get isRoot() {
+        return !this.parent;
+    }
+    get hasNested() {
+        return this.folders && this.folders.length;
+    }
 
     constructor(name) {
         const m = createMap(this.files, 'fileId');
         this.name = name;
-        this.fileId = name;
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
         const m2 = createMap(this.folders, 'folderId');
         this.folderMap = m2.map;
     }
 
-    add(file) {
+    add(file, skipSaving) {
         if (this.fileMap[file.fileId]) {
             return;
         }
         if (file.folder) {
-            console.error(`file-folders.js: file already belongs to a folder`);
+            console.error('file already belongs to a folder');
             return;
         }
         file.folder = this;
+        file.folderId = this.isRoot ? null : this.folderId;
+        // TODO: should the error be handled here?
+        // this is a check to not simultaneously save file keg from two places
+        // should be replaced by queueing saves
+        if (!skipSaving) {
+            when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
+        }
         this.files.push(file);
     }
 
     addFolder(folder) {
         if (folder.parent === this) return folder;
         if (this.folderMap[folder.folderId]) {
-            console.error(`file-folders.js: folder already exists here`);
+            console.error('folder already exists here');
             return folder;
         }
         if (folder.parent) {
-            console.debug(`file-folders.js: moving folder from parent`);
+            console.debug('moving folder from parent');
             folder.parent.freeFolder(folder);
         }
         folder.parent = this;
@@ -67,7 +79,7 @@ class FileFolder {
 
     free(file) {
         if (!this.fileMap[file.fileId]) {
-            console.error(`file-folders.js: file does not belong to a folder`);
+            console.error('file does not belong to a folder');
             return;
         }
         const i = this.files.indexOf(file);
@@ -75,7 +87,7 @@ class FileFolder {
             this.files.splice(i, 1);
             file.folder = null;
         } else {
-            console.error(`file-folders.js: free cannot find the file`);
+            console.error('free cannot find the file');
         }
     }
 
@@ -85,7 +97,7 @@ class FileFolder {
             this.folders.splice(i, 1);
             folder.parent = null;
         } else {
-            console.error(`file-folders.js: free cannot find the folder`);
+            console.error('free cannot find the folder');
         }
     }
 
@@ -136,23 +148,19 @@ class FileFolder {
 
     serialize() {
         const { name, folderId, createdAt } = this;
-        const files = this.files.map(f => f.fileId);
         const folders = this.folders.map(f => f.serialize());
-        return { name, folderId, createdAt, files, folders };
+        return { name, folderId, createdAt, folders };
     }
 
-    deserialize(dataItem, parent, fileResolveMap, folderResolveMap, newFolderResolveMap) {
-        const { folderId, name, createdAt, files, folders } = dataItem;
+    deserialize(dataItem, parent, folderResolveMap, newFolderResolveMap) {
+        const { folderId, name, createdAt, folders } = dataItem;
         Object.assign(this, { folderId, name, createdAt });
-        files && files.forEach(fileId => {
-            fileResolveMap[fileId] = this;
-        });
         folders && folders.map(f => {
             let folder = folderResolveMap[f.folderId];
             if (!folder) {
                 folder = new FileFolder();
             }
-            folder.deserialize(f, this, fileResolveMap, folderResolveMap, newFolderResolveMap);
+            folder.deserialize(f, this, folderResolveMap, newFolderResolveMap);
             newFolderResolveMap[f.folderId] = folder;
             return folder;
         });

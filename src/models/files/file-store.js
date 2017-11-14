@@ -13,7 +13,7 @@ const clientApp = require('../client-app');
 const TaskQueue = require('../../helpers/task-queue');
 const { setFileStore } = require('../../helpers/di-file-store');
 const createMap = require('../../helpers/dynamic-array-map');
-const FileFolders = require('./file-folders');
+const FileStoreFolders = require('./file-store.folders');
 
 /**
  * File store.
@@ -25,7 +25,7 @@ class FileStore {
         const m = createMap(this.files, 'fileId');
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
-        this.fileFolders = new FileFolders(this);
+        this.folders = new FileStoreFolders(this);
 
         tracker.onKegTypeUpdated('SELF', 'file', () => {
             console.log('Files update event received');
@@ -39,7 +39,7 @@ class FileStore {
      * @instance
      * @public
      */
-    @observable files = observable.shallowArray([]);
+    @observable.shallow files = [];
 
     /**
      * Subset of files not currently hidden by any applied filters
@@ -48,6 +48,16 @@ class FileStore {
      */
     @computed get visibleFiles() {
         return this.files.filter(f => f.show);
+    }
+
+    /**
+     * Subset of files and folders not currently hidden by any applied filters
+     * @readonly
+     * @memberof FileStore
+     */
+    @computed get visibleFilesAndFolders() {
+        const folders = this.folders.searchAllFoldersNyName(this.currentFilter);
+        return folders.concat(this.files.filter(f => f.show));
     }
 
     /**
@@ -306,12 +316,6 @@ class FileStore {
         console.time('loadAllFiles');
         this.loading = true;
 
-        when(() => !this.loading && this.fileFolders.initialized, () => {
-            console.log('file folders initialized');
-            const { formatVersion } = this.fileFolders;
-            console.log(`formatVersion: ${formatVersion}`);
-        });
-
         retryUntilSuccess(() => this._getFiles(), 'Initial file list loading')
             .then(action(kegs => {
                 for (const keg of kegs.kegs) {
@@ -389,12 +393,23 @@ class FileStore {
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
                     if (keg.deleted) {
-                        if (existing) this.files.remove(existing);
+                        if (existing) {
+                            this.files.remove(existing);
+                            // remove file from folder, too
+                            if (existing.folder) existing.folder.free(existing);
+                        }
                         continue;
                     }
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
+                    if (file.folderId !== keg.folderId) {
+                        // resolve folder
+                        const folder = this.folders.getById(keg.folderId);
+                        if (folder) folder.moveInto(file);
+                    }
                     if (!existing) {
                         dirty = true;
+                        // if new file keg already has folderId set
+                        // it will be parsed automatically
                         this.files.unshift(file);
                     }
                 }
@@ -432,8 +447,9 @@ class FileStore {
      * @param {string} [fileName] - if u want to override name in filePath
      * @public
      */
-    upload = (filePath, fileName) => {
+    upload = (filePath, fileName, folderId) => {
         const keg = new File(User.current.kegDb);
+        keg.folderId = folderId;
         config.FileStream.getStat(filePath).then(stat => {
             if (!User.current.canUploadFileSize(stat.size)) {
                 keg.deleted = true;

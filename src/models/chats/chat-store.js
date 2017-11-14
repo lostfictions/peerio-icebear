@@ -65,7 +65,7 @@ class ChatStore {
      * @instance
      * @public
      */
-    @observable chats = observable.shallowArray([]);
+    @observable.shallow chats = [];
 
     /**
      * @member {boolean} unreadChatsAlwaysOnTop

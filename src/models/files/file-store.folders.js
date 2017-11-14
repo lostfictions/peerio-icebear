@@ -6,61 +6,56 @@ const FileFoldersKeg = require('./file-folders-keg');
 const cryptoUtil = require('../../crypto/util');
 const warnings = require('../warnings');
 
-class FileFolders {
+class FileStoreFolders {
     constructor(fileStore) {
         this.fileStore = fileStore;
         socket.onceAuthenticated(() => {
             this.keg = new FileFoldersKeg(getUser().kegDb);
             this.keg.onUpdated = () => {
-                console.log(`file folders updated`);
+                console.log('file folders updated');
                 this.sync();
             };
         });
     }
-    @observable initialized;
+
+    @observable loaded = false;
     @observable keg = null;
-
-    get loaded() { return this.keg && this.keg.loaded; }
-
-    get formatVersion() { return this.keg.formatVersion; }
 
     root = new FileFolder('/');
 
-    fileResolveMap = {};
     folderResolveMap = {};
 
+    getById(id) {
+        return this.folderResolveMap[id];
+    }
+
     _addFile = (file) => {
-        const { fileResolveMap, root } = this;
-        const folderToResolve = fileResolveMap[file.fileId];
+        const { root } = this;
+        const folderToResolve = this.getById(file.folderId);
         if (file.folder && file.folder === folderToResolve) return;
         if (folderToResolve) {
             file.folder && file.folder.free(file);
-            folderToResolve.add(file);
-            delete fileResolveMap[file.fileId];
+            folderToResolve.add(file, true);
         } else {
-            !file.folder && root.add(file);
+            !file.folder && root.add(file, true);
         }
     }
 
     @action async sync() {
-        if (!this.keg.formatVersion) {
-            this.createDefault();
-            await this.keg.saveToServer();
-        }
         const { files } = this.fileStore;
-        this.fileResolveMap = {};
         if (this._intercept) {
             this._intercept();
             this._intercept = null;
         }
-        const { fileResolveMap, folderResolveMap, root } = this;
+        const { folderResolveMap, root } = this;
         const newFolderResolveMap = {};
-        root.deserialize(this.keg, null, fileResolveMap, folderResolveMap, newFolderResolveMap);
+        root.deserialize(this.keg, null, folderResolveMap, newFolderResolveMap);
         // remove files from folders if they aren't present in the keg
         files.forEach(f => {
-            if (f.folder && f.folder !== root && !fileResolveMap[f.fileId]) {
-                f.folder.free(f);
-            }
+            if (f.folderId) {
+                const folder = this.getById(f.folderId);
+                if (folder) folder.moveInto(f);
+            } else if (f.folder) f.folder.free(f);
         });
         // remove folders if they aren't present in the keg
         for (const folderId in folderResolveMap) {
@@ -69,6 +64,8 @@ class FileFolders {
             }
         }
         this.folderResolveMap = newFolderResolveMap;
+        this.folderResolveMapSorted = Object.values(this.folderResolveMap)
+            .sort((f1, f2) => f1.normalizedName > f2.normalizedName);
         files.forEach(this._addFile);
         this._intercept = files.observe(delta => {
             delta.removed.forEach(file => {
@@ -77,12 +74,13 @@ class FileFolders {
             delta.added.forEach(this._addFile);
             return delta;
         });
-        console.log('file-folders: step 3');
-        this.initialized = true;
+        this.loaded = true;
     }
 
-    createDefault() {
-        this.keg.formatVersion = '1.0';
+    searchAllFoldersNyName(name) {
+        const q = name ? name.toLowerCase() : '';
+        return this.folderResolveMapSorted
+            .filter(f => f.normalizedName.includes(q));
     }
 
     deleteFolder(folder) {
@@ -97,19 +95,24 @@ class FileFolders {
             throw new Error('error_folderAlreadyExists');
         }
         const folder = new FileFolder(name);
-        const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
+        const folderId = cryptoUtil.getRandomShortIdHex(getUser().username);
         folder.folderId = folderId;
-        folder.createdAt = new Date();
+        folder.createdAt = Date.now();
         this.folderResolveMap[folderId] = folder;
         target.addFolder(folder);
         return folder;
     }
 
     save() {
-        this.keg.save(() => {
-            this.keg.folders = this.root.folders.map(f => f.serialize());
-        }, () => this.sync(), 'error_savingFileFolders');
+        this.keg.save(
+            () => {
+                this.keg.folders = this.root.folders.map(f => f.serialize());
+                return true;
+            },
+            () => this.sync(),
+            'error_savingFileFolders'
+        );
     }
 }
 
-module.exports = FileFolders;
+module.exports = FileStoreFolders;
