@@ -49,7 +49,7 @@ class FileFolder {
         file.folder = this;
         file.folderId = this.folderId;
         // TODO: should the error be handled here?
-        // this is a check to not simultaneiously save file keg from two places
+        // this is a check to not simultaneously save file keg from two places
         // should be replaced by queueing saves
         when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
         this.files.push(file);

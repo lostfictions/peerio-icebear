@@ -6,18 +6,16 @@ class FileFoldersKeg extends SyncedKeg {
         super('file_folders', db);
     }
 
-    @observable formatVersion;
     @observable folders = [];
 
     serializeKegPayload() {
-        const { formatVersion, folders } = this;
-        return { formatVersion, folders };
+        return {
+            folders: this.folders
+        };
     }
 
     deserializeKegPayload(payload) {
-        console.log('deserialize file folders keg');
-        const { formatVersion, folders } = payload;
-        Object.assign(this, { formatVersion, folders });
+        this.folders = payload.folders;
     }
 }
 

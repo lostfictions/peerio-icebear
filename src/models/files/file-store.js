@@ -316,12 +316,6 @@ class FileStore {
         console.time('loadAllFiles');
         this.loading = true;
 
-        when(() => !this.loading && this.folders.initialized, () => {
-            console.log('file folders initialized');
-            const { formatVersion } = this.folders;
-            console.log(`formatVersion: ${formatVersion}`);
-        });
-
         retryUntilSuccess(() => this._getFiles(), 'Initial file list loading')
             .then(action(kegs => {
                 for (const keg of kegs.kegs) {

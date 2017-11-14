@@ -22,8 +22,6 @@ class FileStoreFolders {
 
     get loaded() { return this.keg && this.keg.loaded; }
 
-    get formatVersion() { return this.keg.formatVersion; }
-
     root = new FileFolder('/');
 
     folderResolveMap = {};
@@ -45,10 +43,6 @@ class FileStoreFolders {
     }
 
     @action async sync() {
-        if (!this.keg.formatVersion) {
-            this.createDefault();
-            await this.keg.saveToServer();
-        }
         const { files } = this.fileStore;
         if (this._intercept) {
             this._intercept();
@@ -89,10 +83,6 @@ class FileStoreFolders {
         const q = name ? name.toLowerCase() : '';
         return this.folderResolveMapSorted
             .filter(f => f.normalizedName.includes(q));
-    }
-
-    createDefault() {
-        this.keg.formatVersion = '1.0';
     }
 
     deleteFolder(folder) {
