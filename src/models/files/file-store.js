@@ -39,7 +39,7 @@ class FileStore {
      * @instance
      * @public
      */
-    @observable files = observable.shallowArray([]);
+    @observable.shallow files = [];
 
     /**
      * Subset of files not currently hidden by any applied filters

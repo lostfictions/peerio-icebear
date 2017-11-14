@@ -12,13 +12,13 @@ class FileStoreFolders {
         socket.onceAuthenticated(() => {
             this.keg = new FileFoldersKeg(getUser().kegDb);
             this.keg.onUpdated = () => {
-                console.log(`file folders updated`);
+                console.log('file folders updated');
                 this.sync();
             };
         });
     }
 
-    @observable loaded;
+    @observable loaded = false;
     @observable keg = null;
 
     root = new FileFolder('/');
@@ -74,7 +74,6 @@ class FileStoreFolders {
             delta.added.forEach(this._addFile);
             return delta;
         });
-        console.log('file-folders: step 3');
         this.loaded = true;
     }
 

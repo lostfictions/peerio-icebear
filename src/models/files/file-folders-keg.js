@@ -6,7 +6,7 @@ class FileFoldersKeg extends SyncedKeg {
         super('file_folders', db);
     }
 
-    @observable folders = [];
+    @observable.shallow folders = [];
 
     serializeKegPayload() {
         return {

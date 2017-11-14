@@ -3,8 +3,8 @@ const createMap = require('../../helpers/dynamic-array-map');
 const warnings = require('../warnings');
 
 class FileFolder {
-    @observable files = [];
-    @observable folders = [];
+    @observable.shallow files = [];
+    @observable.shallow folders = [];
     @observable name;
     @observable createdAt;
 
