@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.1.0"></a>
+# [3.1.0](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.10...v3.1.0) (2017-11-14)
+
+
+### Features
+
+* prombservable variation to expect multiple values ([2a776a6](https://github.com/PeerioTechnologies/peerio-icebear/commit/2a776a6))
+
+
+
 <a name="3.0.10"></a>
 ## [3.0.10](https://github.com/PeerioTechnologies/peerio-icebear/compare/v3.0.9...v3.0.10) (2017-11-13)
 
