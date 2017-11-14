@@ -95,18 +95,23 @@ class FileStoreFolders {
             throw new Error('error_folderAlreadyExists');
         }
         const folder = new FileFolder(name);
-        const folderId = cryptoUtil.getRandomUserSpecificIdB64(getUser().username);
+        const folderId = cryptoUtil.getRandomShortIdHex(getUser().username);
         folder.folderId = folderId;
-        folder.createdAt = new Date();
+        folder.createdAt = Date.now();
         this.folderResolveMap[folderId] = folder;
         target.addFolder(folder);
         return folder;
     }
 
     save() {
-        this.keg.save(() => {
-            this.keg.folders = this.root.folders.map(f => f.serialize());
-        }, () => this.sync(), 'error_savingFileFolders');
+        this.keg.save(
+            () => {
+                this.keg.folders = this.root.folders.map(f => f.serialize());
+                return true;
+            },
+            () => this.sync(),
+            'error_savingFileFolders'
+        );
     }
 }
 

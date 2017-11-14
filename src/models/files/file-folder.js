@@ -8,7 +8,9 @@ class FileFolder {
     @observable name;
     @observable createdAt;
 
-    @computed get normalizedName() { return this.name ? this.name.toLowerCase() : ''; }
+    @computed get normalizedName() {
+        return this.name ? this.name.toLowerCase() : '';
+    }
 
     @computed get foldersSortedByName() {
         return this.folders.sort((f1, f2) => f1.normalizedName > f2.normalizedName);
@@ -25,13 +27,16 @@ class FileFolder {
 
     @observable parent = null;
     isFolder = true;
-    get isRoot() { return !this.parent; }
-    get hasNested() { return this.folders && this.folders.length; }
+    get isRoot() {
+        return !this.parent;
+    }
+    get hasNested() {
+        return this.folders && this.folders.length;
+    }
 
     constructor(name) {
         const m = createMap(this.files, 'fileId');
         this.name = name;
-        this.fileId = name;
         this.fileMap = m.map;
         this.fileMapObservable = m.observableMap;
         const m2 = createMap(this.folders, 'folderId');
