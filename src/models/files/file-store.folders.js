@@ -48,7 +48,10 @@ class FileStoreFolders {
     _removeFile = (file) => {
         const { folder, fileId } = file;
         if (folder) folder.free(file);
-        if (fileId && this.folderIdReactions[fileId]) delete this.folderIdReactions[fileId];
+        if (fileId && this.folderIdReactions[fileId]) {
+            this.folderIdReactions[fileId]();
+            delete this.folderIdReactions[fileId];
+        }
     }
 
     @action async sync() {
