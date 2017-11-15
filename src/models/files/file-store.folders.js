@@ -77,7 +77,7 @@ class FileStoreFolders {
         this.loaded = true;
     }
 
-    searchAllFoldersNyName(name) {
+    searchAllFoldersByName(name) {
         const q = name ? name.toLowerCase() : '';
         return this.folderResolveMapSorted
             .filter(f => f.normalizedName.includes(q));

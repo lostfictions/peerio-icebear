@@ -56,7 +56,7 @@ class FileStore {
      * @memberof FileStore
      */
     @computed get visibleFilesAndFolders() {
-        const folders = this.folders.searchAllFoldersNyName(this.currentFilter);
+        const folders = this.folders.searchAllFoldersByName(this.currentFilter);
         return folders.concat(this.files.filter(f => f.show));
     }
 
