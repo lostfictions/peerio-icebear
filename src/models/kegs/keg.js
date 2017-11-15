@@ -199,17 +199,16 @@ class Keg {
 
     /**
      * Saves keg to server, creates keg (reserves id) first if needed
-     * @param {boolean=} cleanShareData - removes shared/sent keg metadata that is not needed after keg is re-encrypted.
      * @returns {Promise}
      * @public
      */
-    saveToServer(cleanShareData) {
+    saveToServer() {
         if (this.loading) {
             console.warn(`Keg ${this.id} ${this.type} is trying to save while already loading.`);
         }
         if (this.saving) return Promise.reject(new Error('Can not save keg while it is already saving.'));
         this.saving = true;
-        if (this.id) return this.internalSave(cleanShareData).finally(this.resetSavingState);
+        if (this.id) return this.internalSave().finally(this.resetSavingState);
 
         return socket.send('/auth/kegs/create', {
             kegDbId: this.db.id,
@@ -218,7 +217,7 @@ class Keg {
             this.id = resp.kegId;
             this.version = resp.version;
             this.collectionVersion = resp.collectionVersion;
-            return this.internalSave(cleanShareData);
+            return this.internalSave();
         }).finally(this.resetSavingState);
     }
 
