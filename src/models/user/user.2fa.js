@@ -174,7 +174,9 @@ module.exports = function mixUser2faModule() {
                         .then(resp => {
                             if (resp.twoFACookie) {
                                 return this._set2faCookie(resp.twoFACookie)
-                                    .then(() => this._setDeviceTrust(trustDevice));
+                                    .then(() => this._setDeviceTrust(trustDevice))
+                                    .then(() => TinyDb.system.removeValue(`${this.username}:deviceToken`));
+                                // ^ won't need last line after switching to new server
                             }
                             // Old 2FA implementation
                             return TinyDb.system.setValue(`${this.username}:deviceToken`,

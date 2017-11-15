@@ -76,18 +76,24 @@ module.exports = function mixUserAuthModule() {
             this._getDeviceId(),
             this._get2faCookie()
         ]).then(([deviceToken, deviceId, twoFACookie]) => {
-            return socket.send('/noauth/auth-token/get', {
+            const req = {
                 username: this.username,
                 authSalt: this.authSalt.buffer,
                 authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
-                deviceToken, // for compatibility with older server
-                deviceId,
-                twoFACookie,
                 platform: config.platform,
                 arch: config.arch,
                 clientVersion: config.appVersion,
                 sdkVersion: config.sdkVersion
-            });
+            };
+            if (deviceId) {
+                req.deviceId = deviceId;
+            }
+            if (twoFACookie) {
+                req.twoFACookie = twoFACookie;
+            } else if (deviceToken) {
+                req.deviceToken = deviceToken; // for compatibility with older server
+            }
+            return socket.send('/noauth/auth-token/get', req);
         })
             .then(resp => util.convertBuffers(resp));
     };
@@ -104,9 +110,10 @@ module.exports = function mixUserAuthModule() {
             decryptedAuthToken: decrypted.buffer
         })
             .then(resp => {
-                if (!resp.deviceToken) return undefined; // eslint-you-can-have-it
-                // for compatibility with older server
-                return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
+                if (!resp.deviceToken) return undefined; // new server sends empty reponse
+                // older server sends deviceToken, which we should remember
+                return TinyDb.system.setValue(`${this.username}:deviceToken`,
+                    cryptoUtil.bytesToB64(resp.deviceToken));
             });
     };
 
