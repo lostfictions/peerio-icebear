@@ -1,4 +1,4 @@
-const { observable, action } = require('mobx');
+const { observable, action, reaction } = require('mobx');
 const { getUser } = require('../../helpers/di-current-user');
 const socket = require('../../network/socket');
 const FileFolder = require('./file-folder');
@@ -24,6 +24,7 @@ class FileStoreFolders {
     root = new FileFolder('/');
 
     folderResolveMap = {};
+    folderIdReactions = {};
 
     getById(id) {
         return this.folderResolveMap[id];
@@ -31,14 +32,23 @@ class FileStoreFolders {
 
     _addFile = (file) => {
         const { root } = this;
-        const folderToResolve = this.getById(file.folderId);
-        if (file.folder && file.folder === folderToResolve) return;
-        if (folderToResolve) {
-            file.folder && file.folder.free(file);
-            folderToResolve.add(file, true);
-        } else {
-            !file.folder && root.add(file, true);
-        }
+        this.folderIdReactions[file.fileId] =
+            reaction(() => file.folderId, folderId => {
+                const folderToResolve = this.getById(folderId);
+                if (file.folder && file.folder === folderToResolve) return;
+                if (folderToResolve) {
+                    file.folder && file.folder.free(file);
+                    folderToResolve.add(file, true);
+                } else {
+                    !file.folder && root.add(file, true);
+                }
+            }, true);
+    }
+
+    _removeFile = (file) => {
+        const { folder, fileId } = file;
+        if (folder) folder.free(file);
+        if (fileId && this.folderIdReactions[fileId]) delete this.folderIdReactions[fileId];
     }
 
     @action async sync() {
@@ -68,9 +78,7 @@ class FileStoreFolders {
             .sort((f1, f2) => f1.normalizedName > f2.normalizedName);
         files.forEach(this._addFile);
         this._intercept = files.observe(delta => {
-            delta.removed.forEach(file => {
-                if (file.folder) file.folder.free(file);
-            });
+            delta.removed.forEach(this._removeFile);
             delta.added.forEach(this._addFile);
             return delta;
         });

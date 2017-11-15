@@ -395,17 +395,10 @@ class FileStore {
                     if (keg.deleted) {
                         if (existing) {
                             this.files.remove(existing);
-                            // remove file from folder, too
-                            if (existing.folder) existing.folder.free(existing);
                         }
                         continue;
                     }
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
-                    if (file.folderId !== keg.folderId) {
-                        // resolve folder
-                        const folder = this.folders.getById(keg.folderId);
-                        if (folder) folder.moveInto(file);
-                    }
                     if (!existing) {
                         dirty = true;
                         // if new file keg already has folderId set
