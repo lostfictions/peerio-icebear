@@ -4,7 +4,7 @@ const { AntiTamperError, ServerError } = require('../../errors');
 const { observable, action } = require('mobx');
 const { getContactStore } = require('../../helpers/di-contact-store');
 const { getUser } = require('../../helpers/di-current-user');
-const { asPromiseMultiValue } = require('../../helpers/prombservable');
+const { asPromise, asPromiseMultiValue } = require('../../helpers/prombservable');
 
 let temporaryKegId = 0;
 function getTemporaryKegId() {
@@ -206,7 +206,10 @@ class Keg {
         if (this.loading) {
             console.warn(`Keg ${this.id} ${this.type} is trying to save while already loading.`);
         }
-        if (this.saving) return Promise.reject(new Error('Can not save keg while it is already saving.'));
+        if (this.saving) {
+            return asPromise(this, 'saving', false)
+                .then(() => this.saveToServer());
+        }
         this.saving = true;
         if (this.id) return this.internalSave().finally(this.resetSavingState);
 
@@ -313,8 +316,12 @@ class Keg {
      * @public
      */
     load() {
-        if (this.saving) return Promise.reject(new Error('Can not load keg while it is saving.'));
-        if (this.loading) return Promise.reject(new Error('Can not load keg while it is already loading.'));
+        if (this.saving) {
+            return asPromise(this, 'saving', false).then(() => this.load());
+        }
+        if (this.loading) {
+            return asPromise(this, 'loading', false).then(() => this.load());
+        }
         this.loading = true;
         return socket.send('/auth/kegs/get', {
             kegDbId: this.db.id,
