@@ -393,16 +393,12 @@ class FileStore {
                     const existing = this.getById(keg.props.fileId);
                     const file = existing || new File(User.current.kegDb);
                     if (keg.deleted) {
-                        if (existing) {
-                            this.files.remove(existing);
-                        }
+                        if (existing) this.files.remove(existing);
                         continue;
                     }
                     if (!file.loadFromKeg(keg) || file.isEmpty) continue;
                     if (!existing) {
                         dirty = true;
-                        // if new file keg already has folderId set
-                        // it will be parsed automatically
                         this.files.unshift(file);
                     }
                 }
