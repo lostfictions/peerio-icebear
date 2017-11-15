@@ -236,7 +236,7 @@ class Keg {
             props = this.serializeProps();
             // existence of these properties means this keg was shared with us and we haven't re-encrypted it yet
             if (this.pendingReEncryption) {
-                // we don't want to save (re-encrypt and loose original sharing data) before we validate the keg
+                // we don't want to save (re-encrypt and lose original sharing data) before we validate the keg
                 if (this.validatingKeg) {
                     return asPromiseMultiValue(this, 'sharedKegError', [true, false])
                         .then(() => this.internalSave());
