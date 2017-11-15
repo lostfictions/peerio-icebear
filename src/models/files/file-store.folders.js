@@ -54,7 +54,7 @@ class FileStoreFolders {
         }
     }
 
-    @action async sync() {
+    @action sync() {
         const { files } = this.fileStore;
         if (this._intercept) {
             this._intercept();
@@ -120,9 +120,9 @@ class FileStoreFolders {
                 this.keg.folders = this.root.folders.map(f => f.serialize());
                 return true;
             },
-            () => this.sync(),
+            null,
             'error_savingFileFolders'
-        );
+        ).catch(() => this.sync());
     }
 }
 
