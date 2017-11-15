@@ -1,4 +1,4 @@
-const { observable, computed, when } = require('mobx');
+const { observable, computed } = require('mobx');
 const createMap = require('../../helpers/dynamic-array-map');
 const warnings = require('../warnings');
 
@@ -53,11 +53,9 @@ class FileFolder {
         }
         file.folder = this;
         file.folderId = this.isRoot ? null : this.folderId;
-        // TODO: should the error be handled here?
-        // this is a check to not simultaneously save file keg from two places
-        // should be replaced by queueing saves
+
         if (!skipSaving) {
-            when(() => file.readyForDownload && !file.saving, () => file.saveToServer());
+            file.saveToServer();
         }
         this.files.push(file);
     }
@@ -79,7 +77,7 @@ class FileFolder {
 
     free(file) {
         if (!this.fileMap[file.fileId]) {
-            console.error('file does not belong to a folder');
+            console.error('file does not belong to the folder');
             return;
         }
         const i = this.files.indexOf(file);
@@ -117,7 +115,7 @@ class FileFolder {
 
     moveInto(file) {
         if (file.isFolder) {
-            if (this.folders.find(f => f.normalizedName === file.normalizedName)) {
+            if (this.findFolderByName(file.normalizedName)) {
                 warnings.addSevere('error_folderAlreadyExists');
                 throw new Error('error_folderAlreadyExists');
             }
