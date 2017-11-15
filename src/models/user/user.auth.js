@@ -70,20 +70,25 @@ module.exports = function mixUserAuthModule() {
     };
     this._getAuthToken = () => {
         console.log('Requesting auth token.');
-        return TinyDb.system.getValue(`${this.username}:deviceToken`)
-            .then((deviceTokenString) => {
-                const deviceToken = deviceTokenString ? cryptoUtil.b64ToBytes(deviceTokenString).buffer : undefined;
-                return socket.send('/noauth/auth-token/get', {
-                    username: this.username,
-                    authSalt: this.authSalt.buffer,
-                    authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
-                    deviceToken,
-                    platform: config.platform,
-                    arch: config.arch,
-                    clientVersion: config.appVersion,
-                    sdkVersion: config.sdkVersion
-                });
-            })
+        Promise.all([
+            TinyDb.system.getValue(`${this.username}:deviceToken`) // for compatibility with older server
+                .then(s => s ? cryptoUtil.b64ToBytes(s).buffer : undefined),
+            this._getDeviceId(),
+            this._get2faCookie()
+        ]).then(([deviceToken, deviceId, twoFACookie]) => {
+            return socket.send('/noauth/auth-token/get', {
+                username: this.username,
+                authSalt: this.authSalt.buffer,
+                authPublicKeyHash: keys.getAuthKeyHash(this.authKeys.publicKey).buffer,
+                deviceToken, // for compatibility with older server
+                deviceId,
+                twoFACookie,
+                platform: config.platform,
+                arch: config.arch,
+                clientVersion: config.appVersion,
+                sdkVersion: config.sdkVersion
+            });
+        })
             .then(resp => util.convertBuffers(resp));
     };
 
@@ -99,6 +104,8 @@ module.exports = function mixUserAuthModule() {
             decryptedAuthToken: decrypted.buffer
         })
             .then(resp => {
+                if (!resp.deviceToken) return undefined; // eslint-you-can-have-it
+                // for compatibility with older server
                 return TinyDb.system.setValue(`${this.username}:deviceToken`, cryptoUtil.bytesToB64(resp.deviceToken));
             });
     };
@@ -305,13 +312,46 @@ module.exports = function mixUserAuthModule() {
     /**
      * Call from client app when user specifically chooses to signout.
      * This will positively effect 2fa security.
+     *
+     * @param {boolean} untrust if true, no longer trust the device
      */
-    this.signout = () => {
-        return socket.send('/auth/signout')
-            .timeout(3000)
+    this.signout = (untrust = false) => {
+        return this._getDeviceTrust(trusted => {
+            // On untrusted devices, during logout we remove
+            // the 2fa cookie, so that the next sign in will
+            // require 2fa.
+            //
+            // On trusted devices, we preserve the cookie,
+            // thus users won't be asked for 2fa code again.
+            if (!trusted || untrust) {
+                return this._delete2faCookie()
+                    .then(() => this._setDeviceTrust(false));
+            }
+            return undefined; // eslint-ok-you-win
+        })
             .catch(err => {
-                // not a show stopper
+                // Failed to delete cookie, just log error
+                // and continue with server call. If server
+                // call succeeds, it will remove its copy of
+                // the cookie, invalidating ours.
                 console.error(err);
-            });
+            })
+            .then(() =>
+                socket.send('/auth/signout')
+                    .timeout(3000)
+                    .catch(err => {
+                        // Not a show stopper.
+                        // If on untrusted device we removed our 2fa cookie
+                        // successfully, it will invalidate 2fa session,
+                        // so that the next sign it will require 2fa even
+                        // if server still has the cookie.
+                        //
+                        // If both cookie removal and server call failed,
+                        // the user won't be asked for 2fa code during the
+                        // next sign it even on untrusted device.
+                        // But that's the best we could do.
+                        console.error(err);
+                    })
+            );
     };
 };
