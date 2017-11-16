@@ -1,6 +1,6 @@
 node_modules
 coverage
-dist
+# dist # just push the build to git for now
 npm-debug.log
 tests/config/.chrome_dev_user
 .idea

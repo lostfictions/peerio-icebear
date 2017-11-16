@@ -1,0 +1,490 @@
+'use strict';
+
+var _dec, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _class2, _temp;
+
+function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+        enumerable: descriptor.enumerable,
+        configurable: descriptor.configurable,
+        writable: descriptor.writable,
+        value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+}
+
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+        desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+        desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+        return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+        desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+        desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+        Object['define' + 'Property'](target, property, desc);
+        desc = null;
+    }
+
+    return desc;
+}
+
+function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+}
+
+// @ts-check
+
+const { observable, computed } = require('mobx');
+const contactStore = require('./../contacts/contact-store');
+const User = require('./../user/user');
+const Keg = require('./../kegs/keg');
+const moment = require('moment');
+const _ = require('lodash');
+const { retryUntilSuccess } = require('../../helpers/retry');
+const unfurl = require('../../helpers/unfurl');
+const config = require('../../config');
+const clientApp = require('../client-app');
+const TaskQueue = require('../../helpers/task-queue');
+
+/**
+ * @typedef {{
+       url : string
+       length : number
+       isOverInlineSizeLimit : boolean
+       isOversizeCutoff : boolean
+   }} ExternalImage
+ */
+
+/**
+ * Message keg and model
+ * @param {ChatStore} db - chat db
+ * @extends {Keg}
+ * @public
+ */
+let Message = (_dec = observable.shallow, (_class = (_temp = _class2 = class Message extends Keg {
+    constructor(db) {
+        super(null, 'message', db);
+
+        _initDefineProp(this, 'sending', _descriptor, this);
+
+        _initDefineProp(this, 'sendError', _descriptor2, this);
+
+        _initDefineProp(this, 'receipts', _descriptor3, this);
+
+        _initDefineProp(this, 'userMentions', _descriptor4, this);
+
+        _initDefineProp(this, 'firstOfTheDay', _descriptor5, this);
+
+        _initDefineProp(this, 'groupWithPrevious', _descriptor6, this);
+
+        _initDefineProp(this, 'externalImages', _descriptor7, this);
+
+        _initDefineProp(this, 'hasUrls', _descriptor8, this);
+    }
+    /**
+     * @member {boolean} sending
+     * @type {boolean} sending
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+    /**
+     * @member {boolean} sendError
+     * @type {boolean} sendError
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+    /**
+     * array of usernames to render receipts for
+     * @member {Array<string>} receipts
+     * @type {Array<string>} receipts
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+    /**
+     * Which usernames are mentioned in this message.
+     * @member {Array<string>} userMentions
+     * @type {Array<string>} userMentions
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+    // ----- calculated in chat store, used in ui
+    /**
+     * Is this message first in the day it was sent (and loaded message page)
+     * @member {boolean} firstOfTheDay
+     * @type {boolean} firstOfTheDay
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+    /**
+     * whether or not to group this message with previous one in message list.
+     * @member {boolean} groupWithPrevious
+     * @type {boolean} groupWithPrevious
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+
+    /**
+     * External image urls mentioned in this chat and safe to render in agreement with all settings.
+     * @member {Array<ExternalImage>} externalImages
+     * @type {Array<ExternalImage>} externalImages
+     * @memberof Message
+     * @instance
+     * @public
+     */
+
+
+    /**
+     * Indicates if current message contains at least one url.
+     * @type {boolean}
+     * @memberof Message
+     * @public
+     */
+
+
+    // -----
+    /**
+     * used to compare calendar days
+     * @member {string} dayFingerprint
+     * @memberof Message
+     * @instance
+     * @public
+     */
+    get dayFingerprint() {
+        if (!this.timestamp) return null;
+        return this.timestamp.getDate().toString() + this.timestamp.getMonth().toString() + this.timestamp.getFullYear().toString();
+    }
+
+    /**
+     * TODO: mobile uses this, but desktop uses
+     * TODO: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+     * TODO: resolve/unify this in favor of most performant method
+     * @member {string} messageTimestampText
+     * @memberof Message
+     * @instance
+     * @public
+     */
+    get messageTimestampText() {
+        const { timestamp } = this;
+        return timestamp ? moment(timestamp).format('LT') : null;
+    }
+    /**
+     * Sends current message (saves the keg).
+     * This function can be called as a reaction to user clicking 'retry' on failed message.
+     * But because failure might have happened after we got a get id - we need to clear the keg id and version,
+     * so the message doesn't confusingly appear out of order (messages are sorted by id)
+     * @returns {Promise}
+     * @protected
+     */
+    send() {
+        this.sending = true;
+        this.sendError = false;
+        if (!this.tempId) this.assignTemporaryId();
+        this.id = null;
+        this.version = 0;
+        this.sender = contactStore.getContact(User.current.username);
+        this.timestamp = new Date();
+
+        // @ts-ignore we can't use jsdoc annotations to make bluebird promises assignable to global promises!
+        return (this.systemData ? retryUntilSuccess(() => this.saveToServer()) : this.saveToServer()).catch(err => {
+            this.sendError = true;
+            console.error('Error sending message', err);
+            return Promise.reject(err);
+        }).finally(() => {
+            this.sending = false;
+        });
+    }
+
+    /**
+     * Creates system metadata indicating chat rename.
+     * @param {string} newName
+     * @protected
+     */
+    setRenameFact(newName) {
+        this.systemData = {
+            action: 'rename',
+            newName
+        };
+    }
+
+    /**
+     * Creates system metadata indicating chat purpose change.
+     * @param {string} newPurpose
+     * @protected
+     */
+    setPurposeChangeFact(newPurpose) {
+        this.systemData = {
+            action: 'purposeChange',
+            newPurpose
+        };
+    }
+
+    /**
+     * Creates system metadata indicating chat creation.
+     * @protected
+     */
+    setChatCreationFact() {
+        this.systemData = {
+            action: 'create'
+        };
+    }
+    /**
+     * Creates system metadata indicating admin sending user invitation to channel.
+     * @param {Array<string>} usernames - array of invited usernames.
+     * @protected
+     */
+    setChannelInviteFact(usernames) {
+        this.systemData = {
+            action: 'inviteSent',
+            usernames
+        };
+    }
+    /**
+     * Creates system metadata indicating user accepting invite and joining channel.
+     * @protected
+     */
+    setChannelJoinFact() {
+        this.systemData = {
+            action: 'join'
+        };
+    }
+    /**
+     * Creates system metadata indicating user leaving channel.
+     * @protected
+     */
+    setChannelLeaveFact() {
+        this.systemData = {
+            action: 'leave'
+        };
+    }
+    /**
+     * Creates system metadata indicating admin removing user from a channel.
+     * @param {string} username - username kicked from chat.
+     * @protected
+     */
+    setUserKickFact(username) {
+        this.systemData = {
+            action: 'kick',
+            username
+        };
+    }
+
+    /**
+     * Crates system metadata indicating admin assigning a role to user.
+     * @param {string} username
+     * @param {string} role - currently only 'admin'
+     * @memberof Message
+     */
+    setRoleAssignFact(username, role) {
+        this.systemData = {
+            action: 'assignRole',
+            username,
+            role
+        };
+    }
+
+    /**
+     * Crates system metadata indicating admin removing a role from user.
+     * @param {string} username
+     * @param {string} role - currently only 'admin'
+     * @memberof Message
+     */
+    setRoleUnassignFact(username, role) {
+        this.systemData = {
+            action: 'unassignRole',
+            username,
+            role
+        };
+    }
+
+    /**
+     * Parses message to find urls or file attachments.
+     * Verifies external url type and size and fills this.inlineImages.
+     * @memberof Message
+     */
+    async parseExternalContent() {
+        this.externalImages.clear();
+        const settings = clientApp.uiUserPrefs;
+        // it's not nice to run regex on every message,
+        // but we'll remove this with richText release
+        let urls = unfurl.getUrls(this.text);
+        this.hasUrls = !!urls.length;
+
+        if (!settings.externalContentEnabled) {
+            return;
+        }
+
+        if (settings.externalContentJustForFavs && !this.sender.isMe) {
+            await this.sender.ensureLoaded(); // need to make sure this contact is in fav list
+            if (!this.sender.isAdded) return;
+        }
+
+        urls = Array.from(new Set(urls)); // deduplicate
+        for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            if (unfurl.urlCache[url]) {
+                this._processUrlHeaders(url, unfurl.urlCache[url]);
+            } else {
+                this._queueUnfurl(url);
+            }
+        }
+    }
+
+    _queueUnfurl(url) {
+        Message.unfurlQueue.addTask(() => {
+            return unfurl.getContentHeaders(url).then(headers => this._processUrlHeaders(url, headers));
+        });
+    }
+
+    _processUrlHeaders(url, headers) {
+        if (!headers) return;
+
+        const type = headers['content-type'];
+        const length = +(headers['content-length'] || 0); // careful, +undefined is NaN
+
+        if (!config.chat.allowedInlineContentTypes[type]) return;
+
+        this.externalImages.push({
+            url,
+            length,
+            isOverInlineSizeLimit: clientApp.uiUserPrefs.limitInlineImageSize && length > config.chat.inlineImageSizeLimit,
+            isOversizeCutoff: length > config.chat.inlineImageSizeLimitCutoff
+        });
+    }
+
+    serializeKegPayload() {
+        this.userMentions = this.text ? _.uniq(this.db.participants.filter(u => this.text.match(u.mentionRegex)).map(u => u.username)) : [];
+        const ret = {
+            text: this.text,
+            timestamp: this.timestamp.valueOf(),
+            userMentions: this.userMentions
+        };
+        this._serializeFileAttachments(ret);
+        if (this.systemData) {
+            ret.systemData = this.systemData;
+        }
+        if (this.richText) {
+            ret.richText = this.richText;
+        }
+        return ret;
+    }
+
+    deserializeKegPayload(payload) {
+        /**
+         * @member {Contact} sender
+         * @public
+         */
+        this.sender = contactStore.getContact(this.owner);
+        /**
+         * @member {string} text
+         * @public
+         */
+        this.text = payload.text;
+
+        /**
+         * @member {Object=} richText
+         * @public
+         */
+        this.richText = payload.richText;
+
+        /**
+         * For system messages like chat rename fact.
+         * @member {Object} systemData
+         * @public
+         */
+        this.systemData = payload.systemData;
+        /**
+         * @member {Date} timestamp
+         * @public
+         */
+        this.timestamp = new Date(payload.timestamp);
+        this.userMentions = payload.userMentions;
+        /**
+         * @member {Array<string>} files
+         * @public
+         */
+        this.files = payload.files ? JSON.parse(payload.files) : null;
+        /**
+         * Does this message mention current user.
+         * @member {boolean} isMention
+         * @public
+         */
+        this.isMention = this.userMentions ? this.userMentions.includes(User.current.username) : false;
+    }
+
+    serializeProps() {
+        const ret = {};
+        this._serializeFileAttachments(ret);
+        if (this.systemData) ret.systemAction = this.systemData.action;
+        return ret;
+    }
+
+    _serializeFileAttachments(obj) {
+        if (this.files) obj.files = JSON.stringify(this.files);
+    }
+
+    deserializeProps() {
+        // files are in props only for search
+    }
+}, _class2.unfurlQueue = new TaskQueue(5), _temp), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'sending', [observable], {
+    enumerable: true,
+    initializer: function () {
+        return false;
+    }
+}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'sendError', [observable], {
+    enumerable: true,
+    initializer: function () {
+        return false;
+    }
+}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, 'receipts', [observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, 'userMentions', [_dec], {
+    enumerable: true,
+    initializer: function () {
+        return [];
+    }
+}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, 'firstOfTheDay', [observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'groupWithPrevious', [observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, 'externalImages', [observable], {
+    enumerable: true,
+    initializer: function () {
+        return [];
+    }
+}), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, 'hasUrls', [observable], {
+    enumerable: true,
+    initializer: function () {
+        return false;
+    }
+}), _applyDecoratedDescriptor(_class.prototype, 'dayFingerprint', [computed], Object.getOwnPropertyDescriptor(_class.prototype, 'dayFingerprint'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'messageTimestampText', [computed], Object.getOwnPropertyDescriptor(_class.prototype, 'messageTimestampText'), _class.prototype)), _class));
+
+
+module.exports = Message;
