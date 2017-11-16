@@ -1,9 +1,10 @@
 {
-  "name": "peerio-icebear",
+  "name": "@lostfictions/peerio-icebear",
   "version": "3.1.1",
   "description": "Peerio Icebear client library",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "babel -q src -d dist",
     "=== HOOKS ===": "",
     "postcheckout": "npm run opt-in-npm-install",
     "postmerge": "npm run opt-in-npm-install",
@@ -23,7 +24,7 @@
     "opt-in-npm-install": "opt --in npm-install --exec \"node ./scripts/npm_install_if_changed.js\""
   },
   "files": [
-    "src"
+    "dist"
   ],
   "repository": {
     "type": "git",
