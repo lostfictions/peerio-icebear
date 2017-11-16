@@ -1,5 +1,5 @@
 {
-  "name": "@lostfictions/peerio-icebear",
+  "name": "peerio-icebear",
   "version": "3.1.1",
   "description": "Peerio Icebear client library",
   "main": "dist/index.js",
@@ -9,7 +9,6 @@
     "postcheckout": "npm run opt-in-npm-install",
     "postmerge": "npm run opt-in-npm-install",
     "precommit": "opt --in lint --exec \"npm run code:verify\"",
-    "commitmsg": "validate-commit-msg",
     "=== TESTS ===": "",
     "mocha": "mocha test/**/*.test.js --require babel-register --require test/unit/unit-global-setup --timeout 15000",
     "test": "nyc --reporter=text --reporter=html npm run mocha",
